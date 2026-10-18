@@ -1,11 +1,13 @@
-# VeltOS system identity
+# VeltOS system identity and boot experience
 veltos-base
+veltos-boot
+plymouth
+plymouth-themes
 
-# Graphical installer used from the live session. The Debian settings
-# package is a stopgap until a VeltOS-branded calamares configuration exists
-# (Milestone 5); installation is not yet tested.
+# VeltOS installer (Calamares with VeltOS settings and branding).
 calamares
-calamares-settings-debian
+calamares-settings-veltos
+efibootmgr
 
 # Lets live-config generate the locale chosen on the boot menu (locales=...).
 locales

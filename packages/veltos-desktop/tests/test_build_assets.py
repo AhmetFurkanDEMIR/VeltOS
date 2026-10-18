@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import re
 import shutil
 import tempfile
 import unittest
@@ -74,16 +75,17 @@ class WallpaperTests(unittest.TestCase):
             self.assertGreaterEqual(x, 0)
             self.assertGreaterEqual(y, 0)
 
-    def test_templates_fill_every_token(self):
+    def test_generated_wallpaper_is_deterministic(self):
         for variant in build_assets.WALLPAPER_VARIANTS:
-            svg = build_assets.wallpaper_svg(variant)
-            self.assertNotRegex(svg, r"@[A-Z0-9_]+@")
+            first = build_assets.wallpaper_svg(variant)
+            self.assertEqual(first, build_assets.wallpaper_svg(variant))
+            self.assertIn(">VeltOS</text>", first)
 
     def test_viewbox_rewrite_keeps_namespaces(self):
         svg = build_assets.wallpaper_svg("images_dark")
         out = build_assets.svg_with_viewbox(svg, 2560, 1600)
         root = out[out.index("<svg"):out.index(">", out.index("<svg")) + 1]
-        self.assertIn('xmlns:xlink="http://www.w3.org/1999/xlink"', root)
+        self.assertIn('xmlns="http://www.w3.org/2000/svg"', root)
         self.assertIn('width="2560"', root)
         self.assertIn('height="1600"', root)
 
@@ -92,10 +94,34 @@ class LayoutScriptTests(unittest.TestCase):
     def test_centered_taskbar_widgets(self):
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
         order = [js.index(w) for w in (
-            '"org.kde.plasma.panelspacer"', '"org.kde.plasma.kickoff"',
+            '"org.kde.plasma.panelspacer"', '"org.veltos.startmenu"',
             '"org.kde.plasma.icontasks"', '"org.kde.plasma.systemtray"')]
         self.assertEqual(order, sorted(order))
         self.assertEqual(js.count('"org.kde.plasma.panelspacer"'), 2)
+
+
+class StartMenuTests(unittest.TestCase):
+    STARTMENU = PKG / "plasma/startmenu"
+
+    def test_metadata(self):
+        meta = json.loads((self.STARTMENU / "metadata.json").read_text(encoding="utf-8"))
+        self.assertEqual(meta["KPlugin"]["Id"], build_assets.STARTMENU_ID)
+        # Lets the Meta key open this menu.
+        self.assertIn("org.kde.plasma.launchermenu", meta["X-Plasma-Provides"])
+
+    def test_config_schema_is_xml(self):
+        import xml.etree.ElementTree as ET
+        ET.parse(self.STARTMENU / "contents/config/main.xml")
+
+    def test_every_ui_string_is_translated(self):
+        strings = set()
+        for qml in (self.STARTMENU / "contents/ui").glob("*.qml"):
+            strings |= set(re.findall(r'i18n\("((?:[^"\\]|\\.)*)"', qml.read_text(encoding="utf-8")))
+        self.assertTrue(strings)
+        for po in (self.STARTMENU / "translations").glob("*.po"):
+            msgids = set(re.findall(r'^msgid "(.+)"$', po.read_text(encoding="utf-8"), re.M))
+            self.assertEqual(sorted(strings - msgids), [], f"untranslated in {po.name}")
+            self.assertEqual(sorted(msgids - strings), [], f"stale strings in {po.name}")
 
 
 @unittest.skipUnless(shutil.which("rsvg-convert") and

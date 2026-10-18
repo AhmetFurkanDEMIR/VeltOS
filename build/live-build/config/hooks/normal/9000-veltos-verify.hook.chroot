@@ -12,13 +12,24 @@ installed() {
     dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
 }
 
-for pkg in veltos-base veltos-desktop kde-plasma-desktop sddm calamares \
+for pkg in veltos-base veltos-desktop veltos-boot veltos-fluent-icons \
+           calamares-settings-veltos veltos-winapps veltos-wine-addons wine32 \
+           kde-plasma-desktop sddm calamares plymouth \
            live-boot live-config qemu-guest-agent; do
     installed "$pkg" || fail "required package $pkg is not installed"
 done
 
-installed desktop-base && fail "desktop-base (Debian branding) must not be installed"
+# Third-party branding that must stay out of VeltOS.
+for pkg in desktop-base calamares-settings-debian plasma-welcome; do
+    installed "$pkg" && fail "$pkg must not be installed (non-VeltOS branding)"
+done
 
+# Packages that download non-redistributable firmware while the image is built.
+for pkg in firmware-b43-installer firmware-b43legacy-installer; do
+    installed "$pkg" && fail "$pkg must not be in the image (non-redistributable download)"
+done
+
+# System identity.
 for f in /usr/lib/os-release /etc/os-release; do
     id="$(. "$f" && echo "$ID")"
     [ "$id" = veltos ] || fail "$f has ID '$id', expected 'veltos'"
@@ -26,9 +37,29 @@ done
 dpkg-divert --list /usr/lib/os-release | grep -q veltos-base \
     || fail "/usr/lib/os-release is not diverted by veltos-base"
 
-[ -f /usr/share/plasma/look-and-feel/org.veltos.dark/metadata.json ] \
+# Desktop, boot splash and installer defaults.
+[ -f /usr/share/plasma/look-and-feel/org.veltos.light/metadata.json ] \
     || fail "VeltOS Plasma global theme missing"
-grep -q '^LookAndFeelPackage=org.veltos.dark$' /etc/xdg/kdeglobals \
+grep -q '^LookAndFeelPackage=org.veltos.light$' /etc/xdg/kdeglobals \
     || fail "kdeglobals does not select the VeltOS global theme"
+[ -f /usr/share/plasma/plasmoids/org.veltos.startmenu/metadata.json ] \
+    || fail "VeltOS Start menu missing"
+case "$(readlink -f /usr/share/plymouth/themes/default.plymouth)" in
+    */veltos/veltos.plymouth) ;;
+    *) fail "default Plymouth theme is not the VeltOS theme" ;;
+esac
+grep -q '^branding: veltos$' /etc/calamares/settings.conf \
+    || fail "installer does not use VeltOS branding"
+
+# Double-clicking a Windows program opens the VeltOS runner, and Wine finds
+# Mono/Gecko locally.
+grep -q '^application/x-ms-dos-executable=veltos-run.desktop$' /etc/xdg/mimeapps.list \
+    || fail ".exe files are not associated with veltos-run"
+[ -f /usr/share/wine/mono/wine-mono-9.4.0-x86.msi ] || fail "Wine Mono missing"
+
+# User-visible text audit: no launcher in the menus may mention Debian.
+debian_launchers="$(grep -l -i -E '^(Name|GenericName|Comment)(\[[^]]*\])?=.*debian' \
+    /usr/share/applications/*.desktop /etc/xdg/autostart/*.desktop 2>/dev/null || true)"
+[ -z "$debian_launchers" ] || fail "launchers mentioning Debian: $debian_launchers"
 
 echo "I: veltos-verify: all checks passed"

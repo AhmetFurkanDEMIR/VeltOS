@@ -1,0 +1,38 @@
+# VeltOS installer branding.
+---
+componentName:  veltos
+
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+
+windowExpanding: normal
+windowSize: 1024px,680px
+windowPlacement: center
+
+sidebar: widget
+navigation: widget
+
+strings:
+    productName:         VeltOS
+    shortProductName:    VeltOS
+    version:             0.1
+    shortVersion:        0.1
+    versionedName:       VeltOS 0.1
+    shortVersionedName:  VeltOS 0.1
+    # Used for the firmware boot entry name only if efiBootloaderId is unset
+    # (it is set; see modules/bootloader.conf).
+    bootloaderEntryName: VeltOS
+
+images:
+    productLogo:         "logo.png"
+    productIcon:         "logo.png"
+    productWelcome:      "welcome.png"
+
+slideshow:               "show.qml"
+slideshowAPI: 2
+
+style:
+   SidebarBackground:        "#0B1230"
+   SidebarText:              "#C9D4F5"
+   SidebarTextCurrent:       "#FFFFFF"
+   SidebarBackgroundCurrent: "#4F7CFF"

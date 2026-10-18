@@ -1,0 +1,9 @@
+calamares/settings.conf etc/calamares/
+calamares/branding etc/calamares/
+calamares/modules etc/calamares/
+build-assets/logo.png etc/calamares/branding/veltos/
+modules/* usr/lib/calamares/modules/
+helpers/* usr/libexec/veltos-installer/
+bin/* usr/bin/
+data/install-veltos.desktop usr/share/applications/
+data/veltos-install-icon.desktop etc/xdg/autostart/

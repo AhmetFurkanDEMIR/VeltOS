@@ -1,0 +1,10 @@
+{
+  "comment": "Windows programs used by tests/boot/winapps_vmtest.py. Redistributable, pinned by SHA-256 (digest published on the GitHub release).",
+  "7zip": {
+    "file": "7z2604-x64.exe",
+    "url": "https://github.com/ip7z/7zip/releases/download/26.04/7z2604-x64.exe",
+    "sha256": "d54bf805f9f3704d1e8db2fa3498ae7ef2df0312b40b558e7c71c734430a665d",
+    "license": "LGPL-2.1-or-later (7-Zip)",
+    "expect_shortcut": "7-Zip File Manager"
+  }
+}

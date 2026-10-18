@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+"""Open a Windows program (.exe or .msi) the VeltOS way."""
+import os
+import sys
+
+# Native Plasma look for the Qt Quick controls.
+os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
+
+from veltos_winapps.app import main
+
+sys.exit(main())

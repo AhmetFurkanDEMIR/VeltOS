@@ -1,0 +1,21 @@
+Source: veltos-fluent-icons
+Section: graphics
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+Homepage: https://github.com/vinceliuice/Fluent-icon-theme
+
+Package: veltos-fluent-icons
+Architecture: all
+Depends: breeze-icon-theme, ${misc:Depends}
+Description: Fluent icon and cursor themes for VeltOS
+ Clean, colourful icons in the style of Windows 11's Fluent design, by
+ Vince Liuice. Installs the "Fluent", "Fluent-light" and "Fluent-dark"
+ icon themes and the "Fluent-cursors"/"Fluent-dark-cursors" cursor themes.
+ Icons that Fluent does not provide fall back to Breeze, so KDE
+ applications never show missing icons.
+ .
+ Packaged by VeltOS from the pinned, checksum-verified upstream release
+ recorded in upstream.json.

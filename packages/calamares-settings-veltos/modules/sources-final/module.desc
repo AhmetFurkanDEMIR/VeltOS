@@ -1,0 +1,7 @@
+# VeltOS installer job: write the final APT sources
+---
+type:       "job"
+name:       "sources-final"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/sources-final"
+timeout:    600

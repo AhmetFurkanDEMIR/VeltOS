@@ -1,0 +1,7 @@
+# VeltOS installer job: use the install medium as a package source
+---
+type:       "job"
+name:       "sources-media"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/sources-media"
+timeout:    600

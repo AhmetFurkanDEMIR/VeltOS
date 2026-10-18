@@ -1,0 +1,41 @@
+#!/usr/bin/make -f
+
+ICONS = $(CURDIR)/debian/veltos-fluent-icons/usr/share/icons
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	test -f upstream/install.sh || (echo "upstream/ missing: run build/scripts/fetch-upstream.py" >&2; exit 1)
+
+override_dh_auto_install:
+	mkdir -p $(ICONS)
+	bash upstream/install.sh --dest $(ICONS) standard
+	# Fall back to Breeze (not only hicolor) for icons Fluent lacks.
+	sed -i 's/^Inherits=.*/Inherits=breeze-dark,hicolor/' $(ICONS)/Fluent-dark/index.theme
+	sed -i 's/^Inherits=.*/Inherits=breeze,hicolor/' $(ICONS)/Fluent/index.theme $(ICONS)/Fluent-light/index.theme
+	# Fluent cursors (Windows 11 style), prebuilt by upstream.
+	cp -a upstream/cursors/dist $(ICONS)/Fluent-cursors
+	cp -a upstream/cursors/dist-dark $(ICONS)/Fluent-dark-cursors
+	# Branding: the "start here"/distributor icons show the VeltOS logo, and
+	# icons drawn as the Microsoft Windows logo (upstream's Wine icons) are
+	# removed so Breeze's neutral icons are used instead.
+	find $(ICONS) -type f \( -name 'start-here.svg' -o -name 'start-here-symbolic.svg' \
+		-o -name 'distributor-logo.svg' -o -name 'distributor-logo-symbolic.svg' \) \
+		-exec cp branding/veltos-logo.svg {} \;
+	find $(ICONS) -type f \( -name 'wine.svg' -o -name 'wine-winecfg.svg' -o -name 'windows.svg' \) -delete
+	# Drop dangling symlinks (a few from upstream, plus links to removed files).
+	find $(ICONS) -xtype l -delete
+	# Icon caches are generated on the target system by dpkg triggers.
+	find $(ICONS) -name icon-theme.cache -delete
+
+# Checks on the installed tree (dh_auto_test runs before dh_auto_install).
+execute_after_dh_auto_install:
+	grep -q '^Inherits=breeze-dark,hicolor' $(ICONS)/Fluent-dark/index.theme
+	test -z "$$(find $(ICONS) -xtype l)"
+	for app in org.kde.dolphin firefox-esr org.kde.konsole systemsettings; do \
+		test -e $(ICONS)/Fluent/scalable/apps/$$app.svg || exit 1; done
+	test -f $(ICONS)/Fluent-cursors/index.theme
+	test -e $(ICONS)/Fluent-cursors/cursors/default
+	for f in $$(find -L $(ICONS)/Fluent-dark -name 'start-here.svg'); do cmp -s $$f branding/veltos-logo.svg || exit 1; done
+	test -z "$$(find -L $(ICONS) -name 'wine.svg')"

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name=""/>
+
+  <group name="General">
+    <entry name="icon" type="String">
+      <label>Icon of the start button in the taskbar.</label>
+      <default>veltos-logo</default>
+    </entry>
+    <entry name="favorites" type="StringList">
+      <label>Apps pinned to Start for new users (desktop file names or preferred:// URLs).</label>
+      <default>preferred://browser,org.kde.dolphin.desktop,systemsettings.desktop,org.kde.konsole.desktop,org.kde.kwrite.desktop,org.kde.gwenview.desktop,org.kde.okular.desktop,org.kde.ark.desktop,org.kde.spectacle.desktop,org.kde.plasma-systemmonitor.desktop,org.kde.kinfocenter.desktop</default>
+    </entry>
+    <entry name="favoritesPortedToKAstats" type="Bool">
+      <label>Whether the default pinned apps were copied into the activity statistics store.</label>
+      <default>false</default>
+    </entry>
+  </group>
+</kcfg>

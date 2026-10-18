@@ -1,0 +1,5 @@
+veltos-wine-addons (10.0~veltos1) trixie; urgency=medium
+
+  * Wine Mono 9.4.0 and Wine Gecko 2.47.4 for Wine 10.0.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 19 Oct 2026 00:00:00 +0000

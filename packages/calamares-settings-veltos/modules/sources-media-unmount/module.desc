@@ -1,0 +1,7 @@
+# VeltOS installer job: stop using the install medium
+---
+type:       "job"
+name:       "sources-media-unmount"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/sources-media -u"
+timeout:    600

@@ -1,0 +1,36 @@
+Source: calamares-settings-veltos
+Section: admin
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               librsvg2-bin,
+               python3,
+               python3-yaml
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: calamares-settings-veltos
+Architecture: all
+Depends: calamares (>= 3.3),
+         cryptsetup,
+         efibootmgr,
+         keyutils,
+         pkexec,
+         qml6-module-qtquick,
+         rsync,
+         veltos-desktop,
+         x11-xserver-utils,
+         xdg-user-dirs,
+         ${misc:Depends}
+Conflicts: calamares-settings-debian
+Replaces: calamares-settings-debian
+Description: VeltOS installer configuration and branding
+ Configures the Calamares installer used on the VeltOS live system:
+  * VeltOS branding, slideshow (English/Turkish) and "Install VeltOS"
+    desktop icon;
+  * UEFI installs with the Secure Boot chain (shim + signed GRUB) and
+    os-prober, so Windows appears in the boot menu of dual-boot systems;
+  * offline installation of bootloader packages from the install medium;
+  * APT sources for the installed system with all archive components.
+ .
+ Based on calamares-settings-debian by Jonathan Carter (ISC licence).

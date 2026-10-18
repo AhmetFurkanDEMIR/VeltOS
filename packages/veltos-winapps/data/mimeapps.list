@@ -1,0 +1,16 @@
+# VeltOS: double-clicking a Windows program opens the VeltOS runner.
+# Users can change this in System Settings > Default Applications or with
+# "Open With" in the file manager.
+[Default Applications]
+application/x-ms-dos-executable=veltos-run.desktop
+application/x-msdownload=veltos-run.desktop
+application/x-msi=veltos-run.desktop
+application/vnd.microsoft.portable-executable=veltos-run.desktop
+application/x-ms-ne-executable=veltos-run.desktop
+application/x-wine-extension-msp=veltos-run.desktop
+
+[Added Associations]
+application/x-ms-dos-executable=veltos-run.desktop;
+application/x-msdownload=veltos-run.desktop;
+application/x-msi=veltos-run.desktop;
+application/vnd.microsoft.portable-executable=veltos-run.desktop;

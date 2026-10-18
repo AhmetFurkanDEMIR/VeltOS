@@ -1,0 +1,16 @@
+#!/bin/sh
+# Start the VeltOS installer (Calamares) from the live session.
+# Based on calamares-install-debian (calamares-settings-debian, ISC licence).
+
+# live-build leaves an /etc/fstab that confuses partitioning; move it away
+# while the installer runs.
+sudo mv /etc/fstab /etc/fstab.orig.calamares 2>/dev/null
+
+# Calamares runs as root through pkexec; under Wayland it uses Xwayland and
+# needs permission to open a window there.
+xhost +si:localuser:root >/dev/null
+pkexec calamares
+xhost -si:localuser:root >/dev/null
+
+sudo mv /etc/fstab.orig.calamares /etc/fstab 2>/dev/null
+exit 0

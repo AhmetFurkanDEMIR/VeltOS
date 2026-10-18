@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+
+PKG = debian/calamares-settings-veltos
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	mkdir -p build-assets
+	rsvg-convert --width 256 --height 256 branding/veltos-logo.svg --output build-assets/logo.png
+
+override_dh_auto_test:
+	python3 -m unittest discover -s tests -v
+
+override_dh_auto_clean:
+	rm -rf build-assets
+
+execute_after_dh_fixperms:
+	chmod 755 $(PKG)/usr/bin/* $(PKG)/usr/libexec/veltos-installer/*
+	chmod 644 $(PKG)/usr/libexec/veltos-installer/common.sh

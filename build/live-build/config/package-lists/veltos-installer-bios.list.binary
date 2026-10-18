@@ -1,0 +1,5 @@
+# BIOS (legacy boot) bootloader packages for the ISO's package pool; see
+# veltos-installer-uefi.list.binary.
+grub-pc
+grub-pc-bin
+os-prober

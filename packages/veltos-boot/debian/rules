@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	python3 tools/build-assets.py --out build-assets
+
+override_dh_auto_test:
+	python3 -m unittest discover -s tests -v
+
+override_dh_auto_clean:
+	rm -rf build-assets

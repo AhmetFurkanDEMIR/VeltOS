@@ -3,6 +3,8 @@ Section: kde
 Priority: optional
 Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
 Build-Depends: debhelper-compat (= 13),
+               fonts-inter,
+               gettext,
                kde-style-breeze-data,
                librsvg2-bin,
                python3
@@ -11,11 +13,13 @@ Rules-Requires-Root: no
 
 Package: veltos-desktop
 Architecture: all
-Depends: breeze-cursor-theme,
-         breeze-icon-theme,
+Depends: breeze-icon-theme,
+         fonts-inter,
          kde-style-breeze,
          plasma-desktop (>= 4:6.3),
          plasma-workspace (>= 4:6.3),
+         qml6-module-org-kde-kirigamiaddons-components,
+         veltos-fluent-icons,
          ${misc:Depends}
 Recommends: fonts-noto-core,
             sddm,
@@ -26,6 +30,9 @@ Description: VeltOS desktop experience for KDE Plasma
  desktop:
   * "VeltOS Dark" (default) and "VeltOS Light" global themes with a
     centered, Windows 11 style taskbar layout for new users;
+  * VeltOS Start, a Windows 11 style start menu (search, pinned apps,
+    recommended files, account and power buttons);
+  * Fluent icons and cursors and the Inter UI font;
   * VeltOS colour schemes derived from KDE Breeze;
   * the "Velt Bloom" wallpaper (light and dark variants), login splash,
     lock screen and SDDM login background;

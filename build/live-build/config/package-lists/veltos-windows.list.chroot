@@ -1,0 +1,28 @@
+# Windows application support: veltos-winapps opens .exe/.msi files with a
+# double click. Underneath: Wine 10 (64-bit and 32-bit programs),
+# Direct3D 9-11 to Vulkan (DXVK), helper tools, and Wine Mono/Gecko for .NET
+# and embedded web content (veltos-wine-addons). The ":i386" packages make
+# live-build enable the i386 architecture; 32-bit Windows programs and games
+# also need the 32-bit Mesa graphics drivers.
+veltos-winapps
+wine
+wine64
+wine32:i386
+fonts-wine
+winetricks
+cabextract
+dxvk
+dxvk-wine64
+dxvk-wine32:i386
+veltos-wine-addons
+libgl1:i386
+libgl1-mesa-dri:i386
+mesa-vulkan-drivers:i386
+
+# Used by the VeltOS Windows app runner (veltos-winapps): reading program
+# names/icons from .exe files and its Qt Quick interface.
+python3-pefile
+python3-pil
+icoutils
+python3-pyside6.qtquick
+python3-pyside6.qtqml

@@ -17,6 +17,8 @@ import sys
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import bloom  # noqa: E402  (tools/bloom.py: procedural wallpaper)
 
 WALLPAPER_ID = "VeltOS"
 WALLPAPER_DIR = Path("usr/share/wallpapers") / WALLPAPER_ID
@@ -26,24 +28,11 @@ WALLPAPER_SIZES = [
     (1920, 1200), (2560, 1600),                             # 16:10
     (3440, 1440),                                           # 21:9
 ]
-LOGIN_WALLPAPER = "images_dark/3840x2160.png"
+LOGIN_WALLPAPER = "images/3840x2160.png"
 
 # Plasma picks contents/images_dark/ when the colour scheme is dark and
-# contents/images/ otherwise.
-WALLPAPER_VARIANTS = {
-    "images": {           # light
-        "BG_TOP": "#EEF3FF", "BG_BOTTOM": "#C7D8FF",
-        "GLOW": "#FFFFFF", "GLOW_OPACITY": "0.85",
-        "GLOW2": "#8FB2FF", "GLOW2_OPACITY": "0.35",
-        "SHADOW_OPACITY": "0.28", "CORE_OPACITY": "0.9",
-    },
-    "images_dark": {
-        "BG_TOP": "#050818", "BG_BOTTOM": "#0E1846",
-        "GLOW": "#3D63FF", "GLOW_OPACITY": "0.5",
-        "GLOW2": "#22D3EE", "GLOW2_OPACITY": "0.12",
-        "SHADOW_OPACITY": "0.6", "CORE_OPACITY": "0.75",
-    },
-}
+# contents/images/ otherwise. Values are tools/bloom.py palette names.
+WALLPAPER_VARIANTS = {"images": "light", "images_dark": "dark"}
 
 # Breeze accent colours -> VeltOS brand colours. Every source colour must be
 # found in the Breeze scheme, so a Breeze palette change fails the build
@@ -70,23 +59,33 @@ COLOR_SCHEMES = {
     },
 }
 
+STARTMENU_ID = "org.veltos.startmenu"
+
+# UI font for the whole desktop (Debian package fonts-inter). Qt font strings:
+# family, point size, pixel size, style hint, weight, italic, underline, ...
+UI_FONT = "Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+UI_FONT_SMALL = "Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+ICON_THEMES = {"dark": "Fluent-dark", "light": "Fluent"}
+CURSOR_THEME = "Fluent-cursors"  # white Windows-style pointer, both themes
+
 LOOK_AND_FEEL = {
     "org.veltos.dark": {
         "name": "VeltOS Dark",
         "description": "VeltOS default desktop: centered taskbar, dark theme",
         "color_scheme": "VeltOSDark",
-        "icons": "breeze-dark",
+        "icons": ICON_THEMES["dark"],
         "wallpaper_variant": "images_dark",
     },
     "org.veltos.light": {
         "name": "VeltOS Light",
         "description": "VeltOS desktop: centered taskbar, light theme",
         "color_scheme": "VeltOSLight",
-        "icons": "breeze",
+        "icons": ICON_THEMES["light"],
         "wallpaper_variant": "images",
     },
 }
-DEFAULT_LOOK_AND_FEEL = "org.veltos.dark"
+DEFAULT_LOOK_AND_FEEL = "org.veltos.light"
+
 
 
 def run(cmd):
@@ -179,7 +178,14 @@ def build_kdeglobals(scheme_groups, root):
     lnf = LOOK_AND_FEEL[DEFAULT_LOOK_AND_FEEL]
     groups = {g: dict(e) for g, e in scheme_groups.items()
               if g.startswith(("[Colors:", "[ColorEffects:", "[WM]"))}
-    groups["[General]"] = {"ColorScheme": lnf["color_scheme"]}
+    groups["[General]"] = {
+        "ColorScheme": lnf["color_scheme"],
+        "font": UI_FONT,
+        "menuFont": UI_FONT,
+        "toolBarFont": UI_FONT,
+        "smallestReadableFont": UI_FONT_SMALL,
+    }
+    groups["[WM]"]["activeFont"] = UI_FONT
     groups["[Icons]"] = {"Theme": lnf["icons"]}
     groups["[KDE]"] = {
         "LookAndFeelPackage": DEFAULT_LOOK_AND_FEEL,
@@ -229,14 +235,8 @@ def svg_with_viewbox(svg_text, width, height):
 
 
 def wallpaper_svg(variant):
-    """Fill the wallpaper template with one variant's palette."""
-    svg = (SRC / "artwork/wallpaper.svg.in").read_text(encoding="utf-8")
-    for token, value in WALLPAPER_VARIANTS[variant].items():
-        svg = svg.replace(f"@{token}@", value)
-    leftover = sorted(set(re.findall(r"@[A-Z0-9_]+@", svg)))
-    if leftover:
-        raise SystemExit(f"wallpaper.svg.in: unfilled tokens {leftover}")
-    return svg
+    """Generated wallpaper SVG for a contents/ directory name (see WALLPAPER_VARIANTS)."""
+    return bloom.wallpaper_svg(WALLPAPER_VARIANTS[variant], SRC / "artwork/veltos-logo.svg")
 
 
 def build_wallpaper(root, tmp_dir):
@@ -246,7 +246,7 @@ def build_wallpaper(root, tmp_dir):
         for w, h in WALLPAPER_SIZES:
             render_svg(svg_with_viewbox(svg, w, h), w, h,
                        base / "contents" / variant / f"{w}x{h}.png", tmp_dir)
-    render_svg(svg_with_viewbox(wallpaper_svg("images_dark"), 400, 250), 400, 250,
+    render_svg(svg_with_viewbox(wallpaper_svg("images"), 400, 250), 400, 250,
                base / "contents/screenshot.png", tmp_dir)
     metadata = {
         "KPlugin": {
@@ -273,7 +273,7 @@ def lnf_defaults(spec):
         "\n[plasmarc][Theme]\n"
         "name=default\n"
         "\n[kcminputrc][Mouse]\n"
-        "cursorTheme=breeze_cursors\n"
+        f"cursorTheme={CURSOR_THEME}\n"
         "\n[kwinrc][WindowSwitcher]\n"
         "LayoutName=org.kde.breeze.desktop\n"
         "\n[kwinrc][org.kde.kdecoration2]\n"
@@ -332,6 +332,9 @@ def build_static_config(root):
             "[Greeter][Wallpaper][org.kde.image][General]\n"
             f"Image={wallpaper_url}\n"
             f"PreviewImage={wallpaper_url}\n"),
+        "etc/xdg/kcminputrc": (
+            "[Mouse]\n"
+            f"cursorTheme={CURSOR_THEME}\n"),
         "etc/xdg/ksplashrc": (
             "[KSplash]\n"
             "Engine=KSplashQML\n"
@@ -340,7 +343,7 @@ def build_static_config(root):
         "usr/lib/sddm/sddm.conf.d/10-veltos.conf": (
             "[Theme]\n"
             "Current=breeze\n"
-            "CursorTheme=breeze_cursors\n"),
+            f"CursorTheme={CURSOR_THEME}\n"),
         # Read by the Breeze SDDM theme on top of its theme.conf.
         "usr/share/sddm/themes/breeze/theme.conf.user": (
             "[General]\n"
@@ -355,6 +358,18 @@ def build_static_config(root):
     icon_dir = root / "usr/share/icons/hicolor/scalable/apps"
     icon_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(SRC / "artwork/veltos-logo.svg", icon_dir / "veltos-logo.svg")
+
+
+def build_startmenu(root):
+    """Install the VeltOS Start plasmoid and compile its translations."""
+    src = SRC / "plasma/startmenu"
+    dest = root / "usr/share/plasma/plasmoids" / STARTMENU_ID
+    shutil.copytree(src, dest, ignore=shutil.ignore_patterns("translations"))
+    for po in sorted((src / "translations").glob("*.po")):
+        mo = (root / "usr/share/locale" / po.stem / "LC_MESSAGES" /
+              f"plasma_applet_{STARTMENU_ID}.mo")
+        mo.parent.mkdir(parents=True, exist_ok=True)
+        run(["msgfmt", "--check", "--output-file", str(mo), str(po)])
 
 
 def main(argv=None):
@@ -372,9 +387,10 @@ def main(argv=None):
     tmp_dir.mkdir()
 
     schemes = build_color_schemes(args.breeze_colors, root)
-    build_kdeglobals(schemes["VeltOSDark"], root)
+    build_kdeglobals(schemes[LOOK_AND_FEEL[DEFAULT_LOOK_AND_FEEL]["color_scheme"]], root)
     build_wallpaper(root, tmp_dir)
     build_look_and_feel(root, tmp_dir)
+    build_startmenu(root)
     build_static_config(root)
     shutil.rmtree(tmp_dir)
     return 0

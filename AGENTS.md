@@ -59,9 +59,18 @@ owner sets priorities; agents act as the engineering team.
 | `build/builder/Dockerfile` | Build/test container (Debian trixie, pinned by digest) |
 | `build/scripts/` | In-container scripts: package build, ISO build |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
-| `packages/veltos-base/` | Debian package: VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Debian package: Plasma global themes, centered taskbar layout, colour schemes, wallpaper, splash, SDDM/lock screen branding, logo |
-| `tests/boot/vmtest.py` | QEMU/KVM boot test with screenshots, checks and measurements |
+| `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
+| `packages/veltos-desktop/` | Plasma themes (Light default), Windows 11 style taskbar + VeltOS Start menu, colour schemes, generated wallpaper, splash, login/lock screen, master logo |
+| `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed) |
+| `packages/veltos-boot/` | Plymouth splash, GRUB theme, boot defaults |
+| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding |
+| `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi` → install/open via Wine |
+| `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
+| `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
+| `tests/boot/vmtest.py` | QEMU/KVM boot test with screenshots, checks and measurements (`build/run.sh test`) |
+| `tests/boot/vmpreview.py` | Dev aid: install fresh `.deb`s into a live VM and screenshot a scripted interaction (`build/run.sh preview`) |
+| `tests/boot/winapps_vmtest.py` | Installs a real Windows program through `veltos-run` in a VM (`build/run.sh test-winapps`) |
+| `tests/repo/` | Repository-wide checks (logo copies, line endings) |
 | `tests/results/` | Committed test evidence for milestones |
 | `docs/` | Architecture, build guide, testing, status, development log |
 | `out/` | Build outputs (ISO, logs, test runs) — git-ignored |
@@ -109,5 +118,30 @@ owner sets priorities; agents act as the engineering team.
   (`bootstrap_debootstrap`), so diverting `/usr/lib/os-release` alone is not
   enough; hook `8000-veltos-os-release` restores the symlink. Always check
   identity in the booted system, not only in the build chroot.
+- live-build's `--firmware-chroot true` also installs contrib
+  `firmware-b43*-installer` packages that download non-redistributable
+  firmware during the build. VeltOS uses an explicit firmware list
+  (`veltos-firmware.list.chroot`); the verify hook rejects the installers.
+- `*.list.binary` package lists need `apt-utils` (apt-ftparchive) in the
+  builder image.
+- Foreign-architecture packages (`wine32:i386`) in a `.list.chroot` make
+  live-build enable that architecture automatically.
+- On Windows, Python's `Path.write_text()` writes CRLF; make writes break.
+  Write bytes or use `newline="\n"`. `build-packages.sh` refuses CRLF
+  files and `tests/repo` checks the whole tree.
+- debhelper runs `dh_auto_test` *before* `dh_auto_install`; checks on the
+  installed tree belong in `execute_after_dh_auto_install`. `python3 -m
+  unittest` with zero tests exits non-zero (good: catches missing tests).
+- Debian version ordering: `10.0~repack-6` is *lower* than `10.0`. Use
+  `(>= 10.0~)` in dependencies.
+- Plasma 6.3 `Kicker.SystemModel` dereferences its favorites model
+  without a null check: create it only after `RootModel.refresh()` (see
+  `StartMenu.qml`). Found by `coredumpctl` in the VM; boot tests now fail
+  on any core dump.
+- Fluent icons draw `start-here*` and Wine icons as Microsoft's Windows
+  logo; `veltos-fluent-icons` replaces/removes them. Re-check after
+  updating upstream.
+- Debian's Wine does not download Wine Mono/Gecko; `veltos-wine-addons`
+  ships the exact versions Wine expects (see `dlls/appwiz.cpl/addons.c`).
 - Plasma applies the global theme's layout script only to users without
   existing Plasma configuration.

@@ -10,6 +10,9 @@ trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$OUT"
 rm -f "$OUT"/*.deb "$OUT"/*.buildinfo "$OUT"/*.changes
 
+echo "==> Repository consistency tests"
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s /src/tests/repo -v
+
 apt_updated=false
 for src in /src/packages/*/; do
     name="$(basename "$src")"
@@ -19,9 +22,21 @@ for src in /src/packages/*/; do
     tar -C "$src" --exclude=build-assets --exclude=__pycache__ -cf - . | tar -C "$WORK/$name" -xf -
     # Bind mounts from Windows report every file as executable, and debhelper
     # runs executable *.install files as dh-exec scripts. Normalise modes.
+    # CRLF line endings (e.g. from Windows editors) break make and shell.
+    if crlf="$(grep -rlI $'\r' "$WORK/$name")"; then
+        echo "error: CRLF line endings in:" >&2
+        echo "$crlf" >&2
+        exit 1
+    fi
     find "$WORK/$name" -type d -exec chmod 755 {} +
     find "$WORK/$name" -type f -exec chmod 644 {} +
     chmod 755 "$WORK/$name/debian/rules"
+
+    # Packages of third-party artwork pin an upstream release (upstream.json);
+    # it is downloaded, checksum-verified and unpacked into upstream/.
+    if [ -f "$WORK/$name/upstream.json" ]; then
+        python3 /src/build/scripts/fetch-upstream.py "$WORK/$name" "$WORK/$name/upstream"
+    fi
 
     cd "$WORK/$name"
     # e.g. "dpkg-checkbuilddeps: error: unmet build dependencies: foo (>= 1) | bar baz:native"

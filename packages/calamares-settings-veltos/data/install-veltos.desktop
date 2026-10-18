@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Install VeltOS
+Name[tr]=VeltOS'u Kur
+GenericName=System Installer
+GenericName[tr]=Sistem Kurulumu
+Comment=Install VeltOS on this computer
+Comment[tr]=VeltOS'u bu bilgisayara kurun
+Keywords=install;installer;setup;veltos;calamares;
+Keywords[tr]=kur;kurulum;yükle;veltos;
+Exec=install-veltos
+Icon=veltos-logo
+Terminal=false
+Categories=Qt;System;
+StartupWMClass=calamares
+StartupNotify=true

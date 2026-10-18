@@ -1,0 +1,22 @@
+Source: veltos-wine-addons
+Section: otherosfs
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+Homepage: https://gitlab.winehq.org/wine/wine/-/wikis/Wine-Mono
+
+Package: veltos-wine-addons
+Architecture: all
+Depends: wine (>= 10.0~), wine (<< 10.1~), ${misc:Depends}
+Description: Wine Mono and Wine Gecko for VeltOS
+ Wine needs Wine Mono to run .NET Framework programs and Wine Gecko to show
+ web content inside Windows programs. Debian's Wine disables the automatic
+ download of these components, so many programs would fail. This package
+ provides the exact versions Wine 10.0 expects (Mono 9.4.0, Gecko 2.47.4)
+ in /usr/share/wine/, where Wine installs them into each new Windows
+ environment without any download.
+ .
+ The installers are the official WineHQ builds, pinned by SHA-256 (the same
+ checksums Wine itself verifies).

@@ -62,21 +62,36 @@ lose Secure Boot signing and add a large maintenance burden.
 - Built from `kde-plasma-desktop` (minimal) plus a short application list,
   not `task-kde-desktop`, to keep RAM and disk use down.
 - **No fork.** `veltos-desktop` ships:
-  - global themes `org.veltos.dark` (default) and `org.veltos.light`;
+  - global themes `org.veltos.light` (**default**, soft like Windows 11) and
+    `org.veltos.dark`;
   - a Plasma layout script: bottom taskbar, start button and task manager
     centred between two flexible spacers, tray + clock on the right;
+  - **VeltOS Start** (`org.veltos.startmenu`), a QML applet with the
+    Windows 11 Start layout (search, pinned grid, recommended files,
+    account/power). It reuses Plasma's own models (`org.kde.plasma.private
+    .kicker`, the same backend as KDE Kickoff) instead of reimplementing
+    app indexing, search and session actions. Trade-off: that QML API is
+    private and may change between Plasma releases; the applet is small
+    and tested in a VM on every change (`build/run.sh preview`);
   - colour schemes derived from Breeze at package build time (only the accent
     colours change, so Breeze fixes flow in on rebuild);
-  - `/etc/xdg/kdeglobals`, `kscreenlockerrc`, `ksplashrc` system defaults;
-  - the "Velt Bloom" wallpaper (light + dark variants), login splash, SDDM
+  - `/etc/xdg/kdeglobals`, `kcminputrc`, `kscreenlockerrc`, `ksplashrc`
+    system defaults (Inter UI font, Fluent icons/cursors);
+  - the "Velt Bloom" wallpaper, generated procedurally (`tools/bloom.py`)
+    so it is original artwork and reproducible; login splash, SDDM
     background and the VeltOS logo.
-- Debian's `desktop-base` (Debian artwork) is pinned out of the image.
+- Icons: Fluent icon theme (GPL-3.0, not in Debian) packaged by VeltOS from
+  a pinned, checksum-verified release (`veltos-fluent-icons`). Its icons
+  that depict Microsoft's Windows logo are replaced/removed (trademark).
+- Third-party branding pinned out of the image: Debian's `desktop-base`,
+  `calamares-settings-debian`, and KDE's `plasma-welcome` (KDE community
+  pages; a VeltOS welcome app is planned).
 - The layout only applies to users who start Plasma for the first time; it
   never rewrites existing users' configuration.
 - Session: Wayland (Plasma 6 default). X11 session (`kwin-x11`) is installed
   via Recommends as a fallback.
-- Revisit: a custom launcher / settings application (prompt section 4.B)
-  only after the stock Plasma pieces are measured and found lacking.
+- Revisit: replacing more stock Plasma UI (System Settings, notifications)
+  only where it blocks the "familiar for Windows users" goal.
 
 ### 2.4 Graphics drivers
 
@@ -100,9 +115,22 @@ lose Secure Boot signing and add a large maintenance burden.
   loader is isolinux). One menu/theme for both firmware types; isolinux is
   effectively unmaintained upstream. Secure Boot via Debian's signed shim and
   GRUB (`--uefi-secure-boot enable`).
-- Installer: Calamares 3.3.14 with Debian's settings package as a stopgap.
-  A VeltOS-branded Calamares configuration and tested installs are
-  Milestone 5. Debian-installer is not included (keeps the ISO smaller).
+- Installer: Calamares 3.3.14 with VeltOS settings
+  (`calamares-settings-veltos`, derived from Debian's ISC-licensed
+  settings). Decisions:
+  - UEFI installs get `shim-signed` + `grub-efi-amd64-signed` so installed
+    systems boot with Secure Boot on;
+  - the EFI directory stays `\EFI\debian\` because Debian's signed GRUB
+    looks for its configuration there; only the firmware boot entry label
+    is changed to "VeltOS" (a new entry is created before the old one is
+    removed; anything unexpected leaves entries untouched);
+  - bootloader packages are in the ISO's package pool, so installs work
+    offline;
+  - `os-prober` is enabled so Windows stays bootable in dual-boot setups.
+  Debian-installer is not included (keeps the ISO smaller).
+- Boot splash: Plymouth `veltos` theme (`veltos-boot`): logo with a dot
+  spinner on near-black, like Windows; GRUB theme and `GRUB_DISTRIBUTOR=VeltOS`
+  on installed systems.
 - SquashFS: zstd level 15 instead of xz — slightly larger ISO but much faster
   decompression, which shortens live boot and application start-up.
 

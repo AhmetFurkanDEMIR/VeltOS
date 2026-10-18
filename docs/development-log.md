@@ -3,6 +3,59 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-19 — "VeltOS everywhere", Windows 11 UI, Windows programs
+
+### Product-owner feedback that drove this work
+
+- After installing the first ISO: "it is just Debian". Nothing may mention
+  Debian; installer, boot, menus, settings must all be VeltOS.
+- Interface quality like Windows 11: simple icons, a real Start menu,
+  soft visuals (a reference image: sky, misty lake, blue ribbon bloom,
+  two-blade "V" logo).
+- Double-click `.exe` support; automatic hardware support; the audience is
+  Windows users and gamers who should not have to learn anything.
+
+### Implemented
+
+- **VeltOS Start** (`org.veltos.startmenu`): Windows 11 style launcher on
+  Plasma's kicker models; English/Turkish. Verified in VM: open with Meta,
+  pinned grid, All apps, search, context menu.
+- **Crash found and fixed**: plasmashell segfaulted at login with the new
+  menu. `coredumpctl` + Debian debug symbols located it in Plasma 6.3's
+  `SystemModel::refresh()` (null `favoritesModel`); the menu now creates
+  that model only after the root model is populated. Boot tests now fail
+  on any core dump.
+- **Fluent icons/cursors** (`veltos-fluent-icons`) from a pinned,
+  checksum-verified release; found that upstream draws `start-here*` and
+  Wine icons as Microsoft's Windows logo → replaced with the VeltOS logo /
+  removed. Inter as UI font.
+- **New visual identity**: two-blade "V" logo; procedurally generated
+  "Velt Bloom" wallpaper (sky, sunrise glow, misty hills, lake, layered
+  blue petals with radial shading and soft shadows, logo + name); light
+  and dark variants. VeltOS Light is now the default theme.
+- **VeltOS installer** (`calamares-settings-veltos`), **boot splash and
+  GRUB theme** (`veltos-boot`); KDE Welcome Center removed from the image.
+- **Windows programs**: `veltos-winapps` (`veltos-run`, default handler
+  for `.exe`/`.msi`), `veltos-wine-addons` (Wine Mono 9.4.0 / Gecko 2.47.4,
+  SHA-256 pinned to the values in Wine's source), Wine 10 with 32-bit
+  support and DXVK in the image.
+- Firmware: explicit redistributable list instead of live-build's
+  automatic one, which had built non-redistributable Broadcom firmware
+  downloads (`firmware-b43*-installer`) into the earlier ISOs. Those ISOs
+  were only used for local testing.
+- Tooling: `build/run.sh preview` (install fresh packages into a live VM
+  and screenshot a scripted interaction), `build/run.sh test-winapps`,
+  `fetch-upstream.py` (pinned + verified third-party downloads),
+  repository consistency tests (logo copies, CRLF).
+
+### Problems hit (and fixed)
+
+- CRLF files written by Python on Windows broke `debian/rules`.
+- `dh_auto_test` runs before `dh_auto_install` (checks moved).
+- Debian version ordering with `~` (`10.0~repack-6` < `10.0`).
+- `.list.binary` needs `apt-utils` on the build host, and BIOS/UEFI GRUB
+  packages must be in separate lists (they conflict).
+
 ## 2026-10-18 — Milestones 0 and 1 started
 
 ### Environment inspection (developer host)

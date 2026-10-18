@@ -1,8 +1,16 @@
-# Keep Debian's artwork out of the image: desktop-base installs Debian
-# wallpapers, a Plasma global theme, GRUB and Plymouth themes that compete
-# with VeltOS branding. It only arrives through sddm's Recommends on
-# sddm-theme-debian-breeze, which sddm-theme-breeze satisfies instead.
-# If a hard dependency ever requires it, the build fails and shows why.
-Package: desktop-base sddm-theme-debian-*
+# Keep Debian's and KDE's own branding out of the image:
+#  * desktop-base installs Debian wallpapers, a Plasma global theme and
+#    GRUB/Plymouth themes; it arrives only through sddm's Recommends on
+#    sddm-theme-debian-breeze, which sddm-theme-breeze satisfies instead;
+#  * calamares-settings-debian is replaced by calamares-settings-veltos;
+#  * plasma-welcome shows KDE community pages on first login (a VeltOS
+#    welcome app is planned).
+# If a hard dependency ever requires one of them, the build fails and shows why.
+Package: desktop-base sddm-theme-debian-* calamares-settings-debian plasma-welcome
+Pin: release a=*
+Pin-Priority: -1
+
+# Never build downloads of non-redistributable firmware into the image.
+Package: firmware-b43-installer firmware-b43legacy-installer
 Pin: release a=*
 Pin-Priority: -1

@@ -1,0 +1,25 @@
+{
+  "name": "wine-addons",
+  "version": "wine-10.0",
+  "comment": "Versions and SHA-256 sums are the ones hard-coded in Wine 10.0, dlls/appwiz.cpl/addons.c (GECKO_VERSION/GECKO_SHA, MONO_VERSION/MONO_SHA).",
+  "files": [
+    {
+      "name": "wine-mono-9.4.0-x86.msi",
+      "url": "https://dl.winehq.org/wine/wine-mono/9.4.0/wine-mono-9.4.0-x86.msi",
+      "sha256": "cf6173ae94b79e9de13d9a74cdb2560a886fc3d271f9489acb1cfdbd961cacb2",
+      "license": "GPL-2.0-or-later AND LGPL-2.1-or-later AND MIT (Mono, .NET runtime components)"
+    },
+    {
+      "name": "wine-gecko-2.47.4-x86.msi",
+      "url": "https://dl.winehq.org/wine/wine-gecko/2.47.4/wine-gecko-2.47.4-x86.msi",
+      "sha256": "26cecc47706b091908f7f814bddb074c61beb8063318e9efc5a7f789857793d6",
+      "license": "MPL-2.0"
+    },
+    {
+      "name": "wine-gecko-2.47.4-x86_64.msi",
+      "url": "https://dl.winehq.org/wine/wine-gecko/2.47.4/wine-gecko-2.47.4-x86_64.msi",
+      "sha256": "e590b7d988a32d6aa4cf1d8aa3aa3d33766fdd4cf4c89c2dcc2095ecb28d066f",
+      "license": "MPL-2.0"
+    }
+  ]
+}
