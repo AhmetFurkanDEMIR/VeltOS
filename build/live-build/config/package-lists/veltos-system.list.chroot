@@ -1,0 +1,16 @@
+# VeltOS system identity
+veltos-base
+
+# Graphical installer used from the live session. The Debian settings
+# package is a stopgap until a VeltOS-branded calamares configuration exists
+# (Milestone 5); installation is not yet tested.
+calamares
+calamares-settings-debian
+
+# Lets live-config generate the locale chosen on the boot menu (locales=...).
+locales
+
+# VM integration: lets hypervisors (and the VeltOS boot test) talk to the
+# guest. The service only starts when the virtio "org.qemu.guest_agent.0"
+# port exists, i.e. inside a QEMU/KVM VM configured for it.
+qemu-guest-agent

@@ -1,0 +1,34 @@
+#!/bin/sh
+# Build-time assertions, run inside the finished chroot. Any failure here
+# fails the ISO build instead of producing a silently wrong image.
+set -e
+
+fail() {
+    echo "E: veltos-verify: $*" >&2
+    exit 1
+}
+
+installed() {
+    dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
+}
+
+for pkg in veltos-base veltos-desktop kde-plasma-desktop sddm calamares \
+           live-boot live-config qemu-guest-agent; do
+    installed "$pkg" || fail "required package $pkg is not installed"
+done
+
+installed desktop-base && fail "desktop-base (Debian branding) must not be installed"
+
+for f in /usr/lib/os-release /etc/os-release; do
+    id="$(. "$f" && echo "$ID")"
+    [ "$id" = veltos ] || fail "$f has ID '$id', expected 'veltos'"
+done
+dpkg-divert --list /usr/lib/os-release | grep -q veltos-base \
+    || fail "/usr/lib/os-release is not diverted by veltos-base"
+
+[ -f /usr/share/plasma/look-and-feel/org.veltos.dark/metadata.json ] \
+    || fail "VeltOS Plasma global theme missing"
+grep -q '^LookAndFeelPackage=org.veltos.dark$' /etc/xdg/kdeglobals \
+    || fail "kdeglobals does not select the VeltOS global theme"
+
+echo "I: veltos-verify: all checks passed"

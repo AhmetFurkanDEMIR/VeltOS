@@ -1,0 +1,29 @@
+# Hardware detection and diagnostics tools. They are the data sources for the
+# planned Velt Hardware Manager (Milestone 2) and are useful on the live ISO
+# for troubleshooting today. Firmware packages are added by
+# `--firmware-chroot true` (see auto/config).
+pciutils
+usbutils
+lshw
+dmidecode
+inxi
+hwinfo
+smartmontools
+nvme-cli
+lm-sensors
+mokutil
+mesa-utils
+vulkan-tools
+vainfo
+
+# Open graphics stack: AMD (radeonsi/RADV), Intel (iris/ANV), NVIDIA via
+# nouveau/NVK. Proprietary NVIDIA drivers are not preinstalled; see
+# docs/architecture.md, "Graphics drivers".
+libgl1-mesa-dri
+mesa-vulkan-drivers
+mesa-va-drivers
+intel-media-va-driver
+
+# CPU microcode updates (non-free-firmware)
+intel-microcode
+amd64-microcode

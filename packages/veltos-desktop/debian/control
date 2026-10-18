@@ -1,0 +1,34 @@
+Source: veltos-desktop
+Section: kde
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               kde-style-breeze-data,
+               librsvg2-bin,
+               python3
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-desktop
+Architecture: all
+Depends: breeze-cursor-theme,
+         breeze-icon-theme,
+         kde-style-breeze,
+         plasma-desktop (>= 4:6.3),
+         plasma-workspace (>= 4:6.3),
+         ${misc:Depends}
+Recommends: fonts-noto-core,
+            sddm,
+            sddm-theme-breeze,
+            veltos-base
+Description: VeltOS desktop experience for KDE Plasma
+ System-wide defaults that turn a stock KDE Plasma 6 session into the VeltOS
+ desktop:
+  * "VeltOS Dark" (default) and "VeltOS Light" global themes with a
+    centered, Windows 11 style taskbar layout for new users;
+  * VeltOS colour schemes derived from KDE Breeze;
+  * the "Velt Bloom" wallpaper (light and dark variants), login splash,
+    lock screen and SDDM login background;
+  * the VeltOS logo, used for the application launcher button.
+ .
+ Existing users' Plasma configuration is not modified.

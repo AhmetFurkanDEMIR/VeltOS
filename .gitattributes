@@ -1,0 +1,8 @@
+# Everything in this repo is consumed by Linux tooling (live-build, dpkg,
+# shell scripts), so force LF line endings even on Windows checkouts.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.iso binary
+*.deb binary

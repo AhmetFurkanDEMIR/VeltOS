@@ -1,0 +1,48 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: veltos-desktop
+Source: VeltOS project repository
+
+Files: *
+Copyright: 2026 VeltOS Developers
+License: GPL-3+
+
+Files: artwork/*
+Copyright: 2026 VeltOS Developers
+License: CC-BY-SA-4.0
+ This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+ International License. To view a copy of this license, visit
+ https://creativecommons.org/licenses/by-sa/4.0/
+ .
+ The VeltOS name and logo identify the project; the license covers the
+ artwork files, not use of the name as a trademark.
+
+Files: build-assets/root/usr/share/color-schemes/*
+Copyright: Andrew Lake <jamboarder@gmail.com>
+           Marco Martin <notmart@gmail.com>
+           Nate Graham <nate@kde.org>
+           Noah Davis <noahadvs@gmail.com>
+           Neal Gompa <ngompa@kde.org>
+           David Redondo <kde@david-redondo.de>
+           Thomas Duckworth <tduck973564@gmail.com>
+           2026 VeltOS Developers
+License: LGPL-2+
+Comment: Generated at build time from KDE Breeze colour schemes
+ (kde-style-breeze-data) with the accent colours replaced.
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 3 can be found in "/usr/share/common-licenses/GPL-3".
+
+License: LGPL-2+
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Library General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or (at your
+ option) any later version.
+ .
+ On Debian systems, the complete text of the GNU Library General Public
+ License version 2 can be found in "/usr/share/common-licenses/LGPL-2".
