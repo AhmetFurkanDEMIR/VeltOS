@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+    dpkg-divert --package veltos-base --add --rename \
+        --divert /usr/lib/os-release.debian /usr/lib/os-release
+fi
+
+#DEBHELPER#

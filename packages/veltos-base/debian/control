@@ -1,0 +1,19 @@
+Source: veltos-base
+Section: misc
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13), python3
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-base
+Architecture: all
+Depends: base-files (>= 13), ${misc:Depends}
+Description: VeltOS base system identity
+ Identifies the system as VeltOS, a Debian-based desktop distribution, by
+ providing /usr/lib/os-release. The Debian file is kept as a dpkg
+ diversion (/usr/lib/os-release.debian) and restored when this package is
+ removed.
+ .
+ VERSION_CODENAME stays at the Debian codename so that third-party
+ repositories which key off it (Steam, NVIDIA, WineHQ) keep working.

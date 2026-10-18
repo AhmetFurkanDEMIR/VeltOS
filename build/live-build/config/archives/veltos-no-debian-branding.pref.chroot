@@ -1,0 +1,8 @@
+# Keep Debian's artwork out of the image: desktop-base installs Debian
+# wallpapers, a Plasma global theme, GRUB and Plymouth themes that compete
+# with VeltOS branding. It only arrives through sddm's Recommends on
+# sddm-theme-debian-breeze, which sddm-theme-breeze satisfies instead.
+# If a hard dependency ever requires it, the build fails and shows why.
+Package: desktop-base sddm-theme-debian-*
+Pin: release a=*
+Pin-Priority: -1

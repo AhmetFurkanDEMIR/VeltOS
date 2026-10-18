@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "iso": "veltos-0.1.0-dev-amd64.hybrid.iso",
+    "iso_sha256": "e72f66dcbc69ecaba7c8a5b7c3160b9d37359a0d0c19f372258b0ad6612065a7",
+    "firmware": "uefi",
+    "vm": "QEMU/KVM q35, 4 vCPU (host CPU model), 4096 MiB RAM, virtio-vga 1920x1080 (no 3D acceleration), virtio-net",
+    "qemu": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)",
+    "started_utc": "20261018-210255",
+    "duration_s": 91.3
+  },
+  "checks": [
+    {
+      "name": "guest agent reachable (system booted)",
+      "status": "PASS",
+      "detail": "after 16.5s"
+    },
+    {
+      "name": "os-release identifies VeltOS",
+      "status": "PASS",
+      "detail": "PRETTY_NAME=\"VeltOS 0.1 (pre-alpha)\"; NAME=\"VeltOS\"; VERSION_ID=\"0.1\"; VERSION=\"0.1 (pre-alpha)\"; VERSION_CODENAME=trixie; ID=veltos; ID_LIKE=debian; ANSI_COLOR=\"38;2;79;124;255\"; LOGO=veltos-logo;"
+    },
+    {
+      "name": "VeltOS packages installed",
+      "status": "PASS",
+      "detail": "linux-image-amd64 6.12.113-1\nplasma-workspace 4:6.3.6-2\nveltos-base 0.1.0~dev1\nveltos-desktop 0.1.0~dev1"
+    },
+    {
+      "name": "plasmashell running for live user",
+      "status": "PASS",
+      "detail": "after 25.1s"
+    },
+    {
+      "name": "graphical session is Wayland",
+      "status": "PASS",
+      "detail": "Name=velt; Type=wayland; State=active; Name=velt; Type=unspecified; State=active;"
+    },
+    {
+      "name": "no failed systemd units",
+      "status": "PASS",
+      "detail": "running"
+    },
+    {
+      "name": "VeltOS taskbar layout applied",
+      "status": "PASS",
+      "detail": "2 panel spacers, icon tasks, VeltOS launcher icon"
+    },
+    {
+      "name": "VeltOS wallpaper set",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "taskbar launcher .desktop files exist",
+      "status": "PASS",
+      "detail": "ok org.kde.dolphin\nok firefox-esr\nok org.kde.konsole\nok systemsettings"
+    },
+    {
+      "name": "booted via UEFI",
+      "status": "PASS",
+      "detail": "efi"
+    }
+  ],
+  "measurements": {
+    "guest_agent_ready_s": 16.5,
+    "os-release": "PRETTY_NAME=\"VeltOS 0.1 (pre-alpha)\"\nNAME=\"VeltOS\"\nVERSION_ID=\"0.1\"\nVERSION=\"0.1 (pre-alpha)\"\nVERSION_CODENAME=trixie\nID=veltos\nID_LIKE=debian\nANSI_COLOR=\"38;2;79;124;255\"\nLOGO=veltos-logo\n",
+    "key_packages": "linux-image-amd64 6.12.113-1\nplasma-workspace 4:6.3.6-2\nveltos-base 0.1.0~dev1\nveltos-desktop 0.1.0~dev1\n",
+    "plasmashell_running_s": 25.1,
+    "sessions": "Name=velt\nType=wayland\nState=active\nName=velt\nType=unspecified\nState=active\n",
+    "journal_errors_tail": "[    4.897582] veltos adduser[817]: The group `powerdev' does not exist.\n[    4.927286] veltos adduser[819]: The group `scanner' does not exist.\n[    5.020246] veltos adduser[828]: The group `debian-tor' does not exist.\n[   17.749003] veltos obexd[1772]: Unable to acquire registry: Error calling StartServiceByName for org.gnome.evolution.dataserver.Sources5: Unit evolution-source-registry.service not found.\n[   17.750571] veltos obexd[1772]: Unable to acquire registry: Error calling StartServiceByName for org.gnome.evolution.dataserver.Sources5: Unit evolution-source-registry.service not found.\n",
+    "systemd_analyze": "Startup finished in 2.545s (kernel) + 4.532s (userspace) = 7.078s",
+    "free_m": "               total        used        free      shared  buff/cache   available\nMem:            3915        1696         436         194        2207        2219\nSwap:              0           0           0\n",
+    "idle_used_mib(MemTotal-MemAvailable)": 1696,
+    "shmem_mib(live overlay tmpfs etc.)": 194,
+    "top_processes_by_rss": "  571.2 MiB  plasmashell\n  332.5 MiB  plasma-welcome\n  294.8 MiB  kwin_wayland\n  241.2 MiB  DiscoverNotifie\n  149.2 MiB  kded6\n  148.0 MiB  xwaylandvideobr\n  144.6 MiB  kdeconnectd\n  129.5 MiB  polkit-kde-auth\n  129.2 MiB  xdg-desktop-por\n  121.6 MiB  kaccess\n  121.2 MiB  ksmserver\n   80.6 MiB  Xwayland\n   56.1 MiB  org_kde_powerde\n   46.1 MiB  startplasma-way\n   41.7 MiB  kactivitymanage\n",
+    "process_count": "177",
+    "kernel_and_gpu": "6.12.113+deb13-amd64\n00:02.0 VGA compatible controller: Red Hat, Inc. Virtio 1.0 GPU (rev 01)\n\tSubsystem: Red Hat, Inc. QEMU\n\tKernel driver in use: virtio-pci\n"
+  },
+  "artifacts": {
+    "boot menu": "01-boot-menu.png",
+    "desktop": "02-desktop.png"
+  },
+  "result": "PASS"
+}

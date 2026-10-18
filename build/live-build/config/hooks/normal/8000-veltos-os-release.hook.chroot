@@ -1,0 +1,13 @@
+#!/bin/sh
+# Restore Debian's normal /etc/os-release layout: a symlink to
+# /usr/lib/os-release, which veltos-base provides.
+#
+# live-build's bootstrap stage replaces the symlink with a *copy* of the
+# Debian os-release (plus IMAGE_ID=live/BUILD_ID) and diverts it so that
+# base-files cannot restore it. That copy would keep saying "Debian" in the
+# live session and on systems installed from it. live-build removes its
+# diversion after the hooks (chroot_hacks) without touching the file, so the
+# symlink created here is what ships.
+set -e
+
+ln -sf ../usr/lib/os-release /etc/os-release
