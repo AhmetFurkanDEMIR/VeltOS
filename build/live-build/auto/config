@@ -22,7 +22,7 @@ lb config noauto \
 	--binary-images iso-hybrid \
 	--bootloaders "grub-pc,grub-efi" \
 	--uefi-secure-boot enable \
-	--firmware-chroot true \
+	--firmware-chroot false \
 	--firmware-binary false \
 	--chroot-squashfs-compression-type zstd \
 	--chroot-squashfs-compression-level 15 \

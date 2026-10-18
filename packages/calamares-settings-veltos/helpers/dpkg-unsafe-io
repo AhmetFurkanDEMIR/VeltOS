@@ -1,0 +1,12 @@
+#!/bin/sh
+# Speed up package operations during installation; "-u" undoes it.
+set -e
+. /usr/libexec/veltos-installer/common.sh
+
+conf="$CHROOT/etc/dpkg/dpkg.cfg.d/veltos-installer-unsafe-io"
+if [ "${1:-}" = "-u" ]; then
+    rm -f "$conf"
+    sync
+else
+    echo "force-unsafe-io" > "$conf"
+fi

@@ -2,68 +2,43 @@
 <!--
   VeltOS boot menu background (rendered to 800x600 by live-build).
   SPDX-License-Identifier: CC-BY-SA-4.0
-  The bloom reuses the petals of packages/veltos-desktop/artwork.
-  live-build fills the @VERSION@, @DISTRIBUTION@ and date placeholders.
-  The lower half is left free for the GRUB menu (theme.txt).
+  The logo is packages/veltos-desktop/artwork/veltos-logo.svg (keep in sync;
+  tests/repo/test_consistency.py checks it). live-build fills @VERSION@,
+  @DISTRIBUTION@ and the date. The lower half is left free for the menu.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="800" height="600" viewBox="0 0 800 600">
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#050818"/>
-      <stop offset="1" stop-color="#0E1846"/>
+      <stop offset="0" stop-color="#060A1E"/>
+      <stop offset="1" stop-color="#0E1A4A"/>
     </linearGradient>
-    <radialGradient id="glow" cx="400" cy="170" r="380" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#3D63FF" stop-opacity="0.45"/>
-      <stop offset="1" stop-color="#3D63FF" stop-opacity="0"/>
+    <radialGradient id="glow" cx="400" cy="150" r="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3D6CFF" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#3D6CFF" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="blue-lit" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#3047D9"/>
-      <stop offset="0.55" stop-color="#4F7CFF"/>
-      <stop offset="1" stop-color="#B4D2FF"/>
-    </linearGradient>
-    <linearGradient id="blue-shade" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#1E2A9E"/>
-      <stop offset="0.55" stop-color="#3654D6"/>
-      <stop offset="1" stop-color="#7FA6FF"/>
-    </linearGradient>
-    <linearGradient id="cyan-lit" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#2856D6"/>
-      <stop offset="0.55" stop-color="#2FA8F0"/>
-      <stop offset="1" stop-color="#B5F1FF"/>
-    </linearGradient>
-    <linearGradient id="cyan-shade" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#1C2F9C"/>
-      <stop offset="0.55" stop-color="#2477CC"/>
-      <stop offset="1" stop-color="#6FD3F5"/>
-    </linearGradient>
-    <g id="petal-blue">
-      <path d="M 0 0 C -160 -330, -225 -800, 0 -1150 C 55 -800, 45 -400, 0 0 Z" fill="url(#blue-lit)"/>
-      <path d="M 0 0 C 45 -400, 55 -800, 0 -1150 C 225 -800, 160 -330, 0 0 Z" fill="url(#blue-shade)"/>
-    </g>
-    <g id="petal-cyan">
-      <path d="M 0 0 C -160 -330, -225 -800, 0 -1150 C 55 -800, 45 -400, 0 0 Z" fill="url(#cyan-lit)"/>
-      <path d="M 0 0 C 45 -400, 55 -800, 0 -1150 C 225 -800, 160 -330, 0 0 Z" fill="url(#cyan-shade)"/>
-    </g>
   </defs>
-
   <rect width="800" height="600" fill="url(#bg)"/>
   <rect width="800" height="600" fill="url(#glow)"/>
-
-  <g transform="translate(400 176) scale(0.088)">
-    <use xlink:href="#petal-cyan" transform="rotate(-60) scale(0.8)" opacity="0.3"/>
-    <use xlink:href="#petal-blue" transform="rotate(60) scale(0.8)" opacity="0.3"/>
-    <use xlink:href="#petal-blue" transform="rotate(-41) scale(0.92)" opacity="0.62"/>
-    <use xlink:href="#petal-cyan" transform="rotate(41) scale(0.92)" opacity="0.62"/>
-    <use xlink:href="#petal-blue" transform="rotate(-21)"/>
-    <use xlink:href="#petal-cyan" transform="rotate(21)"/>
-  </g>
-
-  <text x="400" y="232" text-anchor="middle" font-family="DejaVu Sans" font-size="40"
-        font-weight="bold" fill="#FFFFFF" letter-spacing="1">VeltOS</text>
-  <text x="400" y="262" text-anchor="middle" font-family="DejaVu Sans" font-size="16"
-        fill="#9FB4E8">Your PC. No Limits.</text>
-
-  <text x="790" y="590" text-anchor="end" font-family="DejaVu Sans" font-size="11"
-        fill="#56628C">VeltOS @VERSION@ · Debian @DISTRIBUTION@ base · built @YEAR@-@MONTH@-@DAY@</text>
+  <g transform="translate(355 78) scale(1.40625)">
+  <defs>
+    <linearGradient id="blade-back" x1="10" y1="8" x2="34" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2F55E8"/>
+      <stop offset="1" stop-color="#1433B8"/>
+    </linearGradient>
+    <linearGradient id="blade-front" x1="54" y1="8" x2="31" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#86CCFF"/>
+      <stop offset="0.5" stop-color="#4392FF"/>
+      <stop offset="1" stop-color="#2459F0"/>
+    </linearGradient>
+  </defs>
+  <!-- back blade: A(6,9) B(21,9) E(35.8,49) T(32,57.8) -->
+  <path d="M 8 9 L 19.4 9 Q 21 9 21.6 10.5 L 35.8 49 L 32.4 57.2 Q 31.8 58.4 31.2 57.2 L 6.4 11.6 Q 5.4 9 8 9 Z"
+        fill="url(#blade-back)"/>
+  <!-- front blade: C(43.5,9) D(58,9) T(32,57.8) F(29.2,50.5) -->
+  <path d="M 45.1 9 L 56 9 Q 58.6 9 57.6 11.6 L 32.8 57.2 Q 32 58.6 31.3 57.2 L 29.2 50.5 L 43.4 10.6 Q 43.9 9 45.1 9 Z"
+        fill="url(#blade-front)"/>
+</g>
+  <text x="400" y="222" text-anchor="middle" font-family="Inter" font-size="40" font-weight="600" fill="#FFFFFF">VeltOS</text>
+  <text x="400" y="252" text-anchor="middle" font-family="Inter" font-size="16" fill="#9FB4E8">Your PC. No Limits.</text>
+  <text x="790" y="590" text-anchor="end" font-family="Inter" font-size="11" fill="#56628C">VeltOS @VERSION@ · built @YEAR@-@MONTH@-@DAY@</text>
 </svg>

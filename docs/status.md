@@ -23,6 +23,19 @@ shows it working. "Untested" means nobody has observed it working yet.
 | Plasma shell running (from VM start) | 25.1 s |
 | Idle RAM, live session, 60 s after login (`MemTotal-MemAvailable`) | 1696 MiB (incl. KDE Welcome Center window) |
 
+## Update 2026-10-19 (latest ISO: 3.48 GB, built 2026-10-18T22:36Z)
+
+Verified on this ISO: build + verify hook (VeltOS installer branding,
+Plymouth theme, Start menu, `.exe` association, Wine Mono present, no
+Debian launchers, no firmware downloaders); UEFI boot test: all checks
+pass, **no crashed processes**. VeltOS Start verified earlier via
+`build/run.sh preview` (menu, All apps, search, context menu).
+
+**Not yet run on this ISO:** `build/run.sh test-winapps` (7-Zip install via
+`veltos-run`), Calamares install into a VM disk (`build/run.sh vm ...`),
+BIOS and Secure Boot boot tests, screenshots of the new boot splash and
+installer. These are the next steps.
+
 ## In progress — "VeltOS everywhere" and Windows 11 UI (product-owner priority)
 
 The product owner installed the first ISO and found Debian/KDE identity

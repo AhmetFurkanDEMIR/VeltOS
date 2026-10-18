@@ -1,0 +1,24 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Authors": [
+      {
+        "Name": "VeltOS Project"
+      }
+    ],
+    "Category": "Application Launchers",
+    "Description": "Start menu with search, pinned apps and recommended files",
+    "Description[tr]": "Arama, sabitlenmiş uygulamalar ve önerilen dosyalar içeren Başlat menüsü",
+    "EnabledByDefault": true,
+    "Icon": "veltos-logo",
+    "Id": "org.veltos.startmenu",
+    "License": "GPL-3.0-or-later",
+    "Name": "VeltOS Start",
+    "Name[tr]": "VeltOS Başlat",
+    "Version": "0.1"
+  },
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "X-Plasma-Provides": [
+    "org.kde.plasma.launchermenu"
+  ]
+}

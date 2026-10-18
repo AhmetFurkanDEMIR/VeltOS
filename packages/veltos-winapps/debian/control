@@ -1,0 +1,40 @@
+Source: veltos-winapps
+Section: otherosfs
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pefile,
+               python3-pil
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-winapps
+Architecture: all
+Depends: ${python3:Depends},
+         dxvk,
+         icoutils,
+         kde-cli-tools,
+         python3-pefile,
+         python3-pil,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         veltos-wine-addons,
+         vulkan-tools,
+         wine,
+         xdg-user-dirs,
+         ${misc:Depends}
+Recommends: wine32, dxvk-wine32, dxvk-wine64, winetricks
+Description: open Windows programs on VeltOS with a double click
+ Double-clicking an .exe or .msi file shows its name, publisher and icon
+ and asks whether to install or open it. Installers get their own private
+ Windows environment (Wine prefix); programs they create appear in Start.
+ Programs that need no installation run in a shared environment and can be
+ added to Start. Errors are reported in plain language with a log file.
+ .
+ Based on Wine; DXVK is enabled on computers with a Vulkan-capable GPU.
+ Not every Windows program works; Wine is not a security sandbox.

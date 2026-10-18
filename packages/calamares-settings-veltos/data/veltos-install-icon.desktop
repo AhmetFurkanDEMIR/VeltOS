@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Add the VeltOS installer icon to the desktop
+Exec=veltos-install-desktop-icon
+NoDisplay=true
+StartupNotify=false
+X-KDE-autostart-phase=1

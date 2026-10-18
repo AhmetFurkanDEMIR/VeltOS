@@ -1,0 +1,27 @@
+#!/bin/sh
+# Use the package pool on the install medium as an APT source in the target,
+# so bootloader packages install without a network connection; "-u" undoes it.
+set -e
+. /usr/libexec/veltos-installer/common.sh
+
+MEDIUM=""
+for path in /run/live/medium /run/initramfs/live; do
+    if findmnt -rn "$path" >/dev/null 2>&1; then
+        MEDIUM="$path"
+    fi
+done
+[ -n "$MEDIUM" ] || { echo "veltos-installer: install medium not mounted" >&2; exit 1; }
+LIST="$CHROOT/etc/apt/sources.list.d/veltos-install-medium.list"
+
+if [ "${1:-}" = "-u" ]; then
+    umount "$CHROOT$MEDIUM" || true
+    rm -f "$LIST"
+    exit 0
+fi
+
+mkdir -p "$CHROOT$MEDIUM"
+mount --bind "$MEDIUM" "$CHROOT$MEDIUM"
+echo "deb [trusted=yes] file:$MEDIUM trixie main" > "$LIST"
+# Network sources may be unreachable during an offline install; only the
+# medium is required here.
+in_target apt-get update || true

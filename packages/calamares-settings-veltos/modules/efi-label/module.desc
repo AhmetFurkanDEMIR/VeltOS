@@ -1,0 +1,7 @@
+# VeltOS installer job: show VeltOS in the firmware boot menu
+---
+type:       "job"
+name:       "efi-label"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/efi-label"
+timeout:    600

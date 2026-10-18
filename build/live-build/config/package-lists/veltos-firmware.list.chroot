@@ -1,0 +1,36 @@
+# Device firmware for desktops and laptops: graphics, Wi-Fi, Bluetooth,
+# audio. Only redistributable firmware from Debian's main and
+# non-free-firmware areas (CPU microcode is in veltos-hardware.list.chroot).
+#
+# live-build's automatic firmware list (--firmware-chroot) is disabled
+# because it also pulls contrib "installer" packages (firmware-b43-installer,
+# firmware-b43legacy-installer) that download non-redistributable Broadcom
+# firmware from the internet while the image is built.
+firmware-linux-free
+firmware-linux-nonfree
+firmware-misc-nonfree
+
+# Graphics
+firmware-amd-graphics
+firmware-intel-graphics
+firmware-nvidia-graphics
+
+# Wi-Fi and Bluetooth
+firmware-iwlwifi
+firmware-realtek
+firmware-mediatek
+firmware-atheros
+firmware-ath9k-htc
+firmware-carl9170
+firmware-brcm80211
+firmware-libertas
+firmware-zd1211
+atmel-firmware
+bluez-firmware
+wireless-regdb
+
+# Audio and other Intel/Cirrus parts found in laptops
+firmware-intel-sound
+firmware-sof-signed
+firmware-intel-misc
+firmware-cirrus

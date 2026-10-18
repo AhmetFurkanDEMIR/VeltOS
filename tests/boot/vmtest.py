@@ -14,126 +14,16 @@ Standard library only; meant to run inside the veltos-builder container.
 """
 
 import argparse
-import base64
 import datetime as dt
 import json
-import os
-import random
 import shutil
-import socket
 import subprocess
 import sys
 import tempfile
 import time
 from pathlib import Path
 
-OVMF = Path("/usr/share/OVMF")
-FIRMWARE = {
-    "bios": None,
-    "uefi": ("OVMF_CODE_4M.fd", "OVMF_VARS_4M.fd"),
-    # Microsoft keys enrolled: exercises the signed shim -> GRUB -> kernel path.
-    "secureboot": ("OVMF_CODE_4M.secboot.fd", "OVMF_VARS_4M.ms.fd"),
-}
-LIVE_USER = "velt"
-
-
-class JsonLineSocket:
-    """Newline-delimited JSON over a Unix socket (QMP and QGA both use it)."""
-
-    def __init__(self, path, timeout):
-        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.sock.settimeout(timeout)
-        self.sock.connect(str(path))
-        self.buf = b""
-
-    def send(self, obj):
-        self.sock.sendall(json.dumps(obj).encode() + b"\n")
-
-    def recv(self):
-        while b"\n" not in self.buf:
-            chunk = self.sock.recv(65536)
-            if not chunk:
-                raise ConnectionError("socket closed")
-            self.buf += chunk
-        line, self.buf = self.buf.split(b"\n", 1)
-        line = line.strip(b"\xff \r")  # guest-sync-delimited sentinel
-        return json.loads(line) if line else self.recv()
-
-    def close(self):
-        self.sock.close()
-
-
-class Qmp:
-    def __init__(self, path):
-        self.conn = JsonLineSocket(path, timeout=30)
-        self.conn.recv()  # greeting
-        self.execute("qmp_capabilities")
-
-    def execute(self, command, **arguments):
-        msg = {"execute": command}
-        if arguments:
-            msg["arguments"] = arguments
-        self.conn.send(msg)
-        while True:
-            reply = self.conn.recv()
-            if "event" in reply:
-                continue
-            if "error" in reply:
-                raise RuntimeError(f"QMP {command}: {reply['error']}")
-            return reply.get("return")
-
-    def screenshot(self, path):
-        self.execute("screendump", filename=str(path), format="png")
-
-    def key(self, name):
-        self.execute("send-key", keys=[{"type": "qcode", "data": name}])
-
-
-class GuestAgent:
-    def __init__(self, path):
-        self.path = path
-        self.conn = None
-
-    def connect(self, deadline):
-        """Wait until the agent inside the guest answers guest-sync."""
-        while time.monotonic() < deadline:
-            try:
-                self.conn = JsonLineSocket(self.path, timeout=5)
-                sync_id = random.randint(1, 2**31)
-                self.conn.send({"execute": "guest-sync-delimited",
-                                "arguments": {"id": sync_id}})
-                while True:  # discard stale replies from earlier attempts
-                    reply = self.conn.recv()
-                    if reply.get("return") == sync_id:
-                        self.conn.sock.settimeout(60)
-                        return True
-            except (OSError, ConnectionError, json.JSONDecodeError):
-                if self.conn:
-                    self.conn.close()
-                    self.conn = None
-                time.sleep(3)
-        return False
-
-    def call(self, command, **arguments):
-        self.conn.send({"execute": command, "arguments": arguments})
-        reply = self.conn.recv()
-        if "error" in reply:
-            raise RuntimeError(f"QGA {command}: {reply['error']}")
-        return reply["return"]
-
-    def run(self, shell_cmd, timeout=60):
-        """Run a shell command in the guest as root -> (exitcode, stdout, stderr)."""
-        pid = self.call("guest-exec", path="/bin/sh", arg=["-c", shell_cmd],
-                        **{"capture-output": True})["pid"]
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            status = self.call("guest-exec-status", pid=pid)
-            if status["exited"]:
-                decode = lambda key: base64.b64decode(status.get(key, "")).decode(
-                    "utf-8", errors="replace")
-                return status.get("exitcode", -1), decode("out-data"), decode("err-data")
-            time.sleep(0.5)
-        return -1, "", f"timed out after {timeout}s"
+from vmlib import FIRMWARE, LIVE_USER, start_qemu, wait_for
 
 
 class Report:
@@ -182,53 +72,6 @@ class Report:
         (self.dir / "report.md").write_text("\n".join(lines) + "\n")
 
 
-def start_qemu(args, workdir):
-    qmp_sock = workdir / "qmp.sock"
-    qga_sock = workdir / "qga.sock"
-    cmd = [
-        "qemu-system-x86_64",
-        "-machine", "q35,accel=kvm" + (",smm=on" if args.firmware == "secureboot" else ""),
-        "-cpu", "host", "-smp", str(args.cpus), "-m", str(args.memory),
-        "-display", "none",
-        "-vga", "none", "-device", "virtio-vga,xres=1920,yres=1080",
-        "-cdrom", str(args.iso), "-boot", "d",
-        "-nic", "user,model=virtio-net-pci",
-        "-qmp", f"unix:{qmp_sock},server=on,wait=off",
-        "-chardev", f"socket,path={qga_sock},server=on,wait=off,id=qga0",
-        "-device", "virtio-serial",
-        "-device", "virtserialport,chardev=qga0,name=org.qemu.guest_agent.0",
-        "-serial", f"file:{args.outdir / 'serial.log'}",
-    ]
-    fw = FIRMWARE[args.firmware]
-    if fw:
-        code, vars_template = fw
-        vars_copy = workdir / "OVMF_VARS.fd"
-        shutil.copy(OVMF / vars_template, vars_copy)
-        if args.firmware == "secureboot":
-            cmd += ["-global", "driver=cfi.pflash01,property=secure,value=on"]
-        cmd += ["-drive", f"if=pflash,format=raw,unit=0,readonly=on,file={OVMF / code}",
-                "-drive", f"if=pflash,format=raw,unit=1,file={vars_copy}"]
-    log = open(args.outdir / "qemu.log", "w")
-    proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT)
-    for _ in range(100):
-        if qmp_sock.exists():
-            break
-        if proc.poll() is not None:
-            raise SystemExit(f"QEMU exited early; see {args.outdir / 'qemu.log'}")
-        time.sleep(0.1)
-    return proc, Qmp(qmp_sock), GuestAgent(qga_sock)
-
-
-def wait_for(agent, shell_cmd, timeout, interval=3):
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        code, out, _ = agent.run(shell_cmd)
-        if code == 0:
-            return out
-        time.sleep(interval)
-    return None
-
-
 def run_checks(args, report, qmp, agent):
     shots = args.outdir
 
@@ -238,6 +81,9 @@ def run_checks(args, report, qmp, agent):
     qmp.screenshot(shots / "01-boot-menu.png")
     report.artifacts["boot menu"] = "01-boot-menu.png"
     qmp.key("ret")
+    time.sleep(args.splash_delay)
+    qmp.screenshot(shots / "01b-boot-splash.png")
+    report.artifacts["boot splash"] = "01b-boot-splash.png"
 
     agent_up = agent.connect(time.monotonic() + args.boot_timeout)
     report.measurements["guest_agent_ready_s"] = report.elapsed()
@@ -284,8 +130,8 @@ def run_checks(args, report, qmp, agent):
     report.check("VeltOS taskbar layout applied",
                  appletsrc.count("plugin=org.kde.plasma.panelspacer") == 2
                  and "plugin=org.kde.plasma.icontasks" in appletsrc
-                 and "veltos-logo" in appletsrc,
-                 "2 panel spacers, icon tasks, VeltOS launcher icon")
+                 and "plugin=org.veltos.startmenu" in appletsrc,
+                 "2 panel spacers, icon tasks, VeltOS Start menu")
     report.check("VeltOS wallpaper set", "/usr/share/wallpapers/VeltOS" in appletsrc)
     (args.outdir / "plasma-appletsrc.txt").write_text(appletsrc)
 
@@ -299,6 +145,14 @@ def run_checks(args, report, qmp, agent):
     if args.firmware == "secureboot":
         _, out, _ = agent.run("mokutil --sb-state")
         report.check("Secure Boot enabled in guest", "SecureBoot enabled" in out, out)
+
+    # Any crash (core dump) during boot, login or idle is a failure.
+    _, out, _ = agent.run("coredumpctl list --no-legend --no-pager 2>/dev/null")
+    report.check("no crashed processes", out.strip() == "", out or "none")
+    if out.strip():
+        _, trace, _ = agent.run("coredumpctl info --no-pager 2>/dev/null | "
+                                "sed -n '/Stack trace of thread/,/^$/p' | head -n 40", timeout=120)
+        report.measurements["crash_stack_trace"] = trace
 
     _, out, _ = agent.run("journalctl -b -p err --no-pager -o short-monotonic | tail -n 40")
     report.measurements["journal_errors_tail"] = out or "(none)"
@@ -331,6 +185,8 @@ def main():
     parser.add_argument("--memory", type=int, default=4096, help="guest RAM in MiB")
     parser.add_argument("--cpus", type=int, default=4)
     parser.add_argument("--menu-delay", type=float, default=8)
+    parser.add_argument("--splash-delay", type=float, default=5,
+                        help="seconds after leaving the boot menu to capture the splash")
     parser.add_argument("--boot-timeout", type=float, default=300)
     parser.add_argument("--desktop-timeout", type=float, default=240)
     parser.add_argument("--settle", type=float, default=60,
@@ -358,7 +214,8 @@ def main():
     workdir = Path(tempfile.mkdtemp(prefix="vmtest-"))
     proc = None
     try:
-        proc, qmp, agent = start_qemu(args, workdir)
+        proc, qmp, agent = start_qemu(args.iso, args.firmware, args.outdir, workdir,
+                                       args.cpus, args.memory)
         run_checks(args, report, qmp, agent)
         try:
             qmp.execute("quit")

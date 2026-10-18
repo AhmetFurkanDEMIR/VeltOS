@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+DEST = debian/veltos-wine-addons/usr/share/wine
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	test -f upstream/wine-mono-9.4.0-x86.msi || (echo "upstream/ missing: run build/scripts/fetch-upstream.py" >&2; exit 1)
+
+override_dh_auto_install:
+	install -D -m 644 upstream/wine-mono-9.4.0-x86.msi $(DEST)/mono/wine-mono-9.4.0-x86.msi
+	install -D -m 644 upstream/wine-gecko-2.47.4-x86.msi $(DEST)/gecko/wine-gecko-2.47.4-x86.msi
+	install -D -m 644 upstream/wine-gecko-2.47.4-x86_64.msi $(DEST)/gecko/wine-gecko-2.47.4-x86_64.msi
+
+# MSI files are not ELF objects; nothing to strip or shrink.
+override_dh_strip_nondeterminism:

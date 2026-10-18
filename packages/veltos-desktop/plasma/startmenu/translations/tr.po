@@ -1,0 +1,49 @@
+# Turkish translation of VeltOS Start (org.veltos.startmenu).
+# SPDX-License-Identifier: GPL-3.0-or-later
+msgid ""
+msgstr ""
+"Project-Id-Version: org.veltos.startmenu 0.1\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Edit Applications…"
+msgstr "Uygulamaları Düzenle…"
+
+msgid "Search for apps, settings and documents"
+msgstr "Uygulama, ayar ve belge arayın"
+
+msgid "Pinned"
+msgstr "Sabitlenmiş"
+
+msgid "All apps"
+msgstr "Tüm uygulamalar"
+
+msgid "Back"
+msgstr "Geri"
+
+msgid "Recommended"
+msgstr "Önerilenler"
+
+msgid "Your recently opened files will appear here."
+msgstr "Son açtığınız dosyalar burada görünür."
+
+msgid "Best match"
+msgstr "En iyi eşleşme"
+
+msgid "No results for “%1”"
+msgstr "“%1” için sonuç bulunamadı"
+
+msgid "Pin to Start"
+msgstr "Başlat'a sabitle"
+
+msgid "Unpin from Start"
+msgstr "Başlat'tan kaldır"
+
+msgid "Change account settings"
+msgstr "Hesap ayarlarını değiştir"
+
+msgid "Power"
+msgstr "Güç"

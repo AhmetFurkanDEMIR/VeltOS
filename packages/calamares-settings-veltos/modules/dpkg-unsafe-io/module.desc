@@ -1,0 +1,7 @@
+# VeltOS installer job: speed up dpkg while installing
+---
+type:       "job"
+name:       "dpkg-unsafe-io"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/dpkg-unsafe-io"
+timeout:    600

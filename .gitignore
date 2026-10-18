@@ -3,6 +3,7 @@
 
 # Debian package build artefacts
 /packages/*/build-assets/
+/packages/*/upstream/
 /packages/*/debian/.debhelper/
 /packages/*/debian/debhelper-build-stamp
 /packages/*/debian/files

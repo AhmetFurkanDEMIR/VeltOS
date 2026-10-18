@@ -1,0 +1,6 @@
+veltos-fluent-icons (2026.07.27~veltos1) trixie; urgency=medium
+
+  * Package Fluent icon and cursor themes, upstream release 2026-07-27, for
+    VeltOS, with Breeze fallback and dangling upstream symlinks removed.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 19 Oct 2026 00:00:00 +0000

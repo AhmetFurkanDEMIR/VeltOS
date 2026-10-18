@@ -27,11 +27,11 @@ if ("floating" in panel) {
 
 panel.addWidget("org.kde.plasma.panelspacer");
 
-var kickoff = panel.addWidget("org.kde.plasma.kickoff");
-kickoff.currentConfigGroup = ["General"];
-kickoff.writeConfig("icon", "veltos-logo");
-kickoff.currentConfigGroup = ["Shortcuts"];
-kickoff.writeConfig("global", "Alt+F1");
+// VeltOS Start (Windows 11 style menu, packaged with veltos-desktop).
+// The Meta key opens it because it provides org.kde.plasma.launchermenu.
+var start = panel.addWidget("org.veltos.startmenu");
+start.currentConfigGroup = ["Shortcuts"];
+start.writeConfig("global", "Alt+F1");
 
 var tasks = panel.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];

@@ -1,0 +1,35 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Wine Mono, Wine Gecko
+Source: https://dl.winehq.org/wine/wine-mono/ https://dl.winehq.org/wine/wine-gecko/
+
+Files: upstream/wine-mono-*
+Copyright: Mono Project contributors, Wine Mono contributors, Microsoft Corporation (MIT-licensed .NET components)
+License: GPL-2+ and LGPL-2.1+ and MIT
+Comment: Wine Mono bundles Mono and parts of .NET under these licences;
+ sources: https://gitlab.winehq.org/mono/wine-mono
+
+Files: upstream/wine-gecko-*
+Copyright: Mozilla Foundation and contributors, Wine Gecko contributors
+License: MPL-2.0
+Comment: sources: https://dl.winehq.org/wine/wine-gecko/2.47.4/
+
+Files: debian/* upstream.json
+Copyright: 2026 VeltOS Developers
+License: GPL-3+
+
+License: GPL-2+
+ On Debian systems see /usr/share/common-licenses/GPL-2.
+
+License: LGPL-2.1+
+ On Debian systems see /usr/share/common-licenses/LGPL-2.1.
+
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software, to deal in the Software without restriction.
+ (Full text: https://opensource.org/license/mit)
+
+License: MPL-2.0
+ On Debian systems see /usr/share/common-licenses/MPL-2.0.
+
+License: GPL-3+
+ On Debian systems see /usr/share/common-licenses/GPL-3.

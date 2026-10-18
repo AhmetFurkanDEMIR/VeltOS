@@ -8,6 +8,11 @@
 #   build/run.sh iso          build packages + the live ISO into out/iso
 #   build/run.sh test [mode]  boot the newest ISO in QEMU/KVM and verify it
 #                             (mode: uefi (default), bios, secureboot)
+#   build/run.sh test-winapps [fixture]  install a real Windows program
+#                             in the newest ISO via the VeltOS runner
+#   build/run.sh preview [actions]  dev aid: try out/packages/*.deb in the
+#                             newest ISO in a VM and take screenshots
+#   build/run.sh vm ...       long-running VM driven step by step (install tests)
 #   build/run.sh shell        interactive shell in the builder container
 #   build/run.sh clean        delete the build volume (forces a cold build)
 set -euo pipefail
@@ -98,6 +103,73 @@ cmd_test() {
         --results /out/test-results
 }
 
+cmd_test_winapps() {
+    # Install a real Windows program (tests/boot/winapps-fixtures.json) in the
+    # newest ISO through the VeltOS runner and check it lands in Start.
+    ensure_image
+    ensure_kvm
+    local fixture="${1:-7zip}"
+    local iso
+    iso="$(ls -t "$REPO_ROOT"/out/iso/*/*.iso 2>/dev/null | head -n1 || true)"
+    [ -n "$iso" ] || { echo "error: no ISO under out/iso" >&2; exit 1; }
+    local rel="${iso#"$REPO_ROOT"/}"
+    run_builder --device /dev/kvm "$IMAGE" python3 -c "
+import json, subprocess, sys, urllib.request, hashlib, pathlib
+f = json.load(open('/src/tests/boot/winapps-fixtures.json'))['$fixture']
+cache = pathlib.Path('/out/cache/winapps'); cache.mkdir(parents=True, exist_ok=True)
+exe = cache / f['file']
+if not exe.exists() or hashlib.sha256(exe.read_bytes()).hexdigest() != f['sha256']:
+    urllib.request.urlretrieve(f['url'], exe)
+sys.exit(subprocess.call(['python3', '/src/tests/boot/winapps_vmtest.py', '--iso', '/src/$rel',
+    '--exe', str(exe), '--sha256', f['sha256'], '--expect-shortcut', f['expect_shortcut'],
+    '--results', '/out/test-results']))
+"
+}
+
+cmd_preview() {
+    # Development aid: install out/packages/*.deb into the newest live ISO in
+    # a VM and screenshot a scripted interaction (see tests/boot/vmpreview.py).
+    ensure_image
+    ensure_kvm
+    local iso
+    iso="$(ls -t "$REPO_ROOT"/out/iso/*/*.iso 2>/dev/null | head -n1 || true)"
+    [ -n "$iso" ] || { echo "error: no ISO under out/iso" >&2; exit 1; }
+    local rel="${iso#"$REPO_ROOT"/}"
+    run_builder --device /dev/kvm "$IMAGE" \
+        python3 /src/tests/boot/vmpreview.py --iso "/src/$rel" --debs /out/packages \
+        --results /out/preview ${1:+--actions "$1"}
+}
+
+cmd_vm() {
+    # Long-running VM for step-by-step testing (see tests/boot/vmctl.py):
+    #   build/run.sh vm start [cdrom|disk] [uefi|bios|secureboot]
+    #   build/run.sh vm do "click:960,540 shot:name"   build/run.sh vm exec "cmd"
+    #   build/run.sh vm stop        (screenshots: out/vm/, disk: volume veltos-vm)
+    local action="${1:-}"
+    shift || true
+    case "$action" in
+        start)
+            ensure_image
+            ensure_kvm
+            docker rm -f veltos-vm >/dev/null 2>&1 || true
+            local iso rel
+            iso="$(ls -t "$REPO_ROOT"/out/iso/*/*.iso 2>/dev/null | head -n1 || true)"
+            rel="${iso#"$REPO_ROOT"/}"
+            mkdir -p "$REPO_ROOT/out/vm"
+            docker run -d --name veltos-vm --device /dev/kvm                 -v "$HOST_ROOT:/src:ro" -v "$HOST_ROOT/out:/out" -v veltos-vm:/vm                 "$IMAGE" python3 /src/tests/boot/vmctl.py start --iso "/src/$rel"                 --disk /vm/disk.qcow2 --boot "${1:-cdrom}" --firmware "${2:-uefi}" >/dev/null
+            log "VM started (boot: ${1:-cdrom}, firmware: ${2:-uefi})"
+            ;;
+        do|exec|stop)
+            docker exec veltos-vm python3 /src/tests/boot/vmctl.py "$action" "$@"
+            ;;
+        reset-disk)
+            docker rm -f veltos-vm >/dev/null 2>&1 || true
+            docker volume rm veltos-vm
+            ;;
+        *) echo "usage: build/run.sh vm start|do|exec|stop|reset-disk" >&2; exit 2 ;;
+    esac
+}
+
 cmd_shell() {
     ensure_image
     run_builder -it --privileged -v "$VOLUME:/build" "$IMAGE" bash
@@ -112,8 +184,10 @@ main() {
     local cmd="${1:-}"
     shift || true
     case "$cmd" in
-        image|packages|iso|test|shell|clean) "cmd_$cmd" "$@" ;;
-        *) sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2 ;;
+        image|packages|iso|test|preview|shell|clean) "cmd_$cmd" "$@" ;;
+        test-winapps) cmd_test_winapps "$@" ;;
+        vm) cmd_vm "$@" ;;
+        *) sed -n '2,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2 ;;
     esac
 }
 

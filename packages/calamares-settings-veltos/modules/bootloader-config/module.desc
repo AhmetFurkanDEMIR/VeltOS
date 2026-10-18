@@ -1,0 +1,7 @@
+# VeltOS installer job: install the bootloader packages into the target
+---
+type:       "job"
+name:       "bootloader-config"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/bootloader-config"
+timeout:    600

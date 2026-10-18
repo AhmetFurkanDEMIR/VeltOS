@@ -1,0 +1,10 @@
+#!/bin/sh
+# Put an "Install VeltOS" icon on the live session desktop (autostarted;
+# this package only exists in the live system).
+DESKTOP="$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")"
+mkdir -p "$DESKTOP"
+cp /usr/share/applications/install-veltos.desktop "$DESKTOP/"
+chmod +x "$DESKTOP/install-veltos.desktop"
+
+# Warm the page cache so the installer opens quickly.
+ionice -c 3 cat /usr/bin/calamares >/dev/null 2>&1 &

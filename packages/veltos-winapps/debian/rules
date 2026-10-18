@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-winapps
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-winapps/usr/lib/python3/dist-packages
+	cp -r veltos_winapps debian/veltos-winapps/usr/lib/python3/dist-packages/
+	find debian/veltos-winapps -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-run debian/veltos-winapps/usr/bin/veltos-run
+	install -D -m 644 data/veltos-run.desktop debian/veltos-winapps/usr/share/applications/veltos-run.desktop
+	install -D -m 644 data/mimeapps.list debian/veltos-winapps/etc/xdg/mimeapps.list
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

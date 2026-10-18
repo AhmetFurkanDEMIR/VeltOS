@@ -1,0 +1,25 @@
+#!/bin/sh
+# Install the bootloader packages into the target system, from the install
+# medium (see sources-media), before Calamares' bootloader module runs.
+set -e
+. /usr/libexec/veltos-installer/common.sh
+
+# Full-disk encryption: LUKS tools and a private initramfs.
+if findmnt -rn -o SOURCE "$CHROOT" | grep -q '^/dev/mapper/luks'; then
+    echo "UMASK=0077" > "$CHROOT/etc/initramfs-tools/conf.d/initramfs-permissions"
+    in_target apt-get -y install cryptsetup-initramfs cryptsetup keyutils
+fi
+
+if [ -d /sys/firmware/efi/efivars ]; then
+    echo "veltos-installer: installing UEFI bootloader with Secure Boot support"
+    # shim-signed + grub-efi-amd64-signed make grub-install set up the
+    # Secure Boot chain (shimx64.efi -> grubx64.efi).
+    in_target apt-get -y install grub-efi-amd64 grub-efi-amd64-signed shim-signed efibootmgr os-prober
+else
+    echo "veltos-installer: installing BIOS bootloader"
+    in_target apt-get -y install grub-pc os-prober
+fi
+
+# Find other operating systems (e.g. Windows) for the boot menu.
+sed -i 's/^#\?GRUB_DISABLE_OS_PROBER=.*/GRUB_DISABLE_OS_PROBER=false/' "$CHROOT/etc/default/grub"
+in_target update-grub

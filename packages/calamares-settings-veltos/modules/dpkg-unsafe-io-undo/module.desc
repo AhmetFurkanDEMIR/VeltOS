@@ -1,0 +1,7 @@
+# VeltOS installer job: restore safe dpkg I/O
+---
+type:       "job"
+name:       "dpkg-unsafe-io-undo"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/dpkg-unsafe-io -u"
+timeout:    600

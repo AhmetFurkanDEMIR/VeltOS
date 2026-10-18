@@ -1,0 +1,14 @@
+# UEFI bootloader packages placed in the ISO's package pool (not in the live
+# system), so the installer works without a network connection (see
+# calamares-settings-veltos: sources-media, bootloader-config).
+# BIOS packages are in a separate list: each list is resolved on its own and
+# grub-pc conflicts with grub-efi-amd64.
+grub-efi-amd64
+grub-efi-amd64-bin
+grub-efi-amd64-signed
+shim-signed
+shim-helpers-amd64-signed
+efibootmgr
+os-prober
+cryptsetup-initramfs
+keyutils

@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+    update-alternatives --install /usr/share/plymouth/themes/default.plymouth \
+        default.plymouth /usr/share/plymouth/themes/veltos/veltos.plymouth 200
+    # Use the new boot defaults on installed systems (no-op in image builds,
+    # where GRUB is not installed in the system yet).
+    if [ -e /boot/grub/grub.cfg ] && command -v update-grub >/dev/null 2>&1; then
+        update-grub || true
+    fi
+fi
+
+#DEBHELPER#

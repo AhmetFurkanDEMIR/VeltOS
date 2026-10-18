@@ -1,0 +1,49 @@
+# VeltOS GRUB theme for installed systems (background from tools/build-assets.py).
+desktop-image: "background.png"
+desktop-image-scale-method: "crop"
+title-text: ""
+message-font: "Unifont Regular 16"
+terminal-font: "Unifont Regular 16"
+
++ boot_menu {
+        left = 30%
+        width = 40%
+        top = 48%
+        height = 34%
+        item_font = "Unifont Regular 16"
+        item_color = "#AEB9DB"
+        selected_item_font = "Unifont Regular 16"
+        selected_item_color = "#FFFFFF"
+        item_height = 28
+        item_padding = 8
+        item_spacing = 6
+        icon_width = 0
+        icon_height = 0
+        item_icon_space = 0
+        scrollbar = false
+}
+
++ progress_bar {
+        id = "__timeout__"
+        left = 30%
+        top = 86%
+        width = 40%
+        height = 16
+        font = "Unifont Regular 16"
+        text_color = "#FFFFFF"
+        fg_color = "#4F7CFF"
+        bg_color = "#1A2350"
+        border_color = "#2C3A78"
+        text = "@TIMEOUT_NOTIFICATION_SHORT@"
+}
+
++ label {
+        top = 100%-30
+        left = 0
+        width = 100%
+        height = 20
+        text = "@KEYMAP_SHORT@"
+        align = "center"
+        color = "#7F8DB8"
+        font = "Unifont Regular 16"
+}

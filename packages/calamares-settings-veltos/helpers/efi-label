@@ -1,0 +1,37 @@
+#!/bin/sh
+# Show "VeltOS" instead of "debian" in the firmware (UEFI) boot menu.
+#
+# The bootloader files stay in \EFI\debian\ on purpose: Debian's Secure Boot
+# signed GRUB looks for its configuration there. Only the boot entry label
+# changes. A new entry is created first; the old one is deleted only if that
+# worked. Any unexpected situation leaves the boot entries untouched.
+set -u
+
+[ -d /sys/firmware/efi/efivars ] || exit 0
+command -v efibootmgr >/dev/null 2>&1 || exit 0
+
+entry="$(efibootmgr -v | grep -E '^Boot[0-9A-Fa-f]{4}\*? +debian[[:space:]]' | grep -i 'EFI\debian\' | head -n 1)"
+if [ -z "$entry" ]; then
+    echo "efi-label: no 'debian' boot entry found; nothing to rename"
+    exit 0
+fi
+
+num="$(echo "$entry" | sed -E 's/^Boot([0-9A-Fa-f]{4}).*/\1/')"
+partuuid="$(echo "$entry" | sed -nE 's/.*HD\([0-9]+,GPT,([0-9A-Fa-f-]+),.*/\1/p')"
+# efibootmgr >= 18 prints ".../\EFI\debian\shimx64.efi", older ones "File(\EFI\...)".
+loader="$(echo "$entry" | grep -o -E '\EFI\debian\[^[:space:])]+' | head -n 1)"
+dev="$(blkid -t PARTUUID="$partuuid" -o device 2>/dev/null | head -n 1)"
+if [ -z "$partuuid" ] || [ -z "$loader" ] || [ -z "$dev" ]; then
+    echo "efi-label: could not parse boot entry, leaving it unchanged: $entry"
+    exit 0
+fi
+disk="/dev/$(lsblk -no PKNAME "$dev" | head -n 1)"
+part="$(cat "/sys/class/block/$(basename "$dev")/partition")"
+
+if efibootmgr -q -c -d "$disk" -p "$part" -L "VeltOS" -l "$loader"; then
+    efibootmgr -q -b "$num" -B
+    echo "efi-label: Boot$num ($loader on $dev) is now labelled VeltOS"
+else
+    echo "efi-label: could not create the VeltOS entry; kept Boot$num"
+fi
+exit 0

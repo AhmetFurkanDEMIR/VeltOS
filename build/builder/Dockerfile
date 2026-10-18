@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      ca-certificates \
+      ca-certificates apt-utils \
       live-build debootstrap squashfs-tools xorriso mtools dosfstools \
       build-essential debhelper dpkg-dev fakeroot lintian \
       librsvg2-bin \
