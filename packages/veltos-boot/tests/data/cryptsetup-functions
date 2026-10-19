@@ -1,0 +1,35 @@
+# Excerpt of /lib/cryptsetup/functions from Debian's cryptsetup-initramfs
+# 2:2.7.5-2 (GPL-2+), for the unlock-texts tests.
+
+cryptsetup_message() {
+    local IFS=' '
+    if [ "${0#/scripts/}" != "$0" ] && [ -x /bin/plymouth ] && plymouth --ping; then
+        plymouth message --text="cryptsetup: $*"
+    elif [ ${#*} -lt 70 ]; then
+        echo "cryptsetup: $*" >&2
+    else
+        # use busybox's fold(1) and sed(1) at initramfs stage
+        echo "cryptsetup: $*" | fold -s | sed '1! s/^/    /' >&2
+    fi
+    return 0
+}
+
+run_keyscript() {
+    local keyscript keyscriptarg="$CRYPTTAB_KEY"
+    export CRYPTTAB_NAME CRYPTTAB_SOURCE CRYPTTAB_OPTIONS
+    export _CRYPTTAB_NAME _CRYPTTAB_SOURCE _CRYPTTAB_OPTIONS
+    export CRYPTTAB_TRIED="$1"
+
+    if [ -n "${CRYPTTAB_OPTION_keyscript+x}" ] && \
+            [ "$CRYPTTAB_OPTION_keyscript" != "/lib/cryptsetup/askpass" ]; then
+        # 'keyscript' option is present: export its argument as $CRYPTTAB_KEY
+        export CRYPTTAB_KEY _CRYPTTAB_KEY
+        keyscript="$CRYPTTAB_OPTION_keyscript"
+    elif [ "$keyscriptarg" = "none" ]; then
+        # don't export the prompt message as CRYPTTAB_KEY
+        keyscript="/lib/cryptsetup/askpass"
+        keyscriptarg="Please unlock disk $CRYPTTAB_NAME: "
+    fi
+
+    exec "$keyscript" "$keyscriptarg"
+}

@@ -1,0 +1,34 @@
+#!/bin/sh
+# initramfs-tools hook of veltos-boot (installed as
+# /usr/share/initramfs-tools/hooks/veltos-boot): the disk encryption
+# password screen in the VeltOS style.
+#   * Inter, the VeltOS font, for the boot splash's texts. Debian's plymouth
+#     hook copies a single fallback font; the theme's font was missing and
+#     fontconfig picked a monospace face.
+#   * Windows-like texts instead of cryptsetup's technical ones (see
+#     /usr/lib/veltos-boot/unlock-texts).
+PREREQ="plymouth cryptroot"
+
+prereqs() {
+    echo "$PREREQ"
+}
+
+case "${1:-}" in
+    prereqs)
+        prereqs
+        exit 0
+        ;;
+esac
+
+. /usr/share/initramfs-tools/hook-functions
+
+if [ -d "${DESTDIR}/usr/share/plymouth/themes/veltos" ] && [ -d "${DESTDIR}/etc/fonts" ]; then
+    for face in Regular Light; do
+        font="/usr/share/fonts/opentype/inter/Inter-$face.otf"
+        [ -e "$font" ] && copy_file font "$font"
+    done
+    fc-cache -s -y "${DESTDIR}" >/dev/null 2>&1 || true
+fi
+
+/usr/lib/veltos-boot/unlock-texts "${DESTDIR}/lib/cryptsetup/functions"
+exit 0

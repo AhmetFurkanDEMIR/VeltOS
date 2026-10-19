@@ -61,14 +61,30 @@ ApplicationWindow {
     title: backend.text("app_title")
     color: Theme.window
 
+    // Built-in pages (catalog.BUILTIN_PAGES) and their components.
+    readonly property var subPages: ({
+        "about": aboutComponent, "storage": storageComponent,
+        "windows-apps": windowsAppsComponent, "wifi": wifiComponent,
+        "bluetooth": bluetoothComponent, "sound": soundComponent,
+        "display": displayComponent, "background": backgroundComponent,
+        "colours": coloursComponent, "datetime": dateTimeComponent
+    })
+
+    // `veltos-settings PAGE`: a navigation page or a built-in page.
     Component.onCompleted: {
         const start = backend.startPage;
-        if (pageById(start))
+        if (pageById(start)) {
             showPage(start, "");
-        else if (start === "about" || start === "storage")
-            showPage("system", start);
-        else if (start === "windows-apps")
-            showPage("apps", start);
+            return;
+        }
+        for (const p of pages) {
+            for (const item of p.items) {
+                if (item.page === start) {
+                    showPage(p.id, start);
+                    return;
+                }
+            }
+        }
     }
 
     Shortcut {
@@ -152,14 +168,6 @@ ApplicationWindow {
                 }
             }
 
-            NavItem {
-                Layout.fillWidth: true
-                Layout.rightMargin: 6
-                icon: "preferences-system"
-                text: backend.text("control_panel")
-                external: true
-                onClicked: backend.runAction("control-panel")
-            }
         }
 
         // --- Page ----------------------------------------------------------
@@ -223,9 +231,7 @@ ApplicationWindow {
                     Layout.rightMargin: 36
                     Layout.bottomMargin: 36
                     sourceComponent: window.query !== "" ? searchComponent
-                                     : window.subPage === "about" ? aboutComponent
-                                     : window.subPage === "storage" ? storageComponent
-                                     : window.subPage === "windows-apps" ? windowsAppsComponent
+                                     : window.subPage !== "" ? window.subPages[window.subPage]
                                      : window.pageId === "home" ? homeComponent
                                      : itemsComponent
                 }
@@ -267,6 +273,48 @@ ApplicationWindow {
     Component {
         id: windowsAppsComponent
         WindowsAppsPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: wifiComponent
+        WifiPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: bluetoothComponent
+        BluetoothPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: soundComponent
+        SoundPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: displayComponent
+        DisplayPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: backgroundComponent
+        BackgroundPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: coloursComponent
+        ColoursPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: dateTimeComponent
+        DateTimePage {
             onItemActivated: item => window.activate(item)
         }
     }

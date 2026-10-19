@@ -31,8 +31,14 @@ Depends: ${python3:Depends},
          systemd,
          systemsettings,
          ${misc:Depends}
-Recommends: partitionmanager,
+Recommends: bluedevil,
+            bluez,
+            kdialog,
+            kscreen,
+            network-manager,
+            partitionmanager,
             plasma-discover,
+            pulseaudio-utils,
             veltos-winapps
 Description: VeltOS Settings, a Windows 11 style settings app
  Settings laid out like Windows 11: a navigation pane (System, Bluetooth &
@@ -40,7 +46,9 @@ Description: VeltOS Settings, a Windows 11 style settings app
  language, Gaming, Accessibility, Privacy & security, VeltOS Update) with a
  search box, and pages of settings.
  .
- Built in: Home, light/dark theme, About (device specifications, rename
- this PC), Storage and the list of installed Windows programs. Detailed
- settings open KDE's settings modules in their own windows; the complete
- KDE System Settings is available as "Control Panel".
+ Built in: Home, About (device specifications, rename this PC), Storage,
+ Wi-Fi, Bluetooth, Sound, Display (scale, resolution), Background,
+ Colours (light/dark mode, accent colour), Date & time and the list of
+ installed Windows programs. Detailed settings open KDE's settings modules
+ in their own windows; the complete KDE System Settings is available as
+ "Control Panel".

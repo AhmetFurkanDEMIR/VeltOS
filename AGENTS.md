@@ -61,10 +61,11 @@ owner sets priorities; agents act as the engineering team.
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
 | `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpaper, splash, master logo |
-| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML); KDE System Settings kept as "Control Panel" |
+| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML) with built-in Wi-Fi, Bluetooth, Sound, Display, Background, Colours, Date & time pages; other settings open KDE modules (KDE System Settings hidden from Start) |
+| `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders |
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed) |
-| `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering |
-| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding, live welcome window (Try/Install), live session settings |
+| `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook) |
+| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding, partition layout (BitLocker-like encryption), installer jobs, live welcome window (Try/Install), live session settings |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi` → install/open via Wine |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
@@ -193,3 +194,40 @@ owner sets priorities; agents act as the engineering team.
 - Do not ship a conffile at the path of another package's diverted
   conffile (dpkg asks a question and stops); copy such files in the
   postinst instead.
+- PySide6/QML apps: packaged files all get the same time stamp
+  (SOURCE_DATE_EPOCH), so Qt's QML disk cache keeps old compiled QML
+  after an update and mixing it with new types crashed File Explorer.
+  Every VeltOS QML app sets `QML_DISABLE_DISK_CACHE=1`.
+- PySide6 6.8: a QMimeData made in Python and given to the clipboard is
+  deleted by Qt after Python has shut down -> segfault at exit (and a core
+  dump the boot test would count). File Explorer leaves with `os._exit`;
+  its tests clear the clipboard in `tearDownClass`.
+- A QGuiApplication (not QApplication) in a Plasma session gets the
+  `org.kde.breeze` Qt Quick Controls style even when `org.kde.desktop` is
+  asked for. Test QML apps started from the taskbar, not only with
+  `vm exec-user` (which lacks `XDG_CURRENT_DESKTOP=KDE`).
+- `plasma-apply-lookandfeel` writes the Plasma theme to
+  `~/.config/kdedefaults/plasmarc`, which the running taskbar ignores
+  until the next sign-in; Settings also writes `~/.config/plasmarc` with
+  `kwriteconfig6 --notify` so light/dark switches at once.
+- Calamares without a `partition.conf` put `/boot` inside the encrypted
+  partition (LUKS1, GRUB asks on a text console, one try, US keyboard),
+  and the image lacked `cryptsetup-initramfs`: encrypted installs could not
+  start. VeltOS now keeps `/boot` unencrypted (`partitionLayout` with
+  `noEncrypt`) and lets the boot screen ask for the password.
+- KDE's command-line file tool is `kioclient` (Qt 6 build) in Debian 13;
+  there is no `kioclient6`.
+- `tools/fluent.py` `set_ini_keys` refuses keys that upstream does not have
+  (catches upstream changes); new keys must be listed in `add=`.
+- Calamares' fstab module writes crypttab entries *without options* when
+  `/boot` is unencrypted (`crypttabOptions` is ignored then); VeltOS adds
+  `tries=0` in its own `crypttab-tries` job.
+- Debian's plymouth initramfs hook copies only fontconfig's default and
+  monospace fonts; a theme font that is missing makes the boot splash
+  text monospace. veltos-boot's initramfs hook copies Inter. Check with
+  `lsinitramfs`.
+- Plymouth `display-message` text stays on screen until `hide-message`;
+  the unlock screen shows "wrong password" through the prompt instead.
+- `dh_installinitramfs` adds the `update-initramfs` trigger for files in
+  `usr/share/initramfs-tools/hooks`; a hand-written `.triggers` line for it
+  is a lintian error (`repeated-trigger-name`).

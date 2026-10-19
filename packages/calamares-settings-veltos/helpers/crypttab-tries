@@ -1,0 +1,24 @@
+#!/bin/sh
+# Ask for the disk encryption password at start-up until it is right, like
+# Windows, instead of dropping to a recovery shell after three wrong tries
+# (cryptsetup's default). Adds "tries=0" (unlimited, see crypttab(5)) to the
+# installed system's crypttab entries unlocked with a typed password (key
+# "none"); the installer writes those without options. Entries with their
+# own tries= are left alone.
+set -e
+. /usr/libexec/veltos-installer/common.sh
+
+crypttab="$CHROOT/etc/crypttab"
+[ -f "$crypttab" ] || exit 0
+
+awk '
+    /^[[:space:]]*(#|$)/ { print; next }
+    $3 == "none" && $4 !~ /(^|,)tries=/ {
+        if (NF < 4) $4 = "tries=0"; else $4 = $4 ",tries=0"
+    }
+    { print }
+' "$crypttab" > "$crypttab.veltos"
+# cat keeps the file's owner and mode.
+cat "$crypttab.veltos" > "$crypttab"
+rm -f "$crypttab.veltos"
+echo "crypttab-tries: unlimited password tries for $(grep -c 'tries=0' "$crypttab" || true) crypttab entries"

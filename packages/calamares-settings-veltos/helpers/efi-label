@@ -7,10 +7,15 @@
 # worked. Any unexpected situation leaves the boot entries untouched.
 set -u
 
-[ -d /sys/firmware/efi/efivars ] || exit 0
+# Test hooks: the firmware variables and sysfs locations.
+efivars="${VELTOS_EFIVARS:-/sys/firmware/efi/efivars}"
+sysfs="${VELTOS_SYSFS:-/sys}"
+
+[ -d "$efivars" ] || exit 0
 command -v efibootmgr >/dev/null 2>&1 || exit 0
 
-entry="$(efibootmgr -v | grep -E '^Boot[0-9A-Fa-f]{4}\*? +debian[[:space:]]' | grep -i 'EFI\debian\' | head -n 1)"
+# grep -F: the backslashes of the path are literal.
+entry="$(efibootmgr -v | grep -E '^Boot[0-9A-Fa-f]{4}\*? +debian[[:space:]]' | grep -iF '\EFI\debian\' | head -n 1)"
 if [ -z "$entry" ]; then
     echo "efi-label: no 'debian' boot entry found; nothing to rename"
     exit 0
@@ -19,14 +24,14 @@ fi
 num="$(echo "$entry" | sed -E 's/^Boot([0-9A-Fa-f]{4}).*/\1/')"
 partuuid="$(echo "$entry" | sed -nE 's/.*HD\([0-9]+,GPT,([0-9A-Fa-f-]+),.*/\1/p')"
 # efibootmgr >= 18 prints ".../\EFI\debian\shimx64.efi", older ones "File(\EFI\...)".
-loader="$(echo "$entry" | grep -o -E '\EFI\debian\[^[:space:])]+' | head -n 1)"
+loader="$(echo "$entry" | grep -o -i -E '\\EFI\\debian\\[^[:space:])]+' | head -n 1)"
 dev="$(blkid -t PARTUUID="$partuuid" -o device 2>/dev/null | head -n 1)"
 if [ -z "$partuuid" ] || [ -z "$loader" ] || [ -z "$dev" ]; then
     echo "efi-label: could not parse boot entry, leaving it unchanged: $entry"
     exit 0
 fi
 disk="/dev/$(lsblk -no PKNAME "$dev" | head -n 1)"
-part="$(cat "/sys/class/block/$(basename "$dev")/partition")"
+part="$(cat "$sysfs/class/block/$(basename "$dev")/partition")"
 
 if efibootmgr -q -c -d "$disk" -p "$part" -L "VeltOS" -l "$loader"; then
     efibootmgr -q -b "$num" -B

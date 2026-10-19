@@ -22,6 +22,11 @@ License: GPL-2+
 Comment: Copied at build time from Plymouth's "spinner" theme
  (Debian package plymouth-themes).
 
+Files: tests/data/cryptsetup-functions
+Copyright: 2004-2025 cryptsetup-initramfs contributors (Debian cryptsetup package)
+License: GPL-2+
+Comment: Excerpt of /lib/cryptsetup/functions, used as test input.
+
 License: GPL-2+
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

@@ -9,6 +9,14 @@ if [ "$1" = configure ]; then
     # shipped as a conffile: a conffile at a diverted conffile's path makes
     # dpkg ask a question and stop.
     install -m 755 /usr/lib/veltos-boot/grub.d/10_linux /etc/grub.d/10_linux
+    # Repair: when grub-common was unpacked before the diversion existed
+    # (ISOs of 2026-10-19), dpkg left Debian's script as 10_linux.dpkg-new
+    # and the boot menu had no VeltOS entry. Pre-Depends now prevents that.
+    if [ ! -e /etc/grub.d/10_linux.dpkg-veltos ] && [ -e /etc/grub.d/10_linux.dpkg-new ] \
+            && grep -q 'linux_entry' /etc/grub.d/10_linux.dpkg-new; then
+        mv /etc/grub.d/10_linux.dpkg-new /etc/grub.d/10_linux.dpkg-veltos
+        chmod 755 /etc/grub.d/10_linux.dpkg-veltos
+    fi
     # Use the new boot defaults on installed systems (no-op in image builds,
     # where GRUB is not installed in the system yet).
     if [ -e /boot/grub/grub.cfg ] && command -v update-grub >/dev/null 2>&1; then

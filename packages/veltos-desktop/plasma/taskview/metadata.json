@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Description": "Task View button, like Windows 11: shows all open windows and desktops",
+        "Icon": "window-duplicate",
+        "Id": "org.veltos.taskview",
+        "License": "GPL-3.0-or-later",
+        "Name": "Task View",
+        "Version": "0.1"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

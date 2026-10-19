@@ -13,14 +13,17 @@ both languages.
 LANGUAGES = ("en", "tr")
 
 # Pages built into the app (QML components in qml/pages/).
-BUILTIN_PAGES = ("home", "about", "storage", "windows-apps")
+BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound", "bluetooth",
+                 "wifi", "background", "colours", "datetime")
 # Actions the backend knows (app.Backend.runAction).
 ACTIONS = ("control-panel", "store", "updates", "uninstall-windows", "disk-management")
 
+# Navigation pane icons are monochrome line icons, as in Windows 11
+# Settings; the settings on the pages keep their coloured icons.
 PAGES = [
     {"id": "home", "icon": "go-home", "title": ("Home", "Giriş"), "builtin": True, "items": []},
-    {"id": "system", "icon": "preferences-system", "title": ("System", "Sistem"), "items": [
-        {"id": "display", "icon": "preferences-desktop-display", "kcm": "kcm_kscreen",
+    {"id": "system", "icon": "computer", "title": ("System", "Sistem"), "items": [
+        {"id": "display", "icon": "preferences-desktop-display", "page": "display",
          "title": ("Display", "Ekran"),
          "desc": ("Monitors, resolution, scale, brightness", "Monitörler, çözünürlük, ölçek, parlaklık"),
          "keywords": "monitor screen resolution scale refresh hdr çözünürlük monitör"},
@@ -28,7 +31,7 @@ PAGES = [
          "title": ("Night light", "Gece ışığı"),
          "desc": ("Warmer colours in the evening", "Akşamları daha sıcak renkler"),
          "keywords": "blue light eye mavi ışık göz"},
-        {"id": "sound", "icon": "preferences-desktop-sound", "kcm": "kcm_pulseaudio",
+        {"id": "sound", "icon": "preferences-desktop-sound", "page": "sound",
          "title": ("Sound", "Ses"),
          "desc": ("Volume, output and input devices", "Ses düzeyi, çıkış ve giriş aygıtları"),
          "keywords": "audio speaker headphones microphone volume hoparlör kulaklık mikrofon"},
@@ -59,8 +62,8 @@ PAGES = [
                   "Cihaz özellikleri, bu bilgisayarı yeniden adlandırma, VeltOS sürümü"),
          "keywords": "pc name computer hardware cpu ram gpu version bilgisayar adı donanım sürüm"},
     ]},
-    {"id": "devices", "icon": "preferences-system-bluetooth", "title": ("Bluetooth & devices", "Bluetooth ve cihazlar"), "items": [
-        {"id": "bluetooth", "icon": "preferences-system-bluetooth", "kcm": "kcm_bluetooth",
+    {"id": "devices", "icon": "bluetooth", "title": ("Bluetooth & devices", "Bluetooth ve cihazlar"), "items": [
+        {"id": "bluetooth", "icon": "preferences-system-bluetooth", "page": "bluetooth",
          "title": ("Bluetooth", "Bluetooth"),
          "desc": ("Pair headphones, mice, phones", "Kulaklık, fare ve telefon eşleştirme"),
          "keywords": "pair wireless eşleştir kablosuz"},
@@ -90,10 +93,15 @@ PAGES = [
          "keywords": "gamepad joystick xbox playstation controller kumanda"},
     ]},
     {"id": "network", "icon": "network-wireless", "title": ("Network & internet", "Ağ ve internet"), "items": [
-        {"id": "wifi", "icon": "network-wireless", "kcm": "kcm_networkmanagement",
-         "title": ("Wi-Fi, Ethernet & VPN", "Wi-Fi, Ethernet ve VPN"),
-         "desc": ("Connections, passwords, hotspot, VPN", "Bağlantılar, parolalar, erişim noktası, VPN"),
-         "keywords": "wireless wlan lan cable ethernet hotspot vpn kablosuz kablo internet"},
+        {"id": "wifi", "icon": "network-wireless", "page": "wifi",
+         "title": ("Wi-Fi", "Wi-Fi"),
+         "desc": ("Connect, manage known networks", "Bağlanma, bilinen ağları yönetme"),
+         "keywords": "wireless wlan network password internet kablosuz ağ parola"},
+        {"id": "advancednetwork", "icon": "network-wired", "kcm": "kcm_networkmanagement",
+         "title": ("Ethernet, VPN & advanced", "Ethernet, VPN ve gelişmiş"),
+         "desc": ("Cable connections, VPN, hotspot, IP addresses",
+                  "Kablolu bağlantılar, VPN, erişim noktası, IP adresleri"),
+         "keywords": "lan cable ethernet hotspot vpn ip dns kablo internet"},
         {"id": "proxy", "icon": "preferences-system-network-proxy", "kcm": "kcm_proxy",
          "title": ("Proxy", "Ara sunucu"),
          "desc": ("Proxy server settings", "Ara sunucu ayarları"),
@@ -103,15 +111,15 @@ PAGES = [
          "desc": ("Allow or block network connections", "Ağ bağlantılarına izin verme veya engelleme"),
          "keywords": "firewall ufw security güvenlik"},
     ]},
-    {"id": "personalization", "icon": "preferences-desktop-wallpaper", "title": ("Personalization", "Kişiselleştirme"), "theme_picker": True, "items": [
-        {"id": "background", "icon": "preferences-desktop-wallpaper", "kcm": "kcm_wallpaper",
+    {"id": "personalization", "icon": "brush-symbolic", "title": ("Personalization", "Kişiselleştirme"), "theme_picker": True, "items": [
+        {"id": "background", "icon": "preferences-desktop-wallpaper", "page": "background",
          "title": ("Background", "Arka plan"),
          "desc": ("Desktop picture", "Masaüstü resmi"),
          "keywords": "wallpaper picture image duvar kağıdı resim"},
-        {"id": "colors", "icon": "preferences-desktop-color", "kcm": "kcm_colors",
+        {"id": "colors", "icon": "preferences-desktop-color", "page": "colours",
          "title": ("Colours", "Renkler"),
-         "desc": ("Accent colour", "Vurgu rengi"),
-         "keywords": "accent color colour vurgu renk"},
+         "desc": ("Light or dark mode, accent colour", "Açık veya koyu mod, vurgu rengi"),
+         "keywords": "accent color colour dark light mode theme vurgu renk koyu açık tema"},
         {"id": "lockscreen", "icon": "system-lock-screen", "kcm": "kcm_screenlocker",
          "title": ("Lock screen", "Kilit ekranı"),
          "desc": ("When to lock, lock screen picture", "Ne zaman kilitleneceği, kilit ekranı resmi"),
@@ -147,14 +155,14 @@ PAGES = [
          "desc": ("Apps that start when you sign in", "Oturum açınca başlayan uygulamalar"),
          "keywords": "autostart login boot başlangıç"},
     ]},
-    {"id": "accounts", "icon": "system-users", "title": ("Accounts", "Hesaplar"), "items": [
+    {"id": "accounts", "icon": "user-identity", "title": ("Accounts", "Hesaplar"), "items": [
         {"id": "users", "icon": "user-identity", "kcm": "kcm_users",
          "title": ("Your info & other users", "Bilgileriniz ve diğer kullanıcılar"),
          "desc": ("Name, picture, password, add a user", "Ad, resim, parola, kullanıcı ekleme"),
          "keywords": "user password account picture kullanıcı parola hesap"},
     ]},
-    {"id": "time", "icon": "preferences-desktop-locale", "title": ("Time & language", "Saat ve dil"), "items": [
-        {"id": "datetime", "icon": "preferences-system-time", "kcm": "kcm_clock",
+    {"id": "time", "icon": "clock", "title": ("Time & language", "Saat ve dil"), "items": [
+        {"id": "datetime", "icon": "preferences-system-time", "page": "datetime",
          "title": ("Date & time", "Tarih ve saat"),
          "desc": ("Time zone, set the time automatically", "Saat dilimi, saati otomatik ayarlama"),
          "keywords": "clock timezone ntp saat dilimi"},
@@ -181,7 +189,7 @@ PAGES = [
          "desc": ("Your graphics card", "Ekran kartınız"),
          "keywords": "gpu graphics card nvidia amd intel ekran kartı"},
     ]},
-    {"id": "accessibility", "icon": "preferences-desktop-accessibility", "title": ("Accessibility", "Erişilebilirlik"), "items": [
+    {"id": "accessibility", "icon": "preferences-desktop-accessibility-symbolic", "title": ("Accessibility", "Erişilebilirlik"), "items": [
         {"id": "access", "icon": "preferences-desktop-accessibility", "kcm": "kcm_access",
          "title": ("Accessibility", "Erişilebilirlik"),
          "desc": ("Sticky keys, visual bell, screen reader", "Yapışkan tuşlar, görsel uyarı, ekran okuyucu"),
@@ -195,7 +203,7 @@ PAGES = [
          "desc": ("Make text bigger", "Yazıları büyütme"),
          "keywords": "font size bigger zoom büyüt"},
     ]},
-    {"id": "privacy", "icon": "preferences-system-privacy", "title": ("Privacy & security", "Gizlilik ve güvenlik"), "items": [
+    {"id": "privacy", "icon": "security-high", "title": ("Privacy & security", "Gizlilik ve güvenlik"), "items": [
         {"id": "lock", "icon": "system-lock-screen", "kcm": "kcm_screenlocker",
          "title": ("Screen lock", "Ekran kilidi"),
          "desc": ("Lock automatically, ask for the password", "Otomatik kilitleme, parola sorma"),
@@ -213,7 +221,7 @@ PAGES = [
          "desc": ("Which folders search indexes", "Aramanın hangi klasörleri dizinlediği"),
          "keywords": "index search arama dizin"},
     ]},
-    {"id": "update", "icon": "system-software-update", "title": ("VeltOS Update", "VeltOS Güncelleme"), "items": [
+    {"id": "update", "icon": "view-refresh", "title": ("VeltOS Update", "VeltOS Güncelleme"), "items": [
         {"id": "updates", "icon": "system-software-update", "action": "updates",
          "title": ("Check for updates", "Güncellemeleri denetle"),
          "desc": ("Security fixes and app updates", "Güvenlik düzeltmeleri ve uygulama güncellemeleri"),

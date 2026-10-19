@@ -1,0 +1,4 @@
+# Folders open in VeltOS File Explorer (Plasma reads this file through
+# XDG_CONFIG_DIRS; users can choose another app in the Control Panel).
+[Default Applications]
+inode/directory=veltos-explorer.desktop;org.kde.dolphin.desktop;

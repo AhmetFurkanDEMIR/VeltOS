@@ -1,5 +1,6 @@
 """Repository-wide consistency checks (run by build/scripts/build-packages.sh)."""
 
+import re
 import unittest
 from pathlib import Path
 
@@ -31,6 +32,20 @@ class LineEndingTests(unittest.TestCase):
             if path.suffix in {".png", ".jpg", ".iso", ".deb", ".gz", ".mo"}:
                 continue
             if b"\r\n" in path.read_bytes():
+                offenders.append(str(path.relative_to(REPO)))
+        self.assertEqual(offenders, [])
+
+    def test_no_control_characters_in_text_files(self):
+        # Shell quoting accidents turn "\b" or "\1" into control characters.
+        bad = re.compile(rb"[\x00-\x08\x0b\x0e-\x1f]")
+        offenders = []
+        for path in REPO.rglob("*"):
+            if not path.is_file() or ".git" in path.parts or "out" in path.parts:
+                continue
+            if path.suffix not in {".py", ".qml", ".js", ".sh", ".svg", ".json", ".md", ".po",
+                                   ".conf", ".cfg", ".txt", ".rc", ".desktop"}:
+                continue
+            if bad.search(path.read_bytes()):
                 offenders.append(str(path.relative_to(REPO)))
         self.assertEqual(offenders, [])
 

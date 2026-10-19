@@ -64,7 +64,7 @@ def logo_inner(prefix):
     """The logo's drawing, with ids prefixed so it can be embedded."""
     logo = LOGO.read_text(encoding="utf-8")
     inner = logo[logo.index(">", logo.index("<svg")) + 1:logo.rindex("</svg>")]
-    return inner.replace('id="blade-', f'id="{prefix}blade-').replace("url(#blade-", f"url(#{prefix}blade-")
+    return inner.replace('id="', f'id="{prefix}').replace("url(#", f"url(#{prefix}")
 
 
 def spinner_frame(index):
@@ -198,6 +198,19 @@ def main():
     defaults = root / "etc/default/grub.d"
     defaults.mkdir(parents=True)
     shutil.copy(SRC / "default/veltos.cfg", defaults / "veltos.cfg")
+    # Keyboard layout in the initramfs, for the disk encryption password.
+    conf_d = root / "etc/initramfs-tools/conf.d"
+    conf_d.mkdir(parents=True)
+    shutil.copy(SRC / "initramfs/veltos-keymap", conf_d / "veltos-keymap")
+    # Font and texts of the disk encryption password screen.
+    hooks = root / "usr/share/initramfs-tools/hooks"
+    hooks.mkdir(parents=True)
+    shutil.copy(SRC / "initramfs/hook", hooks / "veltos-boot")
+    (hooks / "veltos-boot").chmod(0o755)
+    lib = root / "usr/lib/veltos-boot"
+    lib.mkdir(parents=True)
+    shutil.copy(SRC / "initramfs/unlock-texts", lib / "unlock-texts")
+    (lib / "unlock-texts").chmod(0o755)
     grub_d = root / "etc/grub.d"
     grub_d.mkdir(parents=True)
     shutil.copy(SRC / "grub.d/35_veltos", grub_d / "35_veltos")

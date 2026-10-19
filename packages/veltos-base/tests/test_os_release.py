@@ -42,5 +42,18 @@ class OsReleaseTests(unittest.TestCase):
                         f"changelog {version} vs VERSION_ID {self.fields['VERSION_ID']}")
 
 
+class LoginBannerTests(unittest.TestCase):
+    def test_console_banner_says_veltos(self):
+        issue = (PKG / "issue").read_text()
+        self.assertTrue(issue.startswith("VeltOS "))
+        self.assertIn("\\l", issue)   # getty: name of the terminal
+        self.assertNotIn("Debian", issue)
+        self.assertEqual((PKG / "issue.net").read_text(), "VeltOS 0.1\n")
+
+    def test_banners_follow_the_version(self):
+        version = parse_os_release((PKG / "os-release").read_text())["VERSION_ID"]
+        self.assertIn(f"VeltOS {version} ", (PKG / "issue").read_text())
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -137,7 +137,7 @@ def run_checks(args, report, qmp, agent):
     report.check("VeltOS wallpaper set", "/usr/share/wallpapers/VeltOS" in appletsrc)
     (args.outdir / "plasma-appletsrc.txt").write_text(appletsrc)
 
-    _, out, _ = agent.run("for f in org.kde.dolphin firefox-esr org.kde.konsole veltos-settings; do "
+    _, out, _ = agent.run("for f in veltos-explorer firefox-esr org.kde.konsole veltos-settings; do "
                           "test -f /usr/share/applications/$f.desktop && echo \"ok $f\" || echo \"missing $f\"; done")
     report.check("taskbar launcher .desktop files exist", "missing" not in out, out)
 
@@ -153,10 +153,11 @@ def run_checks(args, report, qmp, agent):
                           "| grep '^XDG_DATA_DIRS='")
     report.check("session uses VeltOS application names (XDG_DATA_DIRS)",
                  "/var/lib/veltos/xdg:" in out, out.strip())
-    _, out, _ = agent.run("grep -h '^Name=' /var/lib/veltos/xdg/applications/org.kde.dolphin.desktop "
+    _, out, _ = agent.run("grep -h '^Name=' /usr/share/applications/veltos-explorer.desktop; "
+                          "grep -c '^NoDisplay=true' /var/lib/veltos/xdg/applications/org.kde.dolphin.desktop "
                           "/var/lib/veltos/xdg/applications/systemsettings.desktop")
-    report.check("File Explorer and Control Panel names",
-                 "Name=File Explorer" in out and "Name=Control Panel" in out,
+    report.check("VeltOS File Explorer; KDE file manager and System Settings hidden",
+                 "Name=File Explorer" in out and out.count(":1") == 2,
                  out.replace("\n", "; "))
     _, out, _ = agent.run(f"cat {home}/.config/Kvantum/kvantum.kvconfig; "
                           f"grep -c 'GroupState-Remote-IsHidden>true' {home}/.local/share/user-places.xbel; "

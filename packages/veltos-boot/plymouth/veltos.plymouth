@@ -4,11 +4,13 @@ Description=VeltOS boot splash: logo with a spinner, like Windows
 ModuleName=two-step
 
 [two-step]
-Font=Cantarell 12
-TitleFont=Cantarell Light 30
+# Inter is copied into the initramfs by the veltos-boot initramfs hook.
+Font=Inter 12
+TitleFont=Inter Light 30
 ImageDir=/usr/share/plymouth/themes/veltos
 DialogHorizontalAlignment=.5
-DialogVerticalAlignment=.382
+# Password box below the logo (the logo spans about 38-49 % of the height).
+DialogVerticalAlignment=.6
 TitleHorizontalAlignment=.5
 TitleVerticalAlignment=.382
 HorizontalAlignment=.5

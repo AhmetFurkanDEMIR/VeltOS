@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Description": "The thin \"show desktop\" area at the right end of the taskbar, like Windows 11",
+        "Icon": "user-desktop",
+        "Id": "org.veltos.showdesktop",
+        "License": "GPL-3.0-or-later",
+        "Name": "Show desktop",
+        "Version": "0.1"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  VeltOS logo mark: a "V" made of two blades, a deep blue one behind and a
-  light blue one in front, meeting in one point (the ribbons of the
-  wallpaper, simplified).
+  VeltOS logo mark: a "V" of two slanted bars with straight ends, a light
+  blue one behind and a deep blue one in front, sharing a flat base.
   SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="blade-back" x1="10" y1="8" x2="34" y2="58" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2F55E8"/>
-      <stop offset="1" stop-color="#1433B8"/>
+    <linearGradient id="v-left" x1="8" y1="10" x2="32" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A9CFFF"/>
+      <stop offset="1" stop-color="#5E97FF"/>
     </linearGradient>
-    <linearGradient id="blade-front" x1="54" y1="8" x2="31" y2="58" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#86CCFF"/>
-      <stop offset="0.5" stop-color="#4392FF"/>
-      <stop offset="1" stop-color="#2459F0"/>
+    <linearGradient id="v-right" x1="56" y1="10" x2="32" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4C88FF"/>
+      <stop offset="1" stop-color="#1F45DB"/>
     </linearGradient>
   </defs>
-  <!-- back blade: A(6,9) B(21,9) E(35.8,49) T(32,57.8) -->
-  <path d="M 8 9 L 19.4 9 Q 21 9 21.6 10.5 L 35.8 49 L 32.4 57.2 Q 31.8 58.4 31.2 57.2 L 6.4 11.6 Q 5.4 9 8 9 Z"
-        fill="url(#blade-back)"/>
-  <!-- front blade: C(43.5,9) D(58,9) T(32,57.8) F(29.2,50.5) -->
-  <path d="M 45.1 9 L 56 9 Q 58.6 9 57.6 11.6 L 32.8 57.2 Q 32 58.6 31.3 57.2 L 29.2 50.5 L 43.4 10.6 Q 43.9 9 45.1 9 Z"
-        fill="url(#blade-front)"/>
+  <path d="M 5 10 L 18.5 10 L 38.5 54 L 25 54 Z" fill="url(#v-left)"/>
+  <path d="M 45.5 10 L 59 10 L 39 54 L 25.5 54 Z" fill="url(#v-right)"/>
 </svg>

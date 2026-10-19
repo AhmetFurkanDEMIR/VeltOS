@@ -24,7 +24,7 @@ ColumnLayout {
     readonly property var osRows: [
         [backend.text("edition"), about.os],
         [backend.text("version"), about.version || backend.text("unknown")],
-        [backend.text("kernel"), about.kernel]
+        [backend.text("os_build"), about.build || backend.text("unknown")]
     ]
 
     function rowsText(rows) {

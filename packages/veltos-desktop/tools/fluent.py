@@ -52,14 +52,44 @@ KVANTUM_GENERAL = {
 # through every title bar, and made inactive windows look washed out.
 AURORAE = {"VeltOS": ("Fluent-round-light-solid", "light"),
            "VeltOS-Dark": ("Fluent-round-dark-solid", "dark")}
-AURORAE_GENERAL = {"TitleAlignment": "Left", "LeftButtons": "M", "RightButtons": "IAX"}
-# A 1 px bottom border: with 0, a 1 px seam between the window contents and
-# the rounded bottom edge shows the desktop through (seen in a VM).
-AURORAE_LAYOUT = {"BorderBottom": "1"}
+AURORAE_GENERAL = {"TitleAlignment": "Left", "LeftButtons": "M", "RightButtons": "IAX",
+                   "UseTextShadow": "false"}
+# Windows 11 title bar: 32 px high, the minimise / maximise / close buttons
+# 46 x 32 and flush with the top right corner, the app icon and the title on
+# the left. A 1 px bottom border: with 0, a 1 px seam between the window
+# contents and the rounded bottom edge shows the desktop through (VM test).
+AURORAE_LAYOUT = {"BorderBottom": "1",
+                  "ButtonWidth": "46", "ButtonHeight": "32", "ButtonSpacing": "0",
+                  "ButtonMarginTop": "0", "ExplicitButtonSpacer": "0", "ButtonWidthMenu": "28",
+                  "TitleHeight": "32", "TitleEdgeTop": "0", "TitleEdgeBottom": "0",
+                  "TitleEdgeLeft": "6", "TitleEdgeRight": "0",
+                  "TitleEdgeTopMaximized": "0", "TitleEdgeBottomMaximized": "0",
+                  "TitleEdgeLeftMaximized": "6", "TitleEdgeRightMaximized": "0",
+                  "TitleBorderLeft": "6", "TitleBorderRight": "8"}
+AURORAE_TEXT = {"light": {"ActiveTextColor": "27,29,36", "InactiveTextColor": "138,143,156"},
+                "dark": {"ActiveTextColor": "242,243,247", "InactiveTextColor": "143,148,166"}}
+# Caption button drawing (VeltOS's own, replacing Fluent's round buttons):
+# glyph colour, inactive glyph colour, hover and pressed backgrounds.
+CAPTION_COLOURS = {
+    "light": {"glyph": "#1b1d24", "inactive": "#8a8f9c", "hover": ("#000000", 0.06),
+              "pressed": ("#000000", 0.035)},
+    "dark": {"glyph": "#f2f3f7", "inactive": "#8f94a6", "hover": ("#ffffff", 0.08),
+             "pressed": ("#ffffff", 0.05)},
+}
+CLOSE_RED = "#c42b1c"
+CAPTION_W, CAPTION_H = 46, 32
+WINDOW_RADIUS = 8
 
 DESKTOPTHEMES = {"VeltOS": "light", "VeltOS-Dark": "dark"}
 # Plasma theme files that show other projects' or companies' logos.
 DESKTOPTHEME_DROP = ("icons/start.svgz", "icons/manjaro.svgz", "widgets/branding.svgz")
+# Taskbar background opacity, see-through like Windows 11: the normal
+# background is used without the blur effect (no 3D acceleration) and stays
+# readable; the translucent one is used with blur ("acrylic").
+PANEL_OPACITY = {"widgets/panel-background.svgz": 0.86,
+                 "translucent/widgets/panel-background.svgz": 0.7}
+# Blur with more colour, closer to Windows 11 acrylic than Fluent's default.
+CONTRAST_EFFECT = ["enabled=true", "contrast=0.18", "intensity=1.1", "saturation=1.7"]
 
 COLOR_SCHEMES = {
     "VeltOSLight": {"source": "FluentLight.colors", "name": "VeltOS Light", "variant": "light"},
@@ -87,25 +117,31 @@ def recolour(text, variant, what):
     return new
 
 
-def set_ini_keys(text, section, values, what):
+def set_ini_keys(text, section, values, what, add=()):
     """Set keys inside one [section] of an INI-style file, keeping everything
-    else byte for byte. Every key must already exist in that section."""
+    else byte for byte. Every key must already exist in that section,
+    except the keys named in `add`, which are added after the header."""
     lines = text.splitlines()
     current = None
+    header = None
     seen = set()
     for i, line in enumerate(lines):
         stripped = line.strip()
         if stripped.startswith("["):
             current = stripped
+            if current == section:
+                header = i
             continue
         if current == section and "=" in stripped:
             key = stripped.split("=", 1)[0]
             if key in values:
                 lines[i] = f"{key}={values[key]}"
                 seen.add(key)
-    missing = set(values) - seen
-    if missing:
+    missing = set(values) - seen - set(add)
+    if missing or header is None:
         raise SystemExit(f"{what}: keys {sorted(missing)} not found in {section}")
+    lines[header + 1:header + 1] = [f"{key}={values[key]}" for key in values
+                                    if key in add and key not in seen]
     return "\n".join(lines) + "\n"
 
 
@@ -131,6 +167,12 @@ def build_kvantum(upstream, root):
                 "inactive.highlight.color": accent + "74",
                 "highlight.text.color": "#ffffff",
             }, f"{fluent}.kvconfig")
+        # Plain lists without zebra stripes, as in Windows 11 File Explorer.
+        base = re.search(r"^base\.color=(\S+)", config, re.M)
+        if base is None:
+            raise SystemExit(f"{fluent}.kvconfig: no base colour")
+        config = set_ini_keys(config, "[GeneralColors]", {"alt.base.color": base.group(1)},
+                              f"{fluent}.kvconfig")
         (dest / f"{name}.kvconfig").write_text(config, encoding="utf-8")
 
 
@@ -144,8 +186,12 @@ def build_aurorae(upstream, root):
                         ignore=shutil.ignore_patterns("LICENSE", "AUTHORS"))
         (dest / f"{fluent}rc").rename(dest / f"{name}rc")
         rc = dest / f"{name}rc"
-        text = set_ini_keys(rc.read_text(encoding="utf-8"), "[General]", AURORAE_GENERAL, rc.name)
-        rc.write_text(set_ini_keys(text, "[Layout]", AURORAE_LAYOUT, rc.name), encoding="utf-8")
+        text = set_ini_keys(rc.read_text(encoding="utf-8"), "[General]",
+                            dict(AURORAE_GENERAL, **AURORAE_TEXT[variant]), rc.name)
+        rc.write_text(set_ini_keys(text, "[Layout]", AURORAE_LAYOUT, rc.name, add=("ButtonWidthMenu",)),
+                      encoding="utf-8")
+        for kind in ("minimize", "maximize", "restore", "close"):
+            (dest / f"{kind}.svg").write_text(caption_svg(kind, variant), encoding="utf-8")
         metadata = (dest / "metadata.desktop").read_text(encoding="utf-8")
         metadata = set_ini_keys(metadata, "[Desktop Entry]", {
             "Name": name.replace("-", " "),
@@ -158,6 +204,67 @@ def build_aurorae(upstream, root):
             text = svg.read_text(encoding="utf-8")
             if re.search(re.escape(FLUENT_BLUE), text, flags=re.IGNORECASE):
                 svg.write_text(recolour(text, variant, svg.name), encoding="utf-8")
+
+
+def caption_glyph(kind, x, colour, opacity=1.0):
+    """The thin line glyph of a caption button whose left edge is at x
+    (Windows 11 proportions: 10 px wide, 1 px lines, centred)."""
+    cx, cy = x + CAPTION_W / 2, CAPTION_H / 2
+    stroke = f'fill="none" stroke="{colour}" stroke-width="1" opacity="{opacity:g}"'
+    if kind == "minimize":
+        return f'<rect x="{cx - 5:g}" y="{cy - 0.5:g}" width="10" height="1" fill="{colour}" opacity="{opacity:g}"/>'
+    if kind == "maximize":
+        return f'<rect x="{cx - 4.5:g}" y="{cy - 4.5:g}" width="9" height="9" rx="1.5" {stroke}/>'
+    if kind == "restore":
+        return (f'<rect x="{cx - 4.5:g}" y="{cy - 2.5:g}" width="7" height="7" rx="1" {stroke}/>'
+                f'<path d="M {cx - 2.5:g} {cy - 2.5:g} V {cy - 3.5:g} A 1 1 0 0 1 {cx - 1.5:g} {cy - 4.5:g} '
+                f'H {cx + 3.5:g} A 1 1 0 0 1 {cx + 4.5:g} {cy - 3.5:g} V {cy + 1.5:g} '
+                f'A 1 1 0 0 1 {cx + 3.5:g} {cy + 2.5:g} H {cx + 2.5:g}" {stroke}/>')
+    if kind == "close":
+        return (f'<path d="M {cx - 5:g} {cy - 5:g} L {cx + 5:g} {cy + 5:g} M {cx + 5:g} {cy - 5:g} '
+                f'L {cx - 5:g} {cy + 5:g}" {stroke} stroke-linecap="round"/>')
+    raise ValueError(kind)
+
+
+def caption_background(kind, x, colour, opacity):
+    """Hover/pressed background; the close button rounds the window's top
+    right corner, as on Windows 11."""
+    if kind == "close":
+        r = WINDOW_RADIUS
+        return (f'<path d="M {x} 0 H {x + CAPTION_W - r} A {r} {r} 0 0 1 {x + CAPTION_W} {r} '
+                f'V {CAPTION_H} H {x} Z" fill="{colour}" opacity="{opacity:g}"/>')
+    return f'<rect x="{x}" y="0" width="{CAPTION_W}" height="{CAPTION_H}" fill="{colour}" opacity="{opacity:g}"/>'
+
+
+def caption_svg(kind, variant):
+    """An Aurorae button SVG: the five states Aurorae reads (active,
+    inactive, hover, pressed, deactivated), side by side, each the full
+    46 x 32 button (an invisible rectangle keeps the size)."""
+    c = CAPTION_COLOURS[variant]
+    red = kind == "close"
+    states = [
+        ("active", c["glyph"], 1.0, None),
+        ("inactive", c["inactive"], 1.0, None),
+        ("hover", "#ffffff" if red else c["glyph"], 1.0, (CLOSE_RED, 1.0) if red else c["hover"]),
+        ("pressed", "#ffffff" if red else c["glyph"], 0.7 if red else 0.8,
+         (CLOSE_RED, 0.85) if red else c["pressed"]),
+        ("deactivated", c["glyph"], 0.3, None),
+    ]
+    parts = []
+    for i, (state, colour, opacity, background) in enumerate(states):
+        x = i * (CAPTION_W + 2)
+        group = [f'<g id="{state}-center">',
+                 f'<rect x="{x}" y="0" width="{CAPTION_W}" height="{CAPTION_H}" fill="#000000" opacity="0.001"/>']
+        if background:
+            group.append(caption_background(kind, x, *background))
+        group.append(caption_glyph(kind, x, colour, opacity))
+        group.append("</g>")
+        parts.append("".join(group))
+    width = len(states) * (CAPTION_W + 2)
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{CAPTION_H}" '
+            f'viewBox="0 0 {width} {CAPTION_H}">\n<!-- VeltOS caption button "{kind}" ({variant}), '
+            f'Windows 11 proportions. SPDX-License-Identifier: GPL-3.0-or-later -->\n'
+            + "\n".join(parts) + "\n</svg>\n")
 
 
 # --- Plasma desktop theme (panel, popups, widgets) -------------------------------
@@ -183,6 +290,22 @@ def desktop_entry_groups(path):
             groups[current].append(stripped)
     groups.pop("[Desktop Entry]", None)
     return groups
+
+
+def set_background_opacity(svg, opacity, name="svg"):
+    """Set the opacity of the frame pieces (the elements filled with the
+    colour scheme's background) of a Plasma frame SVG."""
+    def fix(match):
+        tag = match.group(0)
+        if re.search(r"(?<![-\w])opacity:", tag):
+            return re.sub(r"(?<![-\w])opacity:[0-9.]+", f"opacity:{opacity}", tag)
+        if 'style="' in tag:
+            return tag.replace('style="', f'style="opacity:{opacity};', 1)
+        return re.sub(r"^<(\w+)", rf'<\1 style="opacity:{opacity}"', tag)
+    result, count = re.subn(r'<(?:rect|path)\b[^>]*class="ColorScheme-Background"[^>]*>', fix, svg)
+    if count == 0:
+        raise SystemExit(f"{name}: no frame pieces to make see-through")
+    return result
 
 
 def build_desktoptheme(upstream, root, name, variant, colors_text):
@@ -214,9 +337,12 @@ def build_desktoptheme(upstream, root, name, variant, colors_text):
             recoloured += 1
         write_svgz(path, text)
     (dest / "colors").write_text(colors_text, encoding="utf-8")
+    for rel, opacity in PANEL_OPACITY.items():
+        write_svgz(dest / rel, set_background_opacity(read_svgz(dest / rel), opacity, rel))
 
     # Plasma 6 reads metadata.json; theme settings live in plasmarc.
     groups = desktop_entry_groups(base / "metadata.desktop")
+    groups["[ContrastEffect]"] = CONTRAST_EFFECT
     groups["[Wallpaper]"] = ["defaultWallpaperTheme=VeltOS", "defaultFileSuffix=.png",
                              "defaultWidth=3840", "defaultHeight=2160"]
     plasmarc = [f"# {ATTRIBUTION}"]

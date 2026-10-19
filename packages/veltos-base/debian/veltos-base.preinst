@@ -4,6 +4,11 @@ set -e
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
     dpkg-divert --package veltos-base --add --rename \
         --divert /usr/lib/os-release.debian /usr/lib/os-release
+    # Console login banners: base-files keeps its versions (conffiles) at
+    # the diverted paths; postinst puts the VeltOS ones in place.
+    for f in /etc/issue /etc/issue.net; do
+        dpkg-divert --package veltos-base --add --rename --divert "$f.debian" "$f"
+    done
 fi
 
 #DEBHELPER#

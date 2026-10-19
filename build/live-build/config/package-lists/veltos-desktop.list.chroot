@@ -17,6 +17,9 @@ systemsettings
 plasma-systemmonitor
 xdg-desktop-portal-kde
 
+veltos-explorer
+# KDE's file manager stays for "show in folder" requests of other programs
+# (org.freedesktop.FileManager1); hidden from Start.
 dolphin
 konsole
 kwrite

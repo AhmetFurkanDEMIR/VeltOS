@@ -3,6 +3,175 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-19 (night) — Encrypted installation verified, unlock screen like Windows
+
+### Installation test on the fixed ISO
+
+ISO `veltos-0.1.0-dev-20261019-170820`, VM (UEFI), "Erase disk" +
+"Encrypt system": Calamares finished; firmware entry `Boot0009* VeltOS`;
+`grub.cfg` has the "VeltOS" entries again; booting the disk shows the
+password box on the VeltOS boot screen, the correct password leads to
+the sign-in screen and the desktop. The three bugs of the previous test
+are fixed. Evidence: `tests/results/2026-10-19-encrypted-install-uefi/`.
+
+### Problems seen on the password screen (fixed)
+
+- The prompt read "Please unlock disk luks-<uuid>:" (cryptsetup's text,
+  with Calamares' mapping name) in a **monospace** font, and the box, the
+  text and the keyboard indicator were drawn over the logo.
+  - Font: Debian's plymouth initramfs hook copies only fontconfig's default
+    and monospace fonts; the theme asked for Cantarell, which was not in
+    the initramfs, and fontconfig chose DejaVu Sans Mono. veltos-boot now
+    has an initramfs hook that copies Inter; the theme uses Inter.
+  - Texts: the hook changes the initramfs copy of cryptsetup's shell
+    functions (`/usr/lib/veltos-boot/unlock-texts`): "Enter the password
+    to unlock this PC", after a wrong password "The password is incorrect.
+    Try again.", no technical splash messages for a wrong password or a
+    successful unlock. A first version showed the warning as a Plymouth
+    message; it stayed on screen while the next (correct) password was
+    being checked, so the warning now replaces the prompt.
+  - Layout: `DialogVerticalAlignment=.6` (below the logo; unit test checks
+    600-2160 px screen heights).
+- After three wrong passwords cryptsetup gives up and the system falls to
+  a recovery shell. Calamares' fstab module drops `crypttabOptions` when
+  `/boot` is unencrypted, so a new installer job `crypttab-tries` adds
+  `tries=0` (unlimited, crypttab(5)) to entries with a typed password.
+- Lintian: `repeated-trigger-name update-initramfs` — `dh_installinitramfs`
+  adds the trigger for the new hook; veltos-boot's own `.triggers` file
+  was removed.
+
+Verified in the installed VM with the new packages (`dpkg -i`, installer
+job run by hand): Inter and the new texts in the initramfs (`lsinitramfs`,
+`unmkinitramfs`); prompt below the logo; four wrong passwords in a row
+without a recovery shell; correct password -> spinner without messages ->
+sign-in screen.
+
+### ISO `veltos-0.1.0-dev-20261019-174700`
+
+- Verify hook passed (new checks: Inter in the live initramfs, installer
+  runs `crypttab-tries`, initramfs hook installed).
+- Boot tests: UEFI PASS, BIOS PASS (all checks, no crashed processes).
+- **Encrypted installation repeated on this ISO**: Calamares ran
+  `crypttab-tries` (crypttab `... none tries=0`), "All done"; boot: prompt
+  -> wrong password -> "The password is incorrect. Try again." -> correct
+  password -> sign-in screen; no failed systemd units.
+- Package tests: veltos-boot 22 (was 14), calamares-settings-veltos 19
+  (was 17), repo 4.
+- Not tested on this ISO: a plain (unencrypted) installation, Secure Boot,
+  `test-winapps`, BIOS installation.
+
+### Seen during the installation, not changed yet
+
+- The installer's partition and user pages still use Calamares' own
+  icons and layout (only colours and controls are styled).
+- Calamares' confirmation dialog has minimise/maximise buttons.
+- The keyboard indicator on the password screen ("us") is Plymouth's
+  pre-rendered image (bold, not Inter).
+
+## 2026-10-19 (evening) — File Explorer, Settings pages, taskbar, installer, encryption fix
+
+### Product-owner feedback that drove this work
+
+- VirtualBox stopped the installed system at start-up (fixed: GRUB video
+  mode, commit 8d06195). Later: an install with "Encrypt system" ended in
+  `grub rescue` after the GRUB password prompt.
+- "Settings, files, app windows — everything Windows 11", "the taskbar more
+  like Windows, translucent", "the installer looks like old Qt", "logo like
+  my sketch (V of two bars)", "no Debian anywhere", "File Explorer exactly
+  like Windows 11" (with screenshots), "dark mode leaves the taskbar
+  white", "show desktop at the bottom right", "Control Panel inside
+  Settings", "every window's close/minimise buttons like Windows 11",
+  dialogs and confirmations Windows 11 style.
+- Asked to ship Windows 11's own wallpapers: declined (Microsoft's
+  copyright; an ISO with them could not be shared); original artwork kept.
+
+### Implemented
+
+- **VeltOS File Explorer** (new package `veltos-explorer`): see its README.
+  Replaces Dolphin as the default for folders and on the taskbar.
+- **Settings**: built-in Wi-Fi, Bluetooth, Sound, Display, Background,
+  Colours, Date & time pages (`devices.py` + QML pages, Windows 11 toggles,
+  sliders, drop-downs); About shows "OS build" (from
+  `/usr/lib/veltos/build-info`, written by the ISO build) instead of the
+  kernel; separate Control Panel entry removed; light/dark switch now
+  updates the taskbar at once.
+- **Taskbar**: 48 px, see-through (opacity in the Plasma theme, translucent
+  panel mode, acrylic-like blur where available); Search box, Task View,
+  new clock (time over date, same size, four-digit year, calendar),
+  show-desktop corner.
+- **Window frames**: VeltOS-drawn caption buttons in Windows 11 metrics
+  (46×32, thin glyphs, grey hover, red close with the rounded corner),
+  32 px title bar, left title with app icon.
+- **Logo**: new "V" of two slanted bars (product owner's sketch) in every
+  package; wallpaper without logo or text.
+- **Installer**: QML side bar with steps and check marks, Back / accent
+  Next / Cancel, style sheet for all controls, Kvantum style for its
+  dialogs (root).
+- **Yellow folders** like Windows 11; coloured place icons at small sizes.
+- **No Debian in sight**: console banner, GRUB kernel titles, About page,
+  KDE "About this System" page hidden; `systemd-timesyncd` added for
+  automatic time.
+- **Encryption fix**: `partition.conf` with an unencrypted `/boot`
+  (`noEncrypt`), `cryptsetup-initramfs` and `console-setup` in the image,
+  `KEYMAP=y` in the initramfs. Before, `/boot` was inside LUKS (GRUB text
+  prompt, one try, US keyboard) and the initramfs could not unlock the
+  system at all.
+
+### Problems hit (and fixed)
+
+- File Explorer crashed when started from the taskbar but not from the
+  test tools: Qt's QML disk cache kept compiled QML of the previous package
+  (all packaged files share one time stamp). QML disk cache is now off in
+  every VeltOS QML app.
+- File Explorer and its tests crashed at exit (QMimeData on the
+  clipboard deleted after Python shut down).
+- Kirigami found no icons with the "Basic" Qt Quick style outside Plasma.
+- Plasma ignored the theme change written to `kdedefaults` until the next
+  sign-in.
+- Settings' first Wi-Fi code (`nmcli … passwd-file`) made NetworkManager
+  ask password agents, which opened the "KDE Wallet" wizard; replaced by
+  D-Bus `AddAndActivateConnection` with the key. NetworkManager passes
+  `need-auth` once even with a key; a wrong key is detected by the state
+  reason.
+- Shell heredocs turned `\b` and `\1` into control characters in Python
+  sources twice; `tests/repo` now rejects control characters.
+
+### Test runs
+
+- ISO `veltos-0.1.0-dev-20261019-125115`: boot tests UEFI and BIOS PASS
+  (16 checks each, no crashed processes), with File Explorer as launcher
+  and Dolphin/System Settings hidden.
+- Package tests: veltos-desktop 47, veltos-explorer 30, veltos-settings 55,
+  veltos-boot 14, calamares-settings-veltos 15, veltos-base 6,
+  veltos-winapps 20, tests/repo 4.
+- The encryption fix and the new caption buttons are in the next ISO; see
+  below.
+
+### Installation test (VM, UEFI, "Erase disk" + "Encrypt system")
+
+First installation test in a VM since the VirtualBox fix. Calamares
+finished ("All done"): EFI 300 MiB, `/boot` 1 GiB ext4 unencrypted,
+system 38.7 GiB LUKS1; crypttab asks at start-up (`none`), the initramfs
+has cryptsetup, the keymap and the boot screen's password box; Calamares
+skipped the keyfile because `/boot` is unencrypted. **The installed system
+did not start**: the firmware went to its setup page. Causes found:
+
+1. `/boot/grub/grub.cfg` had **no VeltOS entry**. In the image build
+   grub-common was unpacked before veltos-boot's preinst diverted
+   `/etc/grub.d/10_linux`, so dpkg left Debian's script as
+   `10_linux.dpkg-new` and the VeltOS wrapper found nothing to run (it
+   exited 0 silently). Every installation since commit 8d06195 was
+   affected. Fixed: veltos-boot `Pre-Depends: grub-common`, the postinst
+   repairs the stale file, the wrapper now fails update-grub (and the
+   installer) when Debian's script is missing, the verify hook checks it.
+2. The firmware entry was still called "debian": a shell quoting accident
+   had collapsed the doubled backslashes of the `efi-label` helper's grep
+   pattern for the `\EFI\debian\` path into single ones, so its grep failed. Fixed with `grep -F`; the helper now has a test
+   with fake efibootmgr output.
+3. `hwclock` is in `util-linux-extra` in Debian 13; added to the image.
+
+The fixed ISO is tested in the next entry.
+
 ## 2026-10-19 (later) — Windows 11 look, Settings app, start-up like Windows
 
 ### Product-owner feedback that drove this work

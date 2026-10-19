@@ -164,7 +164,76 @@ pages look like KDE pages; built-in pages can replace them one by one.
 Python + QML (as `veltos-run`) keeps the app small and testable: its
 window is loaded offscreen in the package build.
 
-#### 2.3.4 Start-up and sign-in
+Built-in system pages (Wi-Fi, Bluetooth, Sound, Display, Background,
+Colours, Date & time; `veltos_settings/devices.py`) drive the standard
+command-line tools (`nmcli`, `bluetoothctl`, `pactl`, `kscreen-doctor`,
+`timedatectl`, `plasma-apply-*`) in a worker thread and parse their
+output, so tests replace them with recorded output. Alternatives were the
+private Plasma QML plugins (used by Quick Settings; unstable API and not
+loadable outside plasmashell) or D-Bus bindings for every service (more
+code, no gain for these simple reads). One exception: a new Wi-Fi key is
+handed to NetworkManager inside its D-Bus `AddAndActivateConnection` call
+(GLib's D-Bus client from python3-gi). `nmcli … password KEY` would put
+the key on a command line other users can read, and `nmcli … passwd-file`
+makes NetworkManager ask the password agents, which started Plasma's
+"KDE Wallet" setup wizard in a VM test. A wrong key is recognised by the
+device entering `need-auth` with a reason (it passes `need-auth` once
+without a reason while it checks that a key exists); the new connection
+is then deleted so no agent prompts.
+
+KDE Wallet is off by default (`/etc/xdg/kwalletrc`): Windows has no wallet
+set-up wizard, Wi-Fi keys are kept by NetworkManager (root-only files) and
+Firefox has its own password store. Trade-off: KDE programs that want the
+wallet (e.g. KDE PIM) store nothing or ask again; it can be turned on in
+the Control Panel.
+
+#### 2.3.4 Taskbar: small VeltOS widgets, see-through theme
+
+The Windows 11 taskbar pieces Plasma lacks are three small plasmoids in
+`veltos-desktop`: Search (a box that opens VeltOS Start, which searches as
+you type — Plasma's D-Bus `activateLauncherMenu`), Task View (KWin's
+Overview, via the kglobalaccel D-Bus call), and a clock with time and date
+in the same size (Plasma's digital clock draws the date smaller and has no
+four-digit-year short format; its calendar component is reused). The
+taskbar is 48 px and see-through like Windows 11: the panel is set to
+"translucent" and the Plasma theme's panel background is 86 % opaque
+without the blur effect (no 3D acceleration, e.g. VirtualBox), 70 % with
+blur, with a more saturated blur ("acrylic"). Opacity, not a picture of
+the wallpaper, so it costs nothing without blur.
+
+#### 2.3.5 Installer look
+
+Calamares runs as root through pkexec, so the user's Kvantum style does
+not apply to it. Its branding instead uses Calamares' QML side bar and
+navigation (`calamares-sidebar.qml`: logo and steps with check marks;
+`calamares-navigation.qml`: Back / accent Next / Cancel) and a Qt style
+sheet (`stylesheet.qss`) for every page's controls (rounded buttons and
+fields, accent underline, accent check boxes, thin scroll bars). The style
+sheet works with any base Qt style, so it does not depend on root's
+configuration. Calamares' own page layouts and icons stay.
+
+#### 2.3.6 Branding and third-party artwork
+
+The VeltOS logo is a "V" of two slanted bars (product owner's sketch,
+2026-10-19); one SVG source with copies in the packages that need it
+(checked by `tests/repo`). VeltOS does **not** ship Windows wallpapers,
+icons, sounds or fonts (Segoe UI): they are Microsoft's copyrighted works
+and their licence does not allow redistribution in another operating
+system, so an ISO containing them could not be shared. VeltOS draws
+original artwork in the same spirit (the generated "Velt Bloom"
+wallpaper, without any logo or text, like Windows 11's) and uses Inter
+and the Fluent icon theme (GPL). Folder icons are recoloured to the solid
+yellow of Windows 11 folders (`veltos-fluent-icons/tools/recolour-folders.py`),
+and the coloured place icons are used at small sizes too.
+
+"Not recognisable as Debian" is pursued for everything a user sees
+(os-release, console banner, boot menu titles, About pages, app names).
+The package system stays Debian's (`/etc/debian_version`, `ID_LIKE=debian`,
+`VERSION_CODENAME=trixie`, package licences and the kernel's internal
+version string) because third-party installers depend on it and licences
+require the notices.
+
+#### 2.3.7 Start-up and sign-in
 
 Like Windows, the boot menu is hidden (GRUB `timeout_style=hidden`, 2 s;
 Esc/F4/Shift shows it) and any text GRUB prints is drawn black on black,
@@ -207,7 +276,31 @@ welcome window (re-sign-in) instead of a boot menu entry.
     removed; anything unexpected leaves entries untouched);
   - bootloader packages are in the ISO's package pool, so installs work
     offline;
-  - `os-prober` is enabled so Windows stays bootable in dual-boot setups.
+  - `os-prober` is enabled so Windows stays bootable in dual-boot setups;
+  - **disk encryption works like BitLocker**: "Encrypt system" encrypts the
+    system partition (LUKS) and leaves a 1 GiB ext4 `/boot` unencrypted.
+    The VeltOS boot screen (Plymouth + cryptsetup-initramfs) asks for the
+    password, with the installer's keyboard layout, Windows-like texts
+    ("Enter the password to unlock this PC", "The password is incorrect.
+    Try again.") and unlimited tries (`tries=0` in crypttab, written by
+    the `crypttab-tries` installer job; cryptsetup's default of three tries
+    ends in a recovery shell).
+    Alternative rejected: `/boot` inside LUKS (Calamares' default). GRUB
+    then asks on a text screen with a US layout, can only open LUKS1, and
+    the installed system needs a key file in the initramfs; the product
+    owner's install ended in `grub rescue`. Trade-off: kernel and initramfs
+    are readable and could be modified by someone with physical access
+    (as on most Linux distributions' default encrypted installs); the
+    system data is protected. `luksGeneration` stays LUKS1 so that manual
+    layouts without a separate `/boot` still boot (GRUB cannot open LUKS2
+    with Argon2id); LUKS2 for the automatic layout is a possible later
+    improvement.
+  - The texts on the password screen are changed only in the initramfs
+    copy of cryptsetup's shell functions (veltos-boot initramfs hook); if
+    cryptsetup changes that code, its own texts stay (the hook warns). The
+    alternatives — a crypttab `keyscript` or a diverted cryptsetup file —
+    would change installed configuration or packaged files and are not
+    supported by systemd-cryptsetup.
   Debian-installer is not included (keeps the ISO smaller).
 - Boot splash: Plymouth `veltos` theme (`veltos-boot`): logo with a dot
   spinner on near-black, like Windows; GRUB theme and `GRUB_DISTRIBUTOR=VeltOS`

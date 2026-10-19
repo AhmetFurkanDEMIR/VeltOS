@@ -13,7 +13,13 @@ Rules-Requires-Root: no
 
 Package: veltos-boot
 Architecture: all
-Depends: plymouth,
+# grub-common must be configured before the preinst diverts its
+# /etc/grub.d/10_linux; otherwise dpkg leaves the script as 10_linux.dpkg-new
+# and the boot menu gets no VeltOS entry (install test, 2026-10-19).
+Pre-Depends: grub-common,
+             ${misc:Pre-Depends}
+Depends: fonts-inter,
+         plymouth,
          plymouth-themes,
          ${misc:Depends}
 Description: VeltOS boot experience
@@ -24,3 +30,5 @@ Description: VeltOS boot experience
   * "veltos" GRUB theme and boot defaults for installed systems: "VeltOS"
     menu entries, quiet boot with the splash, Windows and other systems
     detected for the boot menu.
+  * the disk encryption password screen in the VeltOS style (font and
+    Windows-like texts, set in the initramfs).
