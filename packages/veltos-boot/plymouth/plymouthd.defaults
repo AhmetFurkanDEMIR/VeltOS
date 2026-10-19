@@ -1,0 +1,8 @@
+# VeltOS boot splash defaults. veltos-boot diverts plymouth's own file to
+# /usr/share/plymouth/plymouthd.defaults.debian; plymouth-set-default-theme
+# and the initramfs hook read the theme from here. Administrators override
+# it in /etc/plymouth/plymouthd.conf.
+[Daemon]
+Theme=veltos
+ShowDelay=0
+DeviceTimeout=8

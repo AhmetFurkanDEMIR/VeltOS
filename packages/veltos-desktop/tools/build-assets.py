@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Generate the installable file tree of the veltos-desktop package.
 
-    build-assets.py --breeze-colors /usr/share/color-schemes --out build-assets
+    build-assets.py --fluent upstream --out build-assets
 
 Everything the package installs is produced here from the sources next to
 this script, so debian/rules only copies one staging tree (<out>/root).
-Only the Python standard library and rsvg-convert are required.
+Only the Python standard library and rsvg-convert are required. Widget
+style, window frames, panel theme and colour schemes are derived from the
+pinned Fluent-kde release in upstream/ (see tools/fluent.py).
 """
 
 import argparse
@@ -19,6 +21,8 @@ from pathlib import Path
 SRC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bloom  # noqa: E402  (tools/bloom.py: procedural wallpaper)
+import fluent  # noqa: E402  (tools/fluent.py: themes derived from Fluent-kde)
+import app_titles  # noqa: E402  (tools/app_titles.py: program names in titles)
 
 WALLPAPER_ID = "VeltOS"
 WALLPAPER_DIR = Path("usr/share/wallpapers") / WALLPAPER_ID
@@ -34,31 +38,6 @@ LOGIN_WALLPAPER = "images/3840x2160.png"
 # contents/images/ otherwise. Values are tools/bloom.py palette names.
 WALLPAPER_VARIANTS = {"images": "light", "images_dark": "dark"}
 
-# Breeze accent colours -> VeltOS brand colours. Every source colour must be
-# found in the Breeze scheme, so a Breeze palette change fails the build
-# instead of silently producing a half-branded scheme.
-COLOR_SCHEMES = {
-    "VeltOSDark": {
-        "source": "BreezeDark.colors",
-        "name": "VeltOS Dark",
-        "map": {
-            "61,174,233": "79,124,255",    # accent / focus / selection
-            "29,153,243": "110,150,255",   # links
-            "30,87,116": "36,52,110",      # alternate selection background
-        },
-    },
-    "VeltOSLight": {
-        "source": "BreezeLight.colors",
-        "name": "VeltOS Light",
-        "map": {
-            "61,174,233": "47,94,230",
-            "41,128,185": "36,86,214",
-            "29,153,243": "110,150,255",
-            "163,212,250": "196,210,255",
-        },
-    },
-}
-
 STARTMENU_ID = "org.veltos.startmenu"
 
 # UI font for the whole desktop (Debian package fonts-inter). Qt font strings:
@@ -68,23 +47,53 @@ UI_FONT_SMALL = "Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 ICON_THEMES = {"dark": "Fluent-dark", "light": "Fluent"}
 CURSOR_THEME = "Fluent-cursors"  # white Windows-style pointer, both themes
 
+# Kvantum's "kvantum-dark" style key selects the Dark variant of the
+# configured Kvantum theme (VeltOS -> VeltOSDark), so switching the global
+# theme switches the application style without touching Kvantum's config.
 LOOK_AND_FEEL = {
     "org.veltos.dark": {
         "name": "VeltOS Dark",
-        "description": "VeltOS default desktop: centered taskbar, dark theme",
+        "description": "VeltOS desktop: centered taskbar, dark theme",
         "color_scheme": "VeltOSDark",
         "icons": ICON_THEMES["dark"],
         "wallpaper_variant": "images_dark",
+        "widget_style": "kvantum-dark",
+        "plasma_theme": "VeltOS-Dark",
+        "decoration": "VeltOS-Dark",
     },
     "org.veltos.light": {
         "name": "VeltOS Light",
-        "description": "VeltOS desktop: centered taskbar, light theme",
+        "description": "VeltOS default desktop: centered taskbar, light theme",
         "color_scheme": "VeltOSLight",
         "icons": ICON_THEMES["light"],
         "wallpaper_variant": "images",
+        "widget_style": "kvantum",
+        "plasma_theme": "VeltOS",
+        "decoration": "VeltOS",
     },
 }
 DEFAULT_LOOK_AND_FEEL = "org.veltos.light"
+
+# Settings pages hidden from System Settings ("KDE Control Module
+# Restrictions" in kdeglobals; the mechanism was checked in a VM with
+# kcm_bolt and kcm_kdeconnect). They are for KDE services VeltOS does not
+# use, for developers, or for rare hardware.
+HIDDEN_SETTINGS_PAGES = [
+    "kcm_activities",        # Plasma activities
+    "kcm_bolt",              # Thunderbolt device authorisation
+    "kcm_breezedecoration",  # Breeze window frames (VeltOS uses its own)
+    "kcm_feedback",          # KDE telemetry ("User Feedback")
+    "kcm_kamera",            # gPhoto2 cameras
+    "kcm_kdeconnect",        # KDE Connect
+    "kcm_kded",              # KDE background services
+    "kcm_kgamma",            # monitor gamma
+    "kcm_kup",               # Kup backups
+    "kcm_kwin_scripts",      # KWin scripts
+    "kcm_kwinxwayland",      # legacy X11 key forwarding
+    "kcm_qtquicksettings",   # Qt Quick renderer (developers)
+    "kcm_solid_actions",     # device action editor
+    "kcm_webshortcuts",      # web search keywords
+]
 
 
 
@@ -129,40 +138,19 @@ def format_kconfig(groups, header=""):
 
 # --- Colour schemes -----------------------------------------------------------
 
-def derive_color_scheme(breeze_text, scheme_id, spec):
-    groups = parse_kconfig(breeze_text)
-    used = set()
-    for entries in groups.values():
-        for key, value in entries.items():
-            if value in spec["map"]:
-                entries[key] = spec["map"][value]
-                used.add(value)
-    missing = set(spec["map"]) - used
-    if missing:
-        raise SystemExit(
-            f"{scheme_id}: Breeze colours {sorted(missing)} not found in "
-            f"{spec['source']}; update COLOR_SCHEMES in {Path(__file__).name}")
-
-    general = groups["[General]"]
-    # Localised Breeze names would be wrong for a derived scheme.
-    for key in [k for k in general if k.startswith("Name[")]:
-        del general[key]
-    general["ColorScheme"] = scheme_id
-    general["Name"] = spec["name"]
-    return groups
-
-
-def build_color_schemes(breeze_dir, root):
+def build_color_schemes(fluent_dir, root):
+    """VeltOS colour schemes, derived from Fluent's (they match the Kvantum
+    style's palette, which KDE applications mix with the colour scheme)."""
     out_dir = root / "usr/share/color-schemes"
     out_dir.mkdir(parents=True, exist_ok=True)
     schemes = {}
-    for scheme_id, spec in COLOR_SCHEMES.items():
-        breeze_text = (breeze_dir / spec["source"]).read_text(encoding="utf-8")
-        groups = derive_color_scheme(breeze_text, scheme_id, spec)
+    for scheme_id, spec in fluent.COLOR_SCHEMES.items():
+        text = (fluent_dir / "color-schemes" / spec["source"]).read_text(encoding="utf-8")
+        groups = fluent.derive_color_scheme(parse_kconfig(text), scheme_id, spec)
         header = (
-            "# SPDX-License-Identifier: LGPL-2.0-or-later\n"
-            f"# {spec['name']}: derived from KDE Breeze {spec['source']} by\n"
-            "# veltos-desktop/tools/build-assets.py (accent colours replaced).\n")
+            "# SPDX-License-Identifier: GPL-3.0-only\n"
+            f"# {spec['name']}: derived from Fluent-kde {spec['source']} (Vince Liuice)\n"
+            "# by veltos-desktop/tools/build-assets.py (accent colours replaced).\n")
         (out_dir / f"{scheme_id}.colors").write_text(
             format_kconfig(groups, header), encoding="utf-8")
         schemes[scheme_id] = groups
@@ -189,9 +177,13 @@ def build_kdeglobals(scheme_groups, root):
     groups["[Icons]"] = {"Theme": lnf["icons"]}
     groups["[KDE]"] = {
         "LookAndFeelPackage": DEFAULT_LOOK_AND_FEEL,
-        "widgetStyle": "Breeze",
-        "contrast": scheme_groups["[KDE]"].get("contrast", "4"),
+        # The light/dark pair offered by Settings > Quick Settings.
+        "DefaultLightLookAndFeel": "org.veltos.light",
+        "DefaultDarkLookAndFeel": "org.veltos.dark",
+        "widgetStyle": lnf["widget_style"],
+        "contrast": scheme_groups.get("[KDE]", {}).get("contrast", "4"),
     }
+    groups["[KDE Control Module Restrictions]"] = {kcm: "false" for kcm in HIDDEN_SETTINGS_PAGES}
     header = ("# VeltOS system-wide KDE defaults. Users override these in\n"
               "# ~/.config/kdeglobals. Generated by veltos-desktop.\n")
     path = root / "etc/xdg/kdeglobals"
@@ -265,20 +257,20 @@ def build_wallpaper(root, tmp_dir):
 def lnf_defaults(spec):
     return (
         "[kdeglobals][KDE]\n"
-        "widgetStyle=Breeze\n"
+        f"widgetStyle={spec['widget_style']}\n"
         "\n[kdeglobals][General]\n"
         f"ColorScheme={spec['color_scheme']}\n"
         "\n[kdeglobals][Icons]\n"
         f"Theme={spec['icons']}\n"
         "\n[plasmarc][Theme]\n"
-        "name=default\n"
+        f"name={spec['plasma_theme']}\n"
         "\n[kcminputrc][Mouse]\n"
         f"cursorTheme={CURSOR_THEME}\n"
         "\n[kwinrc][WindowSwitcher]\n"
         "LayoutName=org.kde.breeze.desktop\n"
         "\n[kwinrc][org.kde.kdecoration2]\n"
-        "library=org.kde.breeze\n"
-        "theme=Breeze\n"
+        "library=org.kde.kwin.aurorae\n"
+        f"theme=__aurorae__svg__{spec['decoration']}\n"
         "\n[ksplashrc][KSplash]\n"
         "Engine=KSplashQML\n"
         f"Theme={DEFAULT_LOOK_AND_FEEL}\n"
@@ -326,8 +318,37 @@ def build_look_and_feel(root, tmp_dir):
 def build_static_config(root):
     wallpaper_url = f"/usr/share/wallpapers/{WALLPAPER_ID}/"
     login_image = f"/{WALLPAPER_DIR}/contents/{LOGIN_WALLPAPER}"
+    lnf = LOOK_AND_FEEL[DEFAULT_LOOK_AND_FEEL]
 
     files = {
+        # Window frames: Windows 11 style buttons on the right, app icon left.
+        "etc/xdg/kwinrc": (
+            "[org.kde.kdecoration2]\n"
+            "library=org.kde.kwin.aurorae\n"
+            f"theme=__aurorae__svg__{lnf['decoration']}\n"
+            "ButtonsOnLeft=M\n"
+            "ButtonsOnRight=IAX\n"),
+        "etc/xdg/plasmarc": (
+            "[Theme]\n"
+            f"name={lnf['plasma_theme']}\n"),
+        # File Explorer (Dolphin) like Windows: a fresh window at Home, zip
+        # files open like folders, icon-only toolbar, tooltips.
+        "etc/xdg/dolphinrc": (
+            "[General]\n"
+            "RememberOpenedTabs=false\n"
+            "BrowseThroughArchives=true\n"
+            "ShowToolTips=true\n"
+            "\n[MainWindow]\n"
+            "MenuBar=Disabled\n"
+            "\n[MainWindow][Toolbar mainToolBar]\n"
+            "ToolButtonStyle=IconOnly\n"),
+        # Shut down / restart / sign out from Start act at once, like on
+        # Windows (no full-screen confirmation dialog), and sign-in starts
+        # with a clean desktop instead of reopening the last session's apps.
+        "etc/xdg/ksmserverrc": (
+            "[General]\n"
+            "confirmLogout=false\n"
+            "loginMode=emptySession\n"),
         "etc/xdg/kscreenlockerrc": (
             "[Greeter][Wallpaper][org.kde.image][General]\n"
             f"Image={wallpaper_url}\n"
@@ -342,8 +363,12 @@ def build_static_config(root):
         # Vendor defaults; /etc/sddm.conf.d/ and /etc/sddm.conf override them.
         "usr/lib/sddm/sddm.conf.d/10-veltos.conf": (
             "[Theme]\n"
-            "Current=breeze\n"
+            "Current=veltos\n"
             f"CursorTheme={CURSOR_THEME}\n"),
+        # VeltOS sign-in screen (sddm/veltos, Windows 11 layout).
+        "usr/share/sddm/themes/veltos/theme.conf": (
+            "[General]\n"
+            f"background={login_image}\n"),
         # Read by the Breeze SDDM theme on top of its theme.conf.
         "usr/share/sddm/themes/breeze/theme.conf.user": (
             "[General]\n"
@@ -359,6 +384,19 @@ def build_static_config(root):
     icon_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(SRC / "artwork/veltos-logo.svg", icon_dir / "veltos-logo.svg")
 
+    for name in ("Main.qml", "metadata.desktop"):
+        shutil.copy(SRC / "sddm/veltos" / name, root / "usr/share/sddm/themes/veltos" / name)
+
+    # Session script (application names, per-user defaults) and its helpers.
+    env_dir = root / "etc/xdg/plasma-workspace/env"
+    env_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy(SRC / "system/veltos-session.sh", env_dir / "veltos-session.sh")
+    libexec = root / "usr/libexec/veltos"
+    libexec.mkdir(parents=True, exist_ok=True)
+    for helper in ("session-defaults", "update-app-names"):
+        shutil.copy(SRC / "system" / helper, libexec / helper)
+        (libexec / helper).chmod(0o755)
+
 
 def build_startmenu(root):
     """Install the VeltOS Start plasmoid and compile its translations."""
@@ -372,10 +410,19 @@ def build_startmenu(root):
         run(["msgfmt", "--check", "--output-file", str(mo), str(po)])
 
 
+def build_fluent_themes(fluent_dir, root, schemes):
+    fluent.build_kvantum(fluent_dir, root)
+    fluent.build_aurorae(fluent_dir, root)
+    for name, variant in fluent.DESKTOPTHEMES.items():
+        scheme_id = "VeltOSLight" if variant == "light" else "VeltOSDark"
+        colors = format_kconfig(schemes[scheme_id], f"# {fluent.ATTRIBUTION}\n")
+        fluent.build_desktoptheme(fluent_dir, root, name, variant, colors)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--breeze-colors", type=Path,
-                        default=Path("/usr/share/color-schemes"))
+    parser.add_argument("--fluent", type=Path, default=SRC / "upstream",
+                        help="unpacked Fluent-kde release (upstream.json)")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
 
@@ -386,8 +433,12 @@ def main(argv=None):
     root.mkdir(parents=True)
     tmp_dir.mkdir()
 
-    schemes = build_color_schemes(args.breeze_colors, root)
+    if not (args.fluent / "Kvantum").is_dir():
+        raise SystemExit(f"{args.fluent}: Fluent-kde not found; run build/scripts/fetch-upstream.py")
+    schemes = build_color_schemes(args.fluent, root)
     build_kdeglobals(schemes[LOOK_AND_FEEL[DEFAULT_LOOK_AND_FEEL]["color_scheme"]], root)
+    build_fluent_themes(args.fluent, root, schemes)
+    app_titles.build(root, tmp_dir)
     build_wallpaper(root, tmp_dir)
     build_look_and_feel(root, tmp_dir)
     build_startmenu(root)

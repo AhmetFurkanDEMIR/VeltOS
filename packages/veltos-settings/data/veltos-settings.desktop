@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Settings
+Name[tr]=Ayarlar
+Comment=Change how your PC looks and works
+Comment[tr]=Bilgisayarınızın görünümünü ve çalışmasını değiştirin
+Keywords=settings;preferences;control panel;system;personalization;ayarlar;tercihler;sistem;kişiselleştirme;
+Exec=veltos-settings
+Icon=preferences-system
+Terminal=false
+Categories=Qt;Settings;
+StartupNotify=true

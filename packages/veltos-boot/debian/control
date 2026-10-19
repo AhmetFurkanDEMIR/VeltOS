@@ -4,7 +4,9 @@ Priority: optional
 Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                fonts-inter,
+               grub-common,
                librsvg2-bin,
+               plymouth-themes,
                python3
 Standards-Version: 4.7.2
 Rules-Requires-Root: no
@@ -17,7 +19,8 @@ Depends: plymouth,
 Description: VeltOS boot experience
  Makes start-up look like VeltOS from the first second:
   * "veltos" Plymouth theme (logo with a spinner, like Windows), made the
-    default boot splash;
+    default boot splash (plymouth's defaults file is diverted);
+  * the login manager waits for the boot splash to finish;
   * "veltos" GRUB theme and boot defaults for installed systems: "VeltOS"
     menu entries, quiet boot with the splash, Windows and other systems
     detected for the boot menu.

@@ -2,6 +2,7 @@
 # plus a short list of everyday applications, instead of the much larger
 # task-kde-desktop selection. See docs/architecture.md.
 veltos-desktop
+veltos-settings
 
 kde-plasma-desktop
 sddm
@@ -24,6 +25,7 @@ gwenview
 okular
 kde-spectacle
 firefox-esr
+firefox-esr-l10n-tr
 
 pipewire-audio
 

@@ -11,3 +11,14 @@ override_dh_auto_test:
 
 override_dh_auto_clean:
 	rm -rf build-assets
+
+# Checks on the installed tree (files are copied by dh_install).
+GRUB_THEME = $(CURDIR)/debian/veltos-boot/usr/share/grub/themes/veltos
+execute_after_dh_install:
+	test $$(ls $(GRUB_THEME)/inter-*.pf2 | wc -l) -eq 6
+	test $$(ls $(GRUB_THEME)/select_*.png | wc -l) -eq 9
+	grep -qx 'Theme=veltos' $(CURDIR)/debian/veltos-boot/usr/share/plymouth/plymouthd.defaults
+	# Real files: the initramfs has no other theme to link to.
+	test -z "$$(find $(CURDIR)/debian/veltos-boot/usr/share/plymouth -type l)"
+	test -s $(CURDIR)/debian/veltos-boot/usr/share/plymouth/themes/veltos/lock.png
+	test -f $(CURDIR)/debian/veltos-boot/usr/lib/systemd/system/sddm.service.d/veltos-plymouth.conf

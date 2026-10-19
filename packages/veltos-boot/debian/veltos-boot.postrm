@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = remove ] || [ "$1" = abort-install ] || [ "$1" = disappear ]; then
+    dpkg-divert --package veltos-boot --remove --rename \
+        --divert /usr/share/plymouth/plymouthd.defaults.debian \
+        /usr/share/plymouth/plymouthd.defaults
+fi

@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure|triggered)
+        # VeltOS names for applications ("File Explorer", "Settings", ...),
+        # written to /var/lib/veltos/xdg/applications.
+        /usr/libexec/veltos/update-app-names
+        ;;
+esac
+
+#DEBHELPER#

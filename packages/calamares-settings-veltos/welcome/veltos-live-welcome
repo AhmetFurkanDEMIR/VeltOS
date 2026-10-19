@@ -1,0 +1,151 @@
+#!/usr/bin/python3
+"""VeltOS live session welcome: "Try VeltOS" or "Install VeltOS".
+
+Started once when the live session begins (/etc/xdg/autostart) and only on
+the install medium; on an installed system it exits at once. "Install"
+starts the installer (install-veltos) and closes the window.
+
+    veltos-live-welcome [--force]    (--force: show it outside the live system)
+"""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+LIVE_MEDIUM = Path("/run/live/medium")
+INSTALLED_QML = Path("/usr/share/veltos-live-welcome/Main.qml")
+LOGO = "/usr/share/icons/hicolor/scalable/apps/veltos-logo.svg"
+
+TEXTS = {
+    "en": {
+        "title": "Welcome to VeltOS",
+        "tagline": "Your PC. No Limits.",
+        "try": "Try VeltOS",
+        "try_body": "Use VeltOS without changing anything on this computer. "
+                    "Nothing you do is kept after a restart.",
+        "install": "Install VeltOS",
+        "install_body": "Install VeltOS on this computer, next to Windows or in its place. "
+                        "You choose where before anything is changed.",
+        "later": "You can also start the installation later with the "
+                 "“Install VeltOS” icon on the desktop.",
+    },
+    "tr": {
+        "title": "VeltOS'a hoş geldiniz",
+        "tagline": "Your PC. No Limits.",
+        "try": "VeltOS'u deneyin",
+        "try_body": "Bu bilgisayarda hiçbir şeyi değiştirmeden VeltOS'u kullanın. "
+                    "Yeniden başlatınca yaptıklarınız saklanmaz.",
+        "install": "VeltOS'u kurun",
+        "install_body": "VeltOS'u bu bilgisayara Windows'un yanına ya da yerine kurun. "
+                        "Hiçbir şey değişmeden önce nereye kurulacağını siz seçersiniz.",
+        "later": "Kurulumu daha sonra masaüstündeki “VeltOS'u Kur” "
+                 "simgesiyle de başlatabilirsiniz.",
+    },
+}
+
+
+def language(environ=None):
+    environ = os.environ if environ is None else environ
+    for variable in ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"):
+        value = environ.get(variable)
+        if value:
+            return "tr" if value.lower().startswith("tr") else "en"
+    return "en"
+
+
+# Session language choices: (locale, KDE language list, keyboard layout).
+SESSION_LANGUAGES = {
+    "en": ("en_US.UTF-8", "en_US", "us"),
+    "tr": ("tr_TR.UTF-8", "tr", "tr"),
+}
+
+
+def config_home():
+    return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+
+
+def write_session_language(code, config=None):
+    """Make the next Plasma session use this language and keyboard layout
+    (the files System Settings > Language & Region writes)."""
+    config = config or config_home()
+    locale, languages, layout = SESSION_LANGUAGES[code]
+    config.mkdir(parents=True, exist_ok=True)
+    (config / "plasma-localerc").write_text(
+        f"[Formats]\nLANG={locale}\n\n[Translations]\nLANGUAGE={languages}\n", encoding="utf-8")
+    (config / "kxkbrc").write_text(
+        f"[Layout]\nLayoutList={layout}\nUse=true\n", encoding="utf-8")
+
+
+def qml_file():
+    beside = Path(__file__).resolve().parent / "Main.qml"
+    return beside if beside.exists() else INSTALLED_QML
+
+
+def welcome_object(texts):
+    """The object the window talks to (PySide6 is imported only when the
+    window is really shown)."""
+    from PySide6.QtCore import QObject, QUrl, Slot
+    from PySide6.QtGui import QGuiApplication
+
+    class Welcome(QObject):
+        @Slot(str, result=str)
+        def text(self, key):
+            return texts[key]
+
+        @Slot(result=str)
+        def logo(self):
+            return QUrl.fromLocalFile(LOGO).toString()
+
+        @Slot()
+        def install(self):
+            subprocess.Popen(["install-veltos"], start_new_session=True)
+            QGuiApplication.instance().quit()
+
+        @Slot()
+        def close(self):
+            QGuiApplication.instance().quit()
+
+        @Slot(result=str)
+        def language(self):
+            return language()
+
+        @Slot(str)
+        def switchLanguage(self, code):
+            """Store the language and sign out; the live session signs in
+            again by itself (SDDM Relogin) and starts in that language."""
+            write_session_language(code)
+            subprocess.Popen(["dbus-send", "--session", "--dest=org.kde.Shutdown",
+                              "--type=method_call", "/Shutdown", "org.kde.Shutdown.logout"],
+                             start_new_session=True)
+            QGuiApplication.instance().quit()
+
+    return Welcome()
+
+
+def main(argv=None):
+    argv = sys.argv if argv is None else argv
+    if not LIVE_MEDIUM.exists() and "--force" not in argv:
+        return 0
+
+    from PySide6.QtCore import QUrl
+    from PySide6.QtGui import QGuiApplication, QIcon
+    from PySide6.QtQml import QQmlApplicationEngine
+
+    os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
+    app = QGuiApplication(argv)
+    app.setApplicationName("veltos-live-welcome")
+    app.setApplicationDisplayName("VeltOS")
+    app.setDesktopFileName("veltos-live-welcome")
+    app.setWindowIcon(QIcon.fromTheme("veltos-logo"))
+    welcome = welcome_object(TEXTS[language()])
+    engine = QQmlApplicationEngine()
+    engine.rootContext().setContextProperty("welcome", welcome)
+    engine.load(QUrl.fromLocalFile(str(qml_file())))
+    if not engine.rootObjects():
+        return 1
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

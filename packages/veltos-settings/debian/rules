@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-settings
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-settings/usr/lib/python3/dist-packages
+	cp -r veltos_settings debian/veltos-settings/usr/lib/python3/dist-packages/
+	find debian/veltos-settings -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-settings debian/veltos-settings/usr/bin/veltos-settings
+	install -D -m 644 data/veltos-settings.desktop \
+		debian/veltos-settings/usr/share/applications/veltos-settings.desktop
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

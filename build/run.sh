@@ -4,7 +4,8 @@
 # Docker Desktop + Git Bash). See docs/build-guide.md.
 #
 #   build/run.sh image        build the builder container image
-#   build/run.sh packages     build the VeltOS .deb packages into out/packages
+#   build/run.sh packages [name...]  build the VeltOS .deb packages into
+#                             out/packages (all, or only the named ones)
 #   build/run.sh iso          build packages + the live ISO into out/iso
 #   build/run.sh test [mode]  boot the newest ISO in QEMU/KVM and verify it
 #                             (mode: uefi (default), bios, secureboot)
@@ -60,7 +61,7 @@ source_date_epoch() {
 
 cmd_packages() {
     ensure_image
-    run_builder "$IMAGE" bash /src/build/scripts/build-packages.sh /out/packages
+    run_builder "$IMAGE" bash /src/build/scripts/build-packages.sh /out/packages "$@"
 }
 
 cmd_iso() {
@@ -187,7 +188,7 @@ main() {
         image|packages|iso|test|preview|shell|clean) "cmd_$cmd" "$@" ;;
         test-winapps) cmd_test_winapps "$@" ;;
         vm) cmd_vm "$@" ;;
-        *) sed -n '2,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2 ;;
+        *) sed -n '2,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2 ;;
     esac
 }
 

@@ -55,15 +55,16 @@ owner sets priorities; agents act as the engineering team.
 
 | Path | What |
 |---|---|
-| `build/run.sh` | Single entry point: `image`, `packages`, `iso`, `test`, `shell`, `clean` |
+| `build/run.sh` | Single entry point: `image`, `packages [name...]`, `iso`, `test`, `test-winapps`, `preview`, `vm`, `shell`, `clean` |
 | `build/builder/Dockerfile` | Build/test container (Debian trixie, pinned by digest) |
 | `build/scripts/` | In-container scripts: package build, ISO build |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Plasma themes (Light default), Windows 11 style taskbar + VeltOS Start menu, colour schemes, generated wallpaper, splash, login/lock screen, master logo |
+| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpaper, splash, master logo |
+| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML); KDE System Settings kept as "Control Panel" |
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed) |
-| `packages/veltos-boot/` | Plymouth splash, GRUB theme, boot defaults |
-| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding |
+| `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering |
+| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding, live welcome window (Try/Install), live session settings |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi` → install/open via Wine |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
@@ -145,3 +146,41 @@ owner sets priorities; agents act as the engineering team.
   ships the exact versions Wine expects (see `dlls/appwiz.cpl/addons.c`).
 - Plasma applies the global theme's layout script only to users without
   existing Plasma configuration.
+- Plymouth's theme comes from `/usr/share/plymouth/plymouthd.defaults`
+  (diverted by `veltos-boot`), not from the `default.plymouth`
+  alternative. Debian's file named a theme that is not installed, so every
+  initramfs silently fell back to the text splash. Check with
+  `lsinitramfs`; the verify hook does.
+- Files listed in `debian/*.install` are copied by `dh_install`, which runs
+  after `dh_auto_install`: checks on them belong in
+  `execute_after_dh_install`.
+- Kvantum has no system-wide configuration; the theme is set per user by
+  the Plasma session script (`veltos-session.sh`).
+- `kwriteconfig6 --delete` on a user file writes a deletion marker that
+  also hides the `/etc/xdg` value; to test system defaults, remove the
+  user's line instead.
+- Fluent-kde: its Plasma theme draws the "start" icon as the Windows logo
+  (removed by `tools/fluent.py`), its default window frames are 75 %
+  opaque and need blur (VeltOS uses the solid variant), and Fluent Light's
+  Kvantum highlight is translucent (Kirigami falls back to Qt's blue).
+- `grub-mkfont` names fonts "<family> <Regular|Bold> <size>"; Inter
+  SemiBold would also be "Inter Regular", so it gets its own family name.
+- live-build's default GRUB `config.cfg` beeps at start-up; VeltOS ships
+  its own in `config/bootloaders/grub-pc/`.
+- System Settings pages are hidden with `kcm_<id>=false` in
+  `[KDE Control Module Restrictions]` of `/etc/xdg/kdeglobals`.
+- Plymouth's two-step plugin refuses to start without `lock.png` in the
+  theme; the initramfs contains only the selected theme, so its images
+  must be real files, not symlinks to another theme (it silently showed
+  the text splash for that reason).
+- GRUB: load proportional theme fonts only *after* `terminal_output
+  gfxterm` (gfxterm takes the last loaded font and fails with "glyphs too
+  large", falling back to the firmware console without the theme); a
+  `progress_bar` with any `text` property is a full text line tall;
+  `selected_item_pixmap_style` borders are drawn *outside* the item, so
+  `item_spacing` must be at least twice the border slice size.
+- Programs started with `build/run.sh vm exec-user` do not get the Plasma
+  session environment (`LANGUAGE`, `XDG_DATA_DIRS`); start them from Start
+  or the taskbar when checking names or titles.
+- `pkill -f PATTERN` inside `vm exec "..."` also matches the `sh -c` that
+  runs it and kills it first; use `pkill -x NAME`.

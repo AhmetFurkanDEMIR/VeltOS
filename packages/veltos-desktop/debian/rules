@@ -4,9 +4,8 @@
 	dh $@
 
 override_dh_auto_build:
-	python3 tools/build-assets.py \
-		--breeze-colors /usr/share/color-schemes \
-		--out build-assets
+	test -d upstream/Kvantum || (echo "upstream/ missing: run build/scripts/fetch-upstream.py" >&2; exit 1)
+	python3 tools/build-assets.py --fluent upstream --out build-assets
 
 override_dh_auto_test:
 	python3 -m unittest discover -s tests -v

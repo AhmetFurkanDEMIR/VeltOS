@@ -7,8 +7,8 @@
 Boots the ISO, copies a Windows installer into ~/Downloads, opens it with
 veltos-run exactly as a double-click would, accepts the VeltOS dialog,
 confirms the installer's default button, and checks that the program was
-installed into its own Wine environment and appears as a Start menu
-shortcut. Screenshots of every step are saved. The installer file is
+installed into the shared Windows environment (~/.local/share/veltos/windows)
+and appears as a Start menu shortcut. Screenshots of every step are saved. The installer file is
 checked against a pinned SHA-256 first.
 """
 
@@ -25,6 +25,7 @@ from pathlib import Path
 from vmlib import LIVE_USER, start_qemu, wait_for
 
 HOME = f"/home/{LIVE_USER}"
+WINDOWS = f"{HOME}/.local/share/veltos/windows"
 
 
 def main():
@@ -83,7 +84,7 @@ def main():
         time.sleep(5)
         qmp.screenshot(out / "02-preparing.png")
         t_prep = time.monotonic()
-        ready = wait_for(agent, f"test -f {HOME}/.local/share/veltos/windows-apps/*/prefix/system.reg "
+        ready = wait_for(agent, f"test -f {WINDOWS}/prefix/system.reg "
                                 f"&& pgrep -u {LIVE_USER} -f '{args.exe.name}'", 600, interval=5)
         check("Windows environment prepared and installer started", ready is not None,
               f"{time.monotonic() - t_prep:.0f}s")
@@ -106,8 +107,8 @@ def main():
             f"xargs -r grep -h '^Name=' | sort -u")
         check(f"Start menu shortcut '{args.expect_shortcut}' created",
               args.expect_shortcut in shortcuts, shortcuts.replace("\n", "; "))
-        _, record, _ = agent.run(f"cat {HOME}/.local/share/veltos/windows-apps/*/app.json")
-        check("program recorded in its own environment", '"name"' in record, record.strip()[:300])
+        _, record, _ = agent.run(f"cat {WINDOWS}/records/*.json")
+        check("program recorded in the Windows environment", '"name"' in record, record.strip()[:300])
 
         # The new program in VeltOS Start search.
         qmp.key("esc")
@@ -121,7 +122,7 @@ def main():
 
         _, crashes, _ = agent.run("coredumpctl list --no-legend --no-pager 2>/dev/null")
         check("no crashed processes", crashes.strip() == "", crashes.strip())
-        _, log, _ = agent.run(f"cat /tmp/veltos-run.out; tail -n 40 {HOME}/.local/share/veltos/windows-apps/*/logs/*.log")
+        _, log, _ = agent.run(f"cat /tmp/veltos-run.out; tail -n 40 {WINDOWS}/logs/*.log")
         (out / "veltos-run.log").write_text(log)
     finally:
         if proc and proc.poll() is None:

@@ -75,9 +75,11 @@ class Report:
 def run_checks(args, report, qmp, agent):
     shots = args.outdir
 
-    # Boot menu: give the firmware and GRUB a moment, capture, then boot the
-    # default entry right away instead of waiting for the countdown.
+    # The boot menu is hidden (like Windows): F4 during GRUB's 2 s wait shows
+    # it. Capture it, then boot the default entry right away.
     time.sleep(args.menu_delay)
+    qmp.key("f4")
+    time.sleep(1.5)
     qmp.screenshot(shots / "01-boot-menu.png")
     report.artifacts["boot menu"] = "01-boot-menu.png"
     qmp.key("ret")
@@ -119,7 +121,7 @@ def run_checks(args, report, qmp, agent):
     # Let the desktop settle before judging it and measuring idle state.
     time.sleep(args.settle)
     qmp.screenshot(shots / "02-desktop.png")
-    report.artifacts["desktop"] = "02-desktop.png"
+    report.artifacts["desktop (with the live welcome window)"] = "02-desktop.png"
 
     _, out, _ = agent.run("systemctl is-system-running; systemctl --failed --no-legend --plain")
     state = out.splitlines()[0] if out else "unknown"
@@ -135,9 +137,46 @@ def run_checks(args, report, qmp, agent):
     report.check("VeltOS wallpaper set", "/usr/share/wallpapers/VeltOS" in appletsrc)
     (args.outdir / "plasma-appletsrc.txt").write_text(appletsrc)
 
-    _, out, _ = agent.run("for f in org.kde.dolphin firefox-esr org.kde.konsole systemsettings; do "
+    _, out, _ = agent.run("for f in org.kde.dolphin firefox-esr org.kde.konsole veltos-settings; do "
                           "test -f /usr/share/applications/$f.desktop && echo \"ok $f\" || echo \"missing $f\"; done")
     report.check("taskbar launcher .desktop files exist", "missing" not in out, out)
+
+    # Live system experience and Windows 11 look (veltos-desktop, -boot,
+    # calamares-settings-veltos).
+    _, out, _ = agent.run("lsinitramfs /run/live/medium/live/initrd.img* 2>/dev/null | "
+                          "grep -c 'plymouth/themes/veltos/veltos.plymouth$'")
+    report.check("boot splash (VeltOS Plymouth theme) is in the live initramfs",
+                 out.strip() not in ("", "0"), out.strip())
+    _, out, _ = agent.run(f"pgrep -u {LIVE_USER} -f 'veltos-installer/veltos-live-welcome' || true")
+    report.check("live welcome window started", out.strip() != "", out.strip() or "not running")
+    _, out, _ = agent.run(f"tr '\\0' '\\n' < /proc/$(pgrep -u {LIVE_USER} -x plasmashell | head -n1)/environ "
+                          "| grep '^XDG_DATA_DIRS='")
+    report.check("session uses VeltOS application names (XDG_DATA_DIRS)",
+                 "/var/lib/veltos/xdg:" in out, out.strip())
+    _, out, _ = agent.run("grep -h '^Name=' /var/lib/veltos/xdg/applications/org.kde.dolphin.desktop "
+                          "/var/lib/veltos/xdg/applications/systemsettings.desktop")
+    report.check("File Explorer and Control Panel names",
+                 "Name=File Explorer" in out and "Name=Control Panel" in out,
+                 out.replace("\n", "; "))
+    _, out, _ = agent.run(f"cat {home}/.config/Kvantum/kvantum.kvconfig; "
+                          f"grep -c 'GroupState-Remote-IsHidden>true' {home}/.local/share/user-places.xbel; "
+                          f"grep -h 'Autolock' {home}/.config/kscreenlockerrc")
+    report.check("per-user defaults: VeltOS style, File Explorer side bar, no live screen lock",
+                 "theme=VeltOS" in out and "\n1\n" in out and "Autolock=false" in out,
+                 out.replace("\n", "; "))
+
+    # The welcome window covers the desktop: close it and show the desktop
+    # and the Start menu for review.
+    agent.run(f"pkill -u {LIVE_USER} -f 'veltos-installer/veltos-live-welcome' || true")
+    time.sleep(3)
+    qmp.screenshot(shots / "03-desktop-clean.png")
+    report.artifacts["desktop without welcome window"] = "03-desktop-clean.png"
+    qmp.key("meta_l")
+    time.sleep(3)
+    qmp.screenshot(shots / "04-start-menu.png")
+    report.artifacts["start menu"] = "04-start-menu.png"
+    qmp.key("esc")
+    time.sleep(1)
 
     if args.firmware != "bios":
         _, out, _ = agent.run("test -d /sys/firmware/efi && echo efi || echo bios")
@@ -184,7 +223,7 @@ def main():
     parser.add_argument("--results", type=Path, default=Path("out/test-results"))
     parser.add_argument("--memory", type=int, default=4096, help="guest RAM in MiB")
     parser.add_argument("--cpus", type=int, default=4)
-    parser.add_argument("--menu-delay", type=float, default=8)
+    parser.add_argument("--menu-delay", type=float, default=3)
     parser.add_argument("--splash-delay", type=float, default=5,
                         help="seconds after leaving the boot menu to capture the splash")
     parser.add_argument("--boot-timeout", type=float, default=300)

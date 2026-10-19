@@ -12,7 +12,7 @@ installed() {
     dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
 }
 
-for pkg in veltos-base veltos-desktop veltos-boot veltos-fluent-icons \
+for pkg in veltos-base veltos-desktop veltos-settings veltos-boot veltos-fluent-icons \
            calamares-settings-veltos veltos-winapps veltos-wine-addons wine32 \
            kde-plasma-desktop sddm calamares plymouth \
            live-boot live-config qemu-guest-agent; do
@@ -48,8 +48,35 @@ case "$(readlink -f /usr/share/plymouth/themes/default.plymouth)" in
     */veltos/veltos.plymouth) ;;
     *) fail "default Plymouth theme is not the VeltOS theme" ;;
 esac
+[ "$(plymouth-set-default-theme)" = veltos ] \
+    || fail "Plymouth's configured theme is '$(plymouth-set-default-theme)', not veltos"
+for initrd in /boot/initrd.img-*; do
+    lsinitramfs -l "$initrd" > /tmp/veltos-initrd.list
+    grep -q 'usr/share/plymouth/themes/veltos/veltos.plymouth$' /tmp/veltos-initrd.list \
+        || fail "$initrd does not contain the VeltOS boot splash"
+    # Plymouth's two-step plugin needs lock.png; a symlink to another theme
+    # dangles in the initramfs and Plymouth falls back to the text splash.
+    grep -E '^-.*usr/share/plymouth/themes/veltos/lock.png$' /tmp/veltos-initrd.list >/dev/null \
+        || fail "$initrd: VeltOS splash images are missing or symlinks"
+    rm -f /tmp/veltos-initrd.list
+done
 grep -q '^branding: veltos$' /etc/calamares/settings.conf \
     || fail "installer does not use VeltOS branding"
+[ -f /etc/xdg/autostart/veltos-live-welcome.desktop ] || fail "live welcome window missing"
+locale -a | grep -qx 'tr_TR.utf8' || fail "Turkish locale not compiled (needed for the language switch)"
+
+# Windows 11 style: application style, window frames, panel theme.
+[ -f /usr/share/Kvantum/VeltOS/VeltOS.kvconfig ] || fail "VeltOS Kvantum style missing"
+[ -f /usr/share/aurorae/themes/VeltOS/VeltOSrc ] || fail "VeltOS window frames missing"
+[ -f /usr/share/plasma/desktoptheme/VeltOS/metadata.json ] || fail "VeltOS panel theme missing"
+grep -q '^widgetStyle=kvantum$' /etc/xdg/kdeglobals || fail "kdeglobals does not select Kvantum"
+
+# Windows-familiar application names (update-app-names via dpkg trigger).
+grep -q '^Name=File Explorer$' /var/lib/veltos/xdg/applications/org.kde.dolphin.desktop \
+    || fail "File Explorer name missing"
+grep -q '^Name=Control Panel$' /var/lib/veltos/xdg/applications/systemsettings.desktop \
+    || fail "Control Panel name missing"
+[ -f /usr/share/applications/veltos-settings.desktop ] || fail "VeltOS Settings missing"
 
 # Double-clicking a Windows program opens the VeltOS runner, and Wine finds
 # Mono/Gecko locally.
@@ -59,7 +86,8 @@ grep -q '^application/x-ms-dos-executable=veltos-run.desktop$' /etc/xdg/mimeapps
 
 # User-visible text audit: no launcher in the menus may mention Debian.
 debian_launchers="$(grep -l -i -E '^(Name|GenericName|Comment)(\[[^]]*\])?=.*debian' \
-    /usr/share/applications/*.desktop /etc/xdg/autostart/*.desktop 2>/dev/null || true)"
+    /usr/share/applications/*.desktop /etc/xdg/autostart/*.desktop \
+    /var/lib/veltos/xdg/applications/*.desktop 2>/dev/null || true)"
 [ -z "$debian_launchers" ] || fail "launchers mentioning Debian: $debian_launchers"
 
 echo "I: veltos-verify: all checks passed"

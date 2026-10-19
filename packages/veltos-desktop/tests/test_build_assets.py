@@ -4,37 +4,72 @@ import importlib.util
 import json
 import re
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
 PKG = Path(__file__).resolve().parent.parent
-BREEZE_DIR = Path("/usr/share/color-schemes")
+# Fluent-kde, unpacked by build/scripts/fetch-upstream.py (upstream.json).
+FLUENT_DIR = PKG / "upstream"
 
 spec = importlib.util.spec_from_file_location(
     "build_assets", PKG / "tools/build-assets.py")
 build_assets = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(build_assets)
+fluent = build_assets.fluent
 
 SAMPLE_SCHEME = """\
 # comment
+[Colors:Button]
+DecorationFocus=0,120,212
+DecorationHover=0,145,255
+
+[Colors:Complementary]
+DecorationFocus=0,120,212
+
+[Colors:Header]
+DecorationFocus=0,120,212
+
+[Colors:Tooltip]
+DecorationFocus=0,120,212
+
 [Colors:View]
-DecorationFocus=61,174,233
-ForegroundLink=29,153,243
+DecorationFocus=0,120,212
+ForegroundLink=66,133,244
+ForegroundActive=255,128,224
 
 [Colors:Header][Inactive]
-DecorationFocus=61,174,233
+DecorationFocus=52,118,207
+
+[Colors:Window]
+DecorationFocus=0,120,212
 
 [Colors:Selection]
-BackgroundAlternate=30,87,116
+BackgroundNormal=0,120,212
+BackgroundAlternate=82,148,226
+DecorationFocus=127,195,255
 
 [General]
-ColorScheme=BreezeDark
-Name=Breeze Dark
-Name[tr]=Esinti Koyu
+Name=FluentDark
+Name[tr]=Akici Koyu
 
 [KDE]
-contrast=4
+contrast=0
+"""
+
+SAMPLE_KVCONFIG = """\
+[%General]
+author=Vince Liuice
+comment=An uncomplicated theme
+translucent_windows=true
+blurring=true
+popup_blurring=true
+no_inactiveness=false
+
+[GeneralColors]
+highlight.color=#0078D4
+translucent_windows=keep-me
 """
 
 
@@ -51,20 +86,47 @@ class KConfigTests(unittest.TestCase):
 
 
 class ColorSchemeTests(unittest.TestCase):
+    def derive(self, text=SAMPLE_SCHEME):
+        groups = build_assets.parse_kconfig(text)
+        return fluent.derive_color_scheme(groups, "VeltOSDark", fluent.COLOR_SCHEMES["VeltOSDark"])
+
     def test_accent_replaced_and_names_rewritten(self):
-        spec = build_assets.COLOR_SCHEMES["VeltOSDark"]
-        groups = build_assets.derive_color_scheme(SAMPLE_SCHEME, "VeltOSDark", spec)
+        groups = self.derive()
         self.assertEqual(groups["[Colors:View]"]["DecorationFocus"], "79,124,255")
         self.assertEqual(groups["[Colors:Header][Inactive]"]["DecorationFocus"], "79,124,255")
+        self.assertEqual(groups["[Colors:Selection]"]["BackgroundNormal"], "79,124,255")
+        self.assertEqual(groups["[Colors:View]"]["ForegroundActive"], "79,124,255")
         self.assertEqual(groups["[General]"]["ColorScheme"], "VeltOSDark")
         self.assertEqual(groups["[General]"]["Name"], "VeltOS Dark")
         self.assertNotIn("Name[tr]", groups["[General]"])
 
-    def test_missing_breeze_colour_fails_loudly(self):
-        spec = dict(build_assets.COLOR_SCHEMES["VeltOSDark"])
-        spec["map"] = {"1,2,3": "4,5,6"}
+    def test_no_windows_blue_left(self):
+        text = build_assets.format_kconfig(self.derive())
+        self.assertNotIn("0,120,212", text)
+
+    def test_unexpected_layout_fails_loudly(self):
         with self.assertRaises(SystemExit):
-            build_assets.derive_color_scheme(SAMPLE_SCHEME, "VeltOSDark", spec)
+            self.derive("[General]\nName=x\n")
+
+
+class FluentTests(unittest.TestCase):
+    def test_recolour_is_case_insensitive(self):
+        out = fluent.recolour('fill="#0078D4" stroke="#0078d4"', "light", "t")
+        self.assertEqual(out, 'fill="#2f5ee6" stroke="#2f5ee6"')
+
+    def test_recolour_fails_without_fluent_blue(self):
+        with self.assertRaises(SystemExit):
+            fluent.recolour('fill="#123456"', "light", "t")
+
+    def test_kvantum_general_keys_only_in_general(self):
+        out = fluent.set_ini_keys(SAMPLE_KVCONFIG, "[%General]", fluent.KVANTUM_GENERAL, "t")
+        self.assertIn("translucent_windows=false", out)
+        self.assertIn("translucent_windows=keep-me", out)
+        self.assertIn("comment=VeltOS application style", out)
+
+    def test_missing_key_fails_loudly(self):
+        with self.assertRaises(SystemExit):
+            fluent.set_ini_keys(SAMPLE_KVCONFIG, "[%General]", {"nonexistent": "1"}, "t")
 
 
 class WallpaperTests(unittest.TestCase):
@@ -124,14 +186,13 @@ class StartMenuTests(unittest.TestCase):
             self.assertEqual(sorted(msgids - strings), [], f"stale strings in {po.name}")
 
 
-@unittest.skipUnless(shutil.which("rsvg-convert") and
-                     (BREEZE_DIR / "BreezeDark.colors").exists(),
-                     "needs rsvg-convert and kde-style-breeze-data")
+@unittest.skipUnless(shutil.which("rsvg-convert") and (FLUENT_DIR / "Kvantum").is_dir(),
+                     "needs rsvg-convert and upstream/ (Fluent-kde)")
 class FullBuildTest(unittest.TestCase):
     def test_build_tree(self):
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "assets"
-            build_assets.main(["--breeze-colors", str(BREEZE_DIR), "--out", str(out)])
+            build_assets.main(["--fluent", str(FLUENT_DIR), "--out", str(out)])
             root = out / "root"
             for lnf in build_assets.LOOK_AND_FEEL:
                 meta = json.loads((root / "usr/share/plasma/look-and-feel" / lnf /
@@ -145,6 +206,53 @@ class FullBuildTest(unittest.TestCase):
             login = (root / "usr/share/sddm/themes/breeze/theme.conf.user").read_text()
             image = login.split("background=", 1)[1].strip()
             self.assertTrue((root / image.lstrip("/")).is_file(), image)
+            self.check_fluent_themes(root, kdeglobals)
+
+    def check_title_catalogs(self, root):
+        mo = root / "usr/share/locale/tr@veltos/LC_MESSAGES/dolphin.mo"
+        self.assertIn("Dosya Gezgini".encode(), mo.read_bytes())
+        self.assertIn(b"File Explorer", (root / "usr/share/locale/en@veltos/LC_MESSAGES/dolphin.mo").read_bytes())
+
+    def check_session_files(self, root, kdeglobals):
+        self.assertTrue((root / "etc/xdg/plasma-workspace/env/veltos-session.sh").is_file())
+        for helper in ("session-defaults", "update-app-names"):
+            path = root / "usr/libexec/veltos" / helper
+            self.assertTrue(path.stat().st_mode & 0o111, f"{helper} is not executable")
+        restrictions = kdeglobals["[KDE Control Module Restrictions]"]
+        self.assertEqual(restrictions["kcm_kdeconnect"], "false")
+        self.assertIn("ToolButtonStyle=IconOnly", (root / "etc/xdg/dolphinrc").read_text())
+
+    def check_fluent_themes(self, root, kdeglobals):
+        kvantum = root / "usr/share/Kvantum" / fluent.KVANTUM_DIR
+        for name in fluent.KVANTUM:
+            self.assertTrue((kvantum / f"{name}.svg").is_file())
+            config = (kvantum / f"{name}.kvconfig").read_text()
+            self.assertIn("translucent_windows=false", config)
+            self.assertIn("no_inactiveness=true", config)
+        self.assertEqual(kdeglobals["[KDE]"]["widgetStyle"], "kvantum")
+        self.assertEqual(kdeglobals["[KDE]"]["DefaultDarkLookAndFeel"], "org.veltos.dark")
+        self.check_session_files(root, kdeglobals)
+        self.check_title_catalogs(root)
+        for name in fluent.AURORAE:
+            theme = root / "usr/share/aurorae/themes" / name
+            self.assertTrue((theme / f"{name}rc").is_file())
+            self.assertIn(f"X-KDE-PluginInfo-Name={name}", (theme / "metadata.desktop").read_text())
+        kwinrc = (root / "etc/xdg/kwinrc").read_text()
+        self.assertIn("theme=__aurorae__svg__VeltOS\n", kwinrc)
+        for name in fluent.DESKTOPTHEMES:
+            theme = root / "usr/share/plasma/desktoptheme" / name
+            meta = json.loads((theme / "metadata.json").read_text())
+            self.assertEqual(meta["KPlugin"]["Id"], name)
+            self.assertTrue((theme / "widgets/panel-background.svgz").is_file())
+            self.assertIn("[Colors:Window]", (theme / "colors").read_text())
+            # Other brands' logos are not shipped.
+            for rel in fluent.DESKTOPTHEME_DROP:
+                self.assertFalse((theme / rel).exists(), rel)
+        # Everything the global themes point to exists.
+        for lnf, spec in build_assets.LOOK_AND_FEEL.items():
+            self.assertTrue((root / "usr/share/plasma/desktoptheme" / spec["plasma_theme"]).is_dir())
+            self.assertTrue((root / "usr/share/aurorae/themes" / spec["decoration"]).is_dir())
+            self.assertTrue((root / "usr/share/color-schemes" / f"{spec['color_scheme']}.colors").is_file())
 
 
 if __name__ == "__main__":

@@ -1,20 +1,33 @@
 #!/usr/bin/env bash
-# Build every VeltOS Debian package under /src/packages (inside the builder
-# container). Usage: build-packages.sh OUTPUT_DIR
+# Build the VeltOS Debian packages under /src/packages (inside the builder
+# container). Usage: build-packages.sh OUTPUT_DIR [PACKAGE...]
+# Without PACKAGE arguments every package is built and OUTPUT_DIR is
+# emptied first; with them, only those are rebuilt (development shortcut).
 set -euo pipefail
 
-OUT="${1:?usage: build-packages.sh OUTPUT_DIR}"
+OUT="${1:?usage: build-packages.sh OUTPUT_DIR [PACKAGE...]}"
+shift
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
 mkdir -p "$OUT"
-rm -f "$OUT"/*.deb "$OUT"/*.buildinfo "$OUT"/*.changes
+if [ "$#" -eq 0 ]; then
+    rm -f "$OUT"/*.deb "$OUT"/*.buildinfo "$OUT"/*.changes
+    sources=(/src/packages/*/)
+else
+    sources=()
+    for name in "$@"; do
+        [ -d "/src/packages/$name" ] || { echo "error: no package $name" >&2; exit 2; }
+        rm -f "$OUT/${name}"_*.deb
+        sources+=("/src/packages/$name/")
+    done
+fi
 
 echo "==> Repository consistency tests"
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s /src/tests/repo -v
 
 apt_updated=false
-for src in /src/packages/*/; do
+for src in "${sources[@]}"; do
     name="$(basename "$src")"
     echo "==> Building package source $name"
     # Copy without generated artefacts; the repo mount is read-only.

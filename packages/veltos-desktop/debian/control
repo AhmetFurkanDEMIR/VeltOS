@@ -5,9 +5,13 @@ Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                fonts-inter,
                gettext,
-               kde-style-breeze-data,
                librsvg2-bin,
-               python3
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-qt5compat-graphicaleffects,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts
 Standards-Version: 4.7.2
 Rules-Requires-Root: no
 
@@ -16,26 +20,40 @@ Architecture: all
 Depends: breeze-icon-theme,
          fonts-inter,
          kde-style-breeze,
+         kwin-common (>= 4:6.3),
          plasma-desktop (>= 4:6.3),
          plasma-workspace (>= 4:6.3),
+         python3,
          qml6-module-org-kde-kirigamiaddons-components,
+         qml6-module-qt5compat-graphicaleffects,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qt-style-kvantum,
          veltos-fluent-icons,
          ${misc:Depends}
 Recommends: fonts-noto-core,
             sddm,
+            veltos-settings,
             sddm-theme-breeze,
             veltos-base
 Description: VeltOS desktop experience for KDE Plasma
  System-wide defaults that turn a stock KDE Plasma 6 session into the VeltOS
  desktop:
-  * "VeltOS Dark" (default) and "VeltOS Light" global themes with a
+  * "VeltOS Light" (default) and "VeltOS Dark" global themes with a
     centered, Windows 11 style taskbar layout for new users;
+  * Windows 11 inspired application style (Kvantum), window frames
+    (Aurorae) and panel theme, derived from Fluent-kde in VeltOS colours;
   * VeltOS Start, a Windows 11 style start menu (search, pinned apps,
     recommended files, account and power buttons);
   * Fluent icons and cursors and the Inter UI font;
-  * VeltOS colour schemes derived from KDE Breeze;
+  * VeltOS colour schemes derived from Fluent-kde;
   * the "Velt Bloom" wallpaper (light and dark variants), login splash,
     lock screen and SDDM login background;
-  * the VeltOS logo, used for the application launcher button.
+  * the VeltOS logo, used for the application launcher button;
+  * Windows-familiar application names ("File Explorer", "Settings",
+    "Task Manager", ...) without changing other packages' files, fewer
+    developer tools in Start, and a simpler Settings page list;
+  * File Explorer defaults: Windows-like side bar, zip files open like
+    folders.
  .
  Existing users' Plasma configuration is not modified.

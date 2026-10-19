@@ -29,6 +29,15 @@ chmod 755 "$LB_DIR"/auto/* "$LB_DIR"/config/hooks/*/*
 mkdir -p "$LB_DIR/config/packages.chroot"
 cp /build/packages/*.deb "$LB_DIR/config/packages.chroot/"
 
+# The live boot menu uses veltos-boot's GRUB fonts (Inter) and selection
+# highlight, so they are generated in one place only.
+boot_tmp="$(mktemp -d)"
+dpkg-deb -x /build/packages/veltos-boot_*.deb "$boot_tmp"
+cp "$boot_tmp"/usr/share/grub/themes/veltos/inter-*.pf2 \
+   "$boot_tmp"/usr/share/grub/themes/veltos/select_*.png \
+   "$LB_DIR/config/bootloaders/grub-pc/live-theme/"
+rm -rf "$boot_tmp"
+
 cd "$LB_DIR"
 lb config
 echo "==> lb build (log: $RESULT_DIR/build.log)"

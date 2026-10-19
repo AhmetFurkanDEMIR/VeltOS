@@ -1,68 +1,129 @@
 # veltos-desktop
 
 The VeltOS desktop experience on top of stock KDE Plasma 6 (Debian trixie).
-No Plasma code is forked: it is configuration, artwork, a layout script and
-one small QML applet (VeltOS Start).
+No Plasma code is forked: it is configuration, artwork, a layout script,
+one small QML applet (VeltOS Start), two small session helpers and themes
+derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
 
 ## What a new user gets
 
 - **Taskbar** at the bottom: Start button and pinned/running apps
-  **centred** (Windows 11 style), tray, clock/calendar and show-desktop on
-  the right. Pinned: Dolphin, Firefox ESR, Konsole, System Settings.
+  **centred** (Windows 11 style); on the right the tray (network, sound,
+  battery, notifications; everything else behind the "^" arrow) and a
+  Windows-sized clock with the date below the time. Pinned: File
+  Explorer, Firefox, Settings.
 - **VeltOS Start** menu (opens with the Windows/Meta key or Alt+F1):
   search field, "Pinned" grid with "All apps >", "Recommended" recent files,
   account button (settings, lock, sign out) and power button (sleep,
   restart, shut down). Right-click: Pin/Unpin to Start, Add to Desktop, etc.
   English and Turkish.
-- **VeltOS Light** global theme by default (soft, like Windows 11);
-  **VeltOS Dark** selectable in System Settings → Colors & Themes.
+- **Windows 11 inspired look** everywhere, all in VeltOS colours:
+  - application style (buttons, menus, lists, scroll bars): Kvantum theme
+    `VeltOS` / `VeltOSDark`;
+  - window frames: Aurorae theme `VeltOS` / `VeltOS-Dark` with Windows
+    style minimise / maximise / close buttons on the right, the app icon
+    and a left-aligned title on the left;
+  - taskbar, Start and popups: Plasma theme `VeltOS` / `VeltOS-Dark`
+    (acrylic-like see-through popups when the GPU can blur, opaque
+    otherwise);
+  - colour schemes `VeltOS Light` (default) / `VeltOS Dark`.
+- **Windows-familiar names**: File Explorer, Terminal, Text Editor,
+  Photos, Document Viewer, Archive Manager, Screenshot, Task Manager,
+  System Information, Store, Disk Management, Firefox, and Control Panel
+  for KDE's complete System Settings ("Settings" is VeltOS Settings,
+  package `veltos-settings`). The names also appear inside the programs:
+  window titles read "Home — File Explorer", not "Home — Dolphin".
+  Searching for the Windows word ("notepad", "explorer", "cmd"...) or the
+  old name finds the app. Developer and KDE-branded extras (Kate,
+  Konqueror, KDE Connect, Vim, Winetricks, ...) are hidden from Start.
+- **Sign-in screen** (SDDM theme `veltos`) like Windows 11: lock view with
+  time and date; any key or click shows the picture, name and password
+  field on the blurred wallpaper; power menu bottom right, other users
+  bottom left. No session or desktop names are shown.
+- Shut down, restart and sign out act at once (no confirmation screen),
+  and signing in starts with a clean desktop.
+- **Settings** without pages for KDE services VeltOS does not use
+  (KDE Connect, Thunderbolt authorisation, telemetry, background services,
+  activities, ...).
+- **File Explorer** (Dolphin) side bar like Windows: Home, Desktop,
+  Downloads, Documents, Pictures, Music, Videos, Trash, then drives; no
+  Network/Recent/Search sections; icon-only toolbar; zip files open like
+  folders; every window starts at Home. The home folder has no
+  "Templates" and "Public" folders (switched off in xdg-user-dirs).
 - Fluent icons and cursors (`veltos-fluent-icons`), Inter UI font.
-- **"Velt Bloom" wallpaper**: sky, sunrise glow, misty hills over a lake and
-  a bloom of blue folded petals, with the VeltOS logo and name; light and
-  dark variants (Plasma picks the one matching the colour scheme).
-- Branded login splash, lock screen and SDDM login background.
+- **"Velt Bloom" wallpaper** (light and dark variants), branded login
+  splash, lock screen and SDDM login background.
 
 Existing users are not modified: Plasma runs the layout script only for
-users without Plasma configuration.
+users without Plasma configuration, and the session helper only creates
+files that do not exist yet.
+
+## How it works
+
+| Mechanism | Where | Notes |
+|---|---|---|
+| System-wide KDE defaults | `/etc/xdg/kdeglobals`, `kwinrc`, `plasmarc`, `dolphinrc`, `kcminputrc`, `kscreenlockerrc`, `ksplashrc` | Users override them in `~/.config`. `kdeglobals` also lists the hidden Settings pages (`[KDE Control Module Restrictions]`) and the light/dark global theme pair. |
+| Global themes | `/usr/share/plasma/look-and-feel/org.veltos.{light,dark}/` | Switching between them switches colours, icons, Plasma theme, window frames and (via the `kvantum` / `kvantum-dark` style key) the application style. |
+| Session script | `/etc/xdg/plasma-workspace/env/veltos-session.sh` | Sourced by Plasma before anything starts: puts `/var/lib/veltos/xdg` first in `XDG_DATA_DIRS`, puts the pseudo-language `en@veltos` / `tr@veltos` first in `LANGUAGE` and, if needed, runs `/usr/libexec/veltos/session-defaults`. |
+| Program-name catalogs | `/usr/share/locale/{en,tr}@veltos/LC_MESSAGES/*.mo` (from `tools/app_titles.py`) | Translate only the programs' own names ("Dolphin" → "File Explorer"). KDE falls through to the real language for every other text, so no other package's files change. |
+| Sign-in screen | `/usr/share/sddm/themes/veltos/` (`sddm/veltos/Main.qml`), selected in `/usr/lib/sddm/sddm.conf.d/10-veltos.conf` | Tested offscreen at build time with stand-ins for SDDM's objects (`tests/test_sddm.py`). |
+| Session manager | `/etc/xdg/ksmserverrc` | `confirmLogout=false`, `loginMode=emptySession`. |
+| `session-defaults` | `/usr/libexec/veltos/` | Creates `~/.config/Kvantum/kvantum.kvconfig` (Kvantum has no system-wide setting) and `~/.local/share/user-places.xbel` (File Explorer side bar, with the user's localised folder names). Never overwrites. |
+| `update-app-names` | `/usr/libexec/veltos/` | Writes renamed/hidden copies of other packages' `.desktop` files to `/var/lib/veltos/xdg/applications/`. Run from `postinst` and from a dpkg trigger on `/usr/share/applications`, so the copies follow package updates. Other packages' files are never modified. |
 
 ## Source layout
 
 | Path | What |
 |---|---|
 | `artwork/veltos-logo.svg` | **Master logo**: a "V" of two blue blades. Other packages keep checked copies. |
+| `upstream.json` | Pinned Fluent-kde release (commit 44794f29c89d, SHA-256 checked) |
+| `tools/fluent.py` | Derives the Kvantum, Aurorae and Plasma themes and colour schemes from Fluent-kde |
 | `tools/bloom.py` | Procedural generator of the wallpaper (fixed seed → reproducible, original artwork) |
 | `tools/build-assets.py` | Generates the whole installed tree into `build-assets/root/` |
 | `plasma/layout.js` | Plasma 6 layout script (panel, widgets, wallpaper) |
 | `plasma/startmenu/` | VeltOS Start applet (`org.veltos.startmenu`): QML, config schema, Turkish translation |
 | `plasma/splash/Splash.qml` | Login splash shown while Plasma starts |
-| `tests/test_build_assets.py` | Unit tests incl. a full asset build and "every UI string translated" |
+| `tools/app_titles.py` | Program-name catalogs for the en@veltos / tr@veltos pseudo-languages |
+| `sddm/veltos/` | VeltOS sign-in screen (SDDM theme) |
+| `system/` | `veltos-session.sh`, `session-defaults`, `update-app-names` |
+| `tests/` | Unit tests: asset build (incl. a full build), Fluent derivation, app names, session helpers |
 
-## Generated at build time
+## What is changed from Fluent-kde (`tools/fluent.py`)
 
-| Installed path | Content |
-|---|---|
-| `/usr/share/plasma/look-and-feel/org.veltos.{light,dark}/` | Global themes: metadata, defaults, layout script, splash, preview |
-| `/usr/share/plasma/plasmoids/org.veltos.startmenu/` | VeltOS Start |
-| `/usr/share/locale/*/LC_MESSAGES/plasma_applet_org.veltos.startmenu.mo` | Start menu translations |
-| `/usr/share/color-schemes/VeltOS{Light,Dark}.colors` | Breeze schemes with VeltOS accent colours |
-| `/etc/xdg/kdeglobals` | Defaults: VeltOS Light colours, Fluent icons, Inter font, global theme |
-| `/etc/xdg/kcminputrc`, `kscreenlockerrc`, `ksplashrc` | Cursor theme, lock screen wallpaper, splash |
-| `/usr/share/wallpapers/VeltOS/` | 7 resolutions × light/dark (16:9, 16:10, 21:9; cropped, never stretched) |
-| `/usr/lib/sddm/sddm.conf.d/10-veltos.conf`, `/usr/share/sddm/themes/breeze/theme.conf.user` | Login screen theme, cursor and background |
-| `/usr/share/icons/hicolor/scalable/apps/veltos-logo.svg` | Logo icon (`veltos-logo`) |
-
-Build-Depends: `kde-style-breeze-data`, `librsvg2-bin`, `fonts-inter`
-(wallpaper wordmark), `gettext`, `python3`.
+- Fluent's Windows blue `#0078d4` → VeltOS accent (`#2F5EE6` light,
+  `#4F7CFF` dark). The build fails if the colour disappears upstream.
+- Removed artwork showing other brands: the Windows logo used as Plasma
+  "start" icon, the Manjaro logo, a "KDE Desktop" badge.
+- Window frames use Fluent's opaque ("solid") variant and a 1 px bottom
+  border: the default variant is 75 % opaque and needs blur; without blur
+  (VMs, software rendering) it showed the desktop through title bars and a
+  1 px seam at the bottom of every window (seen in VM screenshots).
+- Kvantum: translucent application windows off (lighter, no blur behind
+  every window), inactive windows not faded, the light variant's
+  translucent selection colour replaced by the accent (Kirigami apps fell
+  back to Qt's default blue).
+- Plasma theme: opaque panel/popup backgrounds by default; Fluent's
+  translucent ones are kept in `translucent/`, which Plasma uses only when
+  the blur effect is available.
 
 ## Development
 
 Try changes in a live VM without rebuilding the ISO:
-`build/run.sh packages && build/run.sh preview` (screenshots of the desktop,
-Start menu, context menu, All apps, search and power menu in
-`out/preview/`).
+`build/run.sh packages veltos-desktop`, then either `build/run.sh preview`
+(fresh VM, scripted screenshots in `out/preview/`) or a long-running VM
+(`build/run.sh vm start`, `vm upload /tmp/debs /out/packages/...deb`,
+`vm exec "apt-get install -y /tmp/debs/*.deb"`, reset the live user's
+configuration and restart SDDM as `tests/boot/vmpreview.py` does,
+`vm do "shot:name"`).
 
 ## Known limitations
 
+- Program names inside the programs are replaced only for English and
+  Turkish, and only for the strings listed in `tools/app_titles.py`
+  (window titles, welcome pages); About dialogs and help menus still
+  mention KDE and the original names in other places.
+- The screen locker (after sign-in) is still Plasma's own; Plasma 6 loads
+  it from the desktop shell package, which VeltOS does not replace yet.
 - Global Theme preview images show the wallpaper, not a desktop screenshot.
 - `theme.conf.user` in the Breeze SDDM theme directory is owned by this
   package; changing the login background in System Settings edits it.
@@ -70,9 +131,12 @@ Start menu, context menu, All apps, search and power menu in
   (as KDE's own launchers do); a Plasma upgrade may require adjustments.
   Plasma 6.3's `SystemModel` crashes plasmashell if it is created before
   the root model is populated — see the comment in `StartMenu.qml`.
+- Visual checks so far were done in QEMU without 3D acceleration (no
+  blur); real-GPU screenshots are still to be taken.
 
 ## Licences
 
-Code GPL-3.0-or-later; artwork CC-BY-SA-4.0; derived colour schemes
-LGPL-2.0-or-later (from KDE Breeze); `ActionMenu.qml` adapted from KDE
-Kickoff (GPL-2.0-or-later). See `debian/copyright`.
+Code GPL-3.0-or-later; artwork CC-BY-SA-4.0; themes and colour schemes
+derived from Fluent-kde GPL-3.0 (Vince Liuice; Kvantum theme based on
+KvAdapta by Tsu Jan); `ActionMenu.qml` adapted from KDE Kickoff
+(GPL-2.0-or-later). See `debian/copyright`.

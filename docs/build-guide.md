@@ -30,10 +30,14 @@ How to build the VeltOS ISO and boot-test it. All steps run inside the
 ```bash
 build/run.sh image        # build the builder image (done automatically when missing)
 build/run.sh packages     # build VeltOS .deb packages (+ unit tests) into out/packages/
+build/run.sh packages veltos-desktop   # rebuild only the named package(s)
 build/run.sh iso          # packages + live ISO into out/iso/veltos-<version>-<timestamp>/
 build/run.sh test         # boot the newest ISO with UEFI and verify the desktop
 build/run.sh test bios    # same with legacy BIOS (SeaBIOS)
 build/run.sh test secureboot   # UEFI with Secure Boot (Microsoft keys enrolled)
+build/run.sh test-winapps # install a real Windows program through veltos-run in the ISO
+build/run.sh preview      # install out/packages/*.deb into a live VM, scripted screenshots
+build/run.sh vm start     # long-running VM (also: do, exec, exec-user, upload, stop, reset-disk)
 build/run.sh shell        # interactive shell in the builder (build volume at /build)
 build/run.sh clean        # delete the build volume (next build starts cold)
 ```

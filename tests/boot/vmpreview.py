@@ -15,6 +15,7 @@ is verified by vmtest.py.
 Actions (space separated):
   key:NAME[+NAME]   press keys together (QEMU qcodes: meta_l, esc, ret, tab, a...)
   type:TEXT         type text (letters, digits, space as "_")
+  typeraw:TEXT      type text literally (US layout symbols allowed), space as "~"
   click:X,Y         left click at screen coordinates (1920x1080)
   rclick:X,Y        right click
   sleep:SECONDS     wait
@@ -49,6 +50,8 @@ def play(actions, qmp, outdir):
             qmp.key(*arg.split("+"))
         elif kind == "type":
             qmp.type_text(arg.replace("_", " "))
+        elif kind == "typeraw":
+            qmp.type_text(arg.replace("~", " "))
         elif kind in ("click", "rclick"):
             x, y = (int(v) for v in arg.split(","))
             qmp.click(x, y, "left" if kind == "click" else "right")
