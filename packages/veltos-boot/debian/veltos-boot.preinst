@@ -1,12 +1,18 @@
 #!/bin/sh
 set -e
 
-# Plymouth's distribution defaults name the boot splash theme; VeltOS ships
-# its own (Theme=veltos) and keeps Debian's under another name.
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
+    # Plymouth's distribution defaults name the boot splash theme; VeltOS
+    # ships its own (Theme=veltos) and keeps Debian's under another name.
     dpkg-divert --package veltos-boot --add --rename \
         --divert /usr/share/plymouth/plymouthd.defaults.debian \
         /usr/share/plymouth/plymouthd.defaults
+    # Debian's GRUB entry generator; VeltOS's /etc/grub.d/10_linux runs it
+    # and renames/quietens its entries. The *.dpkg-* name is skipped by
+    # grub-mkconfig, so the original does not run twice.
+    dpkg-divert --package veltos-boot --add --rename \
+        --divert /etc/grub.d/10_linux.dpkg-veltos \
+        /etc/grub.d/10_linux
 fi
 
 #DEBHELPER#

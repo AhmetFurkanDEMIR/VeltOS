@@ -184,3 +184,12 @@ owner sets priorities; agents act as the engineering team.
   or the taskbar when checking names or titles.
 - `pkill -f PATTERN` inside `vm exec "..."` also matches the `sh -c` that
   runs it and kills it first; use `pkill -x NAME`.
+- VirtualBox on a Windows host with Hyper-V active (Docker Desktop/WSL2)
+  runs in "NEM" mode: GRUB on BIOS with `GRUB_GFXMODE=auto` made it stop
+  with a triple fault when starting Linux; a fixed mode (1024x768/800x600)
+  works. VirtualBox can be driven from Git Bash with `VBoxManage`
+  (headless start, `screenshotpng`); keep test VMs separate from the
+  product owner's VMs and work on disk copies.
+- Do not ship a conffile at the path of another package's diverted
+  conffile (dpkg asks a question and stops); copy such files in the
+  postinst instead.

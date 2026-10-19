@@ -7,4 +7,9 @@ if [ "$1" = remove ] || [ "$1" = abort-install ] || [ "$1" = disappear ]; then
     dpkg-divert --package veltos-boot --remove --rename \
         --divert /usr/share/plymouth/plymouthd.defaults.debian \
         /usr/share/plymouth/plymouthd.defaults
+    # Our copy (from the postinst) goes; Debian's script comes back.
+    rm -f /etc/grub.d/10_linux
+    dpkg-divert --package veltos-boot --remove --rename \
+        --divert /etc/grub.d/10_linux.dpkg-veltos \
+        /etc/grub.d/10_linux
 fi

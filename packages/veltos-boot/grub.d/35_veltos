@@ -1,0 +1,29 @@
+#!/bin/sh
+# Installed as /etc/grub.d/35_veltos (veltos-boot).
+#
+# Text GRUB prints while starting VeltOS ("Booting ...", "Loading Linux
+# ...") is drawn black on black, so the screen goes from the firmware logo
+# straight to the VeltOS boot screen. The themed menu has its own colours.
+#
+# The menu is hidden like on Windows (GRUB_TIMEOUT_STYLE=hidden). When other
+# operating systems are installed (found by os-prober, as 30_os-prober
+# does), it is shown for 5 seconds so they can be chosen.
+set -e
+
+cat <<'GRUB'
+set color_normal=black/black
+set color_highlight=black/black
+GRUB
+
+if [ "${GRUB_DISABLE_OS_PROBER}" = "true" ] || ! command -v os-prober >/dev/null 2>&1; then
+    exit 0
+fi
+if [ -n "$(os-prober 2>/dev/null)" ]; then
+    cat <<'GRUB'
+# Other operating systems found: show the boot menu.
+if [ "${recordfail}" != 1 ]; then
+  set timeout_style=menu
+  set timeout=5
+fi
+GRUB
+fi

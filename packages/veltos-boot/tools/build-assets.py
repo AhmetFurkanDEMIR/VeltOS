@@ -198,6 +198,15 @@ def main():
     defaults = root / "etc/default/grub.d"
     defaults.mkdir(parents=True)
     shutil.copy(SRC / "default/veltos.cfg", defaults / "veltos.cfg")
+    grub_d = root / "etc/grub.d"
+    grub_d.mkdir(parents=True)
+    shutil.copy(SRC / "grub.d/35_veltos", grub_d / "35_veltos")
+    (grub_d / "35_veltos").chmod(0o755)
+    # Copied to /etc/grub.d/10_linux by the postinst (see there).
+    wrapper_dir = root / "usr/lib/veltos-boot/grub.d"
+    wrapper_dir.mkdir(parents=True)
+    shutil.copy(SRC / "grub.d/10_linux", wrapper_dir / "10_linux")
+    (wrapper_dir / "10_linux").chmod(0o755)
     shutil.copy(SRC / "plymouth/plymouthd.defaults", root / "usr/share/plymouth/plymouthd.defaults")
     dropin = root / "usr/lib/systemd/system/sddm.service.d"
     dropin.mkdir(parents=True)
