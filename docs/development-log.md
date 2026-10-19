@@ -3,6 +3,29 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (later) — Task View, sounds, animations, toasts
+
+- **Task View** like Windows 11 as a KWin QML scene effect
+  (`veltostaskview`, public `org.kde.kwin` API only): window thumbnails
+  with icon/title/close, desktops strip with "New desktop" and remove,
+  Meta+Tab and the taskbar button. Verified in the VM: opens with
+  Meta+Tab, hover/close, switching to a second desktop ("No open
+  windows"), creating and removing a desktop; helper windows that skip
+  the window switcher are left out (the Wayland recording bridge showed).
+  KWin keeps a loaded effect's QML: re-login after changing it.
+- **No animations in VMs**: KWin had loaded none of its animation effects
+  (scale, squash, slidingpopups, slide, maximize...) because it renders
+  with llvmpipe. `KWIN_EFFECTS_FORCE_ANIMATIONS=1` in the session script
+  (KWin reads it; verified that all of them load after re-login). CPU is
+  used only while an animation runs; not measured on real hardware yet.
+- **Sounds**: original VeltOS sound theme synthesised at build time
+  (`tools/sounds.py`; Windows' sounds are Microsoft's and not shipped),
+  login chime enabled. Not listened to (the VM has no audio output).
+- **Toasts**: no timeout bar, monochrome close glyph (second
+  `update-plasma-overrides` spec). Verified with two test notifications.
+- ISO `veltos-0.1.0-dev-20261019-215605` (first part of the day): verify
+  hook passed incl. the override check; boot tests not run yet.
+
 ## 2026-10-20 — Windows 11 polish: start-up, flyouts, Firefox, File Explorer fix
 
 ### Product-owner feedback that drove this work

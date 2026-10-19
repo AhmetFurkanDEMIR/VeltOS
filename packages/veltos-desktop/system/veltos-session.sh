@@ -10,6 +10,12 @@ case ":${XDG_DATA_DIRS:-}:" in
     *) export XDG_DATA_DIRS="/var/lib/veltos/xdg:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" ;;
 esac
 
+# Window animations like Windows 11 also without 3D acceleration: KWin
+# turns its animations off when it renders in software (llvmpipe, most
+# virtual machines), so windows popped up and vanished without any
+# animation there (VM, 2026-10-20). With a real GPU this changes nothing.
+export KWIN_EFFECTS_FORCE_ANIMATIONS=1
+
 # Per-user defaults KDE has no system-wide setting for (application style,
 # File Explorer side bar). Created once; a user's own files are kept.
 if [ ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig" ] ||

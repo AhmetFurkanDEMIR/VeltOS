@@ -1,0 +1,21 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "Window Management",
+        "Description": "Windows 11 Task View: open windows and virtual desktops",
+        "Description[tr]": "Windows 11 Görev Görünümü: açık pencereler ve sanal masaüstleri",
+        "EnabledByDefault": true,
+        "Id": "veltostaskview",
+        "License": "GPL-3.0-or-later",
+        "Name": "Task View",
+        "Name[tr]": "Görev Görünümü"
+    },
+    "X-KDE-Ordering": 60,
+    "X-Plasma-API": "declarativescript",
+    "X-Plasma-MainScript": "ui/main.qml"
+}

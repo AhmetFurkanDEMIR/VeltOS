@@ -86,6 +86,9 @@ files that do not exist yet.
 | Power screen | `contents/logout/Logout.qml` of both global themes (`plasma/logout/`) | Power key / Ctrl+Alt+Del: dimmed desktop and a Windows-style card (Lock, Sign out, Sleep, Shut down, Restart, Cancel) instead of Breeze's full-screen buttons and countdown. |
 | Desktop icons | `/usr/share/veltos/desktop/*.desktop`, copied by the session script | "This PC" and "Recycle Bin" on every user's desktop; a deleted one comes back at the next sign-in. |
 | `session-fixups` | `/usr/libexec/veltos/`, started by `/etc/xdg/autostart/veltos-session-fixups.desktop` | One-shot at sign-in: with software rendering (llvmpipe, VMs without 3D) KWin's window captures are garbled, so the taskbar shows titles instead of window previews there. |
+| Task View | `/usr/share/kwin/effects/veltostaskview/` (`kwin/effects/veltostaskview/`) | Windows 11 Task View as a KWin QML scene effect (public `org.kde.kwin` API): window thumbnails with icon, title and close button; desktops strip with "New desktop" and remove; Meta+Tab and the taskbar's Task View button. |
+| Sounds | `/usr/share/sounds/veltos/` (`tools/sounds.py`), `[Sounds] Theme=veltos` in kdeglobals, `/etc/xdg/plasma_workspace.notifyrc` | Original system sounds synthesised at build time (Windows' sounds are not shipped); a chime when the desktop appears after signing in. |
+| Animations | `KWIN_EFFECTS_FORCE_ANIMATIONS=1` in the session script | KWin switches its animations off with software rendering (most VMs); VeltOS keeps them on (open/close, minimise, maximise, sliding popups, desktop switching). |
 | Other defaults | `/etc/xdg/klaunchrc`, `usr/lib/sddm/sddm.conf.d/10-veltos.conf` | No app icon bouncing next to the pointer while a program starts; no on-screen keyboard on the sign-in screen (SDDM's default input method). |
 
 ## Source layout

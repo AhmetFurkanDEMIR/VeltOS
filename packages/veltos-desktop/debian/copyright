@@ -6,6 +6,14 @@ Files: *
 Copyright: 2026 VeltOS Developers
 License: GPL-3+
 
+Files: tests/data/notifications/*
+Copyright: 2018-2024 Kai Uwe Broulik, Marco Martin and other KDE contributors
+License: GPL-2-or-3-KDE
+ GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL; on Debian systems
+ see /usr/share/common-licenses/GPL-2 and GPL-3.
+Comment: Copies of plasma-workspace 6.3.6 QML (Debian 13), used to test
+ plasma-overrides/*.json.
+
 Files: tests/data/systemtray/*
 Copyright: 2016-2020 Marco Martin, Konrad Materka, Nate Graham and other KDE contributors
 License: LGPL-2+

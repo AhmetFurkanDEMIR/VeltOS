@@ -53,13 +53,11 @@ checks that passed.
   separate window (mouse, keyboard, notifications, power, default apps,
   startup apps, users, region, accessibility, …).
 - The screen locker after sign-in is Plasma's design.
-- Product owner's 2026-10-20 requests not done yet: Task View (virtual
-  desktops) like Windows 11; a Windows 11 Task Manager (Plasma System
+- Product owner's 2026-10-20 requests not done yet: a Windows 11 Task Manager (Plasma System
   Monitor is used); Control Panel pages in the Settings design; Windows 11
-  animations and sounds (Windows' own sounds cannot be shipped; original
-  sounds needed); modern Wine dialogs; Store (Discover) look;
-  notification pop-ups (toasts) and the taskbar window tooltip in Windows
-  design.
+  modern Wine dialogs; Store (Discover) look; the taskbar window tooltip
+  in Windows design. (Task View, animations, original sounds and
+  Windows-like toasts were added on 2026-10-20; sounds untested by ear.)
 - A busy pointer while a program starts is not possible with KWin on
   Wayland (it only draws the app icon, which VeltOS turned off).
 - In VMs without 3D acceleration the taskbar shows window titles instead
@@ -77,13 +75,11 @@ checks that passed.
 
 1. Build an ISO with the 2026-10-20 changes and run the boot tests; check
    the quiet start-up and shutdown on screen.
-2. Task View like Windows 11 (KWin overview: desktops strip at the
-   bottom), notification pop-ups and window tooltip in Windows design
-   (`update-plasma-overrides`).
+2. Taskbar window tooltip in Windows design (`update-plasma-overrides`).
 3. VeltOS Task Manager (Windows 11 layout: Processes, Performance,
    Startup apps) and the Control Panel pages inside Settings.
-4. Animations (KWin effects tuned like Windows) and an original VeltOS
-   sound theme.
+4. Listen to the VeltOS sounds on real hardware; measure animation CPU
+   cost with software rendering.
 5. Plain and BIOS installations; the product owner reinstalls in
    VirtualBox.
 6. Installer pages (partitions, users) in Windows 11 style.
