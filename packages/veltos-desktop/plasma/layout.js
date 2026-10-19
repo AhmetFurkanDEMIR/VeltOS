@@ -44,24 +44,40 @@ tasks.writeConfig("launchers", [
 
 panel.addWidget("org.kde.plasma.panelspacer");
 
-// Tray: network, sound, battery and notifications stay visible; everything
-// else goes behind the "^" overflow arrow, as on Windows 11.
+// Tray like Windows 11: network, sound, brightness, Bluetooth and battery
+// are not tray icons but one Quick Settings button (org.veltos.quicksettings,
+// added below); the remaining tray items sit behind the "^" arrow except
+// notifications and the keyboard layout. knownItems lists everything Plasma
+// knows, so it does not switch the excluded items back on as "new".
 var systray = panel.addWidget("org.kde.plasma.systemtray");
 var systrayContainmentId = systray.readConfig("SystrayContainmentId");
 if (systrayContainmentId) {
     var tray = desktopById(systrayContainmentId);
     tray.currentConfigGroup = ["General"];
+    tray.writeConfig("knownItems", [
+        "org.kde.kdeconnect", "org.kde.kscreen", "org.kde.kupapplet",
+        "org.kde.plasma.battery", "org.kde.plasma.bluetooth", "org.kde.plasma.brightness",
+        "org.kde.plasma.cameraindicator", "org.kde.plasma.clipboard",
+        "org.kde.plasma.devicenotifier", "org.kde.plasma.keyboardlayout",
+        "org.kde.plasma.manage-inputmethod", "org.kde.plasma.mediacontroller",
+        "org.kde.plasma.networkmanagement", "org.kde.plasma.notifications",
+        "org.kde.plasma.printmanager", "org.kde.plasma.vault", "org.kde.plasma.volume"
+    ]);
+    tray.writeConfig("extraItems", [
+        "org.kde.plasma.cameraindicator", "org.kde.plasma.clipboard",
+        "org.kde.plasma.devicenotifier", "org.kde.plasma.keyboardlayout",
+        "org.kde.plasma.manage-inputmethod", "org.kde.plasma.mediacontroller",
+        "org.kde.plasma.notifications", "org.kde.plasma.printmanager"
+    ]);
     tray.writeConfig("hiddenItems", [
-        "org.kde.plasma.brightness",
-        "org.kde.plasma.clipboard",
-        "org.kde.plasma.devicenotifier",
-        "org.kde.plasma.manage-inputmethod",
-        "org.kde.plasma.vault",
-        "org.kde.kdeconnect",
-        "org.kde.kscreen",
+        "org.kde.plasma.clipboard", "org.kde.plasma.devicenotifier",
+        "org.kde.plasma.manage-inputmethod", "org.kde.plasma.mediacontroller",
         "org.kde.plasma.printmanager"
     ]);
 }
+
+// Quick Settings (Wi-Fi, Bluetooth, sound, brightness, battery).
+panel.addWidget("org.veltos.quicksettings");
 
 // Clock like Windows 11: time above the date, normal text size, instead of
 // text scaled to the panel height.

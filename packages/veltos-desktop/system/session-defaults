@@ -10,7 +10,12 @@ always win:
     (Kvantum reads its theme only from the user's configuration);
   * ~/.local/share/user-places.xbel - File Explorer's side bar laid out like
     Windows: Home, Desktop, Downloads, Documents, Pictures, Music, Videos and
-    Trash, then the drives; no Network, Recent or Search sections.
+    Trash, then the drives; no Network, Recent or Search sections;
+  * ~/.local/share/kxmlgui5/dolphin/dolphinui.rc - File Explorer's toolbars
+    laid out like Windows 11 (address row, command row); KXMLGUI did not use
+    the same file from /usr/share in a VM test, only the user's copy;
+  * ~/.local/share/dolphin/view_properties/global/.directory - the Details
+    view (Name, Date modified, Type, Size) as the default for all folders.
 
 At the same first run, the "Templates" and "Public" folders that
 xdg-user-dirs creates (unknown on Windows) are switched off and removed if
@@ -38,6 +43,11 @@ PLACES = [
     ("MUSIC", "Music", "folder-music"),
     ("VIDEOS", "Videos", "folder-videos"),
 ]
+DOLPHIN_UI = Path("/usr/share/veltos/dolphin/dolphinui.rc")
+# Dolphin's global view properties: Details view (DolphinView::DetailsView
+# = 1) with Windows' columns.
+DOLPHIN_VIEW = ("[Dolphin]\nVersion=4\nViewMode=1\n"
+                "VisibleRoles=Details_text,Details_modificationtime,Details_type,Details_size\n")
 HIDDEN_GROUPS = ("Remote", "RecentlySaved", "SearchFor", "Tags")
 SHOWN_GROUPS = ("Places", "Devices", "RemovableDevices")
 
@@ -169,6 +179,13 @@ def main():
         dirs = user_dirs(home)
         drop_unwanted_dirs(home)
         write_new(places, places_xbel(home, dirs, int(time.time())))
+    try:
+        layout = DOLPHIN_UI.read_text(encoding="utf-8")
+    except OSError:
+        layout = None
+    if layout:
+        write_new(data_home() / "kxmlgui5/dolphin/dolphinui.rc", layout)
+    write_new(data_home() / "dolphin/view_properties/global/.directory", DOLPHIN_VIEW)
     return 0
 
 

@@ -13,7 +13,8 @@ esac
 # Per-user defaults KDE has no system-wide setting for (application style,
 # File Explorer side bar). Created once; a user's own files are kept.
 if [ ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig" ] ||
-   [ ! -e "${XDG_DATA_HOME:-$HOME/.local/share}/user-places.xbel" ]; then
+   [ ! -e "${XDG_DATA_HOME:-$HOME/.local/share}/user-places.xbel" ] ||
+   [ ! -e "${XDG_DATA_HOME:-$HOME/.local/share}/kxmlgui5/dolphin/dolphinui.rc" ]; then
     /usr/libexec/veltos/session-defaults || true
 fi
 

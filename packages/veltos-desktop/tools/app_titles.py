@@ -26,6 +26,12 @@ TITLES = {
     ("dolphin", "@info:status", "Dolphin does not support web pages, the web browser has been launched"):
         ("File Explorer does not open web pages; the web browser has been started",
          "Dosya Gezgini web sayfalarını açmaz; web tarayıcısı başlatıldı"),
+    ("dolphin", "@title:menu Create new folder, file, link, etc.", "Create New"): ("New", "Yeni"),
+    ("dolphin", "@action:inmenu View", "Sort By"): ("Sort", "Sırala"),
+    # File Explorer side bar sections, named as on Windows 11.
+    ("kio6", "@item", "Places"): ("Quick access", "Hızlı erişim"),
+    ("kio6", "@item", "Devices"): ("This PC", "Bu bilgisayar"),
+    ("kio6", "@item", "Removable Devices"): ("Removable drives", "Çıkarılabilir sürücüler"),
     ("konsole", "@title", "Konsole"): ("Terminal", "Terminal"),
     ("konsole", None, "Konsole"): ("Terminal", "Terminal"),
     ("gwenview", None, "Gwenview"): ("Photos", "Fotoğraflar"),
