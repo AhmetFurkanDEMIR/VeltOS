@@ -20,7 +20,7 @@ for pkg in veltos-base veltos-desktop veltos-settings veltos-boot veltos-fluent-
 done
 
 # Third-party branding that must stay out of VeltOS.
-for pkg in desktop-base calamares-settings-debian plasma-welcome; do
+for pkg in desktop-base calamares-settings-debian plasma-welcome xwaylandvideobridge; do
     installed "$pkg" && fail "$pkg must not be installed (non-VeltOS branding)"
 done
 
@@ -52,6 +52,16 @@ for p in search taskview clock quicksettings; do
 done
 [ -f /etc/calamares/branding/veltos/calamares-sidebar.qml ] \
     || fail "VeltOS installer side bar missing"
+# Windows 11 changes to Plasma components must fit the Plasma in the image.
+/usr/libexec/veltos/update-plasma-overrides --check \
+    || fail "a VeltOS change no longer fits this Plasma version (update-plasma-overrides)"
+[ -f /var/lib/veltos/xdg/plasma/plasmoids/org.kde.plasma.private.systemtray/.veltos-override ] \
+    || fail "taskbar hidden-icons flyout override missing"
+# GTK and Firefox caption buttons, power screen.
+[ -f /usr/share/themes/VeltOS/gtk-3.0/gtk.css ] || fail "VeltOS GTK theme missing"
+[ -f /usr/lib/firefox-esr/veltos.cfg ] || fail "Firefox caption button set-up missing"
+[ -f /usr/share/plasma/look-and-feel/org.veltos.light/contents/logout/Logout.qml ] \
+    || fail "VeltOS power screen missing"
 # Encrypted installs: unlimited password tries, Windows-like unlock texts.
 grep -q '^  - crypttab-tries$' /etc/calamares/settings.conf \
     || fail "installer does not run the crypttab-tries job"

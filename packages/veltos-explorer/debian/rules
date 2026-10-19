@@ -14,6 +14,9 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-explorer debian/veltos-explorer/usr/bin/veltos-explorer
 	install -D -m 644 data/veltos-explorer.desktop \
 		debian/veltos-explorer/usr/share/applications/veltos-explorer.desktop
+	# App icon (VeltOS artwork, Windows 11 style).
+	install -D -m 644 data/veltos-explorer.svg \
+		debian/veltos-explorer/usr/share/icons/hicolor/scalable/apps/veltos-explorer.svg
 	install -D -m 644 data/kde-mimeapps.list debian/veltos-explorer/etc/xdg/kde-mimeapps.list
 
 override_dh_auto_test:

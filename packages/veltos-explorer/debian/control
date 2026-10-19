@@ -30,7 +30,6 @@ Depends: ${python3:Depends},
          qml6-module-qtquick-templates,
          qt6-svg-plugins,
          shared-mime-info,
-         util-linux,
          ${misc:Depends}
 Recommends: ark,
             konsole,

@@ -11,11 +11,28 @@ import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
-import org.kde.plasma.workspace.calendar as PlasmaCalendar
 import org.kde.kirigami as Kirigami
 
 PlasmoidItem {
     id: root
+
+    // Windows 11 flyouts float above the taskbar with all corners rounded.
+    // Plasma does that for panel popups only while the panel itself floats
+    // (its Panel.qml sets ContainmentPrefersFloatingApplets); the VeltOS
+    // taskbar does not float, so the hint is kept set here. Panel.qml
+    // clears it whenever its own state changes, hence the Connections.
+    function floatPopups() {
+        const c = Plasmoid.containment;
+        if (c && !(c.containmentDisplayHints & PlasmaCore.Types.ContainmentPrefersFloatingApplets)) {
+            c.containmentDisplayHints |= PlasmaCore.Types.ContainmentPrefersFloatingApplets;
+        }
+    }
+    Connections {
+        target: Plasmoid.containment
+        function onContainmentDisplayHintsChanged() {
+            root.floatPopups();
+        }
+    }
 
     property date now: new Date()
     readonly property string timeText: Qt.formatTime(now, Qt.locale().timeFormat(Locale.ShortFormat))
@@ -81,26 +98,37 @@ PlasmoidItem {
         }
     }
 
+    // Windows 11: notifications above the calendar in one flyout.
     fullRepresentation: ColumnLayout {
         Layout.preferredWidth: Kirigami.Units.gridUnit * 20
-        Layout.preferredHeight: Kirigami.Units.gridUnit * 21
+        Layout.minimumWidth: Kirigami.Units.gridUnit * 20
+        Layout.preferredHeight: implicitHeight
         spacing: Kirigami.Units.largeSpacing
 
-        PlasmaComponents3.Label {
+        NotificationCenter {
             Layout.fillWidth: true
             Layout.margins: Kirigami.Units.largeSpacing
-            text: Qt.formatDate(root.now, Qt.locale().dateFormat(Locale.LongFormat))
-            font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.15
-            font.weight: Font.DemiBold
-            elide: Text.ElideRight
+            Layout.bottomMargin: 0
         }
-        PlasmaCalendar.MonthView {
+        Kirigami.Separator {
             Layout.fillWidth: true
-            Layout.fillHeight: true
+        }
+        Calendar {
+            id: calendar
+            Layout.fillWidth: true
+            Layout.margins: Kirigami.Units.largeSpacing
+            Layout.topMargin: 0
             today: root.now
-            firstDayOfWeek: Qt.locale().firstDayOfWeek
-            showWeekNumbers: false
-            borderOpacity: 0
+            Connections {
+                target: root
+                function onExpandedChanged() {
+                    if (root.expanded) {
+                        calendar.reset();
+                    }
+                }
+            }
         }
     }
+
+    Component.onCompleted: floatPopups()
 }

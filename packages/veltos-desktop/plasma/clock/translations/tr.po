@@ -1,11 +1,37 @@
-# Turkish translation of VeltOS Clock (no texts of its own yet).
+# Turkish translation of VeltOS Clock (Windows 11 wording).
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
 "Project-Id-Version: org.veltos.clock\n"
-"PO-Revision-Date: 2026-10-19 12:00+0000\n"
+"PO-Revision-Date: 2026-10-20 12:00+0000\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Notifications"
+msgstr "Bildirimler"
+
+msgid "Clear all"
+msgstr "Tümünü temizle"
+
+msgid "No new notifications"
+msgstr "Yeni bildirim yok"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Now"
+msgstr "Şimdi"
+
+msgid "1 min ago"
+msgid_plural "%1 min ago"
+msgstr[0] "1 dk önce"
+msgstr[1] "%1 dk önce"
+
+msgid "Previous month"
+msgstr "Önceki ay"
+
+msgid "Next month"
+msgstr "Sonraki ay"

@@ -11,7 +11,11 @@
     </entry>
     <entry name="favorites" type="StringList">
       <label>Apps pinned to Start for new users (desktop file names or preferred:// URLs).</label>
-      <default>preferred://browser,org.kde.dolphin.desktop,veltos-settings.desktop,org.kde.kwrite.desktop,org.kde.gwenview.desktop,org.kde.okular.desktop,org.kde.ark.desktop,org.kde.spectacle.desktop,org.kde.plasma-systemmonitor.desktop,org.kde.kinfocenter.desktop</default>
+      <default>preferred://browser,veltos-explorer.desktop,veltos-settings.desktop,org.kde.discover.desktop,org.kde.gwenview.desktop,org.kde.kwrite.desktop,org.kde.okular.desktop,org.kde.spectacle.desktop,org.kde.plasma-systemmonitor.desktop,org.kde.ark.desktop,org.kde.konsole.desktop</default>
+    </entry>
+    <entry name="explorerPinned" type="Bool">
+      <label>Whether Dolphin in the pinned apps was replaced by File Explorer (VeltOS 0.1, once).</label>
+      <default>false</default>
     </entry>
     <entry name="favoritesPortedToKAstats" type="Bool">
       <label>Whether the default pinned apps were copied into the activity statistics store.</label>

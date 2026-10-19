@@ -17,6 +17,8 @@ override_dh_auto_install:
 	# Fluent cursors (Windows 11 style), prebuilt by upstream.
 	cp -a upstream/cursors/dist $(ICONS)/Fluent-cursors
 	cp -a upstream/cursors/dist-dark $(ICONS)/Fluent-dark-cursors
+	# Target of the x-cursor-theme alternative (see the postinst).
+	printf '[Icon Theme]\nInherits=Fluent-cursors\n' > $(ICONS)/Fluent-cursors/cursor.theme
 	# Branding: the "start here"/distributor icons show the VeltOS logo, and
 	# icons drawn as the Microsoft Windows logo (upstream's Wine icons) are
 	# removed so Breeze's neutral icons are used instead.
@@ -39,6 +41,7 @@ execute_after_dh_auto_install:
 		test -e $(ICONS)/Fluent/scalable/apps/$$app.svg || exit 1; done
 	test -f $(ICONS)/Fluent-cursors/index.theme
 	test -e $(ICONS)/Fluent-cursors/cursors/default
+	grep -qx 'Inherits=Fluent-cursors' $(ICONS)/Fluent-cursors/cursor.theme
 	for f in $$(find -L $(ICONS)/Fluent-dark -name 'start-here.svg'); do cmp -s $$f branding/veltos-logo.svg || exit 1; done
 	test -z "$$(find -L $(ICONS) -name 'wine.svg')"
 	! grep -qi '198ee6' $(ICONS)/.Fluent-base/scalable/places/default-folder.svg

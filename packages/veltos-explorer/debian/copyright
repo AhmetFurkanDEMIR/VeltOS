@@ -6,6 +6,11 @@ Files: *
 Copyright: 2026 VeltOS Developers
 License: GPL-3+
 
+Files: data/veltos-explorer.svg
+Copyright: 2026 VeltOS Developers
+License: CC-BY-SA-4.0
+ See /usr/share/doc/veltos-desktop/copyright.
+
 License: GPL-3+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

@@ -2,6 +2,7 @@
 navigation, views, selection, new folder, rename, menus. Any QML warning
 or error fails the test."""
 
+import locale
 import os
 import sys
 import tempfile
@@ -19,6 +20,19 @@ try:
     HAVE_QT = True
 except ImportError:
     HAVE_QT = False
+
+
+def turkish_locale():
+    """Name of an installed Turkish UTF-8 locale, or None."""
+    current = locale.setlocale(locale.LC_ALL)
+    for name in ("tr_TR.UTF-8", "tr_TR.utf8"):
+        try:
+            locale.setlocale(locale.LC_ALL, name)
+        except locale.Error:
+            continue
+        locale.setlocale(locale.LC_ALL, current)
+        return name
+    return None
 
 
 @unittest.skipUnless(HAVE_QT, "needs PySide6 (Build-Depends)")
@@ -143,7 +157,31 @@ class ExplorerWindowTests(unittest.TestCase):
 
 
 class TurkishExplorerTests(ExplorerWindowTests):
+    """Turkish texts and, where the locale is installed, the Turkish C locale:
+    PySide6 maps keyword arguments to setters with the C library's
+    toupper(), and File Explorer did not start on Turkish systems
+    (QTimer(interval=...) -> "setİnterval")."""
     lang = "tr"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.old_locale = locale.setlocale(locale.LC_ALL)
+        cls.turkish = turkish_locale()
+        if cls.turkish:
+            locale.setlocale(locale.LC_ALL, cls.turkish)
+
+    @classmethod
+    def tearDownClass(cls):
+        locale.setlocale(locale.LC_ALL, cls.old_locale)
+        super().tearDownClass()
+
+    def test_turkish_c_locale_is_used_when_installed(self):
+        if self.turkish:
+            self.assertEqual("i".upper(), "I")          # Python is locale-independent
+            self.assertTrue(locale.setlocale(locale.LC_CTYPE).startswith("tr_TR"))
+        else:
+            self.skipTest("tr_TR.UTF-8 locale not installed")
 
 
 if __name__ == "__main__":

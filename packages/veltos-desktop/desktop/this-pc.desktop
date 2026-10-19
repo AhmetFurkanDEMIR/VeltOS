@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=This PC
+Name[tr]=Bu bilgisayar
+Comment=Drives and folders of this computer
+Comment[tr]=Bu bilgisayarın sürücüleri ve klasörleri
+Exec=veltos-explorer thispc:
+Icon=computer

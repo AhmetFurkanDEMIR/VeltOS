@@ -15,6 +15,10 @@ for (var i = 0; i < desktopsArray.length; i++) {
     desktop.wallpaperPlugin = "org.kde.image";
     desktop.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
     desktop.writeConfig("Image", wallpaper);
+    // Desktop icons top to bottom from the top-left corner, like Windows
+    // (folder view: arrangement 1 = columns).
+    desktop.currentConfigGroup = ["General"];
+    desktop.writeConfig("arrangement", 1);
 }
 
 var panel = new Panel;

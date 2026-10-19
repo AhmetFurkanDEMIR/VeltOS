@@ -1,0 +1,40 @@
+#!/bin/sh
+# VeltOS adjustments that need the running session (started once at
+# sign-in by /etc/xdg/autostart/veltos-session-fixups.desktop, then exits).
+#
+# Taskbar window previews: KWin's screen capture gives garbled preview
+# images when it renders in software (llvmpipe: virtual machines without 3D
+# acceleration; VM test 2026-10-20). There the taskbar shows the window
+# title only, like Windows with visual effects off; with a real GPU the
+# previews stay on. Decided at every sign-in, so moving a disk between a VM
+# and real hardware does the right thing.
+set -u
+
+# plasmashell and KWin answer on the session bus a moment after sign-in.
+i=0
+while [ $i -lt 30 ]; do
+    if qdbus6 org.kde.plasmashell /PlasmaShell >/dev/null 2>&1 &&
+       qdbus6 org.kde.KWin /KWin >/dev/null 2>&1; then
+        break
+    fi
+    i=$((i + 1))
+    sleep 1
+done
+
+renderer="$(qdbus6 org.kde.KWin /KWin org.kde.KWin.supportInformation 2>/dev/null |
+            sed -n 's/^OpenGL renderer string: //p' | head -n 1)"
+case "$renderer" in
+    ""|*llvmpipe*|*softpipe*|*"Software Rasterizer"*) previews=false ;;
+    *) previews=true ;;
+esac
+
+qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
+panels().forEach(function (panel) {
+    ['org.kde.plasma.icontasks', 'org.kde.plasma.taskmanager'].forEach(function (id) {
+        panel.widgets(id).forEach(function (tasks) {
+            tasks.currentConfigGroup = ['General'];
+            tasks.writeConfig('showToolTips', $previews);
+        });
+    });
+});" >/dev/null 2>&1
+exit 0

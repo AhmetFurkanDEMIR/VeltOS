@@ -161,10 +161,28 @@ FocusScope {
         }
     }
 
+    // Users who signed in before VeltOS had its own File Explorer have the
+    // hidden KDE file manager pinned; replace it once, in the same place.
+    function pinFileExplorer() {
+        if (Plasmoid.configuration.explorerPinned || !favoritesModel || !favoritesModel.enabled) {
+            return;
+        }
+        const dolphin = "org.kde.dolphin.desktop";
+        if (favoritesModel.isFavorite(dolphin)) {
+            const at = favoritesModel.favorites ? favoritesModel.favorites.indexOf(dolphin) : -1;
+            favoritesModel.removeFavorite(dolphin);
+            if (!favoritesModel.isFavorite("veltos-explorer.desktop")) {
+                favoritesModel.addFavorite("veltos-explorer.desktop", at);
+            }
+        }
+        Plasmoid.configuration.explorerPinned = true;
+    }
+
     Component.onCompleted: {
         plasmoidItem.rootModel.refresh();
         refreshAllApps();
         ensureSystemModel();
+        pinFileExplorer();
         searchField.forceActiveFocus();
     }
 
@@ -198,6 +216,47 @@ FocusScope {
         Layout.fillWidth: true
     }
 
+    // Windows 11's small "All apps >" / "More >" / "< Back" buttons: a
+    // light filled rectangle with a hairline border, small text and a
+    // chevron.
+    component SmallButton: MouseArea {
+        id: smallButton
+        property string text
+        property string iconName: "go-next-symbolic"
+        property bool iconFirst: false
+        implicitWidth: smallButtonRow.implicitWidth + Kirigami.Units.largeSpacing * 2
+        implicitHeight: Math.round(Kirigami.Units.gridUnit * 1.6)
+        hoverEnabled: true
+        activeFocusOnTab: true
+        Accessible.name: text
+        Accessible.role: Accessible.Button
+        Keys.onReturnPressed: clicked(null)
+        Keys.onSpacePressed: clicked(null)
+
+        Rectangle {
+            anchors.fill: parent
+            radius: 4
+            color: Qt.alpha(Kirigami.Theme.textColor, smallButton.pressed ? 0.03 : (smallButton.containsMouse ? 0.09 : 0.06))
+            border.width: 1
+            border.color: Qt.alpha(Kirigami.Theme.textColor, smallButton.activeFocus ? 0.5 : 0.08)
+        }
+        RowLayout {
+            id: smallButtonRow
+            anchors.centerIn: parent
+            spacing: Kirigami.Units.smallSpacing
+            layoutDirection: smallButton.iconFirst ? Qt.RightToLeft : Qt.LeftToRight
+            PC3.Label {
+                text: smallButton.text
+                font: Kirigami.Theme.smallFont
+            }
+            Kirigami.Icon {
+                implicitWidth: Math.round(Kirigami.Units.iconSizes.small * 0.75)
+                implicitHeight: implicitWidth
+                source: smallButton.iconName
+            }
+        }
+    }
+
     // --- Layout ------------------------------------------------------------
 
     // Near-opaque surface: with blur (real GPUs) it reads like Windows'
@@ -223,8 +282,19 @@ FocusScope {
             PlasmaExtras.SearchField {
                 id: searchField
                 Layout.fillWidth: true
+                implicitHeight: Math.round(Kirigami.Units.gridUnit * 2.2)
                 focus: true
                 placeholderText: i18n("Search for apps, settings and documents")
+                // Rounded "pill" field like Windows 11's Start search.
+                background: Rectangle {
+                    Kirigami.Theme.colorSet: Kirigami.Theme.View
+                    Kirigami.Theme.inherit: false
+                    radius: height / 2
+                    color: Kirigami.Theme.backgroundColor
+                    border.width: searchField.activeFocus ? 2 : 1
+                    border.color: searchField.activeFocus ? Kirigami.Theme.highlightColor
+                                                          : Qt.alpha(Kirigami.Theme.textColor, 0.14)
+                }
 
                 Keys.onDownPressed: event => {
                     if (menu.searching) {
@@ -255,21 +325,9 @@ FocusScope {
                     SectionTitle {
                         text: i18n("Pinned")
                     }
-                    PC3.ToolButton {
+                    SmallButton {
                         id: allAppsButton
                         text: i18n("All apps")
-                        // Arrow after the text, like Windows.
-                        contentItem: RowLayout {
-                            spacing: Kirigami.Units.smallSpacing
-                            PC3.Label {
-                                text: allAppsButton.text
-                            }
-                            Kirigami.Icon {
-                                implicitWidth: Kirigami.Units.iconSizes.small
-                                implicitHeight: Kirigami.Units.iconSizes.small
-                                source: "go-next-symbolic"
-                            }
-                        }
                         onClicked: {
                             menu.page = "allApps";
                             searchField.forceActiveFocus();
@@ -282,7 +340,7 @@ FocusScope {
                     Layout.fillWidth: true
                     Layout.preferredHeight: cellHeight * menu.pinnedRows
                     cellWidth: Math.floor(width / menu.pinnedColumns)
-                    cellHeight: Kirigami.Units.gridUnit * 5
+                    cellHeight: Math.round(Kirigami.Units.gridUnit * 4.4)
                     clip: true
                     model: menu.favoritesModel
                     currentIndex: -1
@@ -342,14 +400,14 @@ FocusScope {
                                 implicitHeight: Kirigami.Units.iconSizes.medium
                                 source: tile.model.decoration
                             }
+                            // One line, like Windows 11.
                             PC3.Label {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 text: tile.model.display
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignTop
-                                wrapMode: Text.Wrap
-                                maximumLineCount: 2
+                                maximumLineCount: 1
                                 elide: Text.ElideRight
                                 font: Kirigami.Theme.smallFont
                             }
@@ -357,9 +415,20 @@ FocusScope {
                     }
                 }
 
-                SectionTitle {
-                    text: i18n("Recommended")
+                RowLayout {
+                    Layout.fillWidth: true
                     Layout.topMargin: Kirigami.Units.largeSpacing
+                    SectionTitle {
+                        text: i18n("Recommended")
+                    }
+                    SmallButton {
+                        text: i18n("More")
+                        visible: recommendedGrid.count > 0
+                        onClicked: {
+                            menu.page = "recommended";
+                            searchField.forceActiveFocus();
+                        }
+                    }
                 }
 
                 GridView {
@@ -454,9 +523,10 @@ FocusScope {
                     SectionTitle {
                         text: i18n("All apps")
                     }
-                    PC3.ToolButton {
+                    SmallButton {
                         text: i18n("Back")
-                        icon.name: "go-previous-symbolic"
+                        iconName: "go-previous-symbolic"
+                        iconFirst: true
                         onClicked: {
                             menu.page = "home";
                             searchField.forceActiveFocus();
@@ -498,6 +568,56 @@ FocusScope {
                             onActivated: menu.launch(allAppsList.model, appRow.index)
                             onContextMenuRequested: menu.openActionMenu(appRow, allAppsList.model, appRow.index,
                                                                         appRow.model.actionList, appRow.model.favoriteId)
+                        }
+                    }
+                }
+            }
+
+            // "More" behind Recommended: every recent document in one list.
+            ColumnLayout {
+                visible: !menu.searching && menu.page === "recommended"
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: Kirigami.Units.largeSpacing
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    SectionTitle {
+                        text: i18n("Recommended")
+                    }
+                    SmallButton {
+                        text: i18n("Back")
+                        iconName: "go-previous-symbolic"
+                        iconFirst: true
+                        onClicked: {
+                            menu.page = "home";
+                            searchField.forceActiveFocus();
+                        }
+                    }
+                }
+
+                PC3.ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    ListView {
+                        id: recentList
+                        model: menu.page === "recommended" ? menu.plasmoidItem.recentDocsModel : null
+                        currentIndex: -1
+                        keyNavigationEnabled: true
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        Keys.onReturnPressed: menu.launch(model, currentIndex)
+                        Keys.onEnterPressed: menu.launch(model, currentIndex)
+                        Keys.onEscapePressed: menu.goBack()
+
+                        delegate: AppRow {
+                            id: recentRow
+                            view: recentList
+                            showDescription: true
+                            onActivated: menu.launch(recentList.model, recentRow.index)
+                            onContextMenuRequested: menu.openActionMenu(recentRow, recentList.model, recentRow.index,
+                                                                        recentRow.model.actionList, "")
                         }
                     }
                 }
@@ -600,11 +720,15 @@ FocusScope {
                         anchors.centerIn: parent
                         spacing: Kirigami.Units.largeSpacing
 
+                        // Without a picture: a neutral person icon on grey,
+                        // like a Windows account, not coloured initials.
                         KirigamiComponents.Avatar {
                             implicitWidth: Kirigami.Units.iconSizes.medium
                             implicitHeight: Kirigami.Units.iconSizes.medium
                             name: kuser.fullName
                             source: kuser.faceIconUrl
+                            initialsMode: KirigamiComponents.Avatar.InitialsMode.UseIcon
+                            color: Qt.alpha(Kirigami.Theme.textColor, 0.45)
                         }
                         PC3.Label {
                             text: kuser.fullName || kuser.loginName

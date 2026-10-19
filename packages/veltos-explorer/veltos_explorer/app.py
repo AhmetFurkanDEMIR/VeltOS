@@ -12,6 +12,7 @@ from PySide6.QtCore import (Property, QFileSystemWatcher, QMimeData, QObject, Qt
                             Slot)
 from PySide6.QtGui import QGuiApplication, QIcon, QRegion
 from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtQuick import QQuickWindow
 
 from . import files, models, ops, places, strings, thumbnails
 from .models import HOME, SPECIAL, THIS_PC, TRASH, Jobs, MimeTypes, Tab
@@ -613,13 +614,17 @@ class Backend(QObject):
 def main(argv=None):
     argv = sys.argv if argv is None else argv
     app = QGuiApplication(argv)
+    # Text drawn like KDE programs (FreeType, hinted) instead of Qt Quick's
+    # distance-field glyphs, which looked uneven at fractional display
+    # scales ("kal dır", "program lar" at 105 %, VM 2026-10-20).
+    QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
     app.setApplicationName("veltos-explorer")
     app.setApplicationDisplayName(strings.text(strings.language(), "app_title"))
     app.setDesktopFileName("veltos-explorer")
     if not QIcon.themeName() or QIcon.themeName() == "hicolor":
         # Started outside Plasma (no platform theme): use the system's icons.
         QIcon.setThemeName(icon_theme())
-    app.setWindowIcon(QIcon.fromTheme("system-file-manager"))
+    app.setWindowIcon(QIcon.fromTheme("veltos-explorer"))
     backend = Backend(open_paths=argv[1:])
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)

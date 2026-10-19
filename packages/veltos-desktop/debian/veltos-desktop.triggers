@@ -1,2 +1,4 @@
 # Application names (update-app-names) follow changes to these files.
 interest-noawait /usr/share/applications
+# Changed copies of Plasma components (update-plasma-overrides) follow Plasma updates.
+interest-noawait /usr/share/plasma/plasmoids

@@ -52,6 +52,9 @@ def play(actions, qmp, outdir):
             qmp.type_text(arg.replace("_", " "))
         elif kind == "typeraw":
             qmp.type_text(arg.replace("~", " "))
+        elif kind == "move":  # hover, e.g. to see a button's hover state
+            x, y = (int(v) for v in arg.split(","))
+            qmp._move(x, y)
         elif kind in ("click", "rclick"):
             x, y = (int(v) for v in arg.split(","))
             qmp.click(x, y, "left" if kind == "click" else "right")

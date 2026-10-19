@@ -26,6 +26,24 @@ import org.kde.plasma.private.battery
 PlasmoidItem {
     id: root
 
+    // Windows 11 flyouts float above the taskbar with all corners rounded.
+    // Plasma does that for panel popups only while the panel itself floats
+    // (its Panel.qml sets ContainmentPrefersFloatingApplets); the VeltOS
+    // taskbar does not float, so the hint is kept set here. Panel.qml
+    // clears it whenever its own state changes, hence the Connections.
+    function floatPopups() {
+        const c = Plasmoid.containment;
+        if (c && !(c.containmentDisplayHints & PlasmaCore.Types.ContainmentPrefersFloatingApplets)) {
+            c.containmentDisplayHints |= PlasmaCore.Types.ContainmentPrefersFloatingApplets;
+        }
+    }
+    Connections {
+        target: Plasmoid.containment
+        function onContainmentDisplayHintsChanged() {
+            root.floatPopups();
+        }
+    }
+
     PlasmaNM.EnabledConnections { id: enabledConnections }
     PlasmaNM.AvailableDevices { id: availableDevices }
     PlasmaNM.NetworkStatus { id: networkStatus }
@@ -384,4 +402,6 @@ PlasmoidItem {
             }
         }
     }
+
+    Component.onCompleted: floatPopups()
 }

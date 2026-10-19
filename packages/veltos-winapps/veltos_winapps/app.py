@@ -15,6 +15,7 @@ from pathlib import Path
 from PySide6.QtCore import Property, QObject, QProcess, QProcessEnvironment, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtQuick import QQuickWindow
 
 from . import exeinfo, shortcuts
 from .strings import Texts
@@ -255,6 +256,10 @@ class Runner(QObject):
 def main(argv=None):
     argv = sys.argv if argv is None else argv
     app = QGuiApplication(argv)
+    # Text drawn like KDE programs (FreeType, hinted) instead of Qt Quick's
+    # distance-field glyphs, which looked uneven at fractional display
+    # scales ("kal dır", "program lar" at 105 %, VM 2026-10-20).
+    QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
     app.setApplicationName("veltos-run")
     app.setDesktopFileName("veltos-run")
     app.setWindowIcon(QIcon.fromTheme("veltos-logo"))

@@ -243,6 +243,56 @@ sign-in screen is a VeltOS SDDM theme in Windows 11 layout; it never shows
 session/desktop names. The language of the live system is chosen in its
 welcome window (re-sign-in) instead of a boot menu entry.
 
+No text appears while starting: the kernel and systemd are quiet
+(`loglevel=3`, `systemd.show_status=false`, no text cursor). After
+signing in, a Windows-like "Welcome" screen (blurred sign-in wallpaper,
+dot spinner) replaces Plasma's progress bar. The power key and
+Ctrl+Alt+Del show a VeltOS power card instead of Plasma's full-screen
+logout dialog. The sign-in screen has no on-screen keyboard (SDDM's
+default input method is turned off).
+
+#### 2.3.8 Changing Plasma components without forking them
+
+Some Plasma parts have no theme or setting for the Windows 11 look (for
+example the taskbar's hidden-icons flyout, which shows a titled panel with
+labelled icons). VeltOS changes them with **exact text replacements** on a
+copy of the installed package (`veltos-desktop`: `plasma-overrides/*.json`,
+`update-plasma-overrides`). The copy lives in `/var/lib/veltos/xdg`, which
+the session puts first in `XDG_DATA_DIRS`, so Plasma loads it instead of
+its own; Plasma's files are never modified. Each replacement must match
+exactly as often as expected; after a Plasma update that changes the
+text, the copy is removed and Plasma's own version is used (a dpkg trigger
+re-runs the tool; the image build fails so developers notice).
+
+Alternatives: forking the Plasma QML (stale after every update, against
+the project rules), dpkg-diverting Plasma's files (other packages' files,
+conffile-like problems), writing new components from scratch (done where
+the public APIs allow it: Start, clock and notification centre, Quick
+Settings). Trade-off: the replacements depend on Plasma's private QML and
+must be checked when Plasma is updated; the fallback keeps Plasma working.
+
+#### 2.3.9 Non-KDE programs
+
+- **GTK programs** use the `VeltOS` GTK theme: Breeze (KDE's GTK theme,
+  colours from the KDE colour scheme) plus the Windows 11 caption buttons
+  drawn by the same code as the window frames. KDE's GTK settings module
+  can copy window-frame buttons into GTK, but produced empty images for the
+  Aurorae frames VeltOS uses.
+- **Firefox** draws its own round title bar buttons on Linux and ignores
+  the GTK theme; a system-wide autoconfig file registers a style sheet with
+  the Windows 11 buttons. It depends on Firefox's internal class names and
+  is checked when Firefox is updated (documented in veltos-desktop).
+- **Text in VeltOS' own QML programs** is drawn with native (FreeType)
+  rendering, as KDE programs do; Qt Quick's distance-field text looked
+  uneven at fractional display scales.
+
+#### 2.3.10 Software rendering
+
+Without 3D acceleration (many virtual machines) KWin renders with
+llvmpipe. Its window captures are then garbled, so the taskbar shows window
+titles instead of previews there (`session-fixups`, decided at each
+sign-in from KWin's renderer); with a real GPU the previews stay on.
+
 ### 2.4 Graphics drivers
 
 - AMD and Intel: kernel drivers + Mesa from Debian (OpenGL, Vulkan via RADV

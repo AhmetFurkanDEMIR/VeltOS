@@ -6,6 +6,12 @@ Files: *
 Copyright: 2026 VeltOS Developers
 License: GPL-3+
 
+Files: tests/data/systemtray/*
+Copyright: 2016-2020 Marco Martin, Konrad Materka, Nate Graham and other KDE contributors
+License: LGPL-2+
+Comment: Copies of plasma-workspace 6.3.6 QML (Debian 13), used to test
+ plasma-overrides/*.json.
+
 Files: artwork/*
 Copyright: 2026 VeltOS Developers
 License: CC-BY-SA-4.0
@@ -48,3 +54,7 @@ License: GPL-3
  .
  On Debian systems, the complete text of the GNU General Public License
  version 3 can be found in "/usr/share/common-licenses/GPL-3".
+
+License: LGPL-2+
+ On Debian systems, the complete text of the GNU Library General Public License
+ version 2 can be found in "/usr/share/common-licenses/LGPL-2".

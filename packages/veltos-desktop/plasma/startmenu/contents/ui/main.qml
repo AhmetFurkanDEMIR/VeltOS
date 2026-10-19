@@ -17,6 +17,24 @@ import org.kde.kirigami as Kirigami
 PlasmoidItem {
     id: root
 
+    // Windows 11 flyouts float above the taskbar with all corners rounded.
+    // Plasma does that for panel popups only while the panel itself floats
+    // (its Panel.qml sets ContainmentPrefersFloatingApplets); the VeltOS
+    // taskbar does not float, so the hint is kept set here. Panel.qml
+    // clears it whenever its own state changes, hence the Connections.
+    function floatPopups() {
+        const c = Plasmoid.containment;
+        if (c && !(c.containmentDisplayHints & PlasmaCore.Types.ContainmentPrefersFloatingApplets)) {
+            c.containmentDisplayHints |= PlasmaCore.Types.ContainmentPrefersFloatingApplets;
+        }
+    }
+    Connections {
+        target: Plasmoid.containment
+        function onContainmentDisplayHintsChanged() {
+            root.floatPopups();
+        }
+    }
+
     readonly property Kicker.RootModel rootModel: Kicker.RootModel {
         autoPopulate: false
         appletInterface: root
@@ -117,6 +135,7 @@ PlasmoidItem {
     ]
 
     Component.onCompleted: {
+        floatPopups();
         if (Plasmoid.hasOwnProperty("activationTogglesExpanded")) {
             Plasmoid.activationTogglesExpanded = true;
         }

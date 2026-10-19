@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Link
+Name=Recycle Bin
+Name[tr]=Geri Dönüşüm Kutusu
+URL=trash:/
+Icon=user-trash-full
+EmptyIcon=user-trash

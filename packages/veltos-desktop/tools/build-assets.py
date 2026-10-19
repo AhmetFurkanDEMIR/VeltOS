@@ -22,6 +22,8 @@ SRC = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bloom  # noqa: E402  (tools/bloom.py: procedural wallpaper)
 import fluent  # noqa: E402  (tools/fluent.py: themes derived from Fluent-kde)
+import gtktheme  # noqa: E402  (tools/gtktheme.py: GTK theme with Windows 11 caption buttons)
+import firefox  # noqa: E402  (tools/firefox.py: Windows 11 caption buttons in Firefox)
 import app_titles  # noqa: E402  (tools/app_titles.py: program names in titles)
 
 WALLPAPER_ID = "VeltOS"
@@ -295,6 +297,14 @@ def build_look_and_feel(root, tmp_dir):
         (contents / "layouts").mkdir(parents=True, exist_ok=True)
         shutil.copy(layout, contents / "layouts/org.kde.plasma.desktop-layout.js")
         shutil.copytree(splash_dir, contents / "splash", dirs_exist_ok=True)
+        splash = contents / "splash/Splash.qml"
+        splash_qml = splash.read_text(encoding="utf-8")
+        if "@LOGIN_IMAGE@" not in splash_qml:
+            raise SystemExit("Splash.qml: @LOGIN_IMAGE@ placeholder missing")
+        splash.write_text(splash_qml.replace("@LOGIN_IMAGE@", f"file:///{WALLPAPER_DIR}/contents/{LOGIN_WALLPAPER}"),
+                          encoding="utf-8")
+        # Power screen (power key, Ctrl+Alt+Del) in Windows 11 style.
+        shutil.copytree(SRC / "plasma/logout", contents / "logout", dirs_exist_ok=True)
         (contents / "splash/images").mkdir(exist_ok=True)
         shutil.copy(SRC / "artwork/veltos-logo.svg",
                     contents / "splash/images/veltos-logo.svg")
@@ -372,6 +382,14 @@ def build_static_config(root):
         "etc/xdg/kcminputrc": (
             "[Mouse]\n"
             f"cursorTheme={CURSOR_THEME}\n"),
+        # No application icon bouncing next to the pointer while a program
+        # starts (KWin's startup feedback; Windows shows none). KWin on
+        # Wayland draws the icon in every feedback mode and never switches
+        # to a busy pointer, so the feedback is off; the taskbar button
+        # shows that the program is starting.
+        "etc/xdg/klaunchrc": (
+            "[FeedbackStyle]\n"
+            "BusyCursor=false\n"),
         "etc/xdg/ksplashrc": (
             "[KSplash]\n"
             "Engine=KSplashQML\n"
@@ -385,8 +403,12 @@ def build_static_config(root):
             "Enabled=false\n"
             "First Use=false\n"),
         # Vendor defaults; /etc/sddm.conf.d/ and /etc/sddm.conf override them.
+        # SDDM's default input method is its on-screen keyboard, which
+        # covered the sign-in screen while typing the password.
         "usr/lib/sddm/sddm.conf.d/10-veltos.conf": (
-            "[Theme]\n"
+            "[General]\n"
+            "InputMethod=\n"
+            "\n[Theme]\n"
             "Current=veltos\n"
             f"CursorTheme={CURSOR_THEME}\n"),
         # VeltOS sign-in screen (sddm/veltos, Windows 11 layout).
@@ -415,13 +437,29 @@ def build_static_config(root):
     for name in ("Main.qml", "metadata.desktop"):
         shutil.copy(SRC / "sddm/veltos" / name, root / "usr/share/sddm/themes/veltos" / name)
 
+    # Changes to Plasma components, applied on the target system by
+    # /usr/libexec/veltos/update-plasma-overrides.
+    overrides = root / "usr/share/veltos/plasma-overrides"
+    overrides.mkdir(parents=True, exist_ok=True)
+    for spec in sorted((SRC / "plasma-overrides").glob("*.json")):
+        shutil.copy(spec, overrides / spec.name)
+
+    # Desktop icons every user gets (see system/veltos-session.sh).
+    desktop_icons = root / "usr/share/veltos/desktop"
+    desktop_icons.mkdir(parents=True, exist_ok=True)
+    for entry in sorted((SRC / "desktop").glob("*.desktop")):
+        shutil.copy(entry, desktop_icons / entry.name)
+
     # Session script (application names, per-user defaults) and its helpers.
     env_dir = root / "etc/xdg/plasma-workspace/env"
     env_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(SRC / "system/veltos-session.sh", env_dir / "veltos-session.sh")
+    autostart = root / "etc/xdg/autostart"
+    autostart.mkdir(parents=True, exist_ok=True)
+    shutil.copy(SRC / "system/veltos-session-fixups.desktop", autostart / "veltos-session-fixups.desktop")
     libexec = root / "usr/libexec/veltos"
     libexec.mkdir(parents=True, exist_ok=True)
-    for helper in ("session-defaults", "update-app-names"):
+    for helper in ("session-defaults", "session-fixups", "update-app-names", "update-plasma-overrides"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
 
@@ -477,6 +515,8 @@ def main(argv=None):
     build_look_and_feel(root, tmp_dir)
     build_plasmoids(root)
     build_static_config(root)
+    gtktheme.build(root)
+    firefox.build(root)
     shutil.rmtree(tmp_dir)
     return 0
 
