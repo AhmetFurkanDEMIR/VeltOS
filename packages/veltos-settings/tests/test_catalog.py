@@ -1,5 +1,6 @@
 """Tests for the settings catalogue and texts."""
 
+import re
 import string
 import sys
 import unittest
@@ -41,6 +42,12 @@ class CatalogTests(unittest.TestCase):
             if item.get("action"):
                 self.assertIn(item["action"], catalog.ACTIONS, item["id"])
 
+    def test_modules_opened_by_builtin_pages_exist(self):
+        qml = Path(__file__).resolve().parent.parent / "veltos_settings" / "qml"
+        for path in qml.glob("*.qml"):
+            for kcm in re.findall(r"\b(kcm_?\w+)\b", path.read_text(encoding="utf-8")):
+                self.assertIn(kcm, KNOWN_KCMS, path.name)
+
     def test_texts_in_both_languages(self):
         for page in catalog.PAGES:
             self.assertEqual(len(page["title"]), 2)
@@ -68,7 +75,8 @@ class CatalogTests(unittest.TestCase):
 
     def test_search_finds_windows_words_in_both_languages(self):
         titles = [r["title"] for r in catalog.search("wifi", "en")]
-        self.assertIn("Wi-Fi, Ethernet & VPN", titles)
+        self.assertIn("Wi-Fi", titles)
+        self.assertTrue(any(r["id"] == "advancednetwork" for r in catalog.search("vpn", "en")))
         self.assertTrue(any(r["id"] == "region" for r in catalog.search("turkce", "tr")))
         self.assertTrue(any(r["id"] == "sound" for r in catalog.search("HOPARLÖR", "tr")))
         self.assertTrue(any(r["id"] == "about" for r in catalog.search("bilgisayar adı", "tr")))

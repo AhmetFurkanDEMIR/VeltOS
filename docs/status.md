@@ -1,87 +1,70 @@
 # VeltOS Status
 
-Last updated: 2026-10-19. Every "Implemented" item names the evidence that
-shows it working. "Untested" means nobody has observed it working yet. All
-observations so far are from QEMU/KVM virtual machines (no 3D acceleration);
-**VeltOS has not been run on real hardware yet.**
+Last updated: 2026-10-19 (night). Every "Implemented" item names the
+evidence that shows it working. "Untested" means nobody has observed it
+working yet. All observations so far are from QEMU/KVM virtual machines (no
+3D acceleration) and one VirtualBox VM of the product owner; **VeltOS has
+not been run on real hardware yet.**
 
 ## Implemented
 
 | Item | Evidence |
 |---|---|
 | Container build environment (Debian trixie, pinned) | `build/run.sh image` |
-| `veltos-base`: os-release identity (dpkg diversion) | 4 unit tests; booted system reports `ID=veltos` |
-| `veltos-desktop`: global themes, centred taskbar, VeltOS Start, wallpaper, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names in menus and window titles, File Explorer defaults, Windows-style clock/tray, sign-in screen (SDDM theme), no logout confirmation | 29 unit tests (incl. full asset build, offscreen load of the sign-in screen); VM screenshots of desktop, Start, File Explorer ("Home — File Explorer"), Text Editor, sign-in screen in `sddm-greeter --test-mode` |
-| `veltos-settings`: Windows 11 style Settings app (Home, About, Storage, Windows programs, light/dark theme, search, EN/TR); KDE System Settings as "Control Panel" | 23 unit tests (catalogue, system facts, offscreen window in EN and TR visiting every page); VM screenshots of Home, System, About |
-| `veltos-fluent-icons`: Fluent icons/cursors (pinned, checksum-verified; Microsoft logos removed) | Package checks; visible in VM |
-| `veltos-boot`: Plymouth splash (logo + spinner), GRUB theme with Inter fonts, Plymouth defaults diversion, SDDM-after-Plymouth ordering | 10 unit tests + install-tree checks; boot screenshot shows the VeltOS splash (UEFI VM) |
-| `calamares-settings-veltos`: installer branding/config, live welcome window (Try / Install, English / Türkçe switch), no lock/sleep in the live session | 15 unit tests (incl. offscreen welcome window); welcome window seen in every live boot test |
-| `veltos-winapps` + `veltos-wine-addons`: double-click `.exe`/`.msi` → install/run via Wine | 20 unit tests; 7-Zip installed and started in a live VM on 2026-10-19 (earlier ISO) |
-| live-build configuration: hidden boot menu (Esc/F4 shows it), no Turkish entry (language is chosen in the welcome window), Turkish locale compiled, BIOS+UEFI, Secure Boot chain | ISO builds; verify hook passes |
-| Build-time verification hook (packages, branding, Plymouth theme *inside the initramfs* as real files, Kvantum/Aurorae/Plasma themes, app names, Settings, Turkish locale, no "Debian" launchers) | Passes in every ISO build |
-| VM test tools: boot test (BIOS/UEFI/Secure Boot), Windows-program test, preview, long-running VM (`build/run.sh vm`) | See `docs/testing.md` |
+| `veltos-base`: os-release identity, console login banners say VeltOS (dpkg diversions) | 6 unit tests; booted system reports `ID=veltos` |
+| `veltos-desktop`: Windows 11 look from Fluent-kde (Kvantum style, window frames with VeltOS-drawn 46×32 caption buttons, Plasma theme, colour schemes), 48 px see-through taskbar with VeltOS Start, Search box, Task View, Quick Settings, two-line clock with calendar, show-desktop corner; Windows-familiar app names; sign-in screen; wallpaper without logo; KDE Wallet off | 47 unit tests (incl. full asset build); VM screenshots of taskbar (light and dark), Start, Explorer, Settings; light/dark switch changes the taskbar at once (VM) |
+| `veltos-explorer` (new): File Explorer in the Windows 11 layout — tabs in the title bar, command bar, address and search boxes, navigation pane, Home (Quick access, Recent), This PC, Recycle Bin, Details/Tiles/icon views with thumbnails, context menus, drag and drop, rename in place; copy/move/delete through KIO | 30 unit tests (incl. the real window offscreen, EN/TR); VM: opened from the taskbar, Home, Documents in Details view, item and background menus |
+| `veltos-settings`: Windows 11 Settings with built-in Wi-Fi, Bluetooth, Sound, Display, Background, Colours (mode, accent), Date & time pages, About with OS build, search, EN/TR | 55 unit tests (parsers with recorded tool output, offscreen window); VM: every page; **Wi-Fi tested end to end on simulated hardware** (mac80211_hwsim + hostapd WPA2: wrong key refused without extra prompts, correct key connects and gets an address, disconnect, reconnect, forget) |
+| `veltos-fluent-icons`: Fluent icons/cursors (pinned, verified; Microsoft logos removed), yellow Windows 11 folders, coloured place icons at all sizes | Package checks; VM screenshots |
+| `veltos-boot`: Plymouth splash, GRUB theme, hidden menu, fixed video mode (VirtualBox/Hyper-V fix), kernel titles without the Debian build suffix, keyboard layout in the initramfs, disk-encryption password screen (Inter font, Windows-like texts, box below the logo) | 22 unit tests; boot screenshots; encrypted install screenshots |
+| `calamares-settings-veltos`: installer with Windows 11 style side bar, buttons and controls (QML + style sheet, Kvantum for its dialogs), live welcome window, BitLocker-like encryption (unencrypted /boot, password asked by the boot screen, unlimited tries), firmware entry "VeltOS" | 19 unit tests; **encrypted installation tested end to end in a VM (UEFI)** on ISO 20261019-174700: install, firmware entry, boot menu, password screen (wrong and right password), sign-in, desktop — `tests/results/2026-10-19-encrypted-install-uefi/` |
+| `veltos-winapps` + `veltos-wine-addons`: double-click `.exe`/`.msi` → install/run via Wine (Wine "Light" theme) | 20 unit tests; 7-Zip installed in a VM (earlier ISO) |
+| live-build configuration, verify hook (also: Explorer default, Dolphin/System Settings hidden, OS build file, taskbar widgets, installer side bar, console banner) | Passes in every ISO build |
+| VM test tools: boot test (BIOS/UEFI/Secure Boot), Windows-program test, preview, long-running VM | See `docs/testing.md` |
 
 ### Latest ISO
 
-See the "Latest test runs" section of `docs/development-log.md` (2026-10-19
-entry) for the ISO name, the checks that passed and the screenshots.
-
-### Milestone 1 baseline measurements (UEFI, QEMU/KVM, 4 vCPU, 4 GiB, no 3D)
-
-| Metric | Value |
-|---|---|
-| systemd-analyze (live) | 2.5 s kernel + 4.5 s userspace = 7.1 s |
-| Guest agent reachable (from VM start, incl. 8 s boot-menu wait) | 16.5 s |
-| Plasma shell running (from VM start) | 25.1 s |
-| Idle RAM, live session, 60 s after login (`MemTotal-MemAvailable`) | 1696 MiB (incl. KDE Welcome Center window) |
-
-Newer boot tests record the same measurements in their `report.md`; they
-have not yet been compared systematically (Kvantum/Aurorae cost is still
-to be measured, see architecture 2.3.1).
+See the newest entry of `docs/development-log.md` for the ISO name and the
+checks that passed.
 
 ## Not yet tested
 
-- Installing VeltOS to a disk with Calamares (VM) on the latest ISO, and
-  therefore the installed system's sign-in screen, GRUB theme, boot splash
-  and first login. The sign-in screen has only run in SDDM's test mode.
-- Secure Boot boot test on the latest ISO (UEFI and BIOS pass on
-  `veltos-0.1.0-dev-20261019-064631`; Secure Boot last passed on a
-  2026-10-18 ISO).
-- `build/run.sh test-winapps` on the latest ISO.
-- The live welcome window's language switch end to end (sign out → signed
-  in again in Turkish).
-- Anything on real hardware: GPUs (NVIDIA/AMD/Intel), Wi-Fi, Bluetooth,
-  audio, laptops, HiDPI screens, blur/translucency with a real GPU.
+- A plain (unencrypted) installation and any BIOS installation on the
+  latest ISO; an installation in VirtualBox (the product owner's setup).
+- Secure Boot boot test and `test-winapps` on the latest ISO.
+- Bluetooth pages with a real adapter; Display page changes on real
+  monitors; accent colour in all apps (Kvantum apps keep the theme's
+  blue); blur/translucency with a real GPU.
+- File Explorer: mounting drives (udisks), Extract/Compress with Ark, drag
+  and drop between windows, large folders, network shares.
+- Anything on real hardware.
 
 ## Known gaps
 
-- The screen locker after sign-in is still Plasma's own design (Plasma 6
-  loads it from the shell package, which VeltOS does not replace yet).
-- KDE programs' About dialogs and help menus still name KDE and the
-  original program names; Settings opens KDE's own pages for detailed
-  settings.
-- `/etc/issue` (text console) still says Debian.
-- The live system's root drive shows as "/" in File Explorer.
+- File Explorer does not answer "show in folder" requests of other
+  programs (D-Bus `org.freedesktop.FileManager1`); Dolphin (hidden) opens.
+- Settings pages that are not built in still open KDE's own pages in a
+  separate window (mouse, keyboard, notifications, power, default apps,
+  startup apps, users, region, accessibility, …).
+- The screen locker after sign-in is Plasma's design.
+- The disk-encryption password screen is in English only (the initramfs
+  has no language setting yet); its keyboard indicator is Plymouth's image.
+- KDE programs' About dialogs still name KDE and the original programs.
+- The Store (Discover) shows Debian package sources.
 - ISO is not verified bit-for-bit reproducible. No CI.
-
-## Planned
-
-| Milestone | Items |
-|---|---|
-| UI (continuing) | Windows 11 style screen locker, Quick Settings flyout (Wi-Fi, sound, brightness in one panel), installed-system welcome app, notification/OSD polish, more built-in Settings pages |
-| 2 — Hardware | Velt Hardware Manager, NVIDIA driver recommendation + install with Secure Boot MOK handling, printers, hardware test matrix |
-| 3 — Windows apps | Runtimes (winetricks), uninstall inside Settings, compatibility matrix |
-| 4 — Gaming | Steam + Proton, DXVK/VKD3D-Proton verification, per-game profiles, benchmarks on real GPUs |
-| 5 — Releases | Update/recovery strategy, release process, reproducibility verification |
 
 ## Next steps
 
-1. Calamares install test in a VM on the latest ISO with screenshots of
-   every installer page, then the installed system: sign-in screen, first
-   login, Settings, File Explorer.
-2. Secure Boot boot test and `test-winapps` on the latest ISO.
-3. Lighter live session: Discover notifier, KDE Connect daemon and
-   xwaylandvideobridge use ~550 MiB RSS at idle (boot test report).
-4. Windows 11 style screen locker and Quick Settings flyout.
-5. First run on real hardware (product owner's PC, from USB), recording
-   what works.
+1. Plain (unencrypted) installation and a BIOS installation in a VM on
+   the latest ISO; the product owner reinstalls in VirtualBox.
+2. Installer pages still in Calamares' own design (partitions, users):
+   Windows 11 style icons and layout; confirmation dialog without
+   minimise/maximise buttons.
+3. Built-in Settings pages for the rest of the Control Panel (product
+   owner's request): Mouse, Keyboard, Notifications, Power & battery,
+   Default apps, Startup apps, Accounts, Language & region, Accessibility.
+4. File Explorer: FileManager1 D-Bus service, distinct icons for Desktop /
+   Downloads / Documents / Pictures / Music / Videos, Ark and udisks tests.
+5. Lighter live session (Discover notifier, KDE Connect, xwaylandvideobridge
+   ~550 MiB RSS at idle).
+6. First run on real hardware.

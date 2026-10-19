@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""VeltOS File Explorer (Windows 11 style file manager)."""
+import sys
+
+from veltos_explorer.bin_main import run
+
+sys.exit(run())

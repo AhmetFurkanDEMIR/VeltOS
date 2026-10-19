@@ -1,0 +1,47 @@
+Source: veltos-explorer
+Section: utils
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qml6-module-qtquick-templates,
+               qt6-svg-plugins
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-explorer
+Architecture: all
+Depends: ${python3:Depends},
+         kde-cli-tools,
+         python3-gi,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qml6-module-qtquick-templates,
+         qt6-svg-plugins,
+         shared-mime-info,
+         util-linux,
+         ${misc:Depends}
+Recommends: ark,
+            konsole,
+            udisks2
+Description: VeltOS File Explorer, a Windows 11 style file manager
+ Browse files and folders in the layout of Windows 11 File Explorer: tabs
+ in the title bar, a command bar (New, cut, copy, paste, rename, delete,
+ Sort, View), back/forward/up with an address box and a search box, a
+ navigation pane with Home, pinned folders, This PC and the Recycle Bin,
+ Details, Tiles and icon views, and a status bar.
+ .
+ Copying, moving and deleting use KDE's file engine (KIO): progress in the
+ notification area, questions when a file already exists, the
+ freedesktop.org trash. Folders open in File Explorer by default.

@@ -6,10 +6,17 @@
 # while the installer runs.
 sudo mv /etc/fstab /etc/fstab.orig.calamares 2>/dev/null
 
+# Calamares runs as root, so it does not see the live user's application
+# style. Give root the VeltOS (Windows 11 like) Kvantum style for the
+# installer's dialogs (cancel question, partition dialogs, ...). Live
+# system only: root's home is in memory.
+sudo install -D -m 644 /usr/share/veltos-installer/kvantum.kvconfig \
+    /root/.config/Kvantum/kvantum.kvconfig 2>/dev/null
+
 # Calamares runs as root through pkexec; under Wayland it uses Xwayland and
 # needs permission to open a window there.
 xhost +si:localuser:root >/dev/null
-pkexec calamares
+pkexec calamares -style kvantum
 xhost -si:localuser:root >/dev/null
 
 sudo mv /etc/fstab.orig.calamares /etc/fstab 2>/dev/null

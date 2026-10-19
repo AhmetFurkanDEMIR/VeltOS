@@ -11,3 +11,16 @@ HomePage 1.0 HomePage.qml
 AboutPage 1.0 AboutPage.qml
 StoragePage 1.0 StoragePage.qml
 WindowsAppsPage 1.0 WindowsAppsPage.qml
+ToggleSwitch 1.0 ToggleSwitch.qml
+VSlider 1.0 VSlider.qml
+VComboBox 1.0 VComboBox.qml
+VTextField 1.0 VTextField.qml
+SettingRow 1.0 SettingRow.qml
+SectionLabel 1.0 SectionLabel.qml
+WifiPage 1.0 WifiPage.qml
+BluetoothPage 1.0 BluetoothPage.qml
+SoundPage 1.0 SoundPage.qml
+DisplayPage 1.0 DisplayPage.qml
+BackgroundPage 1.0 BackgroundPage.qml
+ColoursPage 1.0 ColoursPage.qml
+DateTimePage 1.0 DateTimePage.qml

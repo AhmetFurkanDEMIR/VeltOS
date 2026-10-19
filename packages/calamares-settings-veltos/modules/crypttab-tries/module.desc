@@ -1,0 +1,7 @@
+# VeltOS installer job: unlimited tries for the disk encryption password
+---
+type:       "job"
+name:       "crypttab-tries"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/crypttab-tries"
+timeout:    60

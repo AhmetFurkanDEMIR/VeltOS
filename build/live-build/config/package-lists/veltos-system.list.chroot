@@ -12,7 +12,25 @@ efibootmgr
 # Lets live-config generate the locale chosen on the boot menu (locales=...).
 locales
 
+# Sets the clock from the network ("Set the time automatically" in Settings,
+# on by default as in Windows). A correct clock is needed for HTTPS. One
+# small daemon (systemd-timesyncd 257.13-1~deb13u1, verified 2026-10-19).
+systemd-timesyncd
+
 # VM integration: lets hypervisors (and the VeltOS boot test) talk to the
 # guest. The service only starts when the virtio "org.qemu.guest_agent.0"
 # port exists, i.e. inside a QEMU/KVM VM configured for it.
 qemu-guest-agent
+
+# Installing with "Encrypt system": the installed system unlocks its
+# encrypted partition during start-up (cryptsetup-initramfs asks through
+# the VeltOS boot screen) with the keyboard layout chosen in the installer
+# (console-setup puts it into the initramfs, veltos-boot sets KEYMAP=y).
+# Without them an encrypted installation could not start (2026-10-19).
+# Verified: cryptsetup-initramfs 2:2.7.5-2, console-setup 1.242~deb13u1.
+cryptsetup-initramfs
+console-setup
+
+# hwclock (moved to util-linux-extra in Debian 13): the installer's hwclock
+# step failed without it (install test 2026-10-19). Verified 2.41.5-0+deb13u1.
+util-linux-extra

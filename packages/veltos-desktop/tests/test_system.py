@@ -54,7 +54,8 @@ Type=Application
 
 class AppNameTests(unittest.TestCase):
     def test_rename_keeps_actions_and_merges_keywords(self):
-        text = app_names.rewrite(DOLPHIN, "dolphin", app_names.APPS["org.kde.dolphin.desktop"])
+        text = app_names.rewrite(DOLPHIN, "dolphin",
+                                 ("File Explorer", "Dosya Gezgini", "Explorer;Files;Gezgin;Dosyalar;"))
         main, action = text.split("[Desktop Action new-window]")
         self.assertIn("\nName=File Explorer\n", main)
         self.assertIn("\nName[tr]=Dosya Gezgini\n", main)
@@ -95,6 +96,11 @@ class AppNameTests(unittest.TestCase):
             self.assertEqual(sorted(written), ["org.kde.dolphin.desktop", "vim.desktop"])
             self.assertEqual(sorted(p.name for p in out.iterdir()),
                              ["org.kde.dolphin.desktop", "vim.desktop"])
+
+    def test_kde_file_manager_and_control_panel_hidden(self):
+        # VeltOS File Explorer and VeltOS Settings replace them in Start.
+        self.assertIn("org.kde.dolphin.desktop", app_names.HIDE)
+        self.assertIn("systemsettings.desktop", app_names.HIDE)
 
     def test_lists_do_not_overlap(self):
         self.assertFalse(set(app_names.APPS) & set(app_names.HIDE))

@@ -4,16 +4,24 @@
 # skips *.dpkg-* names). Runs Debian's script and makes its entries
 # VeltOS-like:
 #   * "VeltOS" instead of "VeltOS GNU/Linux" in entry titles;
+#   * kernel versions in titles without the build suffix ("6.12.113", not
+#     "6.12.113+deb13-amd64"); entry IDs and file names are unchanged;
 #   * no "Loading Linux ..." / "Loading initial ramdisk ..." messages, so
 #     nothing technical flashes up before the VeltOS boot screen.
 set -e
 
 original=/etc/grub.d/10_linux.dpkg-veltos
-[ -x "$original" ] || exit 0
+if [ ! -x "$original" ]; then
+    # Without it the menu would have no VeltOS entry and the PC would not
+    # start: fail update-grub (and the installer) loudly instead.
+    echo "veltos-boot: $original is missing; reinstall grub-common and veltos-boot" >&2
+    exit 1
+fi
 
 distributor="${GRUB_DISTRIBUTOR:-VeltOS}"
 # A failure of Debian's script must fail update-grub, not drop the entries.
 entries="$("$original")"
 printf '%s\n' "$entries" | sed \
     -e "s|${distributor} GNU/Linux|${distributor}|g" \
+    -e "s/^\([[:space:]]*\(menuentry\|submenu\) '[^']*\)+deb[0-9]*-[a-z0-9]*/\1/" \
     -e '/^[[:space:]]*echo[[:space:]]/d'

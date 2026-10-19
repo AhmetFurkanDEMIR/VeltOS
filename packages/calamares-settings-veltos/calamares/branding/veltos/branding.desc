@@ -6,11 +6,14 @@ welcomeStyleCalamares: false
 welcomeExpandingLogo: true
 
 windowExpanding: normal
-windowSize: 1024px,680px
+windowSize: 1100px,720px
 windowPlacement: center
 
-sidebar: widget
-navigation: widget
+# Windows 11 style side bar (logo and steps) and buttons, written in QML
+# (calamares-sidebar.qml, calamares-navigation.qml); every other control
+# is styled by stylesheet.qss.
+sidebar: qml
+navigation: qml
 
 strings:
     productName:         VeltOS
@@ -31,8 +34,9 @@ images:
 slideshow:               "show.qml"
 slideshowAPI: 2
 
+# Used by Calamares parts that are not QML (light, like the QML side bar).
 style:
-   SidebarBackground:        "#0B1230"
-   SidebarText:              "#C9D4F5"
-   SidebarTextCurrent:       "#FFFFFF"
-   SidebarBackgroundCurrent: "#4F7CFF"
+   SidebarBackground:        "#EBEFF7"
+   SidebarText:              "#1B1D24"
+   SidebarTextCurrent:       "#1B1D24"
+   SidebarBackgroundCurrent: "#DCE3F3"

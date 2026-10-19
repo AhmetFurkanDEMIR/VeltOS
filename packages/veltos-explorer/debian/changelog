@@ -1,0 +1,7 @@
+veltos-explorer (0.1.0~dev1) trixie; urgency=medium
+
+  * Initial package: File Explorer in the layout of Windows 11 (tabs in
+    the title bar, command bar, address and search boxes, navigation pane,
+    Home, This PC, Recycle Bin), file operations through KIO.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 19 Oct 2026 12:00:00 +0300

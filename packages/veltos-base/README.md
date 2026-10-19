@@ -6,6 +6,7 @@ Makes the system identify itself as VeltOS.
 
 - `/usr/lib/os-release` (and therefore `/etc/os-release`, a symlink):
   `NAME="VeltOS"`, `ID=veltos`, `ID_LIKE=debian`, `VERSION_ID`, `LOGO=veltos-logo`.
+- `/etc/issue`, `/etc/issue.net`: "VeltOS 0.1" console login banners.
 
 ## How
 
@@ -21,7 +22,9 @@ Debian's file (`postrm`).
   install scripts (Steam, NVIDIA, WineHQ, Docker…) derive their APT suite
   from it. `ID_LIKE=debian` lets tools treat VeltOS as Debian.
 - `/etc/debian_version` is untouched, for the same compatibility reason.
-- `/etc/issue` (TTY login banner) still says Debian — not branded yet.
+- `/etc/issue` and `/etc/issue.net` (console login banners) say VeltOS:
+  base-files' versions are diverted to `*.debian` and `postinst` copies
+  the VeltOS ones from `/usr/share/veltos-base/`.
 
 ## Tests
 

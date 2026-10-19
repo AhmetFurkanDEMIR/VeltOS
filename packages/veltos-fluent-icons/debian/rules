@@ -24,6 +24,8 @@ override_dh_auto_install:
 		-o -name 'distributor-logo.svg' -o -name 'distributor-logo-symbolic.svg' \) \
 		-exec cp branding/veltos-logo.svg {} \;
 	find $(ICONS) -type f \( -name 'wine.svg' -o -name 'wine-winecfg.svg' -o -name 'windows.svg' \) -delete
+	# Yellow folders like Windows 11 (Fluent's are blue), coloured at all sizes.
+	python3 tools/recolour-folders.py $(ICONS)
 	# Drop dangling symlinks (a few from upstream, plus links to removed files).
 	find $(ICONS) -xtype l -delete
 	# Icon caches are generated on the target system by dpkg triggers.
@@ -39,3 +41,5 @@ execute_after_dh_auto_install:
 	test -e $(ICONS)/Fluent-cursors/cursors/default
 	for f in $$(find -L $(ICONS)/Fluent-dark -name 'start-here.svg'); do cmp -s $$f branding/veltos-logo.svg || exit 1; done
 	test -z "$$(find -L $(ICONS) -name 'wine.svg')"
+	! grep -qi '198ee6' $(ICONS)/.Fluent-base/scalable/places/default-folder.svg
+	grep -q 'FFC83D' $(ICONS)/.Fluent-base/scalable/apps/file-manager.svg

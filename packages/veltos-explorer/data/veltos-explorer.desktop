@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=File Explorer
+Name[tr]=Dosya Gezgini
+GenericName=File Manager
+GenericName[tr]=Dosya Yöneticisi
+Comment=Browse your files and folders
+Comment[tr]=Dosyalarınıza ve klasörlerinize göz atın
+Keywords=files;folders;explorer;file manager;documents;downloads;dosya;klasör;gezgin;belgeler;
+Exec=veltos-explorer %U
+Icon=system-file-manager
+Terminal=false
+MimeType=inode/directory;
+Categories=Qt;System;FileTools;FileManager;
+StartupWMClass=veltos-explorer
+StartupNotify=true

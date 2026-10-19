@@ -36,6 +36,26 @@ for f in /usr/lib/os-release /etc/os-release; do
 done
 dpkg-divert --list /usr/lib/os-release | grep -q veltos-base \
     || fail "/usr/lib/os-release is not diverted by veltos-base"
+# Installed systems get their boot menu entries from Debian's script behind
+# the VeltOS wrapper; without it the menu had no VeltOS entry (2026-10-19).
+[ -x /etc/grub.d/10_linux.dpkg-veltos ] || fail "/etc/grub.d/10_linux.dpkg-veltos (Debian's GRUB script) missing"
+[ ! -e /etc/grub.d/10_linux.dpkg-new ] || fail "/etc/grub.d/10_linux.dpkg-new left behind by dpkg"
+grep -q 'dpkg-veltos' /etc/grub.d/10_linux || fail "/etc/grub.d/10_linux is not the VeltOS wrapper"
+for f in /etc/issue /etc/issue.net; do
+    grep -q '^VeltOS ' "$f" || fail "$f does not say VeltOS"
+done
+[ -f /usr/lib/veltos/build-info ] || fail "/usr/lib/veltos/build-info (OS build) missing"
+# Taskbar pieces of the Windows 11 layout.
+for p in search taskview clock quicksettings; do
+    [ -f "/usr/share/plasma/plasmoids/org.veltos.$p/metadata.json" ] \
+        || fail "VeltOS taskbar widget org.veltos.$p missing"
+done
+[ -f /etc/calamares/branding/veltos/calamares-sidebar.qml ] \
+    || fail "VeltOS installer side bar missing"
+# Encrypted installs: unlimited password tries, Windows-like unlock texts.
+grep -q '^  - crypttab-tries$' /etc/calamares/settings.conf \
+    || fail "installer does not run the crypttab-tries job"
+[ -x /usr/share/initramfs-tools/hooks/veltos-boot ] || fail "veltos-boot initramfs hook missing"
 
 # Desktop, boot splash and installer defaults.
 [ -f /usr/share/plasma/look-and-feel/org.veltos.light/metadata.json ] \
@@ -58,6 +78,9 @@ for initrd in /boot/initrd.img-*; do
     # dangles in the initramfs and Plymouth falls back to the text splash.
     grep -E '^-.*usr/share/plymouth/themes/veltos/lock.png$' /tmp/veltos-initrd.list >/dev/null \
         || fail "$initrd: VeltOS splash images are missing or symlinks"
+    # The password screen's font (veltos-boot initramfs hook).
+    grep -q 'usr/share/fonts/opentype/inter/Inter-Regular.otf$' /tmp/veltos-initrd.list \
+        || fail "$initrd does not contain the boot splash font (Inter)"
     rm -f /tmp/veltos-initrd.list
 done
 grep -q '^branding: veltos$' /etc/calamares/settings.conf \
@@ -72,10 +95,14 @@ locale -a | grep -qx 'tr_TR.utf8' || fail "Turkish locale not compiled (needed f
 grep -q '^widgetStyle=kvantum$' /etc/xdg/kdeglobals || fail "kdeglobals does not select Kvantum"
 
 # Windows-familiar application names (update-app-names via dpkg trigger).
-grep -q '^Name=File Explorer$' /var/lib/veltos/xdg/applications/org.kde.dolphin.desktop \
-    || fail "File Explorer name missing"
-grep -q '^Name=Control Panel$' /var/lib/veltos/xdg/applications/systemsettings.desktop \
-    || fail "Control Panel name missing"
+grep -q '^Name=File Explorer$' /usr/share/applications/veltos-explorer.desktop \
+    || fail "VeltOS File Explorer missing"
+grep -q 'inode/directory=veltos-explorer.desktop' /etc/xdg/kde-mimeapps.list \
+    || fail "folders do not open in VeltOS File Explorer"
+for f in org.kde.dolphin systemsettings; do
+    grep -q '^NoDisplay=true$' "/var/lib/veltos/xdg/applications/$f.desktop" \
+        || fail "$f is not hidden from Start"
+done
 [ -f /usr/share/applications/veltos-settings.desktop ] || fail "VeltOS Settings missing"
 
 # Double-clicking a Windows program opens the VeltOS runner, and Wine finds

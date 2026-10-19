@@ -38,6 +38,15 @@ def os_release():
     return values
 
 
+def os_build():
+    """The image build ("20261019.0804"), written into the image by the ISO
+    build; shown as "OS build" like Windows shows its build number."""
+    for line in read("/usr/lib/veltos/build-info").splitlines():
+        if line.startswith("VELTOS_BUILD="):
+            return line.split("=", 1)[1].strip()
+    return os_release().get("BUILD_ID", "")
+
+
 def cpu_model():
     names = re.findall(r"^model name\s*:\s*(.+)$", read("/proc/cpuinfo"), re.M)
     if not names:
@@ -124,7 +133,7 @@ def about():
         "model": device_model(),
         "os": release.get("PRETTY_NAME", "VeltOS"),
         "version": release.get("VERSION", release.get("VERSION_ID", "")),
-        "kernel": platform.release(),
+        "build": os_build(),
         "cpu": cpu,
         "threads": threads,
         "memory": human_size(memory_bytes()),

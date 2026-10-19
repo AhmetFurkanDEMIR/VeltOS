@@ -29,6 +29,11 @@ chmod 755 "$LB_DIR"/auto/* "$LB_DIR"/config/hooks/*/*
 mkdir -p "$LB_DIR/config/packages.chroot"
 cp /build/packages/*.deb "$LB_DIR/config/packages.chroot/"
 
+# The image build, shown as "OS build" in Settings > About.
+mkdir -p "$LB_DIR/config/includes.chroot_after_packages/usr/lib/veltos"
+printf 'VELTOS_BUILD=%s\n' "$(date -u -d "@$SOURCE_DATE_EPOCH" +%Y%m%d.%H%M)" \
+    > "$LB_DIR/config/includes.chroot_after_packages/usr/lib/veltos/build-info"
+
 # The live boot menu uses veltos-boot's GRUB fonts (Inter) and selection
 # highlight, so they are generated in one place only.
 boot_tmp="$(mktemp -d)"

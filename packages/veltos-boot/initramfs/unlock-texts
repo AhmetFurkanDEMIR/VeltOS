@@ -1,0 +1,73 @@
+#!/bin/sh
+# Windows-like texts on the disk encryption password screen.
+#
+#   unlock-texts <initramfs root>/lib/cryptsetup/functions
+#
+# Run by the veltos-boot initramfs hook on the *initramfs copy* of
+# cryptsetup's shell functions; the installed cryptsetup files are not
+# changed. cryptsetup's own texts are technical:
+#   prompt         "Please unlock disk luks-<uuid>: "
+#   wrong password "cryptsetup: ERROR: luks-<uuid>: cryptsetup failed, bad
+#                   password or options?" (a separate splash message)
+#   success        "cryptsetup: luks-<uuid>: set up successfully"
+# VeltOS asks "Enter the password to unlock this PC" and, after a wrong
+# password, "The password is incorrect. Try again." in the same place (a
+# separate message stayed on screen while the next password was checked);
+# the two messages are not shown on the boot splash. Messages on a text
+# console stay cryptsetup's. If cryptsetup changes the code this relies on,
+# its own texts stay and this script warns; it never fails the initramfs
+# build.
+set -u
+
+functions="$1"
+
+warn() {
+    echo "W: veltos-boot: $*; keeping cryptsetup's text" >&2
+}
+
+[ -f "$functions" ] || exit 0
+if grep -q 'VeltOS (veltos-boot' "$functions"; then
+    exit 0
+fi
+
+# sed writes a new file, so a hard link to the installed file stays intact.
+# run_keyscript() exports CRYPTTAB_TRIED (the number of failed tries)
+# before it builds the prompt.
+if grep -qF 'keyscriptarg="Please unlock disk $CRYPTTAB_NAME: "' "$functions"; then
+    sed -i 's/keyscriptarg="Please unlock disk \$CRYPTTAB_NAME: "/keyscriptarg="$(veltos_unlock_prompt)"/' "$functions"
+    cat >> "$functions" <<'EOF'
+
+# VeltOS (veltos-boot initramfs hook): password prompt.
+veltos_unlock_prompt() {
+    if [ "${CRYPTTAB_TRIED:-0}" -gt 0 ]; then
+        echo "The password is incorrect. Try again."
+    else
+        echo "Enter the password to unlock this PC"
+    fi
+}
+EOF
+else
+    warn "password prompt not found in $functions"
+fi
+
+if grep -q '^cryptsetup_message() {$' "$functions"; then
+    sed -i 's/^cryptsetup_message() {$/veltos_cryptsetup_message() {/' "$functions"
+    cat >> "$functions" <<'EOF'
+
+# VeltOS (veltos-boot initramfs hook): no technical messages on the boot
+# splash for a wrong password (the prompt says it) or a successful unlock;
+# everything else goes to cryptsetup's function, renamed above.
+cryptsetup_message() {
+    if [ "${0#/scripts/}" != "$0" ] && [ -x /bin/plymouth ] && plymouth --ping; then
+        case "$*" in
+            *": cryptsetup failed, bad password or options?"|*": set up successfully")
+                return 0 ;;
+        esac
+    fi
+    veltos_cryptsetup_message "$@"
+}
+EOF
+else
+    warn "cryptsetup_message() not found in $functions"
+fi
+exit 0

@@ -1,2 +1,0 @@
-# The boot splash lives in the initramfs; rebuild it after install/upgrade.
-activate-noawait update-initramfs

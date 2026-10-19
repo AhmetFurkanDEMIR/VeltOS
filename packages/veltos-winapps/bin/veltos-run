@@ -5,6 +5,11 @@ import sys
 
 # Native Plasma look for the Qt Quick controls.
 os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
+# Package builds give every file the same time stamp (SOURCE_DATE_EPOCH), so
+# Qt's QML disk cache would keep using the compiled QML of an older version
+# after an update; mixing old and new types crashed File Explorer (VM test,
+# 2026-10-19). Compile the QML at start instead.
+os.environ["QML_DISABLE_DISK_CACHE"] = "1"
 
 from veltos_winapps.app import main
 

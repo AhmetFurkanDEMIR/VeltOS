@@ -21,8 +21,14 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   `distributor-logo*` are replaced by the VeltOS logo (these icons mean
   "this operating system"); the Wine/Windows icons are removed so Breeze's
   neutral icons are used.
+- **Yellow folders like Windows 11** (`tools/recolour-folders.py`): the
+  folder and place icons and the File Explorer icon are solid yellow
+  instead of Fluent's translucent blue, and Fluent's monochrome 16-24 px
+  place icons are dropped so the coloured ones also appear in small sizes
+  (File Explorer's navigation pane), as on Windows 11.
 - Dangling upstream symlinks are removed.
 
 Checks run during the build (`execute_after_dh_auto_install` in
 `debian/rules`): Breeze fallback, no dangling links, key app icons exist,
-cursors present, `start-here` is the VeltOS logo, no `wine.svg` left.
+cursors present, `start-here` is the VeltOS logo, no `wine.svg` left,
+folders recoloured.

@@ -1,0 +1,5 @@
+# /etc/issue and /etc/issue.net (base-files conffiles) are diverted and
+# replaced by copies made in the postinst (a conffile at a diverted
+# conffile's path makes dpkg prompt).
+diversion-for-unknown-file etc/issue [preinst:*]
+diversion-for-unknown-file etc/issue.net [preinst:*]

@@ -5,16 +5,26 @@
 
 import subprocess
 import sys
+import threading
+import traceback
 from pathlib import Path
+from types import SimpleNamespace
 
-from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QObject, Qt, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 
-from . import catalog, strings, sysinfo
+from . import catalog, devices, strings, sysinfo
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 LOOK_AND_FEEL = {False: "org.veltos.light", True: "org.veltos.dark"}
+DESKTOP_THEME = {False: "VeltOS", True: "VeltOS-Dark"}
+# The global theme writes the Plasma theme into ~/.config/kdedefaults, which
+# the running taskbar does not notice (it changed only after the next sign-in,
+# VM test 2026-10-19). Writing the user's plasmarc with a change notification
+# afterwards switches it at once.
+APPLY_THEME = ('plasma-apply-lookandfeel --apply "$1" >/dev/null 2>&1; '
+               'kwriteconfig6 --file plasmarc --group Theme --key name --notify "$2"')
 
 
 def detached(command, env=None):
@@ -43,10 +53,57 @@ def windows_programs():
     return apps
 
 
+def system_tools(runner=devices.run):
+    """The objects that read and change system settings (devices.py)."""
+    return SimpleNamespace(network=devices.Network(runner), bluetooth=devices.Bluetooth(runner),
+                           sound=devices.Sound(runner), display=devices.Display(runner),
+                           personal=devices.Personalization(runner), time=devices.Time(runner))
+
+
+class Jobs(QObject):
+    """Runs slow system commands off the UI thread and hands the result to a
+    callback on the UI thread. `threaded=False` runs them at once (tests)."""
+
+    _finished = Signal(object, object)
+
+    def __init__(self, threaded=True):
+        super().__init__()
+        self.threaded = threaded
+        self._finished.connect(self._deliver, Qt.QueuedConnection)
+
+    @staticmethod
+    def _call(work):
+        try:
+            return work()
+        except Exception:  # a parsing bug must not take Settings down
+            traceback.print_exc()
+            return None
+
+    def submit(self, work, done=None):
+        if not self.threaded:
+            result = self._call(work)
+            if done is not None:
+                done(result)
+            return
+        threading.Thread(target=lambda: self._finished.emit(done, self._call(work)),
+                         daemon=True).start()
+
+    @Slot(object, object)
+    def _deliver(self, done, result):
+        if done is not None:
+            done(result)
+
+
 class Backend(QObject):
     changed = Signal()
+    networkChanged = Signal()
+    bluetoothChanged = Signal()
+    soundChanged = Signal()
+    displayChanged = Signal()
+    personalChanged = Signal()
+    timeChanged = Signal()
 
-    def __init__(self, lang=None, start=detached, start_page="home"):
+    def __init__(self, lang=None, start=detached, start_page="home", system=None, threaded=True):
         super().__init__()
         self.lang = lang or strings.language()
         self._start = start
@@ -55,6 +112,18 @@ class Backend(QObject):
         self._storage = None
         self._windows_apps = None
         self._start_page = start_page
+        self.system = system or system_tools()
+        self.jobs = Jobs(threaded)
+        self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
+                         "loaded": False, "scanning": False, "connecting": "", "failed": ""}
+        self._bluetooth = {"available": False, "powered": False, "devices": [], "loaded": False,
+                           "busy": ""}
+        self._sound = {"outputs": [], "inputs": [], "loaded": False}
+        self._display = {"outputs": [], "loaded": False}
+        self._personal = {"wallpapers": [], "wallpaper": "", "accent": "",
+                          "accents": devices.ACCENTS, "loaded": False}
+        self._time = {"timezone": "", "automatic": False, "canAutomatic": True, "zones": [],
+                      "loaded": False}
 
     # --- texts and structure ------------------------------------------------
 
@@ -123,7 +192,7 @@ class Backend(QObject):
             return
         # The global theme switches colours, Plasma theme, window frames and
         # (through the kvantum / kvantum-dark style key) the application style.
-        self._start(["plasma-apply-lookandfeel", "--apply", LOOK_AND_FEEL[dark]])
+        self._start(["sh", "-c", APPLY_THEME, "sh", LOOK_AND_FEEL[dark], DESKTOP_THEME[dark]])
         self._dark = dark
         self.changed.emit()
 
@@ -171,6 +240,198 @@ class Backend(QObject):
     @Slot(str)
     def copyText(self, value):
         QGuiApplication.clipboard().setText(value)
+
+    # --- built-in pages: shared helpers ---------------------------------------------
+
+    def _update(self, name, signal, values):
+        setattr(self, name, dict(getattr(self, name), **values))
+        signal.emit()
+
+    def _merge(self, name, signal, extra=None):
+        """Callback that merges a state dict (and `extra`) into a property."""
+        def done(result):
+            self._update(name, signal, dict(result or {}, loaded=True, **(extra or {})))
+        return done
+
+    # --- Network & internet > Wi-Fi ------------------------------------------------
+
+    @Property("QVariantMap", notify=networkChanged)
+    def network(self):
+        return self._network
+
+    @Slot(bool)
+    def refreshNetwork(self, rescan):
+        self._update("_network", self.networkChanged, {"scanning": True})
+        self.jobs.submit(lambda: self.system.network.state(rescan),
+                         self._merge("_network", self.networkChanged, {"scanning": False}))
+
+    @Slot(bool)
+    def setWifi(self, on):
+        values = {"enabled": on}
+        if not on:
+            values.update(networks=[], connection={})
+        self._update("_network", self.networkChanged, values)
+        self.jobs.submit(lambda: self.system.network.set_wifi(on),
+                         lambda _ok: self.refreshNetwork(on))
+
+    @Slot(str, str, str)
+    def connectWifi(self, ssid, password, security):
+        self._update("_network", self.networkChanged, {"connecting": ssid, "failed": ""})
+
+        def done(ok):
+            self._update("_network", self.networkChanged,
+                         {"connecting": "", "failed": "" if ok else ssid})
+            self.refreshNetwork(False)
+        self.jobs.submit(lambda: self.system.network.connect(ssid, password, security), done)
+
+    @Slot()
+    def disconnectWifi(self):
+        self.jobs.submit(self.system.network.disconnect, lambda _ok: self.refreshNetwork(False))
+
+    @Slot(str)
+    def forgetWifi(self, ssid):
+        self.jobs.submit(lambda: self.system.network.forget(ssid),
+                         lambda _ok: self.refreshNetwork(False))
+
+    # --- Bluetooth & devices > Bluetooth ---------------------------------------------
+
+    @Property("QVariantMap", notify=bluetoothChanged)
+    def bluetooth(self):
+        return self._bluetooth
+
+    @Slot()
+    def refreshBluetooth(self):
+        self.jobs.submit(self.system.bluetooth.state,
+                         self._merge("_bluetooth", self.bluetoothChanged))
+
+    @Slot(bool)
+    def setBluetooth(self, on):
+        self._update("_bluetooth", self.bluetoothChanged, {"powered": on})
+        self.jobs.submit(lambda: self.system.bluetooth.set_powered(on),
+                         lambda _ok: self.refreshBluetooth())
+
+    @Slot(str, bool)
+    def connectBluetooth(self, mac, on):
+        self._update("_bluetooth", self.bluetoothChanged, {"busy": mac})
+
+        def done(_ok):
+            self._update("_bluetooth", self.bluetoothChanged, {"busy": ""})
+            self.refreshBluetooth()
+        self.jobs.submit(lambda: self.system.bluetooth.connect(mac, on), done)
+
+    @Slot(str)
+    def removeBluetooth(self, mac):
+        self.jobs.submit(lambda: self.system.bluetooth.remove(mac),
+                         lambda _ok: self.refreshBluetooth())
+
+    @Slot()
+    def addBluetoothDevice(self):
+        self._start(["bluedevil-wizard"])
+
+    # --- System > Sound ----------------------------------------------------------------
+
+    @Property("QVariantMap", notify=soundChanged)
+    def sound(self):
+        return self._sound
+
+    @Slot()
+    def refreshSound(self):
+        self.jobs.submit(self.system.sound.state, self._merge("_sound", self.soundChanged))
+
+    @Slot(str, str)
+    def setSoundDevice(self, kind, name):
+        self.jobs.submit(lambda: self.system.sound.set_default(kind, name),
+                         lambda _ok: self.refreshSound())
+
+    @Slot(str, int)
+    def setVolume(self, kind, percent):
+        self.jobs.submit(lambda: self.system.sound.set_volume(kind, percent))
+
+    @Slot(str, bool)
+    def setMuted(self, kind, muted):
+        self.jobs.submit(lambda: self.system.sound.set_muted(kind, muted),
+                         lambda _ok: self.refreshSound())
+
+    # --- System > Display ----------------------------------------------------------------
+
+    @Property("QVariantMap", notify=displayChanged)
+    def display(self):
+        return self._display
+
+    @Slot()
+    def refreshDisplay(self):
+        self.jobs.submit(self.system.display.state, self._merge("_display", self.displayChanged))
+
+    @Slot(int, float)
+    def setScale(self, output_id, scale):
+        self.jobs.submit(lambda: self.system.display.set_scale(output_id, scale),
+                         lambda _ok: self.refreshDisplay())
+
+    @Slot(int, str)
+    def setResolution(self, output_id, mode_id):
+        self.jobs.submit(lambda: self.system.display.set_mode(output_id, mode_id),
+                         lambda _ok: self.refreshDisplay())
+
+    # --- Personalization > Background, Colours -------------------------------------------
+
+    @Property("QVariantMap", notify=personalChanged)
+    def personal(self):
+        return self._personal
+
+    @Property(str, notify=personalChanged)
+    def accent(self):
+        return self._personal.get("accent", "")
+
+    @Slot()
+    def refreshPersonal(self):
+        personal = self.system.personal
+        self.jobs.submit(lambda: {"wallpapers": personal.wallpapers(),
+                                  "wallpaper": personal.current_wallpaper(),
+                                  "accent": personal.accent()},
+                         self._merge("_personal", self.personalChanged))
+
+    @Slot(str)
+    def setWallpaper(self, path):
+        self._update("_personal", self.personalChanged, {"wallpaper": path})
+        self.jobs.submit(lambda: self.system.personal.set_wallpaper(path))
+
+    @Slot()
+    def browseWallpaper(self):
+        pictures = Path.home() / "Pictures"
+        start = pictures if pictures.is_dir() else Path.home()
+        title = strings.text(self.lang, "browse_photos")
+
+        def done(path):
+            if path:
+                self.setWallpaper(path)
+        self.jobs.submit(lambda: self.system.personal.pick_image(start, title), done)
+
+    @Slot(str)
+    def setAccent(self, color):
+        self._update("_personal", self.personalChanged, {"accent": color})
+        self.jobs.submit(lambda: self.system.personal.set_accent(color))
+
+    # --- Time & language > Date & time -----------------------------------------------------
+
+    @Property("QVariantMap", notify=timeChanged)
+    def time(self):
+        return self._time
+
+    @Slot()
+    def refreshTime(self):
+        self.jobs.submit(self.system.time.state, self._merge("_time", self.timeChanged))
+
+    @Slot(str)
+    def setTimezone(self, zone):
+        known = [z["value"] for z in self._time["zones"]] or None
+        self.jobs.submit(lambda: self.system.time.set_timezone(zone, known),
+                         lambda _ok: self.refreshTime())
+
+    @Slot(bool)
+    def setAutomaticTime(self, on):
+        self._update("_time", self.timeChanged, {"automatic": on})
+        self.jobs.submit(lambda: self.system.time.set_automatic(on),
+                         lambda _ok: self.refreshTime())
 
 
 def main(argv=None):

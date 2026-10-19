@@ -1,0 +1,3 @@
+# The keyboard layout chosen during installation also applies when the
+# start-up screen asks for the disk encryption password (VeltOS).
+KEYMAP=y

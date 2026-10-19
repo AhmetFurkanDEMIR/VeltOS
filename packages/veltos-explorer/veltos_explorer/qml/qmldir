@@ -1,0 +1,14 @@
+singleton Theme 1.0 Theme.qml
+IconButton 1.0 IconButton.qml
+ToolTipText 1.0 ToolTipText.qml
+WinMenu 1.0 WinMenu.qml
+WinDialog 1.0 WinDialog.qml
+TitleBar 1.0 TitleBar.qml
+CommandBar 1.0 CommandBar.qml
+AddressBar 1.0 AddressBar.qml
+NavPane 1.0 NavPane.qml
+HomeView 1.0 HomeView.qml
+ThisPCView 1.0 ThisPCView.qml
+FolderView 1.0 FolderView.qml
+StatusBar 1.0 StatusBar.qml
+Glyph 1.0 Glyph.qml

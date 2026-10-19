@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "Date and Time",
+        "Description": "Time above the date, like the Windows 11 taskbar; opens a calendar",
+        "Icon": "preferences-system-time",
+        "Id": "org.veltos.clock",
+        "License": "GPL-3.0-or-later",
+        "Name": "Clock",
+        "Version": "0.1"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

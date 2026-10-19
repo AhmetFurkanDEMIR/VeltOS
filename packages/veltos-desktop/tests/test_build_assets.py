@@ -141,7 +141,8 @@ class WallpaperTests(unittest.TestCase):
         for variant in build_assets.WALLPAPER_VARIANTS:
             first = build_assets.wallpaper_svg(variant)
             self.assertEqual(first, build_assets.wallpaper_svg(variant))
-            self.assertIn(">VeltOS</text>", first)
+            # Like Windows 11: no logo or name on the wallpaper.
+            self.assertNotIn("<text", first)
 
     def test_viewbox_rewrite_keeps_namespaces(self):
         svg = build_assets.wallpaper_svg("images_dark")
@@ -202,6 +203,83 @@ class QuickSettingsTests(StartMenuTests):
         enabled = js.split('writeConfig("extraItems"', 1)[1].split("]", 1)[0]
         for replaced in ("networkmanagement", "volume", "battery", "bluetooth", "brightness"):
             self.assertNotIn(replaced, enabled)
+
+
+class SearchTests(StartMenuTests):
+    STARTMENU = PKG / "plasma/search"
+    PLUGIN_ID = build_assets.SEARCH_ID
+
+    def test_metadata(self):
+        meta = json.loads((self.STARTMENU / "metadata.json").read_text(encoding="utf-8"))
+        self.assertEqual(meta["KPlugin"]["Id"], self.PLUGIN_ID)
+        self.assertIn(self.STARTMENU.name, build_assets.PLASMOIDS)
+
+    def test_config_schema_is_xml(self):
+        self.skipTest("no configuration")
+
+    def test_layout_adds_it_next_to_start(self):
+        js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
+        start = js.index('addWidget("org.veltos.startmenu")')
+        here = js.index(f'addWidget("{self.PLUGIN_ID}")')
+        tasks = js.index('addWidget("org.kde.plasma.icontasks")')
+        self.assertLess(start, here)
+        self.assertLess(here, tasks)
+
+
+class TaskViewTests(SearchTests):
+    STARTMENU = PKG / "plasma/taskview"
+    PLUGIN_ID = build_assets.TASKVIEW_ID
+
+
+class CaptionButtonTests(unittest.TestCase):
+    def test_windows_11_buttons(self):
+        import xml.etree.ElementTree as ET
+        for variant in ("light", "dark"):
+            for kind in ("minimize", "maximize", "restore", "close"):
+                svg = fluent.caption_svg(kind, variant)
+                root = ET.fromstring(svg)
+                ids = {el.get("id") for el in root.iter() if el.get("id")}
+                self.assertEqual(ids, {"active-center", "inactive-center", "hover-center",
+                                       "pressed-center", "deactivated-center"}, kind)
+                hover = svg.split('id="hover-center"', 1)[1].split("</g>", 1)[0]
+                self.assertEqual(fluent.CLOSE_RED in hover, kind == "close", kind)
+        with self.assertRaises(ValueError):
+            fluent.caption_svg("shade", "light")
+
+    def test_title_bar_metrics(self):
+        layout = fluent.AURORAE_LAYOUT
+        self.assertEqual((layout["ButtonWidth"], layout["ButtonHeight"], layout["TitleHeight"]),
+                         ("46", "32", "32"))
+        self.assertEqual(layout["TitleEdgeRight"], "0")      # buttons flush with the corner
+
+
+class TaskbarTests(unittest.TestCase):
+    def test_clock(self):
+        meta = json.loads((PKG / "plasma/clock/metadata.json").read_text(encoding="utf-8"))
+        self.assertEqual(meta["KPlugin"]["Id"], build_assets.CLOCK_ID)
+        js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
+        self.assertIn('panel.addWidget("org.veltos.clock")', js)
+        self.assertNotIn("digitalclock", js)
+
+    def test_show_desktop_at_the_right_end(self):
+        meta = json.loads((PKG / "plasma/showdesktop/metadata.json").read_text(encoding="utf-8"))
+        self.assertEqual(meta["KPlugin"]["Id"], build_assets.SHOWDESKTOP_ID)
+        js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
+        self.assertGreater(js.index('addWidget("org.veltos.showdesktop")'),
+                           js.index('addWidget("org.veltos.clock")'))
+
+    def test_see_through_like_windows(self):
+        js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
+        self.assertIn('panel.opacity = "translucent"', js)
+        svg = ('<svg><rect id="a" style="opacity:1" class="ColorScheme-Background"/>'
+               '<path class="ColorScheme-Background" d="M0 0"/>'
+               '<rect id="hint" style="fill-opacity:1" fill="#f00"/></svg>')
+        out = fluent.set_background_opacity(svg, 0.86)
+        self.assertIn('id="a" style="opacity:0.86"', out)
+        self.assertIn('<path style="opacity:0.86" class=', out)
+        self.assertIn('id="hint" style="fill-opacity:1"', out)
+        with self.assertRaises(SystemExit):
+            fluent.set_background_opacity("<svg/>", 0.5)
 
 
 @unittest.skipUnless(shutil.which("rsvg-convert") and (FLUENT_DIR / "Kvantum").is_dir(),

@@ -2,7 +2,11 @@
 
 import configparser
 import importlib.util
+import os
 import re
+import shutil
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -18,6 +22,28 @@ class PlymouthTests(unittest.TestCase):
         theme.read(PKG / "plymouth/veltos.plymouth")
         self.assertEqual(theme["Plymouth Theme"]["ModuleName"], "two-step")
         self.assertEqual(theme["two-step"]["ImageDir"], "/usr/share/plymouth/themes/veltos")
+
+    def test_font_is_copied_into_the_initramfs(self):
+        theme = configparser.ConfigParser()
+        theme.read(PKG / "plymouth/veltos.plymouth")
+        hook = (PKG / "initramfs/hook").read_text()
+        self.assertIn("/usr/share/fonts/opentype/inter/Inter-$face.otf", hook)
+        faces = re.search(r"for face in ([A-Za-z ]+); do", hook).group(1).split()
+        for key in ("Font", "TitleFont"):
+            family, *style, _size = theme["two-step"][key].split()
+            self.assertEqual(family, "Inter")
+            self.assertIn(style[0] if style else "Regular", faces)
+
+    def test_password_box_below_the_logo(self):
+        theme = configparser.ConfigParser()
+        theme.read(PKG / "plymouth/veltos.plymouth")
+        two_step = theme["two-step"]
+        logo, entry_height = 168, 34      # watermark.png and entry.png heights
+        for height in (600, 768, 1080, 2160):
+            logo_top = (height - logo) * float(two_step["WatermarkVerticalAlignment"])
+            logo_bottom = logo_top + logo * 54 / 64     # the V ends at y=54 of 64
+            box_top = (height - entry_height) * float(two_step["DialogVerticalAlignment"])
+            self.assertGreater(box_top, logo_bottom + 8, height)
 
     def test_spinner_frames_differ_and_loop(self):
         frames = [build_assets.spinner_frame(i) for i in range(build_assets.SPINNER_FRAMES)]
@@ -42,6 +68,56 @@ class PlymouthDefaultsTests(unittest.TestCase):
         postrm = (PKG / "debian/veltos-boot.postrm").read_text()
         for script in (preinst, postrm):
             self.assertIn("--divert /usr/share/plymouth/plymouthd.defaults.debian", script)
+
+
+@unittest.skipUnless(os.name == "posix", "runs shell scripts")
+class UnlockTextsTests(unittest.TestCase):
+    """initramfs/unlock-texts on an excerpt of Debian's cryptsetup functions."""
+
+    def patched(self, source=PKG / "tests/data/cryptsetup-functions", runs=1):
+        tmp = Path(tempfile.mkdtemp())
+        functions = tmp / "functions"
+        shutil.copyfile(source, functions)
+        for _ in range(runs):
+            result = subprocess.run(["sh", str(PKG / "initramfs/unlock-texts"), str(functions)],
+                                    capture_output=True, text=True, check=True)
+        return functions, result.stderr
+
+    def test_windows_like_prompt(self):
+        functions, warnings = self.patched()
+        text = functions.read_text()
+        self.assertEqual(warnings, "")
+        self.assertIn('keyscriptarg="$(veltos_unlock_prompt)"', text)
+        self.assertNotIn("Please unlock disk", text)
+        subprocess.run(["sh", "-n", str(functions)], check=True)
+        # run_keyscript() exports CRYPTTAB_TRIED, the number of failed tries.
+        for tried, prompt in (("0", "Enter the password to unlock this PC"),
+                              ("2", "The password is incorrect. Try again.")):
+            out = subprocess.run(["sh", "-c", f'. "{functions}"; CRYPTTAB_TRIED={tried} veltos_unlock_prompt'],
+                                 capture_output=True, text=True, check=True)
+            self.assertEqual(out.stdout, prompt + "\n")
+
+    def test_splash_messages_hidden_others_unchanged(self):
+        functions, _ = self.patched()
+        text = functions.read_text()
+        self.assertIn('*": cryptsetup failed, bad password or options?"|*": set up successfully")', text)
+        # Outside the boot splash cryptsetup's own function prints as before.
+        for message in ("luks-1: set up successfully", "ERROR: luks-1: maximum number of tries exceeded"):
+            out = subprocess.run(["sh", "-c", f'. "{functions}"; cryptsetup_message "{message}"'],
+                                 capture_output=True, text=True, check=True)
+            self.assertEqual(out.stderr, f"cryptsetup: {message}\n")
+
+    def test_runs_once(self):
+        once, _ = self.patched()
+        twice, _ = self.patched(runs=2)
+        self.assertEqual(once.read_text(), twice.read_text())
+
+    def test_unknown_code_is_left_alone(self):
+        tmp = Path(tempfile.mkdtemp()) / "other"
+        tmp.write_text("say() {\n    echo hi\n}\n")
+        functions, warnings = self.patched(source=tmp)
+        self.assertEqual(functions.read_text(), tmp.read_text())
+        self.assertEqual(warnings.count("keeping cryptsetup's text"), 2)
 
 
 class GrubThemeTests(unittest.TestCase):
@@ -93,6 +169,13 @@ class GrubTests(unittest.TestCase):
                                 "\techo 'Loading Linux 6.12 ...'\n"
                                 "\tlinux /vmlinuz\n"
                                 "}\n"
+                                "submenu 'Advanced options for VeltOS GNU/Linux' $menuentry_id_option "
+                                "'gnulinux-advanced-1234' {\n"
+                                "\tmenuentry 'VeltOS GNU/Linux, with Linux 6.12.113+deb13-amd64 (recovery mode)'"
+                                " $menuentry_id_option 'gnulinux-6.12.113+deb13-amd64-recovery-1234' {\n"
+                                "\t\tlinux /vmlinuz-6.12.113+deb13-amd64 single\n"
+                                "\t}\n"
+                                "}\n"
                                 "X\n")
             original.chmod(0o755)
             wrapper = (PKG / "grub.d/10_linux").read_text().replace(
@@ -102,12 +185,39 @@ class GrubTests(unittest.TestCase):
                                  check=True, env=env).stdout
             self.assertIn("menuentry 'VeltOS' {", out)
             self.assertNotIn("GNU/Linux", out)
+            # Titles without the kernel build suffix; IDs and files keep it.
+            self.assertIn("menuentry 'VeltOS, with Linux 6.12.113 (recovery mode)' "
+                          "$menuentry_id_option 'gnulinux-6.12.113+deb13-amd64-recovery-1234'", out)
+            self.assertIn("linux /vmlinuz-6.12.113+deb13-amd64 single", out)
             self.assertNotIn("Loading", out)
             self.assertIn("linux /vmlinuz", out)
+            # A missing original (dpkg left it as 10_linux.dpkg-new, install
+            # test 2026-10-19) fails update-grub instead of an empty menu.
+            missing = subprocess.run(["sh", "-c", wrapper.replace(str(original), str(original) + ".gone")],
+                                     env=env, capture_output=True, text=True)
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertIn("missing", missing.stderr)
             # A failing original fails update-grub instead of dropping entries.
             original.write_text("#!/bin/sh\nexit 3\n")
             failed = subprocess.run(["sh", "-c", wrapper], env=env, capture_output=True)
             self.assertNotEqual(failed.returncode, 0)
+
+    def test_grub_common_configured_before_the_diversion(self):
+        control = (PKG / "debian/control").read_text()
+        self.assertRegex(control, r"Pre-Depends: grub-common")
+        postinst = (PKG / "debian/veltos-boot.postinst").read_text()
+        self.assertIn("10_linux.dpkg-new", postinst)      # repairs older installs
+
+    def test_keyboard_layout_in_initramfs(self):
+        # The disk encryption password is typed with the installed layout.
+        text = (PKG / "initramfs/veltos-keymap").read_text()
+        self.assertIn("KEYMAP=y", text.splitlines())
+
+    def test_initramfs_hook_runs_after_plymouth_and_cryptroot(self):
+        import subprocess
+        out = subprocess.run(["sh", str(PKG / "initramfs/hook"), "prereqs"],
+                             capture_output=True, text=True, check=True).stdout
+        self.assertEqual(out.split(), ["plymouth", "cryptroot"])
 
     def test_fixed_video_mode_and_hidden_menu(self):
         values = dict(line.split("=", 1) for line in (PKG / "default/veltos.cfg").read_text().splitlines()

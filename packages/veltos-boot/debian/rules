@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+# The boot splash, keyboard layout and password screen live in the initramfs.
+# dh_installinitramfs adds the update-initramfs trigger for the hook in
+# usr/share/initramfs-tools/hooks, which rebuilds it after install/upgrade.
 %:
 	dh $@
 
@@ -25,3 +28,6 @@ execute_after_dh_install:
 	# The GRUB wrapper must not be a conffile (see debian/veltos-boot.postinst).
 	test ! -e $(CURDIR)/debian/veltos-boot/etc/grub.d/10_linux
 	test -x $(CURDIR)/debian/veltos-boot/usr/lib/veltos-boot/grub.d/10_linux
+	# Password screen font and texts (initramfs hook).
+	test -x $(CURDIR)/debian/veltos-boot/usr/share/initramfs-tools/hooks/veltos-boot
+	test -x $(CURDIR)/debian/veltos-boot/usr/lib/veltos-boot/unlock-texts

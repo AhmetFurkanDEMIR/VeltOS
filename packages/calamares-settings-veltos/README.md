@@ -30,6 +30,7 @@ helper scripts are derived, ISC licence).
 | UEFI bootloader | Installs `grub-efi-amd64-signed` + `shim-signed` | Installed systems boot with Secure Boot on (Debian's helper installs unsigned GRUB only) |
 | EFI directory | Stays `\EFI\debian\` (`efiBootloaderId`) | Debian's signed GRUB looks for its config there; another name breaks Secure Boot |
 | Firmware boot entry | Renamed to "VeltOS" by the `efi-label` job | Users see VeltOS in the firmware boot menu (F12 etc.) |
+| Disk encryption password tries | `crypttab-tries` job adds `tries=0` to the installed system's crypttab entries unlocked with a typed password | The start-up screen asks until the password is right, like Windows, instead of dropping to a recovery shell after three wrong tries (cryptsetup's default). Calamares' fstab module writes those entries without options when /boot is unencrypted, so `crypttabOptions` cannot do it. |
 | Dual boot | `os-prober` installed, `GRUB_DISABLE_OS_PROBER=false` | Windows appears in the boot menu |
 | Offline install | Bootloader packages come from the ISO's package pool (`veltos-installer.list.binary`) | Installs work without network |
 | APT sources | `main contrib non-free non-free-firmware` for trixie, -updates, -security | Needed for NVIDIA drivers and Steam later |
@@ -60,4 +61,9 @@ is a known Calamares module or a shipped job, job scripts exist and pass
 welcome window loads offscreen without QML warnings, and the live session
 script writes the no-lock/no-sleep settings only on the install medium.
 
-Status: **installation not yet tested end to end** — see `docs/status.md`.
+`tests/test_efi_label.py` and `tests/test_crypttab_tries.py` run the job
+scripts against fake firmware output and a fake target root.
+
+Status: an installation with "Encrypt system" (UEFI, VM) was tested end to
+end on 2026-10-19 (`tests/results/2026-10-19-encrypted-install-uefi/`);
+plain and BIOS installations are not yet tested — see `docs/status.md`.

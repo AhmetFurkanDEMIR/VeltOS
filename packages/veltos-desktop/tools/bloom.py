@@ -1,10 +1,10 @@
 """Procedural generator for the VeltOS "Velt Bloom" wallpaper.
 
-    wallpaper_svg("light" | "dark", logo_svg_path) -> SVG text (3840x2160)
+    wallpaper_svg("light" | "dark") -> SVG text (3840x2160)
 
 Scene, back to front: soft sky gradient, sunrise glow, misty mountains over a
 calm lake (with reflection), a large bloom of folded blue ribbons in the
-lower right, and the VeltOS logo and name in the sky. Every shape is
+lower right. No logo or text, as on Windows 11. Every shape is
 computed here from a fixed seed, so builds are reproducible and the artwork
 is original VeltOS work (no third-party imagery).
 
@@ -13,7 +13,6 @@ The generated artwork is CC-BY-SA-4.0; this code is GPL-3.0-or-later.
 
 import math
 import random
-from pathlib import Path
 
 W, H = 3840, 2160
 HORIZON = 1560
@@ -36,7 +35,6 @@ PALETTES = {
                   (0.94, "#4FA6FF"), (1, "#9AD8FF")],
         "rolled": ("#B9E6FF", "#3E8CFF"),
         "rim": ("#FFFFFF", 0.8),
-        "wordmark": ("#FFFFFF", 0.96),
     },
     "dark": {
         "sky": ["#060A1E", "#0A1436", "#132766", "#1C3A96"],
@@ -52,7 +50,6 @@ PALETTES = {
                   (0.94, "#3C90FF"), (1, "#7CC4FF")],
         "rolled": ("#A9DCFF", "#2F74F0"),
         "rim": ("#CFEBFF", 0.65),
-        "wordmark": ("#FFFFFF", 0.92),
     },
 }
 
@@ -208,20 +205,7 @@ def bloom(p, with_glow=True):
     return "".join(parts)
 
 
-def wordmark(p, logo_svg_path, x=3010, y=250, size=180):
-    """VeltOS logo mark (from veltos-logo.svg) and name."""
-    logo = Path(logo_svg_path).read_text(encoding="utf-8")
-    inner = logo[logo.index(">", logo.index("<svg")) + 1:logo.rindex("</svg>")]
-    inner = inner.replace('id="blade-', 'id="wm-blade-').replace("url(#blade-", "url(#wm-blade-")
-    color, opacity = p["wordmark"]
-    return (
-        f'<g transform="translate({x} {y}) scale({size / 64:.4f})">{inner}</g>'
-        f'<text x="{x + size + 30}" y="{y + size * 0.76:.0f}" font-family="Inter" font-size="{int(size * 0.78)}" '
-        f'font-weight="500" fill="{color}" fill-opacity="{opacity}">VeltOS</text>'
-    )
-
-
-def wallpaper_svg(variant, logo_svg_path):
+def wallpaper_svg(variant):
     p = PALETTES[variant]
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -230,7 +214,7 @@ def wallpaper_svg(variant, logo_svg_path):
         f'<rect x="-2000" y="-2000" width="{W + 4000}" height="{H + 4000}" fill="url(#sky)"/>'
         f'<rect x="-2000" y="-2000" width="{W + 4000}" height="{H + 4000}" fill="url(#glow)"/>'
         f'<rect x="-2000" y="-2000" width="{W + 4000}" height="{H + 4000}" fill="url(#haze)"/>'
-        f'{landscape(p)}{bloom(p)}{wordmark(p, logo_svg_path)}'
+        f'{landscape(p)}{bloom(p)}'
         '</svg>\n'
     )
 

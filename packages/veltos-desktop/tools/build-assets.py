@@ -40,6 +40,10 @@ WALLPAPER_VARIANTS = {"images": "light", "images_dark": "dark"}
 
 STARTMENU_ID = "org.veltos.startmenu"
 QUICKSETTINGS_ID = "org.veltos.quicksettings"
+SEARCH_ID = "org.veltos.search"
+TASKVIEW_ID = "org.veltos.taskview"
+CLOCK_ID = "org.veltos.clock"
+SHOWDESKTOP_ID = "org.veltos.showdesktop"
 
 # UI font for the whole desktop (Debian package fonts-inter). Qt font strings:
 # family, point size, pixel size, style hint, weight, italic, underline, ...
@@ -80,6 +84,7 @@ DEFAULT_LOOK_AND_FEEL = "org.veltos.light"
 # kcm_bolt and kcm_kdeconnect). They are for KDE services VeltOS does not
 # use, for developers, or for rare hardware.
 HIDDEN_SETTINGS_PAGES = [
+    "kcm_about-distro",      # shows the kernel's build name; VeltOS Settings > About replaces it
     "kcm_activities",        # Plasma activities
     "kcm_bolt",              # Thunderbolt device authorisation
     "kcm_breezedecoration",  # Breeze window frames (VeltOS uses its own)
@@ -229,7 +234,7 @@ def svg_with_viewbox(svg_text, width, height):
 
 def wallpaper_svg(variant):
     """Generated wallpaper SVG for a contents/ directory name (see WALLPAPER_VARIANTS)."""
-    return bloom.wallpaper_svg(WALLPAPER_VARIANTS[variant], SRC / "artwork/veltos-logo.svg")
+    return bloom.wallpaper_svg(WALLPAPER_VARIANTS[variant])
 
 
 def build_wallpaper(root, tmp_dir):
@@ -346,7 +351,13 @@ def build_static_config(root):
             # Second row (dolphin/dolphinui.rc): "New", "Sort", "View" with
             # text, cut/copy/paste/rename/delete as icons, like Windows 11.
             "\n[MainWindow][Toolbar commandBar]\n"
-            "ToolButtonStyle=TextBesideIcon\n"),
+            "ToolButtonStyle=TextBesideIcon\n"
+            # Details view like Windows: small icons, one line per item, no
+            # tree expanders.
+            "\n[DetailsMode]\n"
+            "IconSize=22\n"
+            "PreviewSize=22\n"
+            "ExpandableFolders=false\n"),
         # Shut down / restart / sign out from Start act at once, like on
         # Windows (no full-screen confirmation dialog), and sign-in starts
         # with a clean desktop instead of reopening the last session's apps.
@@ -365,6 +376,14 @@ def build_static_config(root):
             "[KSplash]\n"
             "Engine=KSplashQML\n"
             f"Theme={DEFAULT_LOOK_AND_FEEL}\n"),
+        # No "KDE Wallet" set-up wizard (Windows has none): Wi-Fi keys are
+        # kept by the system (NetworkManager, readable by root only), and
+        # Firefox has its own password store. Users can turn the wallet on
+        # in the Control Panel.
+        "etc/xdg/kwalletrc": (
+            "[Wallet]\n"
+            "Enabled=false\n"
+            "First Use=false\n"),
         # Vendor defaults; /etc/sddm.conf.d/ and /etc/sddm.conf override them.
         "usr/lib/sddm/sddm.conf.d/10-veltos.conf": (
             "[Theme]\n"
@@ -408,7 +427,8 @@ def build_static_config(root):
 
 
 # VeltOS plasmoids: source directory under plasma/ -> plugin id.
-PLASMOIDS = {"startmenu": STARTMENU_ID, "quicksettings": QUICKSETTINGS_ID}
+PLASMOIDS = {"startmenu": STARTMENU_ID, "quicksettings": QUICKSETTINGS_ID, "search": SEARCH_ID,
+             "taskview": TASKVIEW_ID, "clock": CLOCK_ID, "showdesktop": SHOWDESKTOP_ID}
 
 
 def build_plasmoids(root):

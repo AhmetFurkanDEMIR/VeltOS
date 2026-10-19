@@ -19,10 +19,15 @@ for (var i = 0; i < desktopsArray.length; i++) {
 
 var panel = new Panel;
 panel.location = "bottom";
-// Even number of pixels; the panel size spinbox only shows even values.
-panel.height = 2 * Math.floor(gridUnit * 2.6 / 2);
+// 48 pixels high like the Windows 11 taskbar (more with large fonts).
+panel.height = Math.max(48, 2 * Math.floor(gridUnit * 2.6 / 2));
 if ("floating" in panel) {
     panel.floating = false;
+}
+// See-through like Windows 11 (with the blur effect when the graphics
+// driver supports it), also while a window is maximized.
+if ("opacity" in panel) {
+    panel.opacity = "translucent";
 }
 
 panel.addWidget("org.kde.plasma.panelspacer");
@@ -33,11 +38,15 @@ var start = panel.addWidget("org.veltos.startmenu");
 start.currentConfigGroup = ["Shortcuts"];
 start.writeConfig("global", "Alt+F1");
 
+// Search box and Task View button next to Start, as on Windows 11.
+panel.addWidget("org.veltos.search");
+panel.addWidget("org.veltos.taskview");
+
 var tasks = panel.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
 // Pinned like a fresh Windows 11 PC: File Explorer, browser, Settings.
 tasks.writeConfig("launchers", [
-    "applications:org.kde.dolphin.desktop",
+    "applications:veltos-explorer.desktop",
     "applications:firefox-esr.desktop",
     "applications:veltos-settings.desktop"
 ]);
@@ -79,13 +88,9 @@ if (systrayContainmentId) {
 // Quick Settings (Wi-Fi, Bluetooth, sound, brightness, battery).
 panel.addWidget("org.veltos.quicksettings");
 
-// Clock like Windows 11: time above the date, normal text size, instead of
-// text scaled to the panel height.
-var clock = panel.addWidget("org.kde.plasma.digitalclock");
-clock.currentConfigGroup = ["Appearance"];
-clock.writeConfig("autoFontAndSize", false);
-clock.writeConfig("fontSize", 10);
-clock.writeConfig("dateDisplayFormat", 2);   // below the time
-clock.writeConfig("dateFormat", "shortDate");
-clock.writeConfig("showSeconds", 0);
-// No "show desktop" button: Windows 11 has none visible (Meta+D works).
+// Clock like Windows 11: time above the date in the same small size; it
+// opens the calendar.
+panel.addWidget("org.veltos.clock");
+
+// The thin "show desktop" area at the right end, as on Windows 11.
+panel.addWidget("org.veltos.showdesktop");
