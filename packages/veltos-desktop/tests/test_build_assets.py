@@ -186,6 +186,24 @@ class StartMenuTests(unittest.TestCase):
             self.assertEqual(sorted(msgids - strings), [], f"stale strings in {po.name}")
 
 
+class QuickSettingsTests(StartMenuTests):
+    STARTMENU = PKG / "plasma/quicksettings"
+
+    def test_metadata(self):
+        meta = json.loads((self.STARTMENU / "metadata.json").read_text(encoding="utf-8"))
+        self.assertEqual(meta["KPlugin"]["Id"], build_assets.QUICKSETTINGS_ID)
+
+    def test_config_schema_is_xml(self):
+        self.skipTest("no configuration")
+
+    def test_layout_adds_it_and_drops_the_tray_icons_it_replaces(self):
+        js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
+        self.assertIn('panel.addWidget("org.veltos.quicksettings")', js)
+        enabled = js.split('writeConfig("extraItems"', 1)[1].split("]", 1)[0]
+        for replaced in ("networkmanagement", "volume", "battery", "bluetooth", "brightness"):
+            self.assertNotIn(replaced, enabled)
+
+
 @unittest.skipUnless(shutil.which("rsvg-convert") and (FLUENT_DIR / "Kvantum").is_dir(),
                      "needs rsvg-convert and upstream/ (Fluent-kde)")
 class FullBuildTest(unittest.TestCase):
@@ -207,6 +225,16 @@ class FullBuildTest(unittest.TestCase):
             image = login.split("background=", 1)[1].strip()
             self.assertTrue((root / image.lstrip("/")).is_file(), image)
             self.check_fluent_themes(root, kdeglobals)
+
+    def check_explorer_layout(self, root):
+        import xml.etree.ElementTree as ET
+        rc = root / "usr/share/veltos/dolphin/dolphinui.rc"
+        gui = ET.parse(rc).getroot()
+        self.assertGreater(int(gui.get("version")), 43)  # Dolphin 25.04's own is 43
+        bars = {bar.get("name"): [a.get("name") for a in bar.findall("Action")]
+                for bar in gui.findall("ToolBar")}
+        self.assertIn("url_navigators", bars["mainToolBar"])
+        self.assertEqual(bars["commandBar"][:2], ["new_menu", "edit_cut"])
 
     def check_title_catalogs(self, root):
         mo = root / "usr/share/locale/tr@veltos/LC_MESSAGES/dolphin.mo"
@@ -233,6 +261,7 @@ class FullBuildTest(unittest.TestCase):
         self.assertEqual(kdeglobals["[KDE]"]["DefaultDarkLookAndFeel"], "org.veltos.dark")
         self.check_session_files(root, kdeglobals)
         self.check_title_catalogs(root)
+        self.check_explorer_layout(root)
         for name in fluent.AURORAE:
             theme = root / "usr/share/aurorae/themes" / name
             self.assertTrue((theme / f"{name}rc").is_file())

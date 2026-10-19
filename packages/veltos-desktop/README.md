@@ -45,10 +45,20 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
 - **Settings** without pages for KDE services VeltOS does not use
   (KDE Connect, Thunderbolt authorisation, telemetry, background services,
   activities, ...).
-- **File Explorer** (Dolphin) side bar like Windows: Home, Desktop,
-  Downloads, Documents, Pictures, Music, Videos, Trash, then drives; no
-  Network/Recent/Search sections; icon-only toolbar; zip files open like
-  folders; every window starts at Home. The home folder has no
+- **File Explorer** (Dolphin) laid out like Windows 11 File Explorer:
+  address row (back, forward, up, address bar, search) and command row
+  (New, cut, copy, paste, rename, delete, Sort, View, more;
+  `dolphin/dolphinui.rc`), Details view with Name / Date modified / Type /
+  Size, side bar sections "Quick access", "This PC", "Removable drives"
+  with Home, Desktop, Downloads, Documents, Pictures, Music, Videos, Trash;
+  no Network/Recent/Search sections; zip files open like folders; every
+  window starts at Home.
+- **Quick Settings** (`org.veltos.quicksettings`): one taskbar button with
+  the network, sound and battery icons opens a Windows 11 style panel —
+  Wi-Fi, Bluetooth, Airplane mode and Night light tiles, brightness and
+  volume sliders, battery level and a Settings button. It uses the same
+  Plasma components as KDE's tray applets, which are switched off in the
+  tray for new users. The home folder has no
   "Templates" and "Public" folders (switched off in xdg-user-dirs).
 - Fluent icons and cursors (`veltos-fluent-icons`), Inter UI font.
 - **"Velt Bloom" wallpaper** (light and dark variants), branded login

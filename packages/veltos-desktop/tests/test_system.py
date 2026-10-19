@@ -123,6 +123,8 @@ class SessionDefaultsTests(unittest.TestCase):
             self.assertIn((home / "İndirilenler").as_uri(), hrefs)
             self.assertEqual(hrefs[-1], "trash:/")
             self.assertEqual(len(hrefs), 8)
+            view = home / ".local/share/dolphin/view_properties/global/.directory"
+            self.assertIn("ViewMode=1", view.read_text())
             text = places.read_text(encoding="utf-8")
             self.assertIn("<GroupState-Remote-IsHidden>true</GroupState-Remote-IsHidden>", text)
             self.assertIn("<withRecentlyUsed>true</withRecentlyUsed>", text)

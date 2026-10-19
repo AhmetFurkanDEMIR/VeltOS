@@ -39,6 +39,7 @@ LOGIN_WALLPAPER = "images/3840x2160.png"
 WALLPAPER_VARIANTS = {"images": "light", "images_dark": "dark"}
 
 STARTMENU_ID = "org.veltos.startmenu"
+QUICKSETTINGS_ID = "org.veltos.quicksettings"
 
 # UI font for the whole desktop (Debian package fonts-inter). Qt font strings:
 # family, point size, pixel size, style hint, weight, italic, underline, ...
@@ -341,7 +342,11 @@ def build_static_config(root):
             "\n[MainWindow]\n"
             "MenuBar=Disabled\n"
             "\n[MainWindow][Toolbar mainToolBar]\n"
-            "ToolButtonStyle=IconOnly\n"),
+            "ToolButtonStyle=IconOnly\n"
+            # Second row (dolphin/dolphinui.rc): "New", "Sort", "View" with
+            # text, cut/copy/paste/rename/delete as icons, like Windows 11.
+            "\n[MainWindow][Toolbar commandBar]\n"
+            "ToolButtonStyle=TextBesideIcon\n"),
         # Shut down / restart / sign out from Start act at once, like on
         # Windows (no full-screen confirmation dialog), and sign-in starts
         # with a clean desktop instead of reopening the last session's apps.
@@ -384,6 +389,10 @@ def build_static_config(root):
     icon_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(SRC / "artwork/veltos-logo.svg", icon_dir / "veltos-logo.svg")
 
+    explorer = root / "usr/share/veltos/dolphin"
+    explorer.mkdir(parents=True, exist_ok=True)
+    shutil.copy(SRC / "dolphin/dolphinui.rc", explorer / "dolphinui.rc")
+
     for name in ("Main.qml", "metadata.desktop"):
         shutil.copy(SRC / "sddm/veltos" / name, root / "usr/share/sddm/themes/veltos" / name)
 
@@ -398,16 +407,21 @@ def build_static_config(root):
         (libexec / helper).chmod(0o755)
 
 
-def build_startmenu(root):
-    """Install the VeltOS Start plasmoid and compile its translations."""
-    src = SRC / "plasma/startmenu"
-    dest = root / "usr/share/plasma/plasmoids" / STARTMENU_ID
-    shutil.copytree(src, dest, ignore=shutil.ignore_patterns("translations"))
-    for po in sorted((src / "translations").glob("*.po")):
-        mo = (root / "usr/share/locale" / po.stem / "LC_MESSAGES" /
-              f"plasma_applet_{STARTMENU_ID}.mo")
-        mo.parent.mkdir(parents=True, exist_ok=True)
-        run(["msgfmt", "--check", "--output-file", str(mo), str(po)])
+# VeltOS plasmoids: source directory under plasma/ -> plugin id.
+PLASMOIDS = {"startmenu": STARTMENU_ID, "quicksettings": QUICKSETTINGS_ID}
+
+
+def build_plasmoids(root):
+    """Install the VeltOS plasmoids and compile their translations."""
+    for directory, plugin_id in PLASMOIDS.items():
+        src = SRC / "plasma" / directory
+        dest = root / "usr/share/plasma/plasmoids" / plugin_id
+        shutil.copytree(src, dest, ignore=shutil.ignore_patterns("translations"))
+        for po in sorted((src / "translations").glob("*.po")):
+            mo = (root / "usr/share/locale" / po.stem / "LC_MESSAGES" /
+                  f"plasma_applet_{plugin_id}.mo")
+            mo.parent.mkdir(parents=True, exist_ok=True)
+            run(["msgfmt", "--check", "--output-file", str(mo), str(po)])
 
 
 def build_fluent_themes(fluent_dir, root, schemes):
@@ -441,7 +455,7 @@ def main(argv=None):
     app_titles.build(root, tmp_dir)
     build_wallpaper(root, tmp_dir)
     build_look_and_feel(root, tmp_dir)
-    build_startmenu(root)
+    build_plasmoids(root)
     build_static_config(root)
     shutil.rmtree(tmp_dir)
     return 0

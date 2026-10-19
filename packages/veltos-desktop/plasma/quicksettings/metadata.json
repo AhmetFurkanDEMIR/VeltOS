@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "Wi-Fi, Bluetooth, sound, brightness and battery in one place, like Windows 11 Quick Settings",
+        "Icon": "preferences-system",
+        "Id": "org.veltos.quicksettings",
+        "License": "GPL-3.0-or-later",
+        "Name": "Quick Settings",
+        "Version": "0.1"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
