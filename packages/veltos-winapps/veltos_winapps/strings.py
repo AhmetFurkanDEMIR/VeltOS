@@ -40,6 +40,12 @@ TEXTS = {
         "done_button": "Done",
         "installer_done": "The installer is finished",
         "details": "Show details",
+        "no_space": "Not enough free space",
+        "no_space_body": "Windows programs need about {needed} MB of free space. "
+                         "Free up some space and try again.",
+        "no_space_live": "You are running VeltOS from the installation medium, where space for "
+                         "Windows programs is limited by the computer's memory (about {needed} MB "
+                         "are needed). Install VeltOS to use Windows programs.",
     },
     "tr": {
         "window_title": "Windows programı",
@@ -77,6 +83,12 @@ TEXTS = {
         "done_button": "Bitti",
         "installer_done": "Kurulum programı bitti",
         "details": "Ayrıntıları göster",
+        "no_space": "Yeterli boş alan yok",
+        "no_space_body": "Windows programları için yaklaşık {needed} MB boş alan gerekiyor. "
+                         "Biraz yer açıp yeniden deneyin.",
+        "no_space_live": "VeltOS'u kurulum ortamından çalıştırıyorsunuz; burada Windows programları "
+                         "için alan bilgisayarın belleğiyle sınırlıdır (yaklaşık {needed} MB "
+                         "gerekiyor). Windows programlarını kullanmak için VeltOS'u kurun.",
     },
 }
 

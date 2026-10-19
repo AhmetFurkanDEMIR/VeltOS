@@ -6,6 +6,8 @@ Run inside the builder container (`build/run.sh vm ...` wraps these):
     vmctl.py start --iso X.iso [--disk /vm/disk.qcow2 --disk-size 40G] [--boot cdrom|disk]
     vmctl.py do "click:960,540 sleep:2 shot:step1"     # actions as in vmpreview.py
     vmctl.py exec "systemctl is-system-running"        # command in the guest (root)
+    vmctl.py exec-user "veltos-run x.exe &"             # in the live user's session
+    vmctl.py upload /tmp /out/packages/*.deb             # copy files into the guest
     vmctl.py stop
 
 `start` keeps running (it is the container's main process) until the VM is
@@ -82,6 +84,25 @@ def exec_(args):
     return code
 
 
+def upload(args):
+    agent = GuestAgent(RUN / "qga.sock")
+    if not agent.connect(time.monotonic() + 60):
+        return 1
+    for src in args.files:
+        agent.upload(src, f"{args.dest.rstrip('/')}/{Path(src).name}")
+    return 0
+
+
+def exec_user(args):
+    agent = GuestAgent(RUN / "qga.sock")
+    if not agent.connect(time.monotonic() + 60):
+        return 1
+    code, out, err = agent.run_as_user(args.command, timeout=args.timeout)
+    sys.stdout.write(out)
+    sys.stderr.write(err)
+    return code
+
+
 def stop(_args):
     try:
         Qmp(RUN / "qmp.sock").execute("quit")
@@ -109,6 +130,14 @@ def main():
     p.add_argument("command")
     p.add_argument("--timeout", type=float, default=120)
     p.set_defaults(func=exec_)
+    p = sub.add_parser("upload")
+    p.add_argument("dest")
+    p.add_argument("files", nargs="+")
+    p.set_defaults(func=upload)
+    p = sub.add_parser("exec-user")
+    p.add_argument("command")
+    p.add_argument("--timeout", type=float, default=120)
+    p.set_defaults(func=exec_user)
     p = sub.add_parser("stop")
     p.set_defaults(func=stop)
     args = parser.parse_args()

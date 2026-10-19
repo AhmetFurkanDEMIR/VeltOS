@@ -54,7 +54,8 @@ def main():
     proc = None
     t0 = time.monotonic()
     try:
-        proc, qmp, agent = start_qemu(args.iso, "uefi", out, workdir)
+        # Windows programs in the live session need RAM (files live in a tmpfs).
+        proc, qmp, agent = start_qemu(args.iso, "uefi", out, workdir, memory=8192)
         time.sleep(8)
         qmp.key("ret")
         if not check("system booted", agent.connect(time.monotonic() + 300)):

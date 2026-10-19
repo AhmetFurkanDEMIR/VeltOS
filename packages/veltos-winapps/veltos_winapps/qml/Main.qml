@@ -102,7 +102,7 @@ ApplicationWindow {
                     implicitHeight: implicitWidth
                 }
                 Kirigami.Icon {
-                    visible: ["done", "failed", "invalid"].includes(window.page)
+                    visible: ["done", "failed", "invalid", "nospace"].includes(window.page)
                     implicitWidth: Kirigami.Units.iconSizes.medium
                     implicitHeight: implicitWidth
                     source: window.page === "done" ? "emblem-success" : "dialog-error"
@@ -172,7 +172,7 @@ ApplicationWindow {
             }
             Button {
                 visible: !["done", "waiting"].includes(window.page)
-                text: ["failed", "invalid"].includes(window.page) ? runner.tr("close") : runner.tr("cancel")
+                text: ["failed", "invalid", "nospace"].includes(window.page) ? runner.tr("close") : runner.tr("cancel")
                 onClicked: runner.cancel()
             }
             Button {
