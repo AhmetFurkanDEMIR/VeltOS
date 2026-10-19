@@ -22,3 +22,6 @@ execute_after_dh_install:
 	test -z "$$(find $(CURDIR)/debian/veltos-boot/usr/share/plymouth -type l)"
 	test -s $(CURDIR)/debian/veltos-boot/usr/share/plymouth/themes/veltos/lock.png
 	test -f $(CURDIR)/debian/veltos-boot/usr/lib/systemd/system/sddm.service.d/veltos-plymouth.conf
+	# The GRUB wrapper must not be a conffile (see debian/veltos-boot.postinst).
+	test ! -e $(CURDIR)/debian/veltos-boot/etc/grub.d/10_linux
+	test -x $(CURDIR)/debian/veltos-boot/usr/lib/veltos-boot/grub.d/10_linux

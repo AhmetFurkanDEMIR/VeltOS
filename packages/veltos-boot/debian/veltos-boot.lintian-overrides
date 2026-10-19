@@ -1,0 +1,3 @@
+# /etc/grub.d/10_linux is diverted and replaced by a copy made in the
+# postinst (a conffile at a diverted conffile's path makes dpkg prompt).
+diversion-for-unknown-file etc/grub.d/10_linux [preinst:*]

@@ -82,6 +82,55 @@ class GrubTests(unittest.TestCase):
         self.assertIn("GRUB_DISABLE_OS_PROBER=false", text)
         self.assertNotIn("debian", text.lower())
 
+    def test_linux_entries_renamed_and_quiet(self):
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            original = Path(tmp) / "10_linux.dpkg-veltos"
+            original.write_text("#!/bin/sh\n"
+                                "cat <<'X'\n"
+                                "menuentry 'VeltOS GNU/Linux' {\n"
+                                "\techo 'Loading Linux 6.12 ...'\n"
+                                "\tlinux /vmlinuz\n"
+                                "}\n"
+                                "X\n")
+            original.chmod(0o755)
+            wrapper = (PKG / "grub.d/10_linux").read_text().replace(
+                "/etc/grub.d/10_linux.dpkg-veltos", str(original))
+            env = {"PATH": "/usr/bin:/bin", "GRUB_DISTRIBUTOR": "VeltOS"}
+            out = subprocess.run(["sh", "-c", wrapper], capture_output=True, text=True,
+                                 check=True, env=env).stdout
+            self.assertIn("menuentry 'VeltOS' {", out)
+            self.assertNotIn("GNU/Linux", out)
+            self.assertNotIn("Loading", out)
+            self.assertIn("linux /vmlinuz", out)
+            # A failing original fails update-grub instead of dropping entries.
+            original.write_text("#!/bin/sh\nexit 3\n")
+            failed = subprocess.run(["sh", "-c", wrapper], env=env, capture_output=True)
+            self.assertNotEqual(failed.returncode, 0)
+
+    def test_fixed_video_mode_and_hidden_menu(self):
+        values = dict(line.split("=", 1) for line in (PKG / "default/veltos.cfg").read_text().splitlines()
+                      if "=" in line and not line.startswith("#"))
+        # "auto" alone crashed VirtualBox on Hyper-V at kernel start.
+        self.assertTrue(values["GRUB_GFXMODE"].startswith("1024x768,800x600"))
+        self.assertEqual(values["GRUB_TIMEOUT_STYLE"], "hidden")
+
+    def test_menu_script_shows_menu_only_with_other_systems(self):
+        import subprocess
+        import tempfile
+        script = PKG / "grub.d/35_veltos"
+        subprocess.run(["sh", "-n", str(script)], check=True)
+        with tempfile.TemporaryDirectory() as bin_dir:
+            fake = Path(bin_dir) / "os-prober"
+            for found, expect in (("/dev/sda1:Windows Boot Manager:Windows:efi", True), ("", False)):
+                fake.write_text(f"#!/bin/sh\necho '{found}'\n" if found else "#!/bin/sh\n")
+                fake.chmod(0o755)
+                out = subprocess.run(["sh", str(script)], capture_output=True, text=True, check=True,
+                                     env={"PATH": f"{bin_dir}:/usr/bin:/bin"}).stdout
+                self.assertEqual("set timeout_style=menu" in out, expect, out)
+                self.assertIn("set color_normal=black/black", out)
+
 
 if __name__ == "__main__":
     unittest.main()

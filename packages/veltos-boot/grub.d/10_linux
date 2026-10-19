@@ -1,0 +1,19 @@
+#!/bin/sh
+# Copied to /etc/grub.d/10_linux by veltos-boot's postinst; veltos-boot
+# diverts Debian's script to /etc/grub.d/10_linux.dpkg-veltos (grub-mkconfig
+# skips *.dpkg-* names). Runs Debian's script and makes its entries
+# VeltOS-like:
+#   * "VeltOS" instead of "VeltOS GNU/Linux" in entry titles;
+#   * no "Loading Linux ..." / "Loading initial ramdisk ..." messages, so
+#     nothing technical flashes up before the VeltOS boot screen.
+set -e
+
+original=/etc/grub.d/10_linux.dpkg-veltos
+[ -x "$original" ] || exit 0
+
+distributor="${GRUB_DISTRIBUTOR:-VeltOS}"
+# A failure of Debian's script must fail update-grub, not drop the entries.
+entries="$("$original")"
+printf '%s\n' "$entries" | sed \
+    -e "s|${distributor} GNU/Linux|${distributor}|g" \
+    -e '/^[[:space:]]*echo[[:space:]]/d'

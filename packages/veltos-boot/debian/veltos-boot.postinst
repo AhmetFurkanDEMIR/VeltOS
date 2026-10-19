@@ -4,6 +4,11 @@ set -e
 if [ "$1" = configure ]; then
     update-alternatives --install /usr/share/plymouth/themes/default.plymouth \
         default.plymouth /usr/share/plymouth/themes/veltos/veltos.plymouth 200
+    # VeltOS's GRUB entry generator in place of Debian's (diverted to
+    # /etc/grub.d/10_linux.dpkg-veltos by the preinst). Copied here, not
+    # shipped as a conffile: a conffile at a diverted conffile's path makes
+    # dpkg ask a question and stop.
+    install -m 755 /usr/lib/veltos-boot/grub.d/10_linux /etc/grub.d/10_linux
     # Use the new boot defaults on installed systems (no-op in image builds,
     # where GRUB is not installed in the system yet).
     if [ -e /boot/grub/grub.cfg ] && command -v update-grub >/dev/null 2>&1; then
