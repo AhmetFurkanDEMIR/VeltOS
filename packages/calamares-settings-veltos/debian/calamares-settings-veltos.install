@@ -7,3 +7,9 @@ helpers/* usr/libexec/veltos-installer/
 bin/* usr/bin/
 data/install-veltos.desktop usr/share/applications/
 data/veltos-install-icon.desktop etc/xdg/autostart/
+welcome/veltos-live-welcome usr/libexec/veltos-installer/
+welcome/Main.qml usr/share/veltos-live-welcome/
+data/veltos-live-welcome.desktop etc/xdg/autostart/
+data/veltos-live-welcome.desktop usr/share/applications/
+data/veltos-live-session.sh etc/xdg/plasma-workspace/env/
+data/veltos-live.conf etc/sddm.conf.d/

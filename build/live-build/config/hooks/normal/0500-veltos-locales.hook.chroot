@@ -1,0 +1,14 @@
+#!/bin/sh
+# Compile the locales VeltOS offers (English, Turkish) into the image, so
+# the live session can switch language without a reboot (welcome window)
+# and installed systems have them ready.
+set -e
+
+for locale in "en_US.UTF-8 UTF-8" "tr_TR.UTF-8 UTF-8"; do
+    if grep -q "^# *$locale" /etc/locale.gen; then
+        sed -i "s/^# *$locale/$locale/" /etc/locale.gen
+    elif ! grep -q "^$locale" /etc/locale.gen; then
+        echo "$locale" >> /etc/locale.gen
+    fi
+done
+locale-gen

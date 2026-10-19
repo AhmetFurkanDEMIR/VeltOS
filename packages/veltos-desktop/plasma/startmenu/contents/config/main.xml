@@ -11,7 +11,7 @@
     </entry>
     <entry name="favorites" type="StringList">
       <label>Apps pinned to Start for new users (desktop file names or preferred:// URLs).</label>
-      <default>preferred://browser,org.kde.dolphin.desktop,systemsettings.desktop,org.kde.konsole.desktop,org.kde.kwrite.desktop,org.kde.gwenview.desktop,org.kde.okular.desktop,org.kde.ark.desktop,org.kde.spectacle.desktop,org.kde.plasma-systemmonitor.desktop,org.kde.kinfocenter.desktop</default>
+      <default>preferred://browser,org.kde.dolphin.desktop,veltos-settings.desktop,org.kde.kwrite.desktop,org.kde.gwenview.desktop,org.kde.okular.desktop,org.kde.ark.desktop,org.kde.spectacle.desktop,org.kde.plasma-systemmonitor.desktop,org.kde.kinfocenter.desktop</default>
     </entry>
     <entry name="favoritesPortedToKAstats" type="Bool">
       <label>Whether the default pinned apps were copied into the activity statistics store.</label>

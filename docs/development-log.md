@@ -3,6 +3,94 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-19 (later) — Windows 11 look, Settings app, start-up like Windows
+
+### Product-owner feedback that drove this work
+
+- "The Windows program runner does not work" (fixed earlier the same day,
+  commit 65b676c) and "the interface is very bad": files, settings, menus,
+  search must be redone, simple, light, like Windows 11; the ISO start-up
+  looks bad; it must not be recognisable as Debian.
+- After a first round: "still not good"; the clock/date is far too big;
+  remove the "Türkçe" boot menu entry; it must not look like Linux at all.
+
+### Implemented
+
+- **Windows 11 look from Fluent-kde** (pinned commit 44794f29c89d,
+  SHA-256 checked, `veltos-desktop/tools/fluent.py`): Kvantum application
+  style, Aurorae window frames (minimise/maximise/close on the right, app
+  icon and left-aligned title), Plasma theme, colour schemes; Windows blue
+  replaced by the VeltOS accent; Windows/Manjaro/KDE logos removed.
+  Problems found in VM screenshots and fixed: 75 % opaque frames (need
+  blur) made title bars and inactive windows see-through → solid variant;
+  1 px seam under every window → `BorderBottom=1`; Fluent Light's
+  translucent highlight made Kirigami apps use Qt's default blue → accent;
+  translucent popups unreadable without blur → opaque unless blur exists.
+- **Windows-familiar names** in Start/search (`update-app-names`, dpkg
+  trigger, overrides in `/var/lib/veltos/xdg`) and **inside the programs**
+  (pseudo-language catalogs `en@veltos`/`tr@veltos`): "Home — File
+  Explorer". KDE System Settings is "Control Panel". Developer/KDE extras
+  hidden from Start; KDE-only Settings pages hidden (kiosk).
+- **VeltOS Settings** (new package `veltos-settings`): Windows 11 layout,
+  Home, theme, About/rename PC, Storage, Windows programs, search, EN/TR;
+  other settings open KDE's modules.
+- **File Explorer**: Windows-like side bar, icon-only toolbar, zip as
+  folders, no Templates/Public folders.
+- **Taskbar**: Windows-sized two-line clock, tray reduced to network,
+  sound, battery, notifications (rest behind "^"), pins File Explorer,
+  Firefox, Settings; no show-desktop button; shut down/restart without a
+  confirmation screen.
+- **Start-up**: hidden boot menu (Esc/F4), boot text invisible, beep
+  removed, Inter fonts and rounded highlight when the menu is shown, no
+  Turkish entry. **Plymouth splash now actually shows** (see problems).
+  SDDM waits for Plymouth.
+- **Sign-in screen**: new SDDM theme in Windows 11 layout (time/date →
+  picture, name, password; power menu), Inter font, tested offscreen.
+- **Live system**: welcome window (Try / Install, English / Türkçe switch
+  with automatic re-sign-in), no screen lock/sleep, Turkish locale and
+  Firefox Turkish language pack in the image.
+
+### Problems hit (and fixed)
+
+- The VeltOS boot splash had never been shown: Debian's
+  `plymouthd.defaults` names a theme that is not installed, so every
+  initramfs had only the text splash; after diverting it, the two-step
+  plugin still failed because `lock.png` was a symlink into a theme not in
+  the initramfs. Found with `plymouth.debug`; images are now copies and
+  the verify hook checks the initramfs.
+- GRUB fell back to the firmware text console ("glyphs too large to fit on
+  screen") because the Inter fonts were loaded before gfxterm started.
+- GRUB highlight boxes overlapped the next entry (border slices are drawn
+  outside the item) and the countdown bar was a text line tall (any
+  `text` property).
+- `qt-style-kvantum` has no system-wide theme setting; Lintian rejects
+  files in `/etc/skel` → Plasma session script.
+- Heredocs in the agent's shell collapse `\\`; several edits had to be
+  redone with the file editor (environment quirk, recorded in memory).
+
+### Latest test runs
+
+ISO `veltos-0.1.0-dev-20261019-064631` (verify hook passed):
+
+- UEFI boot test `20261019-065930-uefi`: all 16 checks pass (incl. VeltOS
+  Plymouth theme in the initramfs, welcome window, application names,
+  per-user defaults, no crashed processes). Screenshots: hidden boot menu
+  revealed with F4 (themed, three entries), VeltOS boot splash, desktop
+  with welcome window, Start menu.
+- BIOS boot test `20261019-070134-bios`: all checks pass.
+- Measurements (UEFI, 4 vCPU, 4 GiB, no 3D): systemd-analyze 7.9 s;
+  plasmashell running 19.1 s after VM start (the boot menu no longer
+  waits); idle used RAM 1691 MiB (baseline 1696 MiB). Largest optional
+  processes: Discover notifier 254 MiB RSS, xwaylandvideobridge 151 MiB,
+  kdeconnectd 148 MiB, kaccess 133 MiB — candidates for the next
+  lightweight pass.
+- In the live VM (packages installed on the previous ISO): Settings app
+  pages, "Home — File Explorer" / "Welcome — Text Editor" titles, the
+  sign-in screen in `sddm-greeter-qt6 --test-mode` (lock view and sign-in
+  view).
+- Not run: Secure Boot test, Calamares installation, `test-winapps` on
+  this ISO; nothing on real hardware.
+
 ## 2026-10-19 — "VeltOS everywhere", Windows 11 UI, Windows programs
 
 ### Product-owner feedback that drove this work

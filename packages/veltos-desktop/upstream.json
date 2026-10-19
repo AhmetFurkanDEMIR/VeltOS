@@ -1,0 +1,8 @@
+{
+  "name": "Fluent-kde",
+  "version": "0~git20251110.44794f29c89d",
+  "url": "https://github.com/vinceliuice/Fluent-kde/archive/44794f29c89d.tar.gz",
+  "sha256": "b30c2f6350fc8f611807fb53eb2c2c1631e477a20df4f9872fa272b49ec211a4",
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/vinceliuice/Fluent-kde"
+}

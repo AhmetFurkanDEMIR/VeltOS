@@ -20,9 +20,14 @@ observed — including failures.
   representative of GPU performance).
 - Firmware modes: `bios` (SeaBIOS), `uefi` (OVMF), `secureboot` (OVMF with
   Microsoft keys; exercises Debian's signed shim → GRUB → kernel chain).
-- Flow: screenshot the boot menu, press Enter, wait for the guest agent,
-  then poll until `plasmashell` runs for the live user, idle for 60 s,
-  screenshot the desktop, run checks and measurements.
+- Flow: the boot menu is hidden like on Windows, so the test presses F4
+  3 s after start to reveal it, screenshots it, presses Enter, screenshots
+  the boot splash, waits for the guest agent, then polls until
+  `plasmashell` runs for the live user, idles for 60 s, screenshots the
+  desktop (with the live welcome window), checks the live experience
+  (Plymouth theme in the initramfs, welcome window, application names,
+  per-user defaults), closes the welcome window, screenshots the clean
+  desktop and the Start menu, and records measurements.
 - Required checks fail the run (exit code 1). Advisory checks are reported
   as WARN (e.g. degraded systemd state, X11 instead of Wayland).
 

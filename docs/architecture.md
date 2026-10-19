@@ -73,8 +73,9 @@ lose Secure Boot signing and add a large maintenance burden.
     app indexing, search and session actions. Trade-off: that QML API is
     private and may change between Plasma releases; the applet is small
     and tested in a VM on every change (`build/run.sh preview`);
-  - colour schemes derived from Breeze at package build time (only the accent
-    colours change, so Breeze fixes flow in on rebuild);
+  - the Windows 11 inspired look (application style, window frames,
+    Plasma theme, colour schemes) derived at package build time from the
+    pinned Fluent-kde release (see 2.3.1);
   - `/etc/xdg/kdeglobals`, `kcminputrc`, `kscreenlockerrc`, `ksplashrc`
     system defaults (Inter UI font, Fluent icons/cursors);
   - the "Velt Bloom" wallpaper, generated procedurally (`tools/bloom.py`)
@@ -85,13 +86,93 @@ lose Secure Boot signing and add a large maintenance burden.
   that depict Microsoft's Windows logo are replaced/removed (trademark).
 - Third-party branding pinned out of the image: Debian's `desktop-base`,
   `calamares-settings-debian`, and KDE's `plasma-welcome` (KDE community
-  pages; a VeltOS welcome app is planned).
+  pages). The live system shows its own small welcome window ("Try VeltOS"
+  / "Install VeltOS", `calamares-settings-veltos`); a welcome app for
+  installed systems is planned.
 - The layout only applies to users who start Plasma for the first time; it
   never rewrites existing users' configuration.
 - Session: Wayland (Plasma 6 default). X11 session (`kwin-x11`) is installed
   via Recommends as a fallback.
 - Revisit: replacing more stock Plasma UI (System Settings, notifications)
   only where it blocks the "familiar for Windows users" goal.
+
+#### 2.3.1 Windows 11 look: derive from Fluent-kde, do not write a widget style
+
+The product owner asked for an interface "written from scratch, like
+Windows 11". What users see of an application is mostly drawn by three
+replaceable parts of the desktop: the Qt widget style, the window
+decoration and the Plasma theme. Options considered:
+
+| Option | Verdict |
+|---|---|
+| Write a VeltOS Qt widget style and KWin decoration in C++ | Months of work for every widget type and state; high risk of visual bugs across hundreds of applications. Rejected for now. |
+| Tweak Breeze (colours, rounded options) | Light and robust, but still looks like KDE (chevron window buttons, Breeze controls). Rejected as the only change. |
+| Klassy / Lightly decorations and styles | Not in Debian; would need packaging and maintenance of C++ code against each Plasma release. Rejected. |
+| **Fluent-kde** (Kvantum SVG style + Aurorae decoration + Plasma theme, GPL-3.0) | Chosen. Windows 11 inspired, actively maintained, no compiled code (Kvantum and Aurorae are in Debian), so it is recoloured and fixed at build time by `tools/fluent.py`. |
+
+Changes VeltOS makes to Fluent-kde and why are listed in
+`packages/veltos-desktop/README.md` (accent colour, removed third-party
+logos, opaque window frames because the translucent ones need blur, no
+translucent application windows for lightness, opaque popups unless the
+blur effect is available).
+
+Trade-offs: Kvantum renders from SVG and costs a little more CPU than
+Breeze; Aurorae decorations are QML and heavier than Breeze's C++ one.
+Measured RAM/CPU impact on the live session is still to be recorded in
+`docs/status.md`. Kvantum reads its theme only from `~/.config` (no
+system-wide file), so a Plasma session script creates it for new users.
+
+#### 2.3.2 Windows-familiar application names without patching packages
+
+Users look for "File Explorer", "Settings", "Task Manager", not Dolphin,
+System Settings, System Monitor. Options:
+
+| Option | Verdict |
+|---|---|
+| Patch/fork the application packages | Violates "reuse, don't fork"; every Debian update would need a rebuild. Rejected. |
+| `dpkg-divert` the upstream `.desktop` files and ship VeltOS copies | Copies go stale when Debian updates the originals (new actions, changed `Exec`). Rejected. |
+| **Generated overrides in an earlier XDG data directory** | Chosen. `update-app-names` copies the installed originals, changes only `Name`/`GenericName`/`Keywords`/`NoDisplay`, and writes them to `/var/lib/veltos/xdg/applications/`; the Plasma session puts that directory first in `XDG_DATA_DIRS`. A dpkg trigger on `/usr/share/applications` regenerates the copies after every package change. |
+
+The Windows word and the original name stay search keywords.
+
+Inside the programs, Qt appends the program's own display name to every
+window title ("Home — Dolphin"). That name is a translatable string, so
+VeltOS ships message catalogs for two pseudo-languages, `en@veltos` and
+`tr@veltos`, containing only those names, and the session script puts the
+matching one first in `LANGUAGE` (`tr@veltos:tr`). KDE's translation
+system looks a string up language by language, so every other text falls
+through to the real language. Result: "Home — File Explorer", without
+patching or diverting any package file. Alternatives rejected: replacing
+the programs' complete catalogs (copies of thousands of strings that go
+stale), patching `KAboutData` in the programs (fork). Limits: English and
+Turkish only; About dialogs and help texts keep other mentions of KDE. Settings pages for unused KDE services are
+hidden with KDE's own kiosk mechanism (`[KDE Control Module Restrictions]`
+in `/etc/xdg/kdeglobals`).
+
+#### 2.3.3 Settings: a new app in front of KDE's settings modules
+
+KDE System Settings exposes everything, in KDE's own structure and words.
+VeltOS Settings (`veltos-settings`, PySide6 + QML) is a new, small app with
+the Windows 11 Settings structure (navigation pane, Home, System,
+Bluetooth & devices, …, search). Pages people use most are built in
+(theme, About/rename PC, Storage, Windows programs); every other setting
+opens the corresponding KDE settings module (`kcmshell6 kcm_…`) in its own
+window, so VeltOS does not reimplement and maintain display, network,
+sound, Bluetooth or user management. KDE System Settings stays available
+as "Control Panel" — the same split Windows has. Trade-off: detailed
+pages look like KDE pages; built-in pages can replace them one by one.
+Python + QML (as `veltos-run`) keeps the app small and testable: its
+window is loaded offscreen in the package build.
+
+#### 2.3.4 Start-up and sign-in
+
+Like Windows, the boot menu is hidden (GRUB `timeout_style=hidden`, 2 s;
+Esc/F4/Shift shows it) and any text GRUB prints is drawn black on black,
+so the screen goes from the firmware logo to the VeltOS boot screen
+(Plymouth: logo and spinner) to the desktop or the sign-in screen. The
+sign-in screen is a VeltOS SDDM theme in Windows 11 layout; it never shows
+session/desktop names. The language of the live system is chosen in its
+welcome window (re-sign-in) instead of a boot menu entry.
 
 ### 2.4 Graphics drivers
 

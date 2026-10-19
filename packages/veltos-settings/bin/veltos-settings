@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+"""VeltOS Settings (Windows 11 style settings app)."""
+import os
+import sys
+
+# Native Plasma look for the few standard Qt Quick controls it uses.
+os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
+
+from veltos_settings.app import main
+
+sys.exit(main())

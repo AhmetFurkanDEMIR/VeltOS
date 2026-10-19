@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome to VeltOS
+Name[tr]=VeltOS'a hoş geldiniz
+Comment=Try or install VeltOS
+Comment[tr]=VeltOS'u deneyin veya kurun
+Exec=/usr/libexec/veltos-installer/veltos-live-welcome
+Icon=veltos-logo
+NoDisplay=true
+StartupNotify=false

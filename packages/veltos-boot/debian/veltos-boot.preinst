@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# Plymouth's distribution defaults name the boot splash theme; VeltOS ships
+# its own (Theme=veltos) and keeps Debian's under another name.
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+    dpkg-divert --package veltos-boot --add --rename \
+        --divert /usr/share/plymouth/plymouthd.defaults.debian \
+        /usr/share/plymouth/plymouthd.defaults
+fi
+
+#DEBHELPER#

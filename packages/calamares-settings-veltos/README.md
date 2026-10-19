@@ -7,6 +7,16 @@ helper scripts are derived, ISC licence).
 
 ## What the user sees
 
+- When the live system starts, a **welcome window**: "Try VeltOS"
+  (closes the window) or "Install VeltOS" (starts the installer), and an
+  English / Türkçe switch in the corner. Switching writes the language and
+  keyboard layout for the session (`plasma-localerc`, `kxkbrc`) and signs
+  out; SDDM signs the live user in again at once (`Relogin=true` from
+  `/etc/sddm.conf.d/veltos-live.conf`), now in that language. The boot
+  menu therefore has no separate Turkish entry. Shown only on the install
+  medium.
+- In the live session the screen never locks, dims or turns off and the
+  computer does not go to sleep (nobody knows the live user's password).
 - An "Install VeltOS" icon on the live desktop and in the Start menu
   ("VeltOS'u Kur" in Turkish).
 - Calamares with VeltOS name, logo, colours and a slideshow (English and
@@ -36,11 +46,18 @@ helper scripts are derived, ISC licence).
 | `helpers/*` (job scripts) | `/usr/libexec/veltos-installer/` |
 | `bin/install-veltos`, `bin/veltos-install-desktop-icon` | `/usr/bin/` |
 | `data/install-veltos.desktop` / `veltos-install-icon.desktop` | `/usr/share/applications/` / `/etc/xdg/autostart/` |
+| `welcome/veltos-live-welcome`, `welcome/Main.qml` | `/usr/libexec/veltos-installer/`, `/usr/share/veltos-live-welcome/` (PySide6 + QML) |
+| `data/veltos-live-welcome.desktop` | `/etc/xdg/autostart/` and `/usr/share/applications/` (hidden; gives the window its icon) |
+| `data/veltos-live-session.sh` | `/etc/xdg/plasma-workspace/env/` (live-only: no lock, no sleep, no screen off) |
+| `data/veltos-live.conf` | `/etc/sddm.conf.d/` (live-only: sign in again after signing out) |
 
 ## Tests
 
 `tests/test_config.py` (package build): YAML validity, every sequence step
 is a known Calamares module or a shipped job, job scripts exist and pass
 `sh -n`, and no user-visible installer string mentions Debian.
+`tests/test_welcome.py`: language detection, complete translations, the
+welcome window loads offscreen without QML warnings, and the live session
+script writes the no-lock/no-sleep settings only on the install medium.
 
 Status: **installation not yet tested end to end** — see `docs/status.md`.

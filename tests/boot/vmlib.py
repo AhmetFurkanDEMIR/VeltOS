@@ -78,13 +78,21 @@ class Qmp:
         """Press keys together (e.g. key("ctrl", "a")) and release them."""
         self.execute("send-key", keys=[{"type": "qcode", "data": n} for n in names])
 
+    # US keyboard layout: character -> QEMU qcode(s).
+    KEYS = {" ": ["spc"], ".": ["dot"], "-": ["minus"], "/": ["slash"], "=": ["equal"],
+            ",": ["comma"], ";": ["semicolon"], "'": ["apostrophe"], "\\": ["backslash"],
+            "_": ["shift", "minus"], "$": ["shift", "4"], ":": ["shift", "semicolon"],
+            '"': ["shift", "apostrophe"], "|": ["shift", "backslash"], ">": ["shift", "dot"],
+            "<": ["shift", "comma"], "*": ["shift", "8"], "&": ["shift", "7"],
+            "(": ["shift", "9"], ")": ["shift", "0"], "{": ["shift", "bracket_left"],
+            "}": ["shift", "bracket_right"], "[": ["bracket_left"], "]": ["bracket_right"]}
+
     def type_text(self, text, delay=0.05):
         for ch in text:
-            name = {" ": "spc", ".": "dot", "-": "minus", "/": "slash"}.get(ch, ch)
             if ch.isupper():
                 self.key("shift", ch.lower())
             else:
-                self.key(name)
+                self.key(*self.KEYS.get(ch, [ch]))
             time.sleep(delay)
 
     def _move(self, x, y):

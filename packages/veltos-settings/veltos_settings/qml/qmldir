@@ -1,0 +1,13 @@
+singleton Theme 1.0 Theme.qml
+NavItem 1.0 NavItem.qml
+SearchField 1.0 SearchField.qml
+Card 1.0 Card.qml
+SettingCard 1.0 SettingCard.qml
+ThemePicker 1.0 ThemePicker.qml
+VButton 1.0 VButton.qml
+ItemsPage 1.0 ItemsPage.qml
+SearchPage 1.0 SearchPage.qml
+HomePage 1.0 HomePage.qml
+AboutPage 1.0 AboutPage.qml
+StoragePage 1.0 StoragePage.qml
+WindowsAppsPage 1.0 WindowsAppsPage.qml

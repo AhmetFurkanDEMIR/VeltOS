@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=VeltOS
+Description=VeltOS sign-in screen
+Author=VeltOS Developers
+License=GPL-3.0-or-later
+Type=sddm-theme
+Version=0.1
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=veltos
+Theme-API=2.0
+QtVersion=6

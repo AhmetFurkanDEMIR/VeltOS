@@ -1,0 +1,26 @@
+// Colours and sizes of VeltOS Settings (Windows 11 Settings proportions,
+// VeltOS palette). Follows the light/dark global theme.
+pragma Singleton
+import QtQuick
+
+QtObject {
+    readonly property bool dark: backend.darkMode
+
+    readonly property color window: dark ? "#1C1D26" : "#F3F5FA"
+    readonly property color card: dark ? "#2A2C38" : "#FFFFFF"
+    readonly property color cardHover: dark ? "#323544" : "#F8F9FD"
+    readonly property color cardPressed: dark ? "#272935" : "#F0F2F8"
+    readonly property color cardBorder: dark ? "#363949" : "#E3E6EE"
+    readonly property color text: dark ? "#F2F3F7" : "#1B1D24"
+    readonly property color subtext: dark ? "#AEB3C5" : "#5D6475"
+    readonly property color accent: dark ? "#6E95FF" : "#2F5EE6"
+    readonly property color navSelected: dark ? "#2C2F3D" : "#E4E8F3"
+    readonly property color navHover: dark ? "#262835" : "#EBEEF6"
+    readonly property color track: dark ? "#3A3D4E" : "#E1E5EE"
+
+    readonly property int radius: 8
+    readonly property int pageTitleSize: 28
+    readonly property int sectionSize: 14
+    readonly property int titleSize: 14
+    readonly property int bodySize: 12
+}

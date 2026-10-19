@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "iso": "veltos-0.1.0-dev-amd64.hybrid.iso",
+    "iso_sha256": "7d11ec03d735d721b7865d34c650a60a6e20c637b5440bf12fcaf4d0d4653034",
+    "firmware": "uefi",
+    "vm": "QEMU/KVM q35, 4 vCPU (host CPU model), 4096 MiB RAM, virtio-vga 1920x1080 (no 3D acceleration), virtio-net",
+    "qemu": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)",
+    "started_utc": "20261019-065930",
+    "duration_s": 97.6
+  },
+  "checks": [
+    {
+      "name": "guest agent reachable (system booted)",
+      "status": "PASS",
+      "detail": "after 14.1s"
+    },
+    {
+      "name": "os-release identifies VeltOS",
+      "status": "PASS",
+      "detail": "PRETTY_NAME=\"VeltOS 0.1 (pre-alpha)\"; NAME=\"VeltOS\"; VERSION_ID=\"0.1\"; VERSION=\"0.1 (pre-alpha)\"; VERSION_CODENAME=trixie; ID=veltos; ID_LIKE=debian; ANSI_COLOR=\"38;2;79;124;255\"; LOGO=veltos-logo;"
+    },
+    {
+      "name": "VeltOS packages installed",
+      "status": "PASS",
+      "detail": "linux-image-amd64 6.12.113-1\nplasma-workspace 4:6.3.6-2\nveltos-base 0.1.0~dev1\nveltos-desktop 0.1.0~dev1"
+    },
+    {
+      "name": "plasmashell running for live user",
+      "status": "PASS",
+      "detail": "after 19.1s"
+    },
+    {
+      "name": "graphical session is Wayland",
+      "status": "PASS",
+      "detail": "Name=velt; Type=wayland; State=active; Name=velt; Type=unspecified; State=active;"
+    },
+    {
+      "name": "no failed systemd units",
+      "status": "PASS",
+      "detail": "running"
+    },
+    {
+      "name": "VeltOS taskbar layout applied",
+      "status": "PASS",
+      "detail": "2 panel spacers, icon tasks, VeltOS Start menu"
+    },
+    {
+      "name": "VeltOS wallpaper set",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "taskbar launcher .desktop files exist",
+      "status": "PASS",
+      "detail": "ok org.kde.dolphin\nok firefox-esr\nok org.kde.konsole\nok veltos-settings"
+    },
+    {
+      "name": "boot splash (VeltOS Plymouth theme) is in the live initramfs",
+      "status": "PASS",
+      "detail": "1"
+    },
+    {
+      "name": "live welcome window started",
+      "status": "PASS",
+      "detail": "1523"
+    },
+    {
+      "name": "session uses VeltOS application names (XDG_DATA_DIRS)",
+      "status": "PASS",
+      "detail": "XDG_DATA_DIRS=/var/lib/veltos/xdg:/usr/local/share:/usr/share"
+    },
+    {
+      "name": "File Explorer and Control Panel names",
+      "status": "PASS",
+      "detail": "Name=File Explorer; Name=Control Panel; Name=Global Theme; Name=Users; Name=Screen Locking; Name=Power Management; Name=Display Configuration;"
+    },
+    {
+      "name": "per-user defaults: VeltOS style, File Explorer side bar, no live screen lock",
+      "status": "PASS",
+      "detail": "[General]; theme=VeltOS; 1; Autolock=false;"
+    },
+    {
+      "name": "booted via UEFI",
+      "status": "PASS",
+      "detail": "efi"
+    },
+    {
+      "name": "no crashed processes",
+      "status": "PASS",
+      "detail": "none"
+    }
+  ],
+  "measurements": {
+    "guest_agent_ready_s": 14.1,
+    "os-release": "PRETTY_NAME=\"VeltOS 0.1 (pre-alpha)\"\nNAME=\"VeltOS\"\nVERSION_ID=\"0.1\"\nVERSION=\"0.1 (pre-alpha)\"\nVERSION_CODENAME=trixie\nID=veltos\nID_LIKE=debian\nANSI_COLOR=\"38;2;79;124;255\"\nLOGO=veltos-logo\n",
+    "key_packages": "linux-image-amd64 6.12.113-1\nplasma-workspace 4:6.3.6-2\nveltos-base 0.1.0~dev1\nveltos-desktop 0.1.0~dev1\n",
+    "plasmashell_running_s": 19.1,
+    "sessions": "Name=velt\nType=wayland\nState=active\nName=velt\nType=unspecified\nState=active\n",
+    "journal_errors_tail": "[    5.349966] veltos adduser[833]: The group `powerdev' does not exist.\n[    5.379198] veltos adduser[835]: The group `scanner' does not exist.\n[    5.459755] veltos adduser[844]: The group `debian-tor' does not exist.\n[   14.057126] veltos obexd[1753]: Unable to acquire registry: Error calling StartServiceByName for org.gnome.evolution.dataserver.Sources5: Unit evolution-source-registry.service not found.\n[   14.057929] veltos obexd[1753]: Unable to acquire registry: Error calling StartServiceByName for org.gnome.evolution.dataserver.Sources5: Unit evolution-source-registry.service not found.\n",
+    "systemd_analyze": "Startup finished in 2.963s (kernel) + 4.920s (userspace) = 7.883s",
+    "free_m": "               total        used        free      shared  buff/cache   available\nMem:            3915        1692         967         204        1686        2222\nSwap:              0           0           0\n",
+    "idle_used_mib(MemTotal-MemAvailable)": 1691,
+    "shmem_mib(live overlay tmpfs etc.)": 204,
+    "top_processes_by_rss": "  651.0 MiB  plasmashell\n  353.7 MiB  kwin_wayland\n  253.8 MiB  DiscoverNotifie\n  159.3 MiB  kded6\n  151.2 MiB  xwaylandvideobr\n  148.2 MiB  kdeconnectd\n  141.5 MiB  polkit-kde-auth\n  140.7 MiB  xdg-desktop-por\n  133.3 MiB  kaccess\n  121.1 MiB  ksmserver\n   80.5 MiB  Xwayland\n   56.9 MiB  org_kde_powerde\n   46.3 MiB  startplasma-way\n   43.7 MiB  packagekitd\n   41.9 MiB  kactivitymanage\n",
+    "process_count": "175",
+    "kernel_and_gpu": "6.12.113+deb13-amd64\n00:02.0 VGA compatible controller: Red Hat, Inc. Virtio 1.0 GPU (rev 01)\n\tSubsystem: Red Hat, Inc. QEMU\n\tKernel driver in use: virtio-pci\n"
+  },
+  "artifacts": {
+    "boot menu": "01-boot-menu.png",
+    "boot splash": "01b-boot-splash.png",
+    "desktop (with the live welcome window)": "02-desktop.png",
+    "desktop without welcome window": "03-desktop-clean.png",
+    "start menu": "04-start-menu.png"
+  },
+  "result": "PASS"
+}

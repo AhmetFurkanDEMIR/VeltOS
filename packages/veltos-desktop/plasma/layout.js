@@ -35,15 +35,41 @@ start.writeConfig("global", "Alt+F1");
 
 var tasks = panel.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
+// Pinned like a fresh Windows 11 PC: File Explorer, browser, Settings.
 tasks.writeConfig("launchers", [
     "applications:org.kde.dolphin.desktop",
     "applications:firefox-esr.desktop",
-    "applications:org.kde.konsole.desktop",
-    "applications:systemsettings.desktop"
+    "applications:veltos-settings.desktop"
 ]);
 
 panel.addWidget("org.kde.plasma.panelspacer");
 
-panel.addWidget("org.kde.plasma.systemtray");
-panel.addWidget("org.kde.plasma.digitalclock");
-panel.addWidget("org.kde.plasma.showdesktop");
+// Tray: network, sound, battery and notifications stay visible; everything
+// else goes behind the "^" overflow arrow, as on Windows 11.
+var systray = panel.addWidget("org.kde.plasma.systemtray");
+var systrayContainmentId = systray.readConfig("SystrayContainmentId");
+if (systrayContainmentId) {
+    var tray = desktopById(systrayContainmentId);
+    tray.currentConfigGroup = ["General"];
+    tray.writeConfig("hiddenItems", [
+        "org.kde.plasma.brightness",
+        "org.kde.plasma.clipboard",
+        "org.kde.plasma.devicenotifier",
+        "org.kde.plasma.manage-inputmethod",
+        "org.kde.plasma.vault",
+        "org.kde.kdeconnect",
+        "org.kde.kscreen",
+        "org.kde.plasma.printmanager"
+    ]);
+}
+
+// Clock like Windows 11: time above the date, normal text size, instead of
+// text scaled to the panel height.
+var clock = panel.addWidget("org.kde.plasma.digitalclock");
+clock.currentConfigGroup = ["Appearance"];
+clock.writeConfig("autoFontAndSize", false);
+clock.writeConfig("fontSize", 10);
+clock.writeConfig("dateDisplayFormat", 2);   // below the time
+clock.writeConfig("dateFormat", "shortDate");
+clock.writeConfig("showSeconds", 0);
+// No "show desktop" button: Windows 11 has none visible (Meta+D works).

@@ -16,18 +16,21 @@ License: CC-BY-SA-4.0
  The VeltOS name and logo identify the project; the license covers the
  artwork files, not use of the name as a trademark.
 
-Files: build-assets/root/usr/share/color-schemes/*
-Copyright: Andrew Lake <jamboarder@gmail.com>
-           Marco Martin <notmart@gmail.com>
-           Nate Graham <nate@kde.org>
-           Noah Davis <noahadvs@gmail.com>
-           Neal Gompa <ngompa@kde.org>
-           David Redondo <kde@david-redondo.de>
-           Thomas Duckworth <tduck973564@gmail.com>
+Files: upstream/*
+       build-assets/root/usr/share/Kvantum/*
+       build-assets/root/usr/share/aurorae/*
+       build-assets/root/usr/share/plasma/desktoptheme/*
+       build-assets/root/usr/share/color-schemes/*
+Copyright: Vince Liuice <vinceliuice@hotmail.com>
+           Tsu Jan <tsujan2000@gmail.com>
            2026 VeltOS Developers
-License: LGPL-2+
-Comment: Generated at build time from KDE Breeze colour schemes
- (kde-style-breeze-data) with the accent colours replaced.
+License: GPL-3
+Comment: Fluent-kde (https://github.com/vinceliuice/Fluent-kde), pinned in
+ upstream.json and checksum-verified at build time. tools/fluent.py derives
+ the VeltOS Kvantum style, Aurorae window decorations, Plasma desktop themes
+ and colour schemes from it: accent colour replaced, logos of other
+ projects removed, settings adjusted. The Kvantum theme is based on
+ KvAdapta by Tsu Jan.
 
 License: GPL-3+
  This program is free software: you can redistribute it and/or modify
@@ -38,11 +41,10 @@ License: GPL-3+
  On Debian systems, the complete text of the GNU General Public License
  version 3 can be found in "/usr/share/common-licenses/GPL-3".
 
-License: LGPL-2+
- This library is free software; you can redistribute it and/or modify it
- under the terms of the GNU Library General Public License as published by
- the Free Software Foundation; either version 2 of the License, or (at your
- option) any later version.
+License: GPL-3
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, version 3.
  .
- On Debian systems, the complete text of the GNU Library General Public
- License version 2 can be found in "/usr/share/common-licenses/LGPL-2".
+ On Debian systems, the complete text of the GNU General Public License
+ version 3 can be found in "/usr/share/common-licenses/GPL-3".

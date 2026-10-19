@@ -1,0 +1,176 @@
+#!/usr/bin/python3
+"""Per-user VeltOS defaults that KDE has no system-wide setting for.
+
+Called at the start of every Plasma session by
+/etc/xdg/plasma-workspace/env/veltos-session.sh, only when one of the files
+below is missing. Existing files are never changed, so a user's own choices
+always win:
+
+  * ~/.config/Kvantum/kvantum.kvconfig - the VeltOS application style
+    (Kvantum reads its theme only from the user's configuration);
+  * ~/.local/share/user-places.xbel - File Explorer's side bar laid out like
+    Windows: Home, Desktop, Downloads, Documents, Pictures, Music, Videos and
+    Trash, then the drives; no Network, Recent or Search sections.
+
+At the same first run, the "Templates" and "Public" folders that
+xdg-user-dirs creates (unknown on Windows) are switched off and removed if
+they are still empty, so the home folder shows what Windows users expect.
+"""
+
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+from xml.sax.saxutils import escape, quoteattr
+
+KVANTUM_THEME = "VeltOS"
+# KIO's places file format version (KFilePlacesModel); KIO migrates older
+# files itself, so writing the version we know is safe.
+PLACES_VERSION = 4
+# (xdg-user-dirs key or None for home, title as KIO stores it, icon)
+PLACES = [
+    (None, "Home", "user-home"),
+    ("DESKTOP", "Desktop", "user-desktop"),
+    ("DOWNLOAD", "Downloads", "folder-downloads"),
+    ("DOCUMENTS", "Documents", "folder-documents"),
+    ("PICTURES", "Pictures", "folder-pictures"),
+    ("MUSIC", "Music", "folder-music"),
+    ("VIDEOS", "Videos", "folder-videos"),
+]
+HIDDEN_GROUPS = ("Remote", "RecentlySaved", "SearchFor", "Tags")
+SHOWN_GROUPS = ("Places", "Devices", "RemovableDevices")
+
+
+def config_home():
+    return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+
+
+def data_home():
+    return Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
+
+
+def user_dirs(home):
+    """XDG user directories (localised names, e.g. "Belgeler" in Turkish)."""
+    dirs_file = config_home() / "user-dirs.dirs"
+    if not dirs_file.exists():
+        try:
+            subprocess.run(["xdg-user-dirs-update"], check=False, timeout=20)
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    result = {}
+    try:
+        for line in dirs_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line.startswith("XDG_") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            value = value.strip().strip('"').replace("$HOME", str(home))
+            result[key[len("XDG_"):-len("_DIR")]] = Path(value)
+    except OSError:
+        pass
+    return result
+
+
+# xdg-user-dirs entries Windows has no equivalent for in the home folder.
+UNWANTED_DIRS = ("TEMPLATES", "PUBLICSHARE")
+
+
+def drop_unwanted_dirs(home):
+    """Point XDG_TEMPLATES_DIR / XDG_PUBLICSHARE_DIR at $HOME (which
+    xdg-user-dirs treats as "disabled") and remove the folders if empty."""
+    dirs_file = config_home() / "user-dirs.dirs"
+    try:
+        lines = dirs_file.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return
+    out = []
+    for line in lines:
+        key = line.split("=", 1)[0].strip()
+        if key in (f"XDG_{name}_DIR" for name in UNWANTED_DIRS) and "=" in line:
+            folder = line.split("=", 1)[1].strip().strip('"').replace("$HOME", str(home))
+            if Path(folder) != home:
+                try:
+                    Path(folder).rmdir()  # only if empty
+                except OSError:
+                    pass
+            line = f'{key}="$HOME/"'
+        out.append(line)
+    dirs_file.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
+def places_xbel(home, dirs, stamp):
+    """KIO's user-places.xbel. Titles are stored untranslated and marked as
+    system items; KIO translates them when it shows them."""
+    metadata = [f"   <kde_places_version>{PLACES_VERSION}</kde_places_version>"]
+    for group in SHOWN_GROUPS:
+        metadata.append(f"   <GroupState-{group}-IsHidden>false</GroupState-{group}-IsHidden>")
+    for group in HIDDEN_GROUPS:
+        metadata.append(f"   <GroupState-{group}-IsHidden>true</GroupState-{group}-IsHidden>")
+    # Tell KIO its recent-files and search entries were already offered, so
+    # it does not add them again.
+    metadata += ["   <withRecentlyUsed>true</withRecentlyUsed>", "   <withBaloo>true</withBaloo>"]
+
+    bookmarks = []
+    entries = [(home if key is None else dirs.get(key, home / title), title, icon)
+               for key, title, icon in PLACES]
+    entries.append((None, "Trash", "user-trash"))
+    for index, (path, title, icon) in enumerate(entries):
+        href = "trash:/" if path is None else path.as_uri()
+        bookmarks.append(
+            f" <bookmark href={quoteattr(href)}>\n"
+            f"  <title>{escape(title)}</title>\n"
+            "  <info>\n"
+            '   <metadata owner="http://freedesktop.org">\n'
+            f"    <bookmark:icon name={quoteattr(icon)}/>\n"
+            "   </metadata>\n"
+            '   <metadata owner="http://www.kde.org">\n'
+            f"    <ID>{stamp}/{index}</ID>\n"
+            "    <isSystemItem>true</isSystemItem>\n"
+            "   </metadata>\n"
+            "  </info>\n"
+            " </bookmark>")
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        "<!DOCTYPE xbel>\n"
+        '<xbel xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks" '
+        'xmlns:kdepriv="http://www.kde.org/kdepriv" '
+        'xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info">\n'
+        " <info>\n"
+        '  <metadata owner="http://www.kde.org">\n'
+        + "\n".join(metadata) + "\n"
+        "  </metadata>\n"
+        " </info>\n"
+        + "\n".join(bookmarks) + "\n"
+        "</xbel>\n")
+
+
+def write_new(path, text):
+    """Create path with text unless it already exists (atomic, no overwrite)."""
+    if path.exists():
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.veltos-tmp")
+    tmp.write_text(text, encoding="utf-8")
+    try:
+        os.link(tmp, path)  # fails if the file appeared meanwhile
+    except FileExistsError:
+        return False
+    finally:
+        tmp.unlink()
+    return True
+
+
+def main():
+    home = Path.home()
+    write_new(config_home() / "Kvantum/kvantum.kvconfig", f"[General]\ntheme={KVANTUM_THEME}\n")
+    places = data_home() / "user-places.xbel"
+    if not places.exists():
+        dirs = user_dirs(home)
+        drop_unwanted_dirs(home)
+        write_new(places, places_xbel(home, dirs, int(time.time())))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

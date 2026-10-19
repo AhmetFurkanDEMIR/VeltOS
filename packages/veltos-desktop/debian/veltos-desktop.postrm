@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = remove ] || [ "$1" = purge ]; then
+    rm -rf /var/lib/veltos/xdg/applications
+    rmdir --ignore-fail-on-non-empty /var/lib/veltos/xdg /var/lib/veltos 2>/dev/null || true
+fi

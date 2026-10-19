@@ -4,16 +4,26 @@ The VeltOS start-up experience.
 
 | Piece | Installed to | Notes |
 |---|---|---|
-| Plymouth theme `veltos` | `/usr/share/plymouth/themes/veltos/` | Logo in the centre and a spinner of white dots below it on a near-black background, like Windows. Made the default through the `default.plymouth` alternative (priority 200); the initramfs is rebuilt via a dpkg trigger. Password prompt images are shared with Plymouth's `spinner` theme. |
-| GRUB theme `veltos` | `/usr/share/grub/themes/veltos/` | For installed systems: logo and "VeltOS" on navy, menu below. |
+| Plymouth theme `veltos` | `/usr/share/plymouth/themes/veltos/` | Logo in the centre and a spinner of white dots below it on a near-black background, like Windows. Password prompt images are shared with Plymouth's `spinner` theme. |
+| Plymouth defaults | `/usr/share/plymouth/plymouthd.defaults` (Plymouth's own file diverted to `plymouthd.defaults.debian`) | `Theme=veltos`. This file — not the `default.plymouth` alternative, which is also set — is what `plymouth-set-default-theme` and the initramfs hook read. Before this diversion the theme named there was not installed and every initramfs (also the live ISO's) fell back to the text splash. The initramfs is rebuilt via a dpkg trigger. |
+| SDDM ordering | `/usr/lib/systemd/system/sddm.service.d/veltos-plymouth.conf` | `After=plymouth-quit.service`, as upstream SDDM's unit has it; without it automatic login of the live session sometimes failed (`sddm-helper` exit 63). |
+| GRUB theme `veltos` | `/usr/share/grub/themes/veltos/` | For installed systems: logo and "VeltOS" on navy, menu below in Inter (converted with `grub-mkfont`), rounded highlight for the selected entry, thin countdown bar. |
 | Boot defaults | `/etc/default/grub.d/veltos.cfg` | `GRUB_DISTRIBUTOR="VeltOS"` (menu says "VeltOS GNU/Linux"), `quiet splash`, theme, os-prober enabled so Windows is listed. |
 
-All images are generated at package build time by `tools/build-assets.py`
-from `branding/veltos-logo.svg` (a copy of the master logo in
-`veltos-desktop`; `tests/repo/test_consistency.py` keeps them identical).
+All images and fonts are generated at package build time by
+`tools/build-assets.py` from `branding/veltos-logo.svg` (a copy of the
+master logo in `veltos-desktop`; `tests/repo/test_consistency.py` keeps
+them identical) and Debian's `fonts-inter`.
+
+GRUB font names: `grub-mkfont` names a font "<family> <Regular|Bold> <size>";
+Inter's SemiBold file reports family "Inter" and style Regular, so it is
+converted with the family name "Inter SemiBold" — themes refer to it as
+"Inter SemiBold Regular 20". The build checks every name.
 
 The live ISO's own boot menu is configured in
-`build/live-build/config/bootloaders/`, not here.
+`build/live-build/config/bootloaders/`; `build/scripts/build-iso.sh` copies
+this package's GRUB fonts and highlight images into it.
 
-Tests: `tests/test_boot.py` (theme file, spinner animation loops, GRUB
-defaults).
+Tests: `tests/test_boot.py` (theme file, spinner animation loops, Plymouth
+defaults, SDDM drop-in, diversion scripts, GRUB theme uses only generated
+fonts, highlight slices) and install-tree checks in `debian/rules`.
