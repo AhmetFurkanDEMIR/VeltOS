@@ -1,0 +1,16 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: veltos-taskmanager
+Source: VeltOS project repository
+
+Files: *
+Copyright: 2026 VeltOS Developers
+License: GPL-3+
+
+Files: data/veltos-taskmanager.svg
+Copyright: 2026 VeltOS Developers
+License: CC-BY-SA-4.0
+ See /usr/share/doc/veltos-desktop/copyright.
+
+License: GPL-3+
+ On Debian systems, the complete text of the GNU General Public License
+ version 3 can be found in "/usr/share/common-licenses/GPL-3".
