@@ -1,7 +1,7 @@
 /*
     VeltOS Task View: the Windows 11 taskbar button that shows every open
-    window and the virtual desktops. It starts KWin's Overview effect (the
-    same as Meta+W).
+    window and the virtual desktops. It starts the VeltOS Task View effect
+    (kwin/effects/veltostaskview, the same as Meta+Tab).
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -18,7 +18,7 @@ PlasmoidItem {
     function showOverview() {
         launcher.connectSource("dbus-send --session --type=method_call --dest=org.kde.kglobalaccel "
                                + "/component/kwin org.kde.kglobalaccel.Component.invokeShortcut "
-                               + "string:Overview");
+                               + "string:'VeltOS Task View'");
     }
 
     P5Support.DataSource {

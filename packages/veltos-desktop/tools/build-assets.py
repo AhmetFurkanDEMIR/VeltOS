@@ -24,6 +24,7 @@ import bloom  # noqa: E402  (tools/bloom.py: procedural wallpaper)
 import fluent  # noqa: E402  (tools/fluent.py: themes derived from Fluent-kde)
 import gtktheme  # noqa: E402  (tools/gtktheme.py: GTK theme with Windows 11 caption buttons)
 import firefox  # noqa: E402  (tools/firefox.py: Windows 11 caption buttons in Firefox)
+import sounds  # noqa: E402  (tools/sounds.py: original VeltOS system sounds)
 import app_titles  # noqa: E402  (tools/app_titles.py: program names in titles)
 
 WALLPAPER_ID = "VeltOS"
@@ -183,6 +184,8 @@ def build_kdeglobals(scheme_groups, root):
     }
     groups["[WM]"]["activeFont"] = UI_FONT
     groups["[Icons]"] = {"Theme": lnf["icons"]}
+    # VeltOS system sounds (tools/sounds.py), Ocean for the rest.
+    groups["[Sounds]"] = {"Theme": sounds.THEME}
     groups["[KDE]"] = {
         "LookAndFeelPackage": DEFAULT_LOOK_AND_FEEL,
         # The light/dark pair offered by Settings > Quick Settings.
@@ -390,6 +393,11 @@ def build_static_config(root):
         "etc/xdg/klaunchrc": (
             "[FeedbackStyle]\n"
             "BusyCursor=false\n"),
+        # A chime when the desktop appears after signing in, like Windows'
+        # start-up sound (Plasma has the event but no sound by default).
+        "etc/xdg/plasma_workspace.notifyrc": (
+            "[Event/startkde]\n"
+            "Action=Sound\n"),
         "etc/xdg/ksplashrc": (
             "[KSplash]\n"
             "Engine=KSplashQML\n"
@@ -443,6 +451,9 @@ def build_static_config(root):
     overrides.mkdir(parents=True, exist_ok=True)
     for spec in sorted((SRC / "plasma-overrides").glob("*.json")):
         shutil.copy(spec, overrides / spec.name)
+
+    # KWin effects in QML (Windows 11 Task View).
+    shutil.copytree(SRC / "kwin/effects", root / "usr/share/kwin/effects", dirs_exist_ok=True)
 
     # Desktop icons every user gets (see system/veltos-session.sh).
     desktop_icons = root / "usr/share/veltos/desktop"
@@ -517,6 +528,7 @@ def main(argv=None):
     build_static_config(root)
     gtktheme.build(root)
     firefox.build(root)
+    sounds.build(root)
     shutil.rmtree(tmp_dir)
     return 0
 

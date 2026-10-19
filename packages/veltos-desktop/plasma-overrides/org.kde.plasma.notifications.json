@@ -1,0 +1,18 @@
+{
+  "plugin": "org.kde.plasma.notifications",
+  "about": "Notification pop-ups closer to Windows 11 toasts: no timeout bar, a monochrome close glyph. Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "replacements": [
+    {
+      "file": "contents/ui/delegates/DelegatePopup.qml",
+      "why": "no timeout bar under the header",
+      "old": "        visible: !criticalNotificationIndicator.visible\n",
+      "new": "        visible: false // VeltOS: Windows toasts have no timeout bar\n"
+    },
+    {
+      "file": "contents/ui/components/HeadingButtons.qml",
+      "why": "monochrome close glyph",
+      "old": "        icon.name: \"window-close\"\n",
+      "new": "        icon.name: \"window-close-symbolic\" // VeltOS\n"
+    }
+  ]
+}

@@ -25,6 +25,7 @@ class OverrideTests(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.source = self.tmp / "plasmoids"
         shutil.copytree(PKG / "tests/data/systemtray", self.source / TRAY)
+        shutil.copytree(PKG / "tests/data/notifications", self.source / "org.kde.plasma.notifications")
         self.out = self.tmp / "out"
 
     def run_tool(self, specs=PKG / "plasma-overrides"):
@@ -39,6 +40,11 @@ class OverrideTests(unittest.TestCase):
         self.assertIn("visible: !!systemTrayState.activeApplet // VeltOS",
                       (ui / "ExpandedRepresentation.qml").read_text())
         self.assertTrue((self.out / TRAY / overrides.MARKER).exists())
+
+    def test_notification_changes_apply(self):
+        self.assertEqual(self.run_tool(), 0)
+        popup = self.out / "org.kde.plasma.notifications/contents/ui/delegates/DelegatePopup.qml"
+        self.assertIn("Windows toasts have no timeout bar", popup.read_text())
 
     def test_changed_upstream_falls_back_to_plasma(self):
         self.run_tool()
