@@ -30,8 +30,10 @@ APPS = {
     "org.kde.ark.desktop": ("Archive Manager", "Arşiv Yöneticisi", "zip;rar;7z;tar;Sıkıştır;"),
     "org.kde.spectacle.desktop": ("Screenshot", "Ekran Görüntüsü",
                                   "Snipping Tool;Screen capture;Ekran Alıntısı;"),
-    "org.kde.plasma-systemmonitor.desktop": ("Task Manager", "Görev Yöneticisi",
-                                             "Processes;Performance;Süreçler;Performans;"),
+    # "Task Manager" is VeltOS Task Manager (veltos-taskmanager); KDE's
+    # detailed monitor is Windows' Resource Monitor.
+    "org.kde.plasma-systemmonitor.desktop": ("Resource Monitor", "Kaynak İzleyicisi",
+                                             "System Monitor;Sensors;Sistem İzleyicisi;Algılayıcılar;"),
     "org.kde.kinfocenter.desktop": ("System Information", "Sistem Bilgisi",
                                     "About;Hardware;Donanım;Hakkında;"),
     "org.kde.discover.desktop": ("Store", "Mağaza", "Software;Apps;Install;Yazılım;Uygulama;"),

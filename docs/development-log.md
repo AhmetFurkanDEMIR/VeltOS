@@ -3,6 +3,26 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (evening) — VeltOS Task Manager
+
+New package `veltos-taskmanager` (PySide6/QML, psutil 7.0.0 from Debian):
+Processes, Performance and Startup apps in the Windows 11 layout,
+Ctrl+Shift+Esc (`X-KDE-Shortcuts`), one instance per user (local socket).
+KDE's System Monitor is renamed "Resource Monitor"; Start pins Task
+Manager. Verified in the VM: Ctrl+Shift+Esc opens it; Firefox shows as one
+app with its 11 processes; Performance shows the CPU graph and figures;
+Startup apps lists the autostart entries; a second Ctrl+Shift+Esc does not
+start a second copy.
+
+Problems: the kernel cuts process names to 15 characters
+("veltos-taskman"), so apps are matched by their command line; a process
+list replaced every second would lose scroll position and hover, so rows
+are updated in place (`model.py`); `data` is a reserved QML property name.
+While testing, `kbuildsycoca6` run without `XDG_MENU_PREFIX=plasma-` emptied
+the application database (taskbar showed "?" icons) until it was rebuilt
+with the session's variables; and one `vm upload` did not replace the
+package in the VM - check the installed files after `dpkg -i`.
+
 ## 2026-10-20 (later) — Task View, sounds, animations, toasts
 
 - **Task View** like Windows 11 as a KWin QML scene effect

@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-taskmanager
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-taskmanager/usr/lib/python3/dist-packages
+	cp -r veltos_taskmanager debian/veltos-taskmanager/usr/lib/python3/dist-packages/
+	find debian/veltos-taskmanager -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-taskmanager debian/veltos-taskmanager/usr/bin/veltos-taskmanager
+	install -D -m 644 data/veltos-taskmanager.desktop \
+		debian/veltos-taskmanager/usr/share/applications/veltos-taskmanager.desktop
+	install -D -m 644 data/veltos-taskmanager.svg \
+		debian/veltos-taskmanager/usr/share/icons/hicolor/scalable/apps/veltos-taskmanager.svg
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

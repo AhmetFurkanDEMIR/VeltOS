@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Task Manager
+Name[tr]=Görev Yöneticisi
+GenericName=Processes and performance
+GenericName[tr]=İşlemler ve performans
+Comment=See and end running apps, watch CPU, memory, disk and network
+Comment[tr]=Çalışan uygulamaları görün ve sonlandırın, CPU, bellek, disk ve ağı izleyin
+Exec=veltos-taskmanager
+Icon=veltos-taskmanager
+Categories=System;Monitor;
+Keywords=processes;performance;end task;startup;CPU;memory;işlem;performans;başlangıç;bellek;
+StartupNotify=true
+X-KDE-Shortcuts=Ctrl+Shift+Esc

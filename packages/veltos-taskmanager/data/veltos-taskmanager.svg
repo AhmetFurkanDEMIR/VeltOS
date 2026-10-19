@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+<!-- VeltOS Task Manager icon. VeltOS original artwork in the style of Windows 11 app icons.
+     SPDX-License-Identifier: CC-BY-SA-4.0 -->
+<defs>
+<linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E8EEFF"/></linearGradient>
+<linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5D8BFF"/><stop offset="1" stop-color="#3D63E8"/></linearGradient>
+<linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2FBF71" stop-opacity="0.35"/><stop offset="1" stop-color="#2FBF71" stop-opacity="0.05"/></linearGradient>
+</defs>
+<rect x="6" y="8" width="52" height="48" rx="7" fill="url(#card)" stroke="#C5D1F5" stroke-width="1"/>
+<path d="M 13 8 H 51 A 7 7 0 0 1 58 15 V 18 H 6 V 15 A 7 7 0 0 1 13 8 Z" fill="url(#bar)"/>
+<path d="M 12 48 L 19 40 L 25 44 L 33 28 L 40 36 L 52 24 V 50 H 12 Z" fill="url(#area)"/>
+<path d="M 12 48 L 19 40 L 25 44 L 33 28 L 40 36 L 52 24" fill="none" stroke="#24A862" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
