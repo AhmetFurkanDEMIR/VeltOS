@@ -18,7 +18,7 @@ from PySide6.QtQml import QQmlApplicationEngine
 
 from . import exeinfo, shortcuts
 from .strings import Texts
-from .winenv import Environment, has_hardware_vulkan, wine_tool
+from .winenv import Environment, has_hardware_vulkan, live_session, slugify
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 # A portable program that is still running after this long is considered
@@ -38,11 +38,13 @@ class Runner(QObject):
         self._log = None
         self._queue = []
         self._process = None
+        self._setup = False
         self._before = {}
         self._new_apps = []
         self._page = "confirm" if self.info.valid else "invalid"
         self._title = self._body = ""
         self._exit_code = 0
+        self._needed_mb = 0
         self._icon_url = ""
         if self.info.icon_png:
             icon = Path(tempfile.mkdtemp(prefix="veltos-run-")) / "icon.png"
@@ -52,14 +54,21 @@ class Runner(QObject):
 
     # --- properties for QML -------------------------------------------------
 
-    def _prop(name):
-        return Property(str, lambda self: getattr(self, f"_{name}"), notify=changed)
+    @Property(str, notify=changed)
+    def page(self):
+        return self._page
 
-    page = _prop("page")
-    title = _prop("title")
-    body = _prop("body")
-    iconUrl = _prop("icon_url")
-    del _prop
+    @Property(str, notify=changed)
+    def title(self):
+        return self._title
+
+    @Property(str, notify=changed)
+    def body(self):
+        return self._body
+
+    @Property(str, notify=changed)
+    def iconUrl(self):
+        return self._icon_url
 
     @Property(str, notify=changed)
     def appName(self):
@@ -102,23 +111,38 @@ class Runner(QObject):
             "waiting": ("waiting", None),
             "done": ("done", "done_body" if self._new_apps else "done_nothing"),
             "failed": ("failed_install" if self.info.is_installer else "failed", "failed_body"),
+            "nospace": ("no_space", "no_space_live" if live_session() else "no_space_body"),
         }[self._page]
-        self._title = self.t.get(texts[0], name=name, code=self._exit_code)
-        self._body = self.t.get(texts[1], name=name, code=self._exit_code) if texts[1] else ""
+        values = {"name": name, "code": self._exit_code, "needed": self._needed_mb}
+        self._title = self.t.get(texts[0], **values)
+        self._body = self.t.get(texts[1], **values) if texts[1] else ""
 
     @Slot(bool)
     def start(self, add_to_start):
         self._add_to_start = add_to_start
-        self.env = Environment.for_new_app(self.info.name) if self.info.is_installer else Environment.shared()
+        self.env = Environment()
+        ok, needed = self.env.enough_space()
+        if not ok:
+            # Say so up front instead of letting an installer fail with "disk full".
+            self._needed_mb = needed // (1024 * 1024)
+            self._go("nospace")
+            return
         self.log_path = self.env.new_log()
         self._log = open(self.log_path, "a", encoding="utf-8", errors="replace")
         self._before = shortcuts.snapshot()
         if not self.env.ready:
             self._go("preparing")
+            self.env.write_setup_files()
+            self._setup = True
             self._queue = self.env.setup_commands(vulkan=has_hardware_vulkan())
-            self._run_next(on_done=self._launch)
+            self._run_next(on_done=self._prepared)
         else:
             self._launch()
+
+    def _prepared(self):
+        self._setup = False
+        self.env.mark_prepared()
+        self._launch()
 
     def _run_next(self, on_done):
         if not self._queue:
@@ -133,8 +157,16 @@ class Runner(QObject):
         self._log.flush()
         process = QProcess(self)
         environment = QProcessEnvironment.systemEnvironment()
-        for key, value in self.env.env({}).items():
+        variables = self.env.setup_env({}) if self._setup else self.env.env({})
+        for key, value in variables.items():
             environment.insert(key, value)
+        if self._setup:
+            # No display: Wine prepares the environment silently instead of
+            # showing its own (Windows 2000 style) progress window. Without
+            # DISPLAY, Wine 10 falls back to the default Wayland socket, so
+            # point WAYLAND_DISPLAY at a socket that does not exist.
+            environment.remove("DISPLAY")
+            environment.insert("WAYLAND_DISPLAY", "veltos-no-display")
         process.setProcessEnvironment(environment)
         process.setWorkingDirectory(str(self.info.path.parent))
         process.setProcessChannelMode(QProcess.MergedChannels)
@@ -161,7 +193,7 @@ class Runner(QObject):
             QGuiApplication.instance().allWindows()[0].hide()
 
     def _write_launcher(self):
-        shortcuts.write_launcher(self.env.slug + "-" + self.info.path.stem.lower(), self.info.name,
+        shortcuts.write_launcher(slugify(self.info.name), self.info.name,
                                  self.info.path, self.env.prefix, self.info.icon_png)
 
     def _program_finished(self, code):
@@ -192,7 +224,7 @@ class Runner(QObject):
         if code != 0 and not self._new_apps:
             self._fail(code)
             return
-        self.env.save_record(name=self.info.name, publisher=self.info.publisher,
+        self.env.save_record(self.info.name, publisher=self.info.publisher,
                              version=self.info.version, installer=str(self.info.path),
                              installed_at=time.strftime("%Y-%m-%dT%H:%M:%S"),
                              shortcuts=[a["path"] for a in self._new_apps])

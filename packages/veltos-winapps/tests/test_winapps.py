@@ -77,24 +77,46 @@ class EnvironmentTests(unittest.TestCase):
         self.assertEqual(winenv.slugify("Notepad++ 8.6 (x64)"), "notepad-8-6-x64")
         self.assertEqual(winenv.slugify("???"), "app")
 
-    def test_new_apps_get_unique_environments(self):
-        first = winenv.Environment.for_new_app("My App")
-        first.save_record(name="My App")
-        second = winenv.Environment.for_new_app("My App")
-        self.assertEqual((first.slug, second.slug), ("my-app", "my-app-2"))
-        self.assertNotEqual(winenv.Environment.for_new_app("Shared").slug, winenv.SHARED)
+    def test_one_shared_environment(self):
+        env = winenv.Environment()
+        self.assertTrue(str(env.prefix).endswith("veltos/windows/prefix"))
+        self.assertEqual(env.env({})["WINEPREFIX"], str(env.prefix))
+        self.assertEqual(env.env({})["WINEARCH"], "win64")
 
-    def test_environment_variables(self):
-        env = winenv.Environment.for_new_app("Game").env({})
-        self.assertTrue(env["WINEPREFIX"].endswith("veltos/windows-apps/game/prefix"))
-        self.assertEqual(env["WINEARCH"], "win64")
+    def test_setup_runs_without_display(self):
+        env = winenv.Environment().setup_env({"DISPLAY": ":0", "WAYLAND_DISPLAY": "wayland-0", "HOME": "/h"})
+        self.assertNotIn("DISPLAY", env)
+        self.assertEqual(env["WAYLAND_DISPLAY"], "veltos-no-display")
+        self.assertEqual(env["HOME"], "/h")
+
+    def test_setup_strips_and_themes(self):
+        env = winenv.Environment()
+        commands = env.setup_commands(vulkan=False)
+        flat = [" ".join(c) for c in commands]
+        self.assertTrue(any("x86_64-w64-mingw32-strip --strip-debug" in c for c in flat))
+        self.assertTrue(any("i686-w64-mingw32-strip --strip-debug" in c for c in flat))
+        self.assertTrue(any("regedit" in c for c in flat))
+        self.assertFalse(any("dxvk-setup" in c for c in flat))
+        self.assertTrue(any("dxvk-setup" in " ".join(c) for c in env.setup_commands(vulkan=True)))
+        reg = env.write_setup_files().read_text()
+        self.assertIn("light.msstyles", reg)
 
     def test_commands(self):
-        env = winenv.Environment.shared()
+        env = winenv.Environment()
         self.assertIn("msiexec", env.run_command(Path("/x/a.msi"), "msi"))
         self.assertEqual(env.run_command(Path("/x/a.exe"), "exe")[1:4], ["start", "/wait", "/unix"])
-        self.assertEqual(len(env.setup_commands(vulkan=True)), 2)
-        self.assertEqual(len(env.setup_commands(vulkan=False)), 1)
+
+    def test_records(self):
+        env = winenv.Environment()
+        env.save_record("My App", installed_at="2026-01-01T00:00:00")
+        env.save_record("Other", installed_at="2026-02-01T00:00:00")
+        self.assertEqual([r["name"] for r in winenv.installed_apps(env)], ["Other", "My App"])
+
+    def test_space_check(self):
+        env = winenv.Environment()
+        ok, needed = env.enough_space()
+        self.assertEqual(needed, winenv.SETUP_SPACE)
+        self.assertIsInstance(ok, bool)
 
 
 class ShortcutTests(unittest.TestCase):
