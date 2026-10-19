@@ -14,6 +14,9 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-settings debian/veltos-settings/usr/bin/veltos-settings
 	install -D -m 644 data/veltos-settings.desktop \
 		debian/veltos-settings/usr/share/applications/veltos-settings.desktop
+	# App icon (VeltOS artwork, Windows 11 style).
+	install -D -m 644 data/veltos-settings.svg \
+		debian/veltos-settings/usr/share/icons/hicolor/scalable/apps/veltos-settings.svg
 
 override_dh_auto_test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

@@ -13,6 +13,7 @@ from types import SimpleNamespace
 from PySide6.QtCore import Property, QObject, Qt, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtQuick import QQuickWindow
 
 from . import catalog, devices, strings, sysinfo
 
@@ -20,11 +21,22 @@ QML_DIR = Path(__file__).resolve().parent / "qml"
 LOOK_AND_FEEL = {False: "org.veltos.light", True: "org.veltos.dark"}
 DESKTOP_THEME = {False: "VeltOS", True: "VeltOS-Dark"}
 # The global theme writes the Plasma theme into ~/.config/kdedefaults, which
-# the running taskbar does not notice (it changed only after the next sign-in,
-# VM test 2026-10-19). Writing the user's plasmarc with a change notification
-# afterwards switches it at once.
-APPLY_THEME = ('plasma-apply-lookandfeel --apply "$1" >/dev/null 2>&1; '
-               'kwriteconfig6 --file plasmarc --group Theme --key name --notify "$2"')
+# the running taskbar does not notice: it watches the user's own plasmarc
+# file (KDirWatch). kwriteconfig6 does not write a value equal to the
+# kdedefaults one, so on a first switch nothing changed and the taskbar
+# stayed light (VM test 2026-10-19); the file is therefore edited directly
+# ([Theme] name=, other groups kept, same file so the watcher sees it).
+APPLY_THEME = r'''plasma-apply-lookandfeel --apply "$1" >/dev/null 2>&1
+f="${XDG_CONFIG_HOME:-$HOME/.config}/plasmarc"
+touch "$f"
+awk -v name="$2" '
+    /^\[/ { if (theme && !done) { print "name=" name; done = 1 } theme = ($0 == "[Theme]") }
+    theme && /^name=/ { if (!done) { print "name=" name; done = 1 } next }
+    { print }
+    END { if (!done) { if (!theme) print "[Theme]"; print "name=" name } }
+' "$f" > "$f.veltos" && cat "$f.veltos" > "$f"
+rm -f "$f.veltos"
+'''
 
 
 def detached(command, env=None):
@@ -437,10 +449,14 @@ class Backend(QObject):
 def main(argv=None):
     argv = sys.argv if argv is None else argv
     app = QGuiApplication(argv)
+    # Text drawn like KDE programs (FreeType, hinted) instead of Qt Quick's
+    # distance-field glyphs, which looked uneven at fractional display
+    # scales ("kal dır", "program lar" at 105 %, VM 2026-10-20).
+    QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
     app.setApplicationName("veltos-settings")
     app.setApplicationDisplayName(strings.text(strings.language(), "app_title"))
     app.setDesktopFileName("veltos-settings")
-    app.setWindowIcon(QIcon.fromTheme("preferences-system"))
+    app.setWindowIcon(QIcon.fromTheme("veltos-settings"))
     start_page = argv[1] if len(argv) > 1 else "home"
     backend = Backend(start_page=start_page)
     engine = QQmlApplicationEngine()

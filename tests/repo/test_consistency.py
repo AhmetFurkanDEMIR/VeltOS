@@ -52,3 +52,27 @@ class LineEndingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PySideTests(unittest.TestCase):
+    # PySide6 turns keyword arguments of Qt constructors into setter calls
+    # with the C library's toupper(); in a Turkish locale "interval" becomes
+    # "setİnterval" and the call fails. File Explorer did not start on
+    # Turkish systems because of QTimer(self, singleShot=True, interval=250).
+    QT_KEYWORD_PROPERTY = re.compile(r"\bQ[A-Z]\w*\((?:[^()]|\([^()]*\))*?\b[a-z]\w*\s*=(?!=)")
+
+    def test_no_qt_properties_as_keyword_arguments(self):
+        offenders = []
+        for path in sorted(REPO.glob("packages/*/**/*.py")):
+            if "tests" in path.parts:
+                continue
+            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                code = line.split("#", 1)[0]
+                if self.QT_KEYWORD_PROPERTY.search(code):
+                    offenders.append(f"{path.relative_to(REPO)}:{number}: {line.strip()}")
+        self.assertEqual(offenders, [], "use setters instead of keyword arguments")
+
+    def test_pattern_catches_the_bug(self):
+        self.assertTrue(self.QT_KEYWORD_PROPERTY.search("t = QTimer(self, singleShot=True, interval=250)"))
+        self.assertFalse(self.QT_KEYWORD_PROPERTY.search("t = QTimer(self)"))
+        self.assertFalse(self.QT_KEYWORD_PROPERTY.search('Property(str, notify=changed)'))

@@ -33,7 +33,7 @@ lb config noauto \
 	--iso-application "VeltOS" \
 	--iso-publisher "VeltOS Project" \
 	--iso-volume "VeltOS ${VELTOS_VERSION} amd64" \
-	--bootappend-live "boot=live components quiet splash username=velt hostname=veltos user-fullname=Velt" \
+	--bootappend-live "boot=live components quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 rd.udev.log_level=3 vt.global_cursor_default=0 username=velt hostname=veltos user-fullname=Velt" \
 	--mirror-bootstrap "${DEBIAN_MIRROR}" \
 	--mirror-chroot "${DEBIAN_MIRROR}" \
 	--mirror-chroot-security "${SECURITY_MIRROR}" \

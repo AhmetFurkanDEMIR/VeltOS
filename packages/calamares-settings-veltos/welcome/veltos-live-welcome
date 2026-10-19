@@ -131,6 +131,7 @@ def main(argv=None):
     from PySide6.QtCore import QUrl
     from PySide6.QtGui import QGuiApplication, QIcon
     from PySide6.QtQml import QQmlApplicationEngine
+    from PySide6.QtQuick import QQuickWindow
 
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
     # Package builds give every file the same time stamp (SOURCE_DATE_EPOCH), so
@@ -139,6 +140,10 @@ def main(argv=None):
     # 2026-10-19). Compile the QML at start instead.
     os.environ["QML_DISABLE_DISK_CACHE"] = "1"
     app = QGuiApplication(argv)
+    # Text drawn like KDE programs (FreeType, hinted) instead of Qt Quick's
+    # distance-field glyphs, which looked uneven at fractional display
+    # scales ("kal dır", "program lar" at 105 %, VM 2026-10-20).
+    QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
     app.setApplicationName("veltos-live-welcome")
     app.setApplicationDisplayName("VeltOS")
     app.setDesktopFileName("veltos-live-welcome")

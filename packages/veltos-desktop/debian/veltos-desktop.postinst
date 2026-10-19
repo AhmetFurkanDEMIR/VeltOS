@@ -6,6 +6,10 @@ case "$1" in
         # VeltOS names for applications ("File Explorer", "Settings", ...),
         # written to /var/lib/veltos/xdg/applications.
         /usr/libexec/veltos/update-app-names
+        # Windows 11 look for a few Plasma components (changed copies in
+        # /var/lib/veltos/xdg/plasma; Plasma's own version if a change no
+        # longer fits after a Plasma update).
+        /usr/libexec/veltos/update-plasma-overrides
         ;;
 esac
 

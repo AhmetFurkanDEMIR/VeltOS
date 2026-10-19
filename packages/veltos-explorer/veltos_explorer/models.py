@@ -307,7 +307,13 @@ class Tab(QObject):
         self._select_after = ""
         self.watcher = QFileSystemWatcher(self)
         self.watcher.directoryChanged.connect(lambda _p: self._reload_soon.start())
-        self._reload_soon = QTimer(self, singleShot=True, interval=250)
+        # Setters, not QTimer(interval=...): PySide6 maps keyword arguments to
+        # setters with the C library's toupper(), which in a Turkish locale
+        # turns "interval" into "setİnterval" - File Explorer did not start
+        # on Turkish systems (2026-10-20).
+        self._reload_soon = QTimer(self)
+        self._reload_soon.setSingleShot(True)
+        self._reload_soon.setInterval(250)
         self._reload_soon.timeout.connect(lambda: self.load(keep_selection=True))
         self.navigate(location, remember=False)
 

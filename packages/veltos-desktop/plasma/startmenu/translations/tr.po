@@ -27,6 +27,9 @@ msgstr "Geri"
 msgid "Recommended"
 msgstr "Önerilenler"
 
+msgid "More"
+msgstr "Daha fazla"
+
 msgid "Your recently opened files will appear here."
 msgstr "Son açtığınız dosyalar burada görünür."
 

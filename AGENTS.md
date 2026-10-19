@@ -207,9 +207,11 @@ owner sets priorities; agents act as the engineering team.
   asked for. Test QML apps started from the taskbar, not only with
   `vm exec-user` (which lacks `XDG_CURRENT_DESKTOP=KDE`).
 - `plasma-apply-lookandfeel` writes the Plasma theme to
-  `~/.config/kdedefaults/plasmarc`, which the running taskbar ignores
-  until the next sign-in; Settings also writes `~/.config/plasmarc` with
-  `kwriteconfig6 --notify` so light/dark switches at once.
+  `~/.config/kdedefaults/plasmarc`; the running taskbar only watches the
+  user's own `~/.config/plasmarc` file (KDirWatch, not KConfig change
+  signals), and `kwriteconfig6` does not write a value equal to the
+  kdedefaults one. Settings therefore edits `~/.config/plasmarc` directly
+  (the first light/dark switch left the taskbar light before).
 - Calamares without a `partition.conf` put `/boot` inside the encrypted
   partition (LUKS1, GRUB asks on a text console, one try, US keyboard),
   and the image lacked `cryptsetup-initramfs`: encrypted installs could not
@@ -231,3 +233,33 @@ owner sets priorities; agents act as the engineering team.
 - `dh_installinitramfs` adds the `update-initramfs` trigger for files in
   `usr/share/initramfs-tools/hooks`; a hand-written `.triggers` line for it
   is a lintian error (`repeated-trigger-name`).
+- PySide6 turns keyword arguments of Qt constructors into setter calls
+  with the C library's `toupper()`: in a Turkish locale `interval` becomes
+  `setİnterval` and the call fails (File Explorer did not start on
+  Turkish systems). Use setters; `tests/repo` rejects the pattern, and the
+  builder image has `tr_TR.UTF-8` so Turkish test classes run in it.
+- Firefox on Linux draws its own (libadwaita-like) title bar buttons and
+  ignores the GTK theme; VeltOS styles them through Firefox autoconfig
+  (`veltos-desktop/tools/firefox.py`). Firefox does not let `data:` images
+  use `context-stroke`, so glyph images carry explicit colours.
+- KDE's GTK settings module produced empty button images for Aurorae
+  window frames; the VeltOS GTK theme carries its own buttons.
+- KWin's startup feedback (Wayland) draws the starting app's icon next to
+  the pointer in every mode and never shows a busy pointer; VeltOS turns
+  it off (`klaunchrc` `BusyCursor=false`).
+- SDDM's default `InputMethod` is `qtvirtualkeyboard`: the on-screen
+  keyboard covered the sign-in screen. VeltOS sets it empty.
+- A Plasma package copied to `/var/lib/veltos/xdg/plasma/plasmoids/<id>`
+  replaces Plasma's own (`XDG_DATA_DIRS` order); `update-plasma-overrides`
+  uses this. While developing, delete `~/.cache/plasmashell/qmlcache` and
+  restart `plasma-plasmashell` after installing rebuilt packages (same file
+  times, stale compiled QML).
+- Panel popups float with all corners rounded only when the containment
+  has `ContainmentPrefersFloatingApplets`; Plasma sets it only for floating
+  panels, so VeltOS' plasmoids keep it set (`floatPopups()`).
+- With llvmpipe (VMs without 3D) KWin's window captures for taskbar
+  previews are garbled; `session-fixups` switches previews off there.
+- `notify-send` (libnotify-bin) is not in the image; send test
+  notifications with `gdbus call ... org.freedesktop.Notifications.Notify`.
+- In Git Bash, `\n` inside a quoted heredoc can reach Python as a real
+  newline; write code containing escapes with the editor tools instead.

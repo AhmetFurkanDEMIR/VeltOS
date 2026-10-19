@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# Fluent cursors as the system-wide default pointer: programs that do not
+# read the desktop's cursor setting (some X11 programs, programs started as
+# root) used Debian's default, Adwaita (priority 90).
+if [ "$1" = configure ]; then
+    update-alternatives --install /usr/share/icons/default/index.theme x-cursor-theme \
+        /usr/share/icons/Fluent-cursors/cursor.theme 110
+fi
+
+#DEBHELPER#

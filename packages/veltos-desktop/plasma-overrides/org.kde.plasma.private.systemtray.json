@@ -1,0 +1,60 @@
+{
+  "plugin": "org.kde.plasma.private.systemtray",
+  "about": "Windows 11 hidden-icons flyout: icons only in a small grid, no header while no item is open. Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "replacements": [
+    {
+      "file": "contents/ui/items/AbstractItem.qml",
+      "why": "no text labels next to hidden icons",
+      "old": "            visible: abstractItem.inHiddenLayout\n",
+      "new": "            visible: false // VeltOS: icons only, like Windows 11\n"
+    },
+    {
+      "file": "contents/ui/HiddenItemsView.qml",
+      "why": "four columns",
+      "old": "        readonly property int columns: 2\n",
+      "new": "        readonly property int columns: 4 // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/HiddenItemsView.qml",
+      "why": "square icon cells",
+      "old": "        readonly property int delegateHeight: (metrics.height * delegateMaxTextLines) + (delegateMargins * 2)\n",
+      "new": "        readonly property int delegateHeight: Kirigami.Units.iconSizes.smallMedium + Kirigami.Units.largeSpacing * 2 // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/ExpandedRepresentation.qml",
+      "why": "small flyout while no item is open",
+      "old": "    Layout.minimumWidth: Kirigami.Units.gridUnit * 24\n    Layout.minimumHeight: Kirigami.Units.gridUnit * 24\n",
+      "new": "    // VeltOS: as small as the icons need while no item is open.\n    readonly property int veltosIconsWidth: hiddenItemsView.layout.cellHeight * 4 + Kirigami.Units.smallSpacing * 2\n    readonly property int veltosIconsHeight: hiddenItemsView.layout.cellHeight * Math.max(1, Math.ceil(hiddenItemsView.layout.itemCount / 4)) + Kirigami.Units.smallSpacing * 2\n    Layout.minimumWidth: systemTrayState.activeApplet ? Kirigami.Units.gridUnit * 24 : veltosIconsWidth\n    Layout.minimumHeight: systemTrayState.activeApplet ? Kirigami.Units.gridUnit * 24 : veltosIconsHeight\n    Layout.preferredWidth: Layout.minimumWidth\n    Layout.preferredHeight: Layout.minimumHeight\n    Layout.maximumWidth: systemTrayState.activeApplet ? Infinity : veltosIconsWidth\n    Layout.maximumHeight: systemTrayState.activeApplet ? Infinity : veltosIconsHeight\n"
+    },
+    {
+      "file": "contents/ui/ExpandedRepresentation.qml",
+      "why": "no heading while no item is open",
+      "old": "    PlasmaExtras.PlasmoidHeading {\n        id: plasmoidHeading\n",
+      "new": "    PlasmaExtras.PlasmoidHeading {\n        id: plasmoidHeading\n        visible: !!systemTrayState.activeApplet // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/ExpandedRepresentation.qml",
+      "why": "no title and buttons while no item is open",
+      "old": "        RowLayout {\n            id: trayHeading\n            Layout.fillWidth: true\n",
+      "new": "        RowLayout {\n            id: trayHeading\n            Layout.fillWidth: true\n            visible: !!systemTrayState.activeApplet // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/ExpandedRepresentation.qml",
+      "why": "icons start at the top",
+      "old": "            Layout.topMargin: Kirigami.Units.smallSpacing\n            visible: !systemTrayState.activeApplet\n",
+      "new": "            Layout.topMargin: 0 // VeltOS\n            visible: !systemTrayState.activeApplet\n"
+    },
+    {
+      "file": "contents/ui/items/AbstractItem.qml",
+      "why": "small icons in the hidden-icons flyout",
+      "old": "            readonly property int size: abstractItem.inVisibleLayout ? root.itemSize : Kirigami.Units.iconSizes.medium\n",
+      "new": "            readonly property int size: abstractItem.inVisibleLayout ? root.itemSize : Kirigami.Units.iconSizes.smallMedium // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/HiddenItemsView.qml",
+      "why": "no scroll bar",
+      "old": "    hoverEnabled: true\n    background: null\n",
+      "new": "    hoverEnabled: true\n    background: null\n    PlasmaComponents3.ScrollBar.vertical.policy: PlasmaComponents3.ScrollBar.AlwaysOff // VeltOS\n"
+    }
+  ]
+}

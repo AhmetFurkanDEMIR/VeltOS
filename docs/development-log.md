@@ -3,6 +3,86 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 — Windows 11 polish: start-up, flyouts, Firefox, File Explorer fix
+
+### Product-owner feedback that drove this work
+
+Dark mode left the taskbar light; an app icon bounced under the pointer
+while programs started; "use Windows 11 pointers"; Firefox and other
+programs still had "Debian" minimise/close buttons; the status and
+notification area and Start should be exactly Windows 11; File Explorer
+"does not open any more, shows an error"; broken Turkish text in Settings
+(Apps > Windows programs); garbled taskbar window previews; a flat-line
+loading screen; text scrolling at start-up; the shutdown menu of the power
+key looked like Debian; the on-screen keyboard covered the sign-in screen;
+This PC and Recycle Bin on the desktop; File Explorer and Settings icons;
+plus larger requests (Task View, Task Manager, Control Panel, animations
+and sounds, Wine dialogs, Store) that are not done yet (see status).
+
+### Causes found and fixes
+
+- **File Explorer did not start on Turkish systems**:
+  `QTimer(self, singleShot=True, interval=250)` - PySide6 maps keyword
+  arguments to setters with the C `toupper()`, which turns `interval` into
+  `setİnterval` in a Turkish locale (reproduced in the VM with
+  `setlocale(tr_TR.UTF-8)`). Setters now; a repository test rejects the
+  pattern; the builder image has `tr_TR.UTF-8` and the Turkish test classes
+  of File Explorer and Settings run in it.
+- **Broken Turkish text** ("kal dır", "program lar"): Qt Quick's
+  distance-field text at the VM's 105 % scale; offscreen renders were fine
+  in every locale. All VeltOS QML programs now use native text rendering.
+- **Dark taskbar**: the global theme writes `kdedefaults/plasmarc`, the
+  taskbar watches the user's `plasmarc` file only, and `kwriteconfig6` did
+  not write a value equal to the kdedefaults one; a KConfig change signal
+  sent by hand did not help either. Settings now edits the file directly
+  (verified: taskbar dark at once on a first switch).
+- **Firefox buttons**: Firefox draws its own round libadwaita-style buttons
+  and ignores GTK themes (hover showed pink/white circles). An autoconfig
+  style sheet gives them the VeltOS 46 x 32 buttons and red close
+  (verified on hover). KDE's GTK module produced empty button images for
+  our Aurorae frames, so a VeltOS GTK theme (Breeze + our buttons) covers
+  other GTK programs.
+- **Launch icon at the pointer**: KWin's startup feedback; it never shows a
+  busy pointer on Wayland, so it is off. **Pointers**: Debian's default
+  `x-cursor-theme` was Adwaita; Fluent cursors are now the default.
+- **Sign-in keyboard**: SDDM's default `InputMethod=qtvirtualkeyboard`.
+- **Previews**: KWin renders with llvmpipe in the VM and its captures are
+  garbled; with software rendering the taskbar shows titles only
+  (`session-fixups`, autostart one-shot).
+- New: Windows-like "Welcome" splash (blurred sign-in wallpaper, dot
+  spinner) instead of the progress line; VeltOS power screen
+  (`Logout.qml`); flyouts float with rounded corners
+  (`ContainmentPrefersFloatingApplets` kept set by our plasmoids); Start
+  (pill search box, Windows buttons, one-line labels, neutral avatar,
+  "More" page, File Explorer pinned); clock flyout = notification centre +
+  Windows calendar; hidden-icons flyout with icons only through the new
+  `update-plasma-overrides` mechanism (architecture 2.3.8); This PC and
+  Recycle Bin desktop icons that come back; new File Explorer and Settings
+  icons; quiet kernel/systemd options; `xwaylandvideobridge` kept out of
+  the image.
+
+### Verified (installed encrypted VM, packages installed with dpkg)
+
+Sign-in without on-screen keyboard -> Welcome splash -> desktop with the
+two icons; Start, Quick Settings, clock and hidden-icons flyouts floating;
+power screen; notification centre with two test notifications; Firefox
+buttons and hover states; File Explorer running in a Turkish locale;
+Settings Windows-programs page in Turkish; dark taskbar on a first switch;
+`x-cursor-theme`, SDDM, klaunchrc, grub.cfg options in place. Package
+tests: veltos-desktop 53, veltos-explorer 31, veltos-settings 57,
+veltos-boot 22, calamares-settings-veltos 19, veltos-winapps 20, repo 6.
+
+Not yet: a new ISO with all of this; on-screen check of the quiet start-up
+and shutdown; the pointer theme in X11 programs.
+
+### Problems hit
+
+- A new Settings test shifted test order and exposed a teardown bug: a QML
+  engine deleted later printed "backend is null" into the next test. The
+  engine is now destroyed in `tearDown`.
+- Git Bash heredocs turned `\n` in Python sources into real newlines
+  several times; such edits are done with the editor tools now.
+
 ## 2026-10-19 (night) — Encrypted installation verified, unlock screen like Windows
 
 ### Installation test on the fixed ISO

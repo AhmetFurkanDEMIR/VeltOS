@@ -18,6 +18,32 @@ if [ ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig" ] ||
     /usr/libexec/veltos/session-defaults || true
 fi
 
+# GTK programs (Firefox, ...) use the VeltOS GTK theme: Breeze with the
+# Windows 11 caption buttons of the window frames. Breeze, KDE's default,
+# is switched over; any other theme a user picked is kept.
+for veltos_gtk in gtk-3.0 gtk-4.0; do
+    veltos_ini="${XDG_CONFIG_HOME:-$HOME/.config}/$veltos_gtk/settings.ini"
+    if [ ! -e "$veltos_ini" ]; then
+        mkdir -p "${veltos_ini%/*}" && printf '[Settings]\ngtk-theme-name=VeltOS\n' > "$veltos_ini"
+    elif grep -q '^gtk-theme-name=Breeze\(-Dark\)\?$' "$veltos_ini"; then
+        sed -i 's/^gtk-theme-name=Breeze\(-Dark\)\?$/gtk-theme-name=VeltOS/' "$veltos_ini"
+    fi
+done
+unset veltos_gtk veltos_ini
+
+# "This PC" and "Recycle Bin" on the desktop, like Windows. They cannot be
+# removed for good: a deleted one comes back at the next sign-in.
+veltos_desktop="$( . "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" 2>/dev/null
+                   printf '%s' "${XDG_DESKTOP_DIR:-$HOME/Desktop}" )"
+mkdir -p "$veltos_desktop"
+for veltos_icon in "${VELTOS_DESKTOP_ICONS:-/usr/share/veltos/desktop}"/*.desktop; do
+    if [ ! -e "$veltos_desktop/${veltos_icon##*/}" ]; then
+        # Executable: Plasma starts only trusted (executable) launchers.
+        install -m 755 "$veltos_icon" "$veltos_desktop/" 2>/dev/null || true
+    fi
+done
+unset veltos_desktop veltos_icon
+
 # Program names inside the programs ("Home — File Explorer" instead of
 # "Home — Dolphin"): VeltOS message catalogs for the pseudo-languages
 # en@veltos / tr@veltos translate only those names and come first; every

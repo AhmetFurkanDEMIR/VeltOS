@@ -4,6 +4,7 @@ Any QML warning or JavaScript error fails the test, so broken bindings are
 caught at package build time, not by users.
 """
 
+import locale
 import os
 import sys
 import tempfile
@@ -17,7 +18,7 @@ from fakesystem import FakeSystem  # noqa: E402
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 try:
-    from PySide6.QtCore import Q_ARG, QMetaObject, QUrl, qInstallMessageHandler
+    from PySide6.QtCore import Q_ARG, QCoreApplication, QEvent, QMetaObject, QUrl, qInstallMessageHandler
     from PySide6.QtGui import QGuiApplication
     from PySide6.QtQml import QQmlApplicationEngine
     HAVE_QT = True
@@ -55,8 +56,14 @@ class SettingsWindowTests(unittest.TestCase):
     lang = "en"
 
     def tearDown(self):
+        # Destroy the QML engine now, while its backend still exists: a
+        # deferred deletion ran during a later test, after Python had freed
+        # this test's backend, and its "backend is null" warnings failed
+        # that test.
         self.engine.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         self.app.processEvents()
+        self.messages.clear()
 
     def call(self, name, *args):
         """Call a JavaScript function of the window."""
@@ -101,9 +108,36 @@ class SettingsWindowTests(unittest.TestCase):
         self.assertEqual(command[:2], ["sh", "-c"])
         self.assertEqual(command[3:], ["sh", "org.veltos.dark", "VeltOS-Dark"])
         self.assertIn("plasma-apply-lookandfeel --apply", command[2])
-        self.assertIn("--key name --notify", command[2])
         self.assertTrue(self.backend.darkMode)
         self.assertEqual(self.problems(), [])
+
+    @unittest.skipUnless(os.name == "posix", "runs the theme command")
+    def test_theme_command_writes_the_users_plasmarc(self):
+        # The taskbar follows ~/.config/plasmarc; the command must write the
+        # Plasma theme there whatever the file held before.
+        import subprocess
+        from veltos_settings.app import APPLY_THEME
+        for before, after in (
+                (None, "[Theme]\nname=VeltOS-Dark\n"),
+                ("[Theme]\nname=VeltOS\n", "[Theme]\nname=VeltOS-Dark\n"),
+                ("[PlasmaToolTips]\nDelay=700\n\n[Theme]\nother=1\n\n[X]\na=b\n",
+                 "[PlasmaToolTips]\nDelay=700\n\n[Theme]\nother=1\n\nname=VeltOS-Dark\n[X]\na=b\n"),
+                ("[X]\na=b\n", "[X]\na=b\n[Theme]\nname=VeltOS-Dark\n")):
+            with tempfile.TemporaryDirectory() as home:
+                bin_dir = Path(home, "bin")
+                bin_dir.mkdir()
+                fake = bin_dir / "plasma-apply-lookandfeel"
+                fake.write_text("#!/bin/sh\nexit 0\n")
+                fake.chmod(0o755)
+                Path(home, ".config").mkdir()
+                plasmarc = Path(home, ".config/plasmarc")
+                if before is not None:
+                    plasmarc.write_text(before)
+                env = dict(os.environ, HOME=home, PATH=f"{bin_dir}:{os.environ['PATH']}")
+                env.pop("XDG_CONFIG_HOME", None)
+                subprocess.run(["sh", "-c", APPLY_THEME, "sh", "org.veltos.dark", "VeltOS-Dark"],
+                               env=env, check=True)
+                self.assertEqual(plasmarc.read_text(), after, before)
 
     def test_system_pages_read_the_system(self):
         for page, sub in (("network", "wifi"), ("devices", "bluetooth"), ("system", "sound"),
@@ -163,7 +197,24 @@ class SettingsWindowTests(unittest.TestCase):
 
 
 class TurkishWindowTests(SettingsWindowTests):
+    """Turkish texts, in the Turkish C locale when it is installed (Turkish
+    case rules broke PySide6 keyword arguments in File Explorer)."""
     lang = "tr"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.old_locale = locale.setlocale(locale.LC_ALL)
+        for name in ("tr_TR.UTF-8", "tr_TR.utf8"):
+            try:
+                locale.setlocale(locale.LC_ALL, name)
+                break
+            except locale.Error:
+                continue
+
+    @classmethod
+    def tearDownClass(cls):
+        locale.setlocale(locale.LC_ALL, cls.old_locale)
 
 
 if __name__ == "__main__":

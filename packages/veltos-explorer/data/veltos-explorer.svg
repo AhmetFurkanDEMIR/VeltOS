@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+<!-- VeltOS File Explorer icon. VeltOS original artwork in the style of Windows 11 app icons.
+     SPDX-License-Identifier: CC-BY-SA-4.0 -->
+<defs>
+<linearGradient id="back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0B429"/><stop offset="1" stop-color="#DB9612"/></linearGradient>
+<linearGradient id="front" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFDC73"/><stop offset="1" stop-color="#FFC233"/></linearGradient>
+<linearGradient id="band" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5D94FF"/><stop offset="1" stop-color="#2F62E6"/></linearGradient>
+</defs>
+<path d="M 9 10 H 24 C 25.6 10 26.7 10.6 27.6 11.8 L 30 15 H 55 C 57.2 15 59 16.8 59 19 V 50 H 5 V 14 C 5 11.8 6.8 10 9 10 Z" fill="url(#back)"/>
+<path d="M 5 25 C 5 22.8 6.8 21 9 21 H 55 C 57.2 21 59 22.8 59 25 V 50 C 59 52.2 57.2 54 55 54 H 9 C 6.8 54 5 52.2 5 50 Z" fill="url(#front)"/>
+<path d="M 5 42 H 59 V 50 C 59 52.2 57.2 54 55 54 H 9 C 6.8 54 5 52.2 5 50 Z" fill="url(#band)"/>
+<path d="M 9 21.5 H 55" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="1" stroke-linecap="round"/>
+</svg>

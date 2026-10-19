@@ -27,6 +27,10 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   place icons are dropped so the coloured ones also appear in small sizes
   (File Explorer's navigation pane), as on Windows 11.
 - Dangling upstream symlinks are removed.
+- **Fluent cursors are the system default** (`x-cursor-theme` alternative,
+  priority 110 over Debian's Adwaita at 90; `Fluent-cursors/cursor.theme`),
+  so programs that do not read the desktop's cursor setting (some X11
+  programs, programs started as root) show the same pointer.
 
 Checks run during the build (`execute_after_dh_auto_install` in
 `debian/rules`): Breeze fallback, no dangling links, key app icons exist,

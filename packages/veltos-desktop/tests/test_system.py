@@ -2,6 +2,7 @@
 
 import importlib.machinery
 import importlib.util
+import os
 import subprocess
 import sys
 import tempfile
@@ -167,7 +168,7 @@ class SessionScriptTests(unittest.TestCase):
     SCRIPT = PKG / "system/veltos-session.sh"
 
     def data_dirs(self, initial):
-        env = {"HOME": tempfile.gettempdir(), "PATH": "/usr/bin:/bin"}
+        env = {"HOME": tempfile.mkdtemp(), "PATH": "/usr/bin:/bin"}
         if initial is not None:
             env["XDG_DATA_DIRS"] = initial
         # Twice: sourcing again must not add the directory again.
@@ -176,7 +177,7 @@ class SessionScriptTests(unittest.TestCase):
         return out.stdout.strip()
 
     def languages(self, environment):
-        env = {"HOME": tempfile.gettempdir(), "PATH": "/usr/bin:/bin", **environment}
+        env = {"HOME": tempfile.mkdtemp(), "PATH": "/usr/bin:/bin", **environment}
         out = subprocess.run(["sh", "-c", f". {self.SCRIPT}; . {self.SCRIPT}; echo $LANGUAGE"],
                              env=env, capture_output=True, text=True, check=True)
         return out.stdout.strip()
@@ -187,6 +188,43 @@ class SessionScriptTests(unittest.TestCase):
                          "tr@veltos:tr:en_US")
         self.assertEqual(self.languages({"LANG": "en_US.UTF-8"}), "en@veltos:en_US")
         self.assertEqual(self.languages({"LANG": "de_DE.UTF-8"}), "")
+
+    def source(self, home):
+        env = {"HOME": str(home), "PATH": "/usr/bin:/bin", "VELTOS_DESKTOP_ICONS": str(PKG / "desktop")}
+        subprocess.run(["sh", "-c", f". {self.SCRIPT}"], env=env, check=True, capture_output=True)
+
+    def test_gtk_programs_get_the_veltos_theme(self):
+        home = Path(tempfile.mkdtemp())
+        self.source(home)
+        for gtk in ("gtk-3.0", "gtk-4.0"):
+            self.assertIn("gtk-theme-name=VeltOS\n", (home / ".config" / gtk / "settings.ini").read_text())
+        ini = home / ".config/gtk-3.0/settings.ini"
+        ini.write_text("[Settings]\ngtk-theme-name=Breeze\ngtk-font-name=Inter 10\n")
+        self.source(home)
+        self.assertEqual(ini.read_text(), "[Settings]\ngtk-theme-name=VeltOS\ngtk-font-name=Inter 10\n")
+        ini.write_text("[Settings]\ngtk-theme-name=Adwaita\n")       # the user's choice
+        self.source(home)
+        self.assertEqual(ini.read_text(), "[Settings]\ngtk-theme-name=Adwaita\n")
+
+    def test_this_pc_and_recycle_bin_come_back(self):
+        home = Path(tempfile.mkdtemp())
+        (home / ".config").mkdir()
+        (home / ".config/user-dirs.dirs").write_text('XDG_DESKTOP_DIR="$HOME/Masaüstü"\n', encoding="utf-8")
+        self.source(home)
+        desktop = home / "Masaüstü"
+        self.assertEqual(sorted(p.name for p in desktop.iterdir()), ["recycle-bin.desktop", "this-pc.desktop"])
+        self.assertTrue(os.access(desktop / "this-pc.desktop", os.X_OK))
+        (desktop / "this-pc.desktop").unlink()
+        self.source(home)
+        self.assertTrue((desktop / "this-pc.desktop").exists())
+
+    def test_desktop_icons(self):
+        this_pc = (PKG / "desktop/this-pc.desktop").read_text()
+        self.assertIn("Exec=veltos-explorer thispc:", this_pc)
+        bin_entry = (PKG / "desktop/recycle-bin.desktop").read_text()
+        self.assertIn("URL=trash:/", bin_entry)
+        for text in (this_pc, bin_entry):
+            self.assertRegex(text, r"Name\[tr\]=\S")
 
     def test_veltos_names_come_first(self):
         self.assertEqual(self.data_dirs(None), "/var/lib/veltos/xdg:/usr/local/share:/usr/share")

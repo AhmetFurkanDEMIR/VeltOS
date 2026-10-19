@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=VeltOS session adjustments
+Comment=Adjusts the desktop to this computer at sign-in (taskbar previews)
+Exec=/usr/libexec/veltos/session-fixups
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2

@@ -154,7 +154,12 @@ class GrubTests(unittest.TestCase):
     def test_defaults_name_veltos_and_enable_splash(self):
         text = (PKG / "default/veltos.cfg").read_text()
         self.assertIn('GRUB_DISTRIBUTOR="VeltOS"', text)
-        self.assertIn('GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"', text)
+        cmdline = re.search(r'^GRUB_CMDLINE_LINUX_DEFAULT="([^"]*)"', text, re.M).group(1).split()
+        # No text on screen while starting, like Windows: splash, kernel
+        # and systemd status quiet, no text cursor.
+        for option in ("quiet", "splash", "loglevel=3", "systemd.show_status=false",
+                       "rd.systemd.show_status=false", "vt.global_cursor_default=0"):
+            self.assertIn(option, cmdline)
         self.assertIn("GRUB_DISABLE_OS_PROBER=false", text)
         self.assertNotIn("debian", text.lower())
 

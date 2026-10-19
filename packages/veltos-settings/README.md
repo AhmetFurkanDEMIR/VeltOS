@@ -66,3 +66,13 @@ start the right commands and the theme switch applies the global theme).
 - Windows programs can only be uninstalled through Wine's own uninstaller
   window.
 - No automatic update checks yet (VeltOS Update opens the Store).
+
+## App icon and text
+
+`data/veltos-settings.svg` is the Settings icon (VeltOS artwork in the style of
+Windows 11 app icons, CC-BY-SA-4.0), installed as
+`/usr/share/icons/hicolor/scalable/apps/veltos-settings.svg`. The window draws its
+text like KDE programs (`NativeTextRendering`): Qt Quick's default
+distance-field text looked uneven at fractional display scales. Qt objects
+are configured with setters, never keyword arguments (PySide6 resolves those
+with the C library's `toupper()`, which broke in a Turkish locale).

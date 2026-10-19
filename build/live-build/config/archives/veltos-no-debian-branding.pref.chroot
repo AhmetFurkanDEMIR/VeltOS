@@ -14,3 +14,10 @@ Pin-Priority: -1
 Package: firmware-b43-installer firmware-b43legacy-installer
 Pin: release a=*
 Pin-Priority: -1
+
+# xwaylandvideobridge (recommended by kwin-wayland) lets X11 programs record
+# Wayland windows; it runs at every sign-in and showed a technical "Wayland
+# to X11 Video bridge" item in the taskbar's hidden icons (VM, 2026-10-19).
+Package: xwaylandvideobridge
+Pin: release a=*
+Pin-Priority: -1
