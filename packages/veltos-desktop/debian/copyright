@@ -40,6 +40,12 @@ License: LGPL-2+
 Comment: Copy of plasma-desktop 6.3.6 QML (Debian 13), used to test
  plasma-overrides/*.json.
 
+Files: tests/data/shell/*
+Copyright: 2014 Aleix Pol Gonzalez and other KDE contributors
+License: GPL-2+
+Comment: Copies of plasma-workspace 6.3.6 QML (Debian 13), used to test
+ plasma-overrides/*.json.
+
 Files: artwork/*
 Copyright: 2026 VeltOS Developers
 License: CC-BY-SA-4.0

@@ -3,6 +3,39 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (evening, again) — ISO 20261020-083729, black UEFI boot menu, lock screen
+
+- **ISO 20261020-083729** (everything up to the Store): verify hook passed;
+  boot test **BIOS PASS**, **UEFI FAIL twice** (black screen, no boot in
+  313 s). Investigation: the old ISO drew the boot menu when F4 was
+  pressed, the new one stayed black and GRUB waited (Enter booted it). The
+  two ISOs' GRUB files were identical except `splash.png`, whose only
+  change is the build date text; putting the old picture into the new ISO
+  (xorriso) brought the menu back, and so did the *new* picture rewritten
+  without filters and compression. So GRUB's PNG reader fails on some
+  compressed pictures; because the boot test pressed F4, it hit the
+  invisible menu (config.cfg draws text outside the theme black on black).
+  Fix: `build/scripts/plain-png.py` rewrites every GRUB picture
+  unfiltered and uncompressed — in the image by the binary hook
+  `9100-veltos-grub-png`, for installed systems in veltos-boot's GRUB
+  theme (copy of the tool, kept identical by a repository test). The boot
+  test now repeats F4 until the menu is drawn, checks that it was drawn
+  and repeats Enter until it is gone. With F4 sent earlier the same ISO
+  passed all 17 UEFI checks. **The fix still needs an ISO build.**
+- **Windows 11 lock screen** (Win+L, Ctrl+Alt+Del > Lock): the time and
+  date on the picture, then (click or key) the blurred picture with the
+  account picture, the name, the password box (show button, arrow), the
+  power menu and battery. kscreenlocker takes the lock screen from
+  Plasma's desktop *shell* package, so `update-plasma-overrides` now also
+  handles shell packages and whole-file replacements (only while Plasma's
+  file has the recorded sha256). Verified in the VM: lock, wrong password
+  ("The password is incorrect. Try again."), unlock.
+- **Folder and local disk icons** in the look of Windows 11 (yellow
+  folder; Desktop, Downloads, Documents, Pictures, Music, Videos with
+  coloured marks; disk slab) drawn by `tools/draw-icons.py`. Fluent's
+  scalable place icons are symbolic links, which the package now replaces
+  too. Built, not yet seen on screen.
+
 ## 2026-10-20 (later still) — VeltOS Store, Windows 11 style bin and PC icons
 
 - **VeltOS Store** (new package `veltos-store`, PySide6/QML) in the

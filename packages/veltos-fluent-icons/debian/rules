@@ -1,6 +1,9 @@
 #!/usr/bin/make -f
 
 ICONS = $(CURDIR)/debian/veltos-fluent-icons/usr/share/icons
+# VeltOS's own icons in branding/ that replace Fluent's of the same name.
+VELTOS_ICONS = computer user-trash user-trash-full folder inode-directory user-desktop \
+	folder-download folder-documents folder-pictures folder-music folder-videos drive-harddisk
 
 %:
 	dh $@
@@ -26,11 +29,13 @@ override_dh_auto_install:
 		-o -name 'distributor-logo.svg' -o -name 'distributor-logo-symbolic.svg' \) \
 		-exec cp branding/veltos-logo.svg {} \;
 	find $(ICONS) -type f \( -name 'wine.svg' -o -name 'wine-winecfg.svg' -o -name 'windows.svg' \) -delete
-	# "This PC" and the Recycle Bin in the style of Windows 11 (VeltOS
-	# artwork, branding/), at all sizes and in the dark theme too.
-	for name in computer user-trash user-trash-full; do \
-		find $(ICONS) -type f \( -name "$$name.svg" -o -name "$$name-dark.svg" \) \
-			-exec cp branding/$$name.svg {} \; ; \
+	# "This PC", the Recycle Bin, folders and the local disk in the look of
+	# Windows 11 (VeltOS artwork, branding/, tools/draw-icons.py), at all
+	# sizes and in the dark theme too. Many of Fluent's are symbolic links
+	# (folder -> default-folder.svg): those are replaced by the file.
+	for name in $(VELTOS_ICONS); do \
+		find $(ICONS) \( -type f -o -type l \) \( -name "$$name.svg" -o -name "$$name-dark.svg" \) \
+			-exec sh -c 'rm -f "$$1" && cp "$$2" "$$1"' sh {} branding/$$name.svg \; ; \
 	done
 	# Yellow folders like Windows 11 (Fluent's are blue), coloured at all sizes.
 	python3 tools/recolour-folders.py $(ICONS)
@@ -50,7 +55,7 @@ execute_after_dh_auto_install:
 	grep -qx 'Inherits=Fluent-cursors' $(ICONS)/Fluent-cursors/cursor.theme
 	for f in $$(find -L $(ICONS)/Fluent-dark -name 'start-here.svg'); do cmp -s $$f branding/veltos-logo.svg || exit 1; done
 	test -z "$$(find -L $(ICONS) -name 'wine.svg')"
-	for name in computer user-trash user-trash-full; do \
+	for name in $(VELTOS_ICONS); do \
 		test -n "$$(find -L $(ICONS)/Fluent -name "$$name.svg")" || exit 1; \
 		for f in $$(find -L $(ICONS)/Fluent $(ICONS)/Fluent-dark -name "$$name.svg"); do \
 			cmp -s $$f branding/$$name.svg || exit 1; done; \

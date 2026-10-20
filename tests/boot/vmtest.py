@@ -25,6 +25,10 @@ from pathlib import Path
 
 from vmlib import FIRMWARE, LIVE_USER, start_qemu, wait_for
 
+# QEMU's PNG of an all-black 800x600 or 640x480 screen is about 1.5 KB; the
+# boot menu is about 85 KB.
+BLACK_PNG_MAX = 4000
+
 
 class Report:
     def __init__(self, directory, meta):
@@ -76,13 +80,31 @@ def run_checks(args, report, qmp, agent):
     shots = args.outdir
 
     # The boot menu is hidden (like Windows): F4 during GRUB's 2 s wait shows
-    # it. Capture it, then boot the default entry right away.
+    # it. Firmware and GRUB take a varying time to start, so F4 is repeated
+    # until something is drawn (a black screen gives a tiny PNG). With the
+    # menu open GRUB waits, so Enter is repeated until the menu is gone.
+    # A menu that never appears is reported (GRUB's PNG reader once left it
+    # black, ISO 20261020-083729).
     time.sleep(args.menu_delay)
-    qmp.key("f4")
-    time.sleep(1.5)
-    qmp.screenshot(shots / "01-boot-menu.png")
+    menu = shots / "01-boot-menu.png"
+    deadline = time.monotonic() + 20
+    while True:
+        qmp.key("f4")
+        time.sleep(1.0)
+        qmp.screenshot(menu)
+        if menu.stat().st_size > BLACK_PNG_MAX or time.monotonic() > deadline:
+            break
     report.artifacts["boot menu"] = "01-boot-menu.png"
-    qmp.key("ret")
+    report.check("boot menu drawn", menu.stat().st_size > BLACK_PNG_MAX,
+                 f"screenshot {menu.stat().st_size} bytes")
+    probe = shots / "01a-after-enter.png"
+    for _ in range(5):
+        qmp.key("ret")
+        time.sleep(1.5)
+        qmp.screenshot(probe)
+        if probe.read_bytes() != menu.read_bytes():
+            break
+    probe.unlink(missing_ok=True)
     time.sleep(args.splash_delay)
     qmp.screenshot(shots / "01b-boot-splash.png")
     report.artifacts["boot splash"] = "01b-boot-splash.png"

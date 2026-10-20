@@ -1,0 +1,13 @@
+{
+  "plugin": "org.kde.plasma.desktop",
+  "type": "shells",
+  "about": "Plasma's desktop shell package also holds the lock screen (kscreenlocker loads lockscreen/LockScreen.qml from it). Its LockScreenUi.qml is replaced by the Windows 11 lock screen in files/lockscreen/ while Plasma's file is the one of plasma-workspace 6.3.6 (Debian 13); everything else in the shell stays Plasma's.",
+  "replacements": [
+    {
+      "file": "contents/lockscreen/LockScreenUi.qml",
+      "why": "Windows 11 lock screen: time and date, then account picture and password box",
+      "replace_with": "lockscreen/LockScreenUi.qml",
+      "upstream_sha256": "7154011ec3f7bd6985577293f0bb8de7da27e259de05917b3074cf39221a6d17"
+    }
+  ]
+}

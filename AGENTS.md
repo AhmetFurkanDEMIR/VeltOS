@@ -288,6 +288,14 @@ owner sets priorities; agents act as the engineering team.
   (`pkill -f '[v]eltos-live-welcome'`), and start them in a second call.
 - Running package unit tests on the host leaves `__pycache__` directories;
   the repository test then fails the package build. Delete them first.
+- GRUB's PNG reader failed on one compressed boot menu picture (black
+  menu, GRUB waiting); a one-character change in the picture triggered it.
+  GRUB pictures are rewritten unfiltered and uncompressed
+  (`build/scripts/plain-png.py`, binary hook, veltos-boot).
+- The lock screen comes from Plasma's desktop *shell* package
+  (`/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen`),
+  not from the look-and-feel package; VeltOS replaces `LockScreenUi.qml`
+  through `update-plasma-overrides` (type "shells").
 - `plasma-workspace-data` (not `plasma-workspace`) ships the QML of
   Plasma's applets; extract it with `apt-get download` in the builder to
   read the exact upstream text for overrides (`out/upstream/`).

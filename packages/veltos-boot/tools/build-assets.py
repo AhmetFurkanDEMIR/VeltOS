@@ -17,7 +17,11 @@ import argparse
 import math
 import shutil
 import subprocess
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import plain_png  # noqa: E402  (copy of build/scripts/plain-png.py)
 
 SRC = Path(__file__).resolve().parent.parent
 LOGO = SRC / "branding/veltos-logo.svg"
@@ -182,6 +186,10 @@ def build_grub(root, tmp):
     for name, (column, row) in SELECT_SLICES.items():
         svg, w, h = selection_slice(column, row)
         render(svg, w, h, dest / f"select_{name}.png", tmp / "select.svg")
+    # GRUB's PNG reader failed on one compressed picture (black boot menu,
+    # ISO 20261020-083729): GRUB gets unfiltered, uncompressed PNG files.
+    for png in sorted(dest.glob("*.png")):
+        png.write_bytes(plain_png.plain(png.read_bytes()))
 
 
 def main():
