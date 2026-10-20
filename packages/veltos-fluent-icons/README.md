@@ -22,9 +22,11 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   "this operating system"); the Wine/Windows icons are removed so Breeze's
   neutral icons are used.
 - **"This PC" and Recycle Bin** (`branding/computer.svg`, `user-trash.svg`,
-  `user-trash-full.svg`): original VeltOS artwork in the Windows 11 style
-  (a monitor with a blue bloom, a frosted bin) replaces Fluent's icons of
-  these names at all sizes; Microsoft's own icons are not used.
+  `user-trash-full.svg`, drawn by `tools/draw-icons.py`): VeltOS artwork in
+  the look of Windows 11's icons (a monitor with a cyan-to-blue screen on a
+  grey stand; a frosted glass bin with a grey foot and the blue recycling
+  arrows, empty and full of crumpled paper) replaces Fluent's icons of
+  these names at all sizes. Microsoft's own icon files are not used.
 - **Yellow folders like Windows 11** (`tools/recolour-folders.py`): the
   folder and place icons and the File Explorer icon are solid yellow
   instead of Fluent's translucent blue, and Fluent's monochrome 16-24 px

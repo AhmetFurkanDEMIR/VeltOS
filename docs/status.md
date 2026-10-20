@@ -16,7 +16,8 @@ not been run on real hardware yet.**
 | `veltos-explorer` (new): File Explorer in the Windows 11 layout — tabs in the title bar, command bar, address and search boxes, navigation pane, Home (Quick access, Recent), This PC, Recycle Bin, Details/Tiles/icon views with thumbnails, context menus, drag and drop, rename in place; copy/move/delete through KIO | 31 unit tests (incl. the real window offscreen, EN/TR, Turkish C locale); VM: opened from the taskbar, Home, Documents in Details view, item and background menus; **starts in a Turkish locale** (did not before 2026-10-20) |
 | `veltos-settings`: Windows 11 Settings with built-in Wi-Fi, Bluetooth, Sound, Display, Background, Colours (mode, accent), Date & time pages, About with OS build, search, EN/TR | 57 unit tests (parsers with recorded tool output, offscreen window, Turkish C locale, theme command); VM: every page; dark mode switches the taskbar on the first switch; **Wi-Fi tested end to end on simulated hardware** (mac80211_hwsim + hostapd WPA2: wrong key refused without extra prompts, correct key connects and gets an address, disconnect, reconnect, forget) |
 | `veltos-taskmanager` (new): Task Manager in the Windows 11 layout — Processes (Apps / Background / System, summed per app, busy cells tinted, search, End task), Performance (60-second CPU/memory/disk/network graphs and figures), Startup apps (enable/disable); Ctrl+Shift+Esc, one instance; KDE System Monitor kept as "Resource Monitor" | 19 unit tests (fake psutil; window offscreen EN/TR, Turkish locale); VM: opened with Ctrl+Shift+Esc, Firefox grouped with its 11 processes, second Ctrl+Shift+Esc does not open a second window, all three pages |
-| `veltos-fluent-icons`: Fluent icons/cursors (pinned, verified; Microsoft logos removed), yellow Windows 11 folders, coloured place icons at all sizes, VeltOS "This PC" and Recycle Bin icons in the Windows 11 style, Fluent cursors as the system default pointer | Package checks; VM screenshots; `x-cursor-theme` points to Fluent-cursors (VM) |
+| `veltos-store` (new): VeltOS Store in the Microsoft Store layout — Home (featured banner, rows), Apps with categories, Gaming, search, app pages (screenshots, description, details), Library (updates, installed apps); AppStream catalogue, PackageKit installs, refuses uninstalls that would remove part of VeltOS; replaces Discover in Start and Settings | 20 unit tests (window offscreen EN/TR without QML warnings, jobs with a stand-in pkcon); VM (live, 2026-10-20): Home, VLC installed and opened from its page, Library, Firefox uninstall refused |
+| `veltos-fluent-icons`: Fluent icons/cursors (pinned, verified; Microsoft logos removed), yellow Windows 11 folders, coloured place icons at all sizes, VeltOS "This PC" (cyan screen) and Recycle Bin (glass bin with blue recycling arrows, empty/full) icons drawn in the look of Windows 11 (`tools/draw-icons.py`), Fluent cursors as the system default pointer | Package checks; VM screenshots; `x-cursor-theme` points to Fluent-cursors (VM) |
 | `veltos-boot`: Plymouth splash, GRUB theme, hidden menu, fixed video mode (VirtualBox/Hyper-V fix), kernel titles without the Debian build suffix, keyboard layout in the initramfs, disk-encryption password screen (Inter font, Windows-like texts, box below the logo) | 22 unit tests; boot screenshots; encrypted install screenshots; quiet kernel/systemd options in the installed grub.cfg (VM) |
 | `calamares-settings-veltos`: installer with Windows 11 style side bar, buttons and controls (QML + style sheet, Kvantum for its dialogs), live welcome window (language switch fixed 2026-10-20), BitLocker-like encryption (unencrypted /boot, password asked by the boot screen, unlimited tries), firmware entry "VeltOS" | 19 unit tests; **encrypted installation tested end to end in a VM (UEFI)** on ISO 20261019-174700: install, firmware entry, boot menu, password screen (wrong and right password), sign-in, desktop — `tests/results/2026-10-19-encrypted-install-uefi/` |
 | `veltos-winapps` + `veltos-wine-addons`: double-click `.exe`/`.msi` → install/run via Wine (Wine "Light" theme) | 20 unit tests; 7-Zip installed in a VM (earlier ISO) |
@@ -58,9 +59,7 @@ checks that passed.
   startup apps, users, region, accessibility, …).
 - The screen locker after sign-in is Plasma's design.
 - Product owner's requests not done yet: Control Panel pages in the
-  Settings design; Windows 11 modern Wine dialogs; the Store (Discover is
-  KDE's design: a VeltOS Store in the Microsoft Store layout is next);
-  installer pages; a full check that no old KDE/Qt window is left (KDE's
+  Settings design; Windows 11 modern Wine dialogs; installer pages; a full check that no old KDE/Qt window is left (KDE's
   own dialogs still open from some places, e.g. "Change a password" opens
   KDE's Users page). Sounds untested by ear.
 - Right-clicking the empty taskbar shows nothing (Windows: "Taskbar
@@ -77,16 +76,17 @@ checks that passed.
 - The disk-encryption password screen is in English only (the initramfs
   has no language setting yet); its keyboard indicator is Plymouth's image.
 - KDE programs' About dialogs still name KDE and the original programs.
-- The Store (Discover) shows Debian package sources.
+- VeltOS Store: no ratings/reviews, no Flatpak; Discover's "updates
+  available" notification still opens Discover; installs on an installed
+  system ask for the password in KDE's authentication dialog (not yet in
+  the Windows design).
 - ISO is not verified bit-for-bit reproducible. No CI.
 
 ## Next steps
 
-1. VeltOS Store: Microsoft Store layout on PackageKit and AppStream,
-   replacing Discover in Start and the taskbar.
-2. Build an ISO with all 2026-10-20 changes and run the boot tests; check
+1. Build an ISO with all 2026-10-20 changes and run the boot tests; check
    the power key, the quiet start-up and shutdown on screen.
-3. Control Panel pages inside Settings ("Change a password", taskbar
+2. Control Panel pages inside Settings ("Change a password", taskbar
    settings, default apps, ...), "Taskbar settings" and "Personalize"
    menu entries.
 4. Listen to the VeltOS sounds on real hardware; measure animation CPU

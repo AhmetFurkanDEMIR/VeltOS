@@ -37,7 +37,7 @@ Recommends: bluedevil,
             kscreen,
             network-manager,
             partitionmanager,
-            plasma-discover,
+            veltos-store,
             pulseaudio-utils,
             veltos-winapps
 Description: VeltOS Settings, a Windows 11 style settings app

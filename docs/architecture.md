@@ -322,6 +322,17 @@ sign-in from KWin's renderer); with a real GPU the previews stay on.
   background (Windows 11 apps draw no separate title bar), not Fluent's
   white.
 
+#### 2.3.12 Store: a VeltOS app instead of restyling Discover
+
+Discover's pages are compiled into the program (Qt resources), so its
+layout cannot be changed without forking it. VeltOS Store is a small
+PySide6/QML program on the same data and services Discover uses: Debian's
+AppStream catalogue (`gir1.2-appstream-1.0`) and PackageKit (`pkcon`, so
+authorisation stays with PackageKit and polkit). Alternatives: forking
+Discover (against the project rules), GNOME Software (GTK, other look),
+a web store (needs a server). Trade-offs: no ratings, Flatpak or
+firmware updates yet; the curated lists are package names in the code.
+
 ### 2.4 Graphics drivers
 
 - AMD and Intel: kernel drivers + Mesa from Debian (OpenGL, Vulkan via RADV

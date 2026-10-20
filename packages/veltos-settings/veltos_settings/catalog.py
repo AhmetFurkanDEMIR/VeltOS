@@ -138,7 +138,7 @@ PAGES = [
          "title": ("Windows programs", "Windows programları"),
          "desc": ("Programs installed from .exe and .msi files", ".exe ve .msi dosyalarından kurulan programlar"),
          "keywords": "exe msi wine windows uninstall kaldır program"},
-        {"id": "store", "icon": "plasmadiscover", "action": "store",
+        {"id": "store", "icon": "veltos-store", "action": "store",
          "title": ("Get apps from the Store", "Mağazadan uygulama edinin"),
          "desc": ("Install and remove apps", "Uygulama kurma ve kaldırma"),
          "keywords": "install remove uninstall software discover kur kaldır yazılım mağaza"},

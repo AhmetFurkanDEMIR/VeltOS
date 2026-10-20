@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS Store: a shopping bag in VeltOS colours with the VeltOS chevron
+       (original artwork). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="bag" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5C8BFF"/>
+      <stop offset="0.6" stop-color="#3D63F0"/>
+      <stop offset="1" stop-color="#5B3FE0"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7FA5FF"/>
+      <stop offset="1" stop-color="#5C8BFF"/>
+    </linearGradient>
+    <linearGradient id="chevron" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCE6FF"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="128" cy="236" rx="86" ry="8" fill="#000000" opacity="0.12"/>
+  <!-- handle -->
+  <path d="M 88 84 V 64 Q 88 28 128 28 Q 168 28 168 64 V 84" fill="none" stroke="#2A3FA8"
+        stroke-width="14" stroke-linecap="round"/>
+  <!-- bag -->
+  <path d="M 40 76 Q 40 70 46 70 H 210 Q 216 70 216 76 L 206 218 Q 205.5 228 196 228 H 60 Q 50.5 228 50 218 Z"
+        fill="url(#bag)"/>
+  <path d="M 40 76 Q 40 70 46 70 H 210 Q 216 70 216 76 L 215 90 H 41 Z" fill="url(#top)" opacity="0.9"/>
+  <!-- VeltOS chevron -->
+  <path d="M 84 116 L 128 196 L 172 116 L 148 116 L 128 154 L 108 116 Z" fill="url(#chevron)"/>
+</svg>

@@ -134,6 +134,9 @@ done
 [ -f /usr/share/applications/veltos-settings.desktop ] || fail "VeltOS Settings missing"
 grep -q '^X-KDE-Shortcuts=Ctrl+Shift+Esc$' /usr/share/applications/veltos-taskmanager.desktop \
     || fail "VeltOS Task Manager (Ctrl+Shift+Esc) missing"
+[ -f /usr/share/applications/veltos-store.desktop ] || fail "VeltOS Store missing"
+python3 -c 'import gi; gi.require_version("AppStream", "1.0"); from gi.repository import AppStream' \
+    || fail "VeltOS Store cannot read the AppStream catalogue"
 [ -f /usr/share/kwin/effects/veltostaskview/metadata.json ] || fail "VeltOS Task View missing"
 
 # Double-clicking a Windows program opens the VeltOS runner, and Wine finds

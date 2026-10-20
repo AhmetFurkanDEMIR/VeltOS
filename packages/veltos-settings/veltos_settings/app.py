@@ -217,9 +217,9 @@ class Backend(QObject):
         if action == "control-panel":
             self._start(["systemsettings"])
         elif action == "store":
-            self._start(["plasma-discover"])
+            self._start(["veltos-store"])
         elif action == "updates":
-            self._start(["plasma-discover", "--mode", "update"])
+            self._start(["veltos-store", "--updates"])
         elif action == "disk-management":
             self._start(["partitionmanager"])
         elif action == "uninstall-windows":

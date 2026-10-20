@@ -3,6 +3,31 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (later still) — VeltOS Store, Windows 11 style bin and PC icons
+
+- **VeltOS Store** (new package `veltos-store`, PySide6/QML) in the
+  Microsoft Store layout: navigation rail (Home, Apps, Gaming, Library),
+  search box, featured banner, rows of app tiles, category chips, app
+  pages, Library with "Get updates". Catalogue: Debian's AppStream data
+  through `gir1.2-appstream-1.0` (1.0.5-1, Debian main; 2091 desktop apps
+  load in 0.9 s in the VM); installs through `pkcon` (PackageKit). Start
+  and Settings use it instead of Discover (hidden, still installed).
+  Verified in the live VM: Home, VLC's page, Install (5.6 s, no password
+  in the live session), Open (VLC started), Library with VeltOS's names,
+  "Uninstall" of Firefox refused because apt would also remove parts of
+  VeltOS. Found on the way: the image's AppStream data had outdated
+  screenshot addresses (404 on appstream.debian.org; the media folder
+  hash changes with package updates) — the Store now refreshes data older
+  than two days and hides screenshots that fail; Start did not swap the
+  pinned Discover because its favourites model was not ready on first
+  open (it now retries); pkcon run outside the session (guest agent) gets
+  no authentication agent — test installs from the session.
+- **Recycle Bin and This PC icons** redrawn after the product owner's
+  Windows 11 references (`tools/draw-icons.py`): glass bin with grey foot
+  and blue recycling arrows, empty and full of crumpled paper; monitor
+  with a cyan-to-blue screen on a grey stand. Original drawings in that
+  look; Microsoft's files are not used.
+
 ## 2026-10-20 (late night) — Ctrl+Alt+Del, power key, locked taskbar, toasts, wallpapers
 
 Product owner requests, tested in the live VM of ISO 20261019-222530 by
