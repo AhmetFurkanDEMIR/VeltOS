@@ -5,8 +5,8 @@
         --expect-shortcut "7-Zip File Manager" --results /out/test-results
 
 Boots the ISO, copies a Windows installer into ~/Downloads, opens it with
-veltos-run exactly as a double-click would, accepts the VeltOS dialog,
-confirms the installer's default button, and checks that the program was
+veltos-run exactly as a double-click would (the installer starts without
+a question), confirms the installer's default button, and checks that the program was
 installed into the shared Windows environment (~/.local/share/veltos/windows)
 and appears as a Start menu shortcut. Screenshots of every step are saved. The installer file is
 checked against a pinned SHA-256 first.
@@ -78,11 +78,7 @@ def main():
               out_default.strip())
         agent.run_as_user(f"nohup veltos-run '{target}' >/tmp/veltos-run.out 2>&1 &")
         time.sleep(8)
-        qmp.screenshot(out / "01-confirm.png")
-
-        qmp.key("ret")  # "Install" is the default button
-        time.sleep(5)
-        qmp.screenshot(out / "02-preparing.png")
+        qmp.screenshot(out / "01-preparing.png")
         t_prep = time.monotonic()
         ready = wait_for(agent, f"test -f {WINDOWS}/prefix/system.reg "
                                 f"&& pgrep -u {LIVE_USER} -f '{args.exe.name}'", 600, interval=5)

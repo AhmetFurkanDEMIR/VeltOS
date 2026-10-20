@@ -3,9 +3,12 @@
 
     veltos-run FILE
 
-Flow: confirm (name, publisher, icon) -> prepare the Windows environment
-(first time only) -> run the installer/program -> report the result with
-"Open" buttons for the shortcuts the installer created, or a readable error.
+Flow, like a double click in Windows (no question first): prepare the
+Windows environment (first time only) -> run the installer/program at once
+-> report the result with "Open" buttons for the shortcuts the installer
+created, or a readable error. While it works, the window shows the
+program (name, publisher, icon) and says that Windows programs can access
+personal files (Wine is not a sandbox).
 """
 
 import configparser
@@ -22,7 +25,7 @@ from PySide6.QtQuick import QQuickWindow
 
 from . import exeinfo, shortcuts
 from .strings import Texts
-from .winenv import Environment, has_hardware_vulkan, live_session, slugify
+from .winenv import Environment, has_hardware_vulkan, live_session
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 # A portable program that is still running after this long is considered
@@ -64,7 +67,7 @@ class Runner(QObject):
         self._setup = False
         self._before = {}
         self._new_apps = []
-        self._page = "confirm" if self.info.valid else "invalid"
+        self._page = "running" if self.info.valid else "invalid"
         self._title = self._body = ""
         self._exit_code = 0
         self._needed_mb = 0
@@ -121,19 +124,6 @@ class Runner(QObject):
         return self.info.is_installer
 
     @Property(bool, constant=True)
-    def canAddToStart(self):
-        """Programs that need no installation can be added to Start (not
-        installers, which add their own entries, and not batch files)."""
-        return not self.info.is_installer and self.info.kind != "batch"
-
-    @Property(str, constant=True)
-    def actionKey(self):
-        """Text key of the main button: Install, Run (batch files) or Open."""
-        if self.info.is_installer:
-            return "install"
-        return "run" if self.info.kind == "batch" else "open"
-
-    @Property(bool, constant=True)
     def darkMode(self):
         return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
 
@@ -160,9 +150,6 @@ class Runner(QObject):
         name = self.info.name
         texts = {
             "invalid": ("not_windows", None),
-            "confirm": ("confirm_install", "confirm_install_body") if self.info.is_installer
-            else ("confirm_batch", "confirm_batch_body") if self.info.kind == "batch"
-            else ("confirm_run", "confirm_run_body"),
             "preparing": ("preparing", "preparing_body"),
             "running": ("installing", "installing_body") if self.info.is_installer else ("running", None),
             "waiting": ("waiting", None),
@@ -174,9 +161,11 @@ class Runner(QObject):
         self._title = self.t.get(texts[0], **values)
         self._body = self.t.get(texts[1], **values) if texts[1] else ""
 
-    @Slot(bool)
-    def start(self, add_to_start):
-        self._add_to_start = add_to_start
+    @Slot()
+    def start(self):
+        """Opening the file starts it at once, as in Windows."""
+        if not self.info.valid:
+            return
         self.env = Environment()
         ok, needed = self.env.enough_space()
         if not ok:
@@ -245,21 +234,13 @@ class Runner(QObject):
 
     def _hide_if_running(self):
         if self._process and self._process.state() != QProcess.NotRunning and self._page == "running":
-            if self._add_to_start:
-                self._write_launcher()
             QGuiApplication.instance().allWindows()[0].hide()
-
-    def _write_launcher(self):
-        shortcuts.write_launcher(slugify(self.info.name), self.info.name,
-                                 self.info.path, self.env.prefix, self.info.icon_png)
 
     def _program_finished(self, code):
         self._exit_code = code
         if not self.info.is_installer:
             ran_long = time.monotonic() - self._started_at > STARTED_AFTER_MS / 1000
             if code == 0 or ran_long:
-                if self._add_to_start and not ran_long:
-                    self._write_launcher()
                 QGuiApplication.instance().quit()
             else:
                 self._fail(code)
@@ -328,4 +309,5 @@ def main(argv=None):
     engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
     if not engine.rootObjects():
         return 1
+    QTimer.singleShot(0, runner.start)
     return app.exec()

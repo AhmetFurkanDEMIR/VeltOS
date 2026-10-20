@@ -3,7 +3,29 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
-## 2026-10-21 (evening) — Windows drives in File Explorer
+## 2026-10-20 (23:00) — Windows programs start without a question
+
+- The product owner: double-clicking an `.exe`, `.msi`, `.bat` or `.cmd`
+  file must start the installer at once; the App Installer question
+  ("Install 7-Zip on VeltOS?", "Add to Start", an information bar and an
+  Install button) came first.
+- `veltos-run` now starts the file as soon as it opens (Windows behaviour):
+  the "confirm" page, the "Add to Start" check box for programs that need
+  no installation (and the launcher writer behind it) and the unused
+  `VCheckBox` are gone. The information bar that Windows programs can
+  read and change personal files (Wine is not a sandbox) now shows while
+  the environment is prepared and the program starts.
+- `tests/boot/winapps_vmtest.py` no longer presses Enter for the question.
+- Package build: 21 unit tests OK. VM (live, 8 GB): File Explorer >
+  Downloads > Enter on `7z2604-x64.exe` → "Setting up Windows
+  compatibility…" at once → 7-Zip's own installer → "7-Zip is installed"
+  with 7-Zip File Manager and 7-Zip Help. With the earlier 4 GB VM the
+  same click showed "Not enough free space" (the live system keeps files
+  in RAM; the check is right).
+- Log headings of earlier entries today said 2026-10-21; the commits were
+  made on 2026-10-20 and the headings are corrected.
+
+## 2026-10-20 (22:30) — Windows drives in File Explorer
 
 - The product owner wanted Windows (NTFS) drives visible, safe file
   exchange and a Windows mark on them.
@@ -35,7 +57,7 @@ went wrong, so the next person can trust the state of the repository.
   (Commands run through the VM's guest agent are outside the session, so
   polkit refused them; File Explorer started from the taskbar worked.)
 
-## 2026-10-21 (later still) — Stacked taskbar button for several windows
+## 2026-10-20 (18:15) — Stacked taskbar button for several windows
 
 - An app with several windows showed Plasma's "+" under its taskbar icon
   (the theme's `group-expander` picture). Like Windows 11, it now shows a
@@ -44,7 +66,7 @@ went wrong, so the next person can trust the state of the repository.
   the task manager override: GroupExpanderOverlay hidden, a plate behind
   the button frame in Task.qml). VM: two File Explorer windows.
 
-## 2026-10-21 (later) — Terminal follows light and dark
+## 2026-10-20 (18:10) — Terminal follows light and dark
 
 - The product owner wanted the Terminal to change with light/dark mode
   and a nicer look. Two profiles now: "VeltOS Light" (Windows Terminal's
@@ -63,7 +85,7 @@ went wrong, so the next person can trust the state of the repository.
   both; switching the theme recoloured an open terminal (its tab style
   changes with the next window — Konsole does not reload it).
 
-## 2026-10-21 — Settings without KDE's settings windows, pins in File Explorer
+## 2026-10-20 (18:05) — Settings without KDE's settings windows, pins in File Explorer
 
 The product owner asked that KDE's old settings never open ("Change
 account settings" in Start opened KDE's Users page) and that the icons in
