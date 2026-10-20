@@ -38,10 +38,15 @@ Rectangle {
         anchors.rightMargin: 18
         spacing: 16
 
+        // Windows 11 Settings: monochrome line icons in the text colour.
         Kirigami.Icon {
-            Layout.preferredWidth: 26
-            Layout.preferredHeight: 26
+            Layout.preferredWidth: 20
+            Layout.preferredHeight: 20
+            Layout.leftMargin: 3
+            Layout.rightMargin: 3
             source: card.icon
+            isMask: card.icon.endsWith("-symbolic")
+            color: Theme.text
         }
         ColumnLayout {
             Layout.fillWidth: true

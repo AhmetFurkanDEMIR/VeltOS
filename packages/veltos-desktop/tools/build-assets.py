@@ -415,6 +415,12 @@ def build_static_config(root):
         # The clipboard keeps pictures too (Windows' clipboard does), so a
         # snip stays pasteable after VeltOS Snipping Tool has ended: Plasma's
         # Klipper ignores images by default (klipper.kcfg, Plasma 6.3.6).
+        # Windows key + Space switches the keyboard layout, as on Windows
+        # (KDE's Meta+Alt+K stays as a second key). kglobalacceld reads this
+        # as the current shortcut for users who have not changed it.
+        "etc/xdg/kglobalshortcutsrc": (
+            "[KDE Keyboard Layout Switcher]\n"
+            "Switch to Next Keyboard Layout=Meta+Space\\tMeta+Alt+K,Meta+Alt+K,Switch to Next Keyboard Layout\n"),
         "etc/xdg/klipperrc": (
             "[General]\n"
             "IgnoreImages=false\n"),

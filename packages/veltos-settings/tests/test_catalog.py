@@ -10,19 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from veltos_settings import catalog, strings  # noqa: E402
 
-# KDE settings modules installed in the VeltOS image (from its
-# /usr/share/applications/kcm_*.desktop files, 2026-10-19). A module that
-# is not installed would open an error window.
-KNOWN_KCMS = {
-    "kcm_about-distro", "kcm_access", "kcm_autostart", "kcm_baloofile", "kcm_bluetooth",
-    "kcm_clock", "kcm_colors", "kcm_componentchooser", "kcm_cursortheme", "kcm_filetypes",
-    "kcm_firewall", "kcm_fonts", "kcm_gamecontroller", "kcm_keyboard", "kcm_kscreen",
-    "kcm_kwin_virtualdesktops", "kcm_kwinoptions", "kcm_mouse", "kcm_networkmanagement",
-    "kcm_nightlight", "kcm_notifications", "kcm_powerdevilprofilesconfig", "kcm_proxy",
-    "kcm_pulseaudio", "kcm_recentFiles", "kcm_regionandlang", "kcm_screenlocker",
-    "kcm_tablet", "kcm_touchpad", "kcm_touchscreen", "kcm_users", "kcm_virtualkeyboard",
-    "kcm_wallpaper", "kcmspellchecking",
-}
+QML = Path(__file__).resolve().parent.parent / "veltos_settings" / "qml"
 
 
 class CatalogTests(unittest.TestCase):
@@ -35,18 +23,31 @@ class CatalogTests(unittest.TestCase):
         for _page, item in self.all_items():
             targets = [key for key in ("kcm", "page", "action") if item.get(key)]
             self.assertEqual(len(targets), 1, item["id"])
-            if item.get("kcm"):
-                self.assertIn(item["kcm"], KNOWN_KCMS, item["id"])
+            self.assertNotIn("kcm", item, item["id"])           # no KDE settings window, ever
             if item.get("page"):
                 self.assertIn(item["page"], catalog.BUILTIN_PAGES, item["id"])
             if item.get("action"):
                 self.assertIn(item["action"], catalog.ACTIONS, item["id"])
 
-    def test_modules_opened_by_builtin_pages_exist(self):
-        qml = Path(__file__).resolve().parent.parent / "veltos_settings" / "qml"
-        for path in qml.glob("*.qml"):
-            for kcm in re.findall(r"\b(kcm_?\w+)\b", path.read_text(encoding="utf-8")):
-                self.assertIn(kcm, KNOWN_KCMS, path.name)
+    def test_no_page_opens_kde_settings(self):
+        for path in QML.glob("*.qml"):
+            text = path.read_text(encoding="utf-8")
+            self.assertIsNone(re.search(r"\bkcm_\w+|kcmshell|systemsettings|openModule", text), path.name)
+
+    def test_every_builtin_page_has_a_component(self):
+        main = (QML / "Main.qml").read_text(encoding="utf-8")
+        for page in catalog.BUILTIN_PAGES:
+            if page != "home":
+                self.assertIn(f'"{page}":', main, page)
+
+    def test_icons_are_monochrome_line_icons(self):
+        for page in catalog.PAGES:
+            self.assertTrue(page["icon"].endswith("-symbolic"), page["id"])
+        for _page, item in self.all_items():
+            self.assertTrue(item["icon"].endswith("-symbolic"), item["id"])
+        for path in QML.glob("*Page.qml"):
+            for icon in re.findall(r'\bicon: "([^"]+)"', path.read_text(encoding="utf-8")):
+                self.assertTrue(icon.endswith("-symbolic"), f"{path.name}: {icon}")
 
     def test_texts_in_both_languages(self):
         for page in catalog.PAGES:
@@ -76,7 +77,7 @@ class CatalogTests(unittest.TestCase):
     def test_search_finds_windows_words_in_both_languages(self):
         titles = [r["title"] for r in catalog.search("wifi", "en")]
         self.assertIn("Wi-Fi", titles)
-        self.assertTrue(any(r["id"] == "advancednetwork" for r in catalog.search("vpn", "en")))
+        self.assertTrue(any(r["id"] == "otherusers" for r in catalog.search("kullanıcı ekle", "tr")))
         self.assertTrue(any(r["id"] == "region" for r in catalog.search("turkce", "tr")))
         self.assertTrue(any(r["id"] == "sound" for r in catalog.search("HOPARLÖR", "tr")))
         self.assertTrue(any(r["id"] == "about" for r in catalog.search("bilgisayar adı", "tr")))

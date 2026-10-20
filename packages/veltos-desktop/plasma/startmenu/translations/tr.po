@@ -50,3 +50,6 @@ msgstr "Hesap ayarlarını değiştir"
 
 msgid "Power"
 msgstr "Güç"
+
+msgid "Sign out"
+msgstr "Oturumu kapat"

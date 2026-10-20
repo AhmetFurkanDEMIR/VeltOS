@@ -69,14 +69,12 @@ Rectangle {
                 font.pixelSize: Theme.fontSize
                 elide: Text.ElideRight
             }
-            Kirigami.Icon {
+            Glyph {
                 visible: row.pinned
-                Layout.preferredWidth: 12
-                Layout.preferredHeight: 12
-                source: "window-pin"
+                Layout.preferredWidth: 14
+                Layout.preferredHeight: 14
+                kind: "pin"
                 color: Theme.subtext
-                isMask: true
-                opacity: 0.8
             }
         }
 

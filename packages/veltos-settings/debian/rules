@@ -12,6 +12,10 @@ override_dh_auto_install:
 	cp -r veltos_settings debian/veltos-settings/usr/lib/python3/dist-packages/
 	find debian/veltos-settings -name __pycache__ -prune -exec rm -rf {} +
 	install -D -m 755 bin/veltos-settings debian/veltos-settings/usr/bin/veltos-settings
+	# KDE's settings programs open VeltOS Settings (diverted in the preinst).
+	install -D -m 755 bin/veltos-settings-redirect debian/veltos-settings/usr/libexec/veltos/settings-redirect
+	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/systemsettings
+	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kcmshell6
 	install -D -m 644 data/veltos-settings.desktop \
 		debian/veltos-settings/usr/share/applications/veltos-settings.desktop
 	# App icon (VeltOS artwork, Windows 11 style).

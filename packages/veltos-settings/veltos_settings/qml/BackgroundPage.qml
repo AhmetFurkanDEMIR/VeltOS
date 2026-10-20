@@ -66,7 +66,7 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "preferences-desktop-wallpaper"
+        icon: "preferences-desktop-wallpaper-symbolic"
         title: backend.text("personalize_background")
         description: backend.text("choose_photo")
         wrapControl: true
@@ -112,7 +112,7 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "folder-pictures"
+        icon: "folder-pictures-symbolic"
         title: backend.text("choose_photo")
         VButton {
             text: backend.text("browse_photos")
@@ -120,13 +120,4 @@ ColumnLayout {
         }
     }
 
-    SettingCard {
-        Layout.fillWidth: true
-        Layout.topMargin: 18
-        icon: "preferences-desktop-wallpaper"
-        title: backend.text("more_background")
-        description: backend.text("more_background_desc")
-        external: true
-        onActivated: page.itemActivated({ kcm: "kcm_wallpaper", action: "", page: "" })
-    }
 }

@@ -16,7 +16,7 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "preferences-desktop-theme-global"
+        icon: "applications-graphics-symbolic"
         title: backend.text("choose_mode")
         description: backend.text("choose_mode_desc")
         VComboBox {
@@ -30,7 +30,7 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "preferences-desktop-color"
+        icon: "preferences-color-symbolic"
         title: backend.text("accent_colour")
         description: backend.text("accent_colour_desc")
         wrapControl: true
@@ -95,13 +95,4 @@ ColumnLayout {
         }
     }
 
-    SettingCard {
-        Layout.fillWidth: true
-        Layout.topMargin: 18
-        icon: "preferences-desktop-color"
-        title: backend.text("more_colours")
-        description: backend.text("more_colours_desc")
-        external: true
-        onActivated: page.itemActivated({ kcm: "kcm_colors", action: "", page: "" })
-    }
 }

@@ -45,6 +45,8 @@ Rectangle {
             Layout.preferredWidth: 20
             Layout.preferredHeight: 20
             source: item.icon
+            isMask: item.icon.endsWith("-symbolic")
+            color: Theme.text
         }
         Label {
             Layout.fillWidth: true

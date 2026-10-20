@@ -92,7 +92,7 @@ Item {
         case "lock": lockScreenRequested(); break;
         case "switchuser": session.switchUser(); cancelRequested(); break;
         case "logout": logoutRequested(); break;
-        case "password": launch("kcmshell6 kcm_users"); break;
+        case "password": launch("veltos-settings signin"); break;
         case "taskmanager": launch("veltos-taskmanager"); break;
         case "sleep": suspendRequested(2); break;
         case "shutdown": softwareUpdatePending ? haltUpdateRequested() : haltRequested(); break;

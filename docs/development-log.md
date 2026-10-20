@@ -3,6 +3,58 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 — Settings without KDE's settings windows, pins in File Explorer
+
+The product owner asked that KDE's old settings never open ("Change
+account settings" in Start opened KDE's Users page) and that the icons in
+Settings be alike.
+
+- **Every KDE settings module in VeltOS Settings was replaced** by a page
+  of its own (15 new pages): Notifications (do not disturb, sounds,
+  banners per app), Power & battery, Night light, Multitasking, Mouse,
+  Touchpad, Typing (keyboard layouts), Lock screen, Default apps, Startup,
+  Your info, Sign-in options (change the password), Other users (add,
+  administrator, remove), Language & region, Accessibility (text size,
+  animations), Searching files. Settings that have no page yet (VPN and
+  wired details, proxy, firewall, fonts, pointer style, per-app volume,
+  display arrangement, game controllers, tablets, on-screen keyboard,
+  spelling) were removed instead of opening KDE's window. The "More …
+  settings" links of the existing pages went too; Date & time sets the
+  time by hand in Settings.
+- **`systemsettings` and `kcmshell6` are diverted** (veltos-settings
+  preinst, KDE's at `*.kde`) to `veltos-settings-redirect`, which maps the
+  module name to a page (`catalog.KCM_PAGES`, Home for others). So Start's
+  "Change account settings" (KCMLauncher → `systemsettings kcm_users`),
+  KRunner results and KDE programs' "Configure" links open VeltOS
+  Settings. The Ctrl+Alt+Del "Change a password" and Quick Settings'
+  night light now call VeltOS Settings directly.
+- How settings are applied (checked in source or the VM): KDE config files
+  through `kwriteconfig6 --notify` (Plasma's notifications watch
+  plasmanotifyrc; keys from plasma-workspace 6.3.6 kcfg files),
+  PowerDevil `reparseConfiguration`, KWin `reconfigure`, keyboard layouts
+  with the `org.kde.keyboard.reloadConfig` signal; mouse and touchpad
+  through KWin's `org.kde.KWin.InputDevice` D-Bus properties (read in the
+  VM) and kcminputrc `[Libinput][vendor][product][name]`; users through
+  AccountsService (accountsservice 23.13.9 in the image); the password
+  through `passwd` in a pseudo terminal. `xdg-mime query` failed for
+  text/plain in the session ("Illegal number", xdg-utils), so default apps
+  are read from and written to mimeapps.list directly; Okular opens PDFs
+  through a hidden helper entry, offered under Document Viewer's name.
+- **Icons**: the cards and the navigation pane use Fluent's monochrome
+  `-symbolic` icons in the text colour at one size (all names checked in
+  the VM); a test rejects any other icon on the pages.
+- Start: "Log Out" reads "Sign out"; Spectacle in the pinned apps is
+  swapped for Snipping Tool once. Windows + Space switches the keyboard
+  layout for new users (`/etc/xdg/kglobalshortcutsrc`).
+- **File Explorer**: the pin next to pinned folders was Fluent's 12 px
+  `window-pin` icon, which showed as a cut "x"; it is now a drawn push pin
+  (VM: whole and sharp).
+- VM (live, rebuilt packages): `systemsettings kcm_users` and Start's
+  "Change account settings" opened Accounts > Your info; Apps, Default
+  apps (Firefox, Photos found; others fixed afterwards) and Power pages.
+  Not yet checked on screen: adding a user (polkit prompt is still KDE's
+  window), changing the password, mouse settings on real hardware.
+
 ## 2026-10-20 (night, latest) — VeltOS Snipping Tool
 
 - **New package `veltos-snip`**: Windows 11's Snipping Tool. Print Screen
