@@ -286,11 +286,13 @@ class Tab(QObject):
     """One File Explorer tab: a location, its history and its items."""
 
     changed = Signal()
+    crumbsChanged = Signal()            # also when the drives change (names in the address bar)
     loadingChanged = Signal()
     renameRequested = Signal(str)       # path of a new item to rename at once
 
     def __init__(self, backend, location, parent=None, select=""):
         super().__init__(parent)
+        self.changed.connect(self.crumbsChanged)
         self.backend = backend
         self._pending_select = select   # a file to select once its folder is listed
         self.lang = backend.lang
@@ -340,7 +342,7 @@ class Tab(QObject):
     def icon(self):
         return self.backend.location_icon(self._location)
 
-    @Property("QVariantList", notify=changed)
+    @Property("QVariantList", notify=crumbsChanged)
     def crumbs(self):
         """Address bar parts: [{name, location}], like "This PC > Local
         Disk > home > velt" in Windows, but from the nearest known place."""
@@ -362,9 +364,19 @@ class Tab(QObject):
             current = home
         else:
             parts.append({"name": self.backend.location_title(THIS_PC), "location": THIS_PC})
-            parts.append({"name": self.backend.text("local_disk"), "location": "/"})
-            rel = path.parts[1:]
-            current = Path("/")
+            # Inside another drive (a Windows partition, a USB stick): This PC
+            # > the drive's name, as in Windows, not Local Disk > media > ...
+            drive = next((d for d in getattr(self.backend, "_drives", [])
+                          if d.get("mount") not in ("", "/", None)
+                          and (path == Path(d["mount"]) or Path(d["mount"]) in path.parents)), None)
+            if drive is not None:
+                current = Path(drive["mount"])
+                parts.append({"name": drive.get("title") or current.name, "location": str(current)})
+                rel = path.relative_to(current).parts
+            else:
+                parts.append({"name": self.backend.text("local_disk"), "location": "/"})
+                rel = path.parts[1:]
+                current = Path("/")
         for part in rel:
             current = current / part
             parts.append({"name": part, "location": str(current)})

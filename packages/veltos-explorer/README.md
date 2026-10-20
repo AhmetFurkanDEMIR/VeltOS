@@ -22,6 +22,13 @@ Explorer, written for VeltOS in Python (PySide6) and QML.
 - **Home**: Quick access tiles and Recent files (freedesktop.org
   `recently-used.xbel` and KDE's RecentDocuments). **This PC**: drives with
   capacity bars; unmounted partitions mount on double-click (udisks).
+  Windows (NTFS) drives have their own icon (a window mark, not Microsoft's
+  logo) and open without a password for administrators
+  (`/usr/share/polkit-1/rules.d/50-veltos-drives.rules`); they are mounted
+  through ntfs-3g with Windows file names (`/etc/udisks2/mount_options.conf`)
+  and read only, with an explanation, when Windows did not shut down
+  completely. Windows' recovery partitions are hidden; the address bar
+  starts at the drive ("This PC > Windows").
 - **Views**: Details (Name, Date modified, Type, Size; click a header to
   sort), Tiles, small / medium / large / extra large icons with picture
   thumbnails (shared freedesktop.org cache). Folders first, natural order.

@@ -1,0 +1,11 @@
+// VeltOS: administrators open the PC's other drives (a Windows partition, a
+// second disk) in File Explorer without typing their password, as on
+// Windows. Only for the person signed in at this computer; other users
+// still need an administrator's password (udisks2's own policy).
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.udisks2.filesystem-mount-system" ||
+         action.id == "org.freedesktop.udisks2.filesystem-mount") &&
+        subject.local && subject.active && subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+});

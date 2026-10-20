@@ -49,6 +49,20 @@ override_dh_auto_install:
 			-exec sh -c 'case "$$1" in *-dark*) src=branding/close-dark.svg;; *) src=branding/close.svg;; esac; \
 				rm -f "$$1" && cp "$$src" "$$1"' sh {} \; ; \
 	done
+	# Windows drives (NTFS) in File Explorer: a VeltOS name that Fluent does
+	# not have. It goes next to every drive-harddisk icon of the Fluent themes
+	# (KDE shortens a name it cannot find in the theme to "drive-harddisk"
+	# before it looks in hicolor) and into hicolor for other themes.
+	for f in $$(find $(ICONS) -path '*/devices/drive-harddisk.svg' \( -type f -o -type l \)); do \
+		d=$$(dirname $$f); \
+		case "$$d" in */16/*|*/16@*|*/22/*|*/22@*|*/24/*|*/24@*) src=branding/small/drive-harddisk-windows.svg;; \
+			*) src=branding/drive-harddisk-windows.svg;; esac; \
+		cp $$src $$d/drive-harddisk-windows.svg; \
+	done
+	install -D -m 644 branding/drive-harddisk-windows.svg \
+		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/drive-harddisk-windows.svg
+	install -D -m 644 branding/small/drive-harddisk-windows.svg \
+		debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/devices/drive-harddisk-windows.svg
 	# Yellow folders like Windows 11 (Fluent's are blue), coloured at all sizes.
 	python3 tools/recolour-folders.py $(ICONS)
 	# Drop dangling symlinks (a few from upstream, plus links to removed files).
@@ -73,5 +87,7 @@ execute_after_dh_auto_install:
 			cmp -s $$f branding/$$name.svg || cmp -s $$f branding/small/$$name.svg || exit 1; done; \
 	done
 	! grep -rqi 'da4453' $(ICONS)/.Fluent-base/16/actions/window-close.svg $(ICONS)/.Fluent-dark-base/22/actions/tab-close.svg
+	cmp -s $(ICONS)/.Fluent-base/scalable/devices/drive-harddisk-windows.svg branding/drive-harddisk-windows.svg
+	cmp -s $(ICONS)/.Fluent-base/16/devices/drive-harddisk-windows.svg branding/small/drive-harddisk-windows.svg
 	! grep -qi '198ee6' $(ICONS)/.Fluent-base/scalable/places/default-folder.svg
 	grep -q 'FFC83D' $(ICONS)/.Fluent-base/scalable/apps/file-manager.svg

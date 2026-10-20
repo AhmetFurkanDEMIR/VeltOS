@@ -3,6 +3,38 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (evening) — Windows drives in File Explorer
+
+- The product owner wanted Windows (NTFS) drives visible, safe file
+  exchange and a Windows mark on them.
+- **Mounting**: udisks2 2.10.1 (Debian 13) tries the kernel's ntfs3 first
+  and, by default, allows file names Windows cannot use. VeltOS sets
+  `/etc/udisks2/mount_options.conf` (veltos-explorer): ntfs-3g first, both
+  drivers with `windows_names`. ntfs-3g 2022.10.3 mounts a Windows that
+  did not shut down completely (Fast Startup, hibernation) read only by
+  itself; File Explorer detects the read-only mount (/proc/self/mounts)
+  and explains it the Windows way (start Windows, Shift + Shut down). If
+  a read-write mount fails, it retries read only.
+- **No password for administrators**: `/usr/share/polkit-1/rules.d/
+  50-veltos-drives.rules` lets active local users in the sudo group mount
+  internal file systems (udisks2 asks for an administrator password by
+  default, in KDE's polkit window).
+- **This PC**: Windows' recovery and reserved partitions are hidden; a
+  Windows drive has its own icon (`drive-harddisk-windows`: the local disk
+  with a blue window mark — not Microsoft's four-pane logo, which is a
+  trademark VeltOS does not ship); a drive holding `Windows/System32`
+  without a label is called "Windows"; inside a drive the address bar
+  reads "This PC > <drive>" instead of "Local Disk > media > velt > …".
+  KDE shortens an icon name it cannot find in the theme before looking in
+  hicolor, so the icon is installed in the Fluent themes next to
+  drive-harddisk.
+- VM (live) with a 1.1 GB NTFS partition on a loop device: shown with the
+  Windows icon, opened from File Explorer without a password (ntfs-3g,
+  files owned by the user), writing works, `bad:name.txt` refused; with a
+  hibernation file the drive opened read only and the explanation showed.
+  (Commands run through the VM's guest agent are outside the session, so
+  polkit refused them; File Explorer started from the taskbar worked.)
+
 ## 2026-10-21 (later still) — Stacked taskbar button for several windows
 
 - An app with several windows showed Plasma's "+" under its taskbar icon

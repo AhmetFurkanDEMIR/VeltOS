@@ -8,7 +8,7 @@ import sys
 import urllib.parse
 from pathlib import Path
 
-from PySide6.QtCore import (Property, QFileSystemWatcher, QMimeData, QObject, Qt, QUrl, Signal,
+from PySide6.QtCore import (Property, QFileSystemWatcher, QMimeData, QObject, Qt, QTimer, QUrl, Signal,
                             Slot)
 from PySide6.QtGui import QGuiApplication, QIcon, QRegion
 from PySide6.QtQml import QQmlApplicationEngine
@@ -167,6 +167,10 @@ class Backend(QObject):
                     d["fraction"] = d["used"] / d["size"] if d["size"] and d["mount"] else 0
                 self._drives = result
                 self.drivesChanged.emit()
+                # The address bar names drives ("This PC > Windows"); later,
+                # not while QML may be building the This PC view.
+                for tab in self._tabs:
+                    QTimer.singleShot(0, lambda t=tab: t.crumbsChanged.emit())
         self.jobs.submit(lambda: places.drives(self.runner), done)
 
     def drive_title(self, drive):
@@ -174,6 +178,8 @@ class Backend(QObject):
             return self.text("local_disk")
         if drive["label"]:
             return drive["label"]
+        if drive.get("windowsSystem"):
+            return "Windows"
         name = self.text("usb_drive") if drive["removable"] else self.text("local_disk")
         return f"{name} ({files.human_size(drive['size'])})"
 
@@ -186,11 +192,14 @@ class Backend(QObject):
             self.current_tab().navigate(drive["mount"])
             return
 
-        def done(mount_point):
-            if isinstance(mount_point, str) and mount_point:
+        def done(result):
+            mount_point, readonly = result if isinstance(result, tuple) else ("", False)
+            if mount_point:
                 self.refreshDrives()
                 self.current_tab().navigate(mount_point)
-        self.jobs.submit(lambda: places.mount(drive["device"], self.runner), done)
+                if readonly:
+                    self.message.emit(self.text("windows_read_only"))
+        self.jobs.submit(lambda: places.mount(drive["device"], self.runner, drive.get("windows", False)), done)
 
     @Slot(str)
     def ejectDrive(self, device):

@@ -18,6 +18,10 @@ override_dh_auto_install:
 	install -D -m 644 data/veltos-explorer.svg \
 		debian/veltos-explorer/usr/share/icons/hicolor/scalable/apps/veltos-explorer.svg
 	install -D -m 644 data/kde-mimeapps.list debian/veltos-explorer/etc/xdg/kde-mimeapps.list
+	# Windows drives: ntfs-3g first, Windows file names, read-only when
+	# Windows did not shut down; administrators open internal drives.
+	install -D -m 644 data/udisks2-mount_options.conf debian/veltos-explorer/etc/udisks2/mount_options.conf
+	install -D -m 644 data/50-veltos-drives.rules debian/veltos-explorer/usr/share/polkit-1/rules.d/50-veltos-drives.rules
 	# "Show in folder" requests of other programs (D-Bus activation).
 	install -D -m 644 data/org.freedesktop.FileManager1.service \
 		debian/veltos-explorer/usr/share/dbus-1/services/org.freedesktop.FileManager1.service

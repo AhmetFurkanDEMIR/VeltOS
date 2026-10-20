@@ -124,10 +124,43 @@ class Pins:
 
 # --- Drives ---------------------------------------------------------------------------
 
-def drives(runner=run, live=None):
+# Partition types Windows keeps for itself (not shown, like in Windows).
+WINDOWS_HIDDEN_TYPES = {
+    "de94bba4-06d1-4d40-a16a-bfd50179d6ac",     # Windows Recovery Environment
+    "e3c9e316-0b5c-4db8-817d-f92df00215ae",     # Microsoft reserved
+    "0x27",                                      # MBR: Windows recovery
+}
+NTFS = ("ntfs", "ntfs3")
+
+
+def mount_options(mounts_text=None):
+    """{mount point: options} of the mounted file systems."""
+    if mounts_text is None:
+        try:
+            mounts_text = Path("/proc/self/mounts").read_text()
+        except OSError:
+            mounts_text = ""
+    result = {}
+    for line in mounts_text.splitlines():
+        fields = line.split()
+        if len(fields) >= 4:
+            point = fields[1].replace("\\040", " ")
+            result[point] = fields[3].split(",")
+    return result
+
+
+def drive_icon(drive):
+    if drive.get("windows"):
+        return "drive-harddisk-windows"
+    return "drive-removable-media-usb" if drive.get("removable") else "drive-harddisk"
+
+
+def drives(runner=run, live=None, mounts_text=None):
     """Drives for "This PC": mounted file systems of disks and USB sticks,
-    and partitions that can be mounted. Swap, the live medium's internals
-    and tiny system partitions (EFI, BIOS boot) are left out."""
+    and partitions that can be mounted. Swap, the live medium's internals,
+    tiny system partitions (EFI, BIOS boot) and Windows' recovery and
+    reserved partitions are left out. Windows drives (NTFS) are marked;
+    a mounted one that holds Windows itself is "windowsSystem"."""
     code, out = runner(["lsblk", "--json", "--bytes", "-o",
                         "NAME,PATH,LABEL,SIZE,FSTYPE,MOUNTPOINTS,RM,HOTPLUG,TYPE,FSSIZE,FSUSED,PARTTYPE"])
     try:
@@ -135,6 +168,7 @@ def drives(runner=run, live=None):
     except (ValueError, KeyError, TypeError):
         tree = []
     result = []
+    options = mount_options(mounts_text)
 
     def walk(devices, removable):
         for dev in devices or []:
@@ -147,9 +181,11 @@ def drives(runner=run, live=None):
                 small = int(dev.get("size") or 0) < 600 * 1024 ** 2
                 efi = parttype == "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
                 hidden = mounts and all(m.startswith(("/boot", "/run/live", "/usr/lib/live")) for m in mounts)
-                if not (efi or hidden or (small and not removable_here and not mounts)):
+                windows_own = parttype in WINDOWS_HIDDEN_TYPES
+                if not (efi or hidden or windows_own or (small and not removable_here and not mounts)):
                     mount = "/" if "/" in mounts else (mounts[0] if mounts else "")
-                    result.append({
+                    windows = fstype in NTFS
+                    drive = {
                         "device": dev.get("path", ""),
                         "label": dev.get("label") or "",
                         "mount": mount,
@@ -158,7 +194,12 @@ def drives(runner=run, live=None):
                         "removable": removable_here,
                         "system": mount == "/",
                         "fstype": fstype,
-                    })
+                        "windows": windows,
+                        "windowsSystem": bool(windows and mount and os.path.isdir(os.path.join(mount, "Windows", "System32"))),
+                        "readonly": bool(mount and "ro" in options.get(mount, [])),
+                    }
+                    drive["icon"] = drive_icon(drive)
+                    result.append(drive)
             walk(dev.get("children"), removable_here)
 
     walk(tree, False)
@@ -171,19 +212,35 @@ def drives(runner=run, live=None):
         except OSError:
             size = free = 0
         result.insert(0, {"device": "", "label": "", "mount": "/", "size": size, "used": size - free,
-                          "removable": False, "system": True, "fstype": "overlay"})
+                          "removable": False, "system": True, "fstype": "overlay", "windows": False,
+                          "windowsSystem": False, "readonly": False, "icon": "drive-harddisk"})
     result.sort(key=lambda d: (not d["system"], d["removable"], d["label"].lower(), d["device"]))
     return result
 
 
-def mount(device, runner=run):
+def mount(device, runner=run, windows=False, mounts_text=None):
     """Mount a partition (udisks; polkit may ask for the password). Returns
-    the mount point or ""."""
+    (mount point or "", read only). A Windows drive that Windows did not
+    shut down completely (Fast Startup, hibernation) is refused for writing
+    by ntfs-3g (VeltOS' udisks setting, /etc/udisks2/mount_options.conf);
+    it is then opened read only, so its file system stays intact."""
+    def mounted(code, out):
+        match = re.search(r" at (/.+?)\.?\s*$", out.strip()) if code == 0 else None
+        return match.group(1) if match else ""
+
     code, out = runner(["udisksctl", "mount", "--no-user-interaction", "-b", device], timeout=60)
     if code != 0:
         code, out = runner(["udisksctl", "mount", "-b", device], timeout=300)
-    match = re.search(r" at (/.+?)\.?\s*$", out.strip()) if code == 0 else None
-    return match.group(1) if match else ""
+    point = mounted(code, out)
+    if point:
+        # ntfs-3g 2022 itself falls back to read only for a hibernated
+        # Windows ("Falling back to read-only mount", VM 2026-10-21).
+        return point, "ro" in mount_options(mounts_text).get(point, [])
+    if not windows:
+        return "", False
+    code, out = runner(["udisksctl", "mount", "-b", device, "-o", "ro"], timeout=300)
+    point = mounted(code, out)
+    return point, bool(point)
 
 
 def eject(device, runner=run):
