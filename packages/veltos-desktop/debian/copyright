@@ -35,6 +35,7 @@ Comment: Unchanged copy of KWin 6.3.6 (Debian 13) for the tests of
 
 Files: tests/data/taskmanager/contents/ui/ContextMenu.qml
  tests/data/taskmanager/contents/ui/Task.qml
+ tests/data/taskmanager/contents/ui/GroupExpanderOverlay.qml
 Copyright: 2012-2016 Eike Hein, Kai Uwe Broulik and other KDE contributors
 License: GPL-2+
 Comment: Copy of plasma-desktop 6.3.6 QML (Debian 13), used to test

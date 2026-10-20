@@ -77,6 +77,10 @@ class OverrideTests(unittest.TestCase):
         self.assertIn("VeltOS Settings has the taskbar options", menu)
         task = (self.applets / "org.kde.plasma.taskmanager/contents/ui/Task.qml").read_text(encoding="utf-8")
         self.assertIn("Windows shows no spinner on the taskbar button", task)
+        self.assertIn("several windows of one app look like a stack of buttons", task)
+        overlay = (self.applets / "org.kde.plasma.taskmanager/contents/ui/GroupExpanderOverlay.qml").read_text(
+            encoding="utf-8")
+        self.assertIn("visible: false // VeltOS", overlay)
 
     def test_changed_upstream_falls_back_to_plasma(self):
         self.run_tool()

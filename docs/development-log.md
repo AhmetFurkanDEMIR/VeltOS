@@ -3,6 +3,15 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (later still) — Stacked taskbar button for several windows
+
+- An app with several windows showed Plasma's "+" under its taskbar icon
+  (the theme's `group-expander` picture). Like Windows 11, it now shows a
+  stacked button: a second plate peeks out on the right while the button
+  is pointed at or active, and no plus sign (two more replacements in
+  the task manager override: GroupExpanderOverlay hidden, a plate behind
+  the button frame in Task.qml). VM: two File Explorer windows.
+
 ## 2026-10-21 (later) — Terminal follows light and dark
 
 - The product owner wanted the Terminal to change with light/dark mode
