@@ -1,0 +1,45 @@
+#!/bin/sh
+# Right-click menus of the desktop and the taskbar like Windows 11: no
+# "Add Widgets", "Enter Edit Mode", "Add Panel", "Configure Desktop and
+# Wallpaper" or panel settings, which open KDE's old dialogs. The desktop
+# keeps its file entries (New, Paste, Sort, Refresh, ...). Wallpaper and
+# display options are in VeltOS Settings.
+#
+# Plasma reads these options from the [ActionPlugins] groups of its layout
+# file when it starts (plugin org.kde.contextmenu, libplasma
+# Containment::restore; 0 = desktop, 1 = panel), so this runs from the
+# session script before plasmashell starts. Run at every sign-in; only
+# writes when the file does not have the VeltOS options yet.
+set -u
+
+file=plasma-org.kde.plasma.desktop-appletsrc
+trigger="RightButton;NoModifier"
+
+if [ "$(kreadconfig6 --file "$file" --group ActionPlugins --group 1 --group "$trigger" \
+        --key "add widgets" 2>/dev/null)" = false ] &&
+   [ "$(kreadconfig6 --file "$file" --group ActionPlugins --group 0 --group "$trigger" \
+        --key "edit mode" 2>/dev/null)" = false ]; then
+    exit 0
+fi
+
+set_option() {  # containment type, key, value
+    kwriteconfig6 --file "$file" --group ActionPlugins --group "$1" --group "$trigger" \
+        --key "$2" "$3"
+}
+
+# Desktop: only the containment's own entries (the file menu).
+kwriteconfig6 --file "$file" --group ActionPlugins --group 0 --key "$trigger" org.kde.contextmenu
+for key in configure _display_settings "configure shortcuts" _sep1 _open_terminal _run_command \
+           "add widgets" "_add panel" "manage activities" remove "edit mode" "desktop edit mode" \
+           _sep2 _lock_screen _logout _sep3 _wallpaper; do
+    set_option 0 "$key" false
+done
+set_option 0 _context true
+
+# Taskbar: no "Add Widgets", no edit mode / panel settings.
+kwriteconfig6 --file "$file" --group ActionPlugins --group 1 --key "$trigger" org.kde.contextmenu
+for key in "add widgets" configure remove; do
+    set_option 1 "$key" false
+done
+set_option 1 _context true
+exit 0

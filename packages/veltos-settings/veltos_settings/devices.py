@@ -394,6 +394,9 @@ class Display:
 # --- Personalization ---------------------------------------------------------------------------
 
 WALLPAPER_DIRS = [Path("/usr/share/wallpapers")]
+# KDE's own default picture (installed with Plasma) is not offered; the
+# VeltOS pictures and any the user or other packages add are.
+HIDDEN_WALLPAPERS = {"Next"}
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp", ".avif", ".jxl")
 # Accent colours (a Windows 11 like palette, VeltOS blue first).
 ACCENTS = ["#2F5EE6", "#0078D4", "#0099BC", "#00B294", "#10893E", "#498205",
@@ -416,6 +419,8 @@ class Personalization:
             if not base.is_dir():
                 continue
             for package in sorted(base.iterdir()):
+                if package.name in HIDDEN_WALLPAPERS:
+                    continue
                 images = package / "contents" / "images"
                 if not images.is_dir():
                     continue

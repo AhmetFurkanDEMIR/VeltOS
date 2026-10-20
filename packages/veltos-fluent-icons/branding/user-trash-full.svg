@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS Recycle Bin (full): the frosted bin with sheets of paper in
+       it, in the style of Windows 11's icons (original artwork).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cfdbe8"/>
+      <stop offset="0.35" stop-color="#eef4fa"/>
+      <stop offset="0.7" stop-color="#dbe5f0"/>
+      <stop offset="1" stop-color="#b7c6d6"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#5a6f88" stop-opacity="0.22"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7fafd"/>
+      <stop offset="1" stop-color="#c3d0de"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e3e9f1"/>
+    </linearGradient>
+    <linearGradient id="paperBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9ecff"/>
+      <stop offset="1" stop-color="#9cc6f5"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="128" cy="232" rx="66" ry="8" fill="#000000" opacity="0.12"/>
+  <!-- sheets sticking out of the bin -->
+  <g stroke="#8094ad" stroke-opacity="0.45" stroke-width="1.5">
+    <path d="M70 70 L92 18 L150 34 L134 76 Z" fill="url(#paper)"/>
+    <path d="M118 74 L148 22 L196 44 L172 80 Z" fill="url(#paperBlue)"/>
+    <path d="M90 76 L104 36 L156 46 L148 80 Z" fill="url(#paper)"/>
+  </g>
+  <g stroke="#9fb0c4" stroke-width="3" stroke-linecap="round">
+    <path d="M100 38 L132 47"/>
+    <path d="M96 49 L126 57"/>
+    <path d="M113 52 L144 58"/>
+    <path d="M110 62 L140 67"/>
+  </g>
+  <!-- body -->
+  <path d="M46 62 H210 L190 222 Q189 230 180 230 H76 Q67 230 66 222 Z" fill="url(#body)" opacity="0.96"/>
+  <path d="M46 62 H210 L190 222 Q189 230 180 230 H76 Q67 230 66 222 Z" fill="url(#shade)"/>
+  <!-- paper seen through the frosted side -->
+  <path d="M76 120 L180 110 L174 206 L86 214 Z" fill="#ffffff" opacity="0.35"/>
+  <g stroke="#ffffff" stroke-opacity="0.75" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M86 84 L94 210"/>
+    <path d="M128 84 V210"/>
+    <path d="M170 84 L162 210"/>
+  </g>
+  <g stroke="#7d93ad" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M92 84 L100 210"/>
+    <path d="M134 84 V210"/>
+    <path d="M176 84 L168 210"/>
+  </g>
+  <path d="M46 62 H210 L190 222 Q189 230 180 230 H76 Q67 230 66 222 Z" fill="none" stroke="#6f86a1" stroke-opacity="0.45" stroke-width="2"/>
+  <path d="M42 60 Q42 46 128 46 Q214 46 214 60 Q214 76 128 76 Q42 76 42 60 Z M54 61 Q56 70 128 70 Q200 70 202 61 Q200 52 128 52 Q56 52 54 61 Z"
+        fill="url(#rim)" fill-rule="evenodd" stroke="#7a90aa" stroke-opacity="0.5" stroke-width="1.5"/>
+</svg>

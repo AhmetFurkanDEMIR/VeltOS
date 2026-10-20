@@ -1,7 +1,13 @@
 {
   "plugin": "org.kde.plasma.notifications",
-  "about": "Notification pop-ups closer to Windows 11 toasts: no timeout bar, a monochrome close glyph. Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "about": "Notification pop-ups like Windows 11 toasts: bottom-right corner, 12 px from the screen edge and the taskbar, Windows' width, no line under the app name and no timeout bar, the picture on the left, action buttons filling the row with equal widths, a monochrome close glyph, no KDE settings button and no bell in the tray (the clock opens the notification centre, like Windows 11). Matched against plasma-workspace 6.3.6 (Debian 13).",
   "replacements": [
+    {
+      "file": "contents/ui/delegates/DelegatePopup.qml",
+      "why": "no line under the app name",
+      "old": "        topInset: 0\n        Layout.fillWidth: true\n        Layout.columnSpan: delegateRoot.__firstColumn + 2\n",
+      "new": "        topInset: 0\n        background: null // VeltOS: no line under the app name, like Windows\n        Layout.fillWidth: true\n        Layout.columnSpan: delegateRoot.__firstColumn + 2\n"
+    },
     {
       "file": "contents/ui/delegates/DelegatePopup.qml",
       "why": "no timeout bar under the header",
@@ -9,10 +15,88 @@
       "new": "        visible: false // VeltOS: Windows toasts have no timeout bar\n"
     },
     {
+      "file": "contents/ui/delegates/DelegatePopup.qml",
+      "why": "title right of the picture",
+      "old": "        Layout.row: 2\n        Layout.column: delegateRoot.__firstColumn\n        Layout.columnSpan: icon.visible ? 1 : 2\n        modelInterface: delegateRoot.modelInterface\n",
+      "new": "        Layout.row: 2\n        Layout.column: delegateRoot.__firstColumn + (icon.visible ? 1 : 0) // VeltOS: picture on the left\n        Layout.columnSpan: icon.visible ? 1 : 2\n        modelInterface: delegateRoot.modelInterface\n"
+    },
+    {
+      "file": "contents/ui/delegates/DelegatePopup.qml",
+      "why": "picture on the left, like Windows toasts",
+      "old": "        Layout.row: 2\n        Layout.column: delegateRoot.__firstColumn + 1\n        Layout.rowSpan: 2\n",
+      "new": "        Layout.row: 2\n        Layout.column: delegateRoot.__firstColumn // VeltOS: picture on the left, like Windows\n        Layout.rowSpan: 2\n        Layout.rightMargin: Kirigami.Units.largeSpacing\n"
+    },
+    {
+      "file": "contents/ui/delegates/DelegatePopup.qml",
+      "why": "text right of the picture",
+      "old": "        Layout.row: summary.visible ? 3 : 2\n        Layout.column: delegateRoot.__firstColumn\n",
+      "new": "        Layout.row: summary.visible ? 3 : 2\n        Layout.column: delegateRoot.__firstColumn + (icon.visible ? 1 : 0) // VeltOS: picture on the left\n"
+    },
+    {
+      "file": "contents/ui/delegates/DelegatePopup.qml",
+      "why": "space above the buttons",
+      "old": "        Layout.row: 4\n        Layout.column: delegateRoot.__firstColumn\n",
+      "new": "        Layout.row: 4\n        Layout.topMargin: Kirigami.Units.largeSpacing // VeltOS\n        Layout.column: delegateRoot.__firstColumn\n"
+    },
+    {
+      "file": "contents/ui/components/ActionContainer.qml",
+      "why": "buttons start at the left edge",
+      "old": "        Item {\n            Layout.fillWidth: true\n            Layout.fillHeight: true\n        }\n",
+      "new": "        Item {\n            visible: false // VeltOS: the buttons fill the row, like Windows\n            Layout.fillWidth: true\n            Layout.fillHeight: true\n        }\n"
+    },
+    {
+      "file": "contents/ui/components/ActionContainer.qml",
+      "why": "buttons share the row with equal widths",
+      "old": "                Layout.fillWidth: true\n                Layout.maximumWidth: implicitWidth\n",
+      "new": "                Layout.fillWidth: true\n                Layout.preferredWidth: 1 // VeltOS: equal widths filling the row, like Windows\n                Layout.horizontalStretchFactor: 1\n"
+    },
+    {
+      "file": "contents/ui/components/HeadingButtons.qml",
+      "why": "no button opening KDE's notification settings",
+      "old": "        icon.name: \"configure\"\n        visible: modelInterface.configurable\n",
+      "new": "        icon.name: \"configure\"\n        visible: false // VeltOS: KDE's notification settings dialog is not offered\n"
+    },
+    {
       "file": "contents/ui/components/HeadingButtons.qml",
       "why": "monochrome close glyph",
       "old": "        icon.name: \"window-close\"\n",
       "new": "        icon.name: \"window-close-symbolic\" // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/global/Globals.qml",
+      "why": "toasts in the bottom-right corner, like Windows 11",
+      "old": "    property int popupLocation: {\n",
+      "new": "    // VeltOS: always the bottom-right corner above the taskbar, like Windows 11.\n    property int popupLocation: Qt.AlignBottom | Qt.AlignRight\n    property int upstreamPopupLocation: {\n"
+    },
+    {
+      "file": "contents/ui/global/Globals.qml",
+      "why": "Windows' toast width and distance from the screen edge",
+      "old": "    property int popupWidth: (popupLocation & Qt.AlignHCenter) && !Kirigami.Settings.isMobile ? Kirigami.Units.gridUnit * 22 : Kirigami.Units.gridUnit * 18\n    property int popupEdgeDistance: Kirigami.Units.gridUnit * 2\n",
+      "new": "    // VeltOS: Windows 11 toasts are about 364 px wide, 12 px from the screen edge and the taskbar.\n    property int popupWidth: Kirigami.Units.gridUnit * 19\n    property int popupEdgeDistance: Kirigami.Units.smallSpacing * 3\n"
+    },
+    {
+      "file": "contents/ui/global/Globals.qml",
+      "why": "Windows' gap between stacked toasts",
+      "old": "    property int popupSpacing: (popupLocation & Qt.AlignHCenter) && !Kirigami.Settings.isMobile ? Kirigami.Units.smallSpacing : Kirigami.Units.gridUnit\n",
+      "new": "    property int popupSpacing: Kirigami.Units.smallSpacing * 3 // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/main.qml",
+      "why": "no tray icon: the clock opens the notification centre",
+      "old": "    readonly property int effectiveStatus: historyModel.activeJobsCount > 0\n",
+      "new": "    // VeltOS: no tray icon; the clock opens the notification centre, like Windows 11.\n    readonly property int effectiveStatus: PlasmaCore.Types.HiddenStatus\n    readonly property int upstreamEffectiveStatus: historyModel.activeJobsCount > 0\n"
+    },
+    {
+      "file": "contents/ui/global/Globals.qml",
+      "why": "newest toast at the bottom, older ones move up, like Windows",
+      "old": "            let popup = popupInstantiator.objectAt(i);\n",
+      "new": "            // VeltOS: the newest toast nearest the taskbar, older ones above, like Windows\n            // (the pop-up model lists the oldest first).\n            let popup = popupInstantiator.objectAt(popupInstantiator.count - 1 - i);\n"
+    },
+    {
+      "file": "contents/ui/components/ActionContainer.qml",
+      "why": "buttons of equal width",
+      "old": "        id: actionRow\n",
+      "new": "        id: actionRow\n        uniformCellSizes: true // VeltOS: buttons of equal width, like Windows\n"
     }
   ]
 }

@@ -98,3 +98,11 @@ panel.addWidget("org.veltos.clock");
 
 // The thin "show desktop" area at the right end, as on Windows 11.
 panel.addWidget("org.veltos.showdesktop");
+
+// Locked like the Windows 11 taskbar: no widgets added, moved or removed,
+// and no KDE settings dialogs (see system/session-fixups, which also locks
+// the tray's items at sign-in).
+panel.widgets().forEach(function (widget) {
+    widget.locked = true;
+});
+panel.locked = true;

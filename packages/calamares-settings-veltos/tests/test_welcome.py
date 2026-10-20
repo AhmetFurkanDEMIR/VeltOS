@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 PKG = Path(__file__).resolve().parent.parent
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -80,6 +81,23 @@ class WindowTests(unittest.TestCase):
         problems = [m for m in messages if "qml" in m.lower() or "error" in m.lower()
                     or "warning" in m.lower() or "undefined" in m.lower()]
         self.assertEqual(problems, [])
+
+    def test_language_switch_waits_for_the_sign_out(self):
+        # Sent without waiting for the reply, the sign-out request was lost
+        # when the window closed at once (VM test 2026-10-20).
+        QGuiApplication.instance() or QGuiApplication([])
+        calls = []
+        backend = welcome.welcome_object(welcome.TEXTS["en"])
+        with (mock.patch.object(welcome, "write_session_language", lambda code: calls.append(("write", code))),
+              mock.patch.object(welcome.subprocess, "run",
+                                lambda command, **kw: calls.append(("run", command, kw.get("timeout")))),
+              mock.patch.object(welcome.subprocess, "Popen", side_effect=AssertionError("not waited for"))):
+            backend.switchLanguage("tr")
+        self.assertEqual(calls[0], ("write", "tr"))
+        self.assertEqual(calls[1][0], "run")
+        self.assertIn("--print-reply", calls[1][1])
+        self.assertIn("org.kde.Shutdown.logout", calls[1][1])
+        self.assertTrue(calls[1][2])
 
 
 class LiveSessionScriptTests(unittest.TestCase):

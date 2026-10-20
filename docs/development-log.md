@@ -3,6 +3,72 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (late night) — Ctrl+Alt+Del, power key, locked taskbar, toasts, wallpapers
+
+Product owner requests, tested in the live VM of ISO 20261019-222530 by
+installing the rebuilt packages (`dpkg -i`, then signing out and in):
+
+- **Live welcome language switch closed the window without changing the
+  language**: the sign-out request was sent without waiting and was lost
+  when the window quit. It now waits for the D-Bus reply (unit test).
+  Verified: English/Türkçe sign out and back in in the chosen language.
+- **Ctrl+Alt+Del** shows Windows' security options screen
+  (`plasma/logout/Logout.qml`): blurred sign-in wallpaper, Lock, Switch
+  user, Sign out, Change a password (KDE's Users page), Task Manager,
+  Cancel, and the power button with Sleep / Shut down / Restart in the
+  bottom-right corner. Programs are started through Plasma5Support's
+  "executable" engine with `setsid -f`. Verified: screen, power menu, Task
+  Manager opens. A program asking to shut down still gets the small card.
+- **Power key** (VirtualBox "send the shutdown signal") now shuts down
+  like Windows (`/etc/xdg/powerdevilrc PowerButtonAction=8`). Plasma
+  showed its logout screen, which cannot appear over the lock screen.
+  **Not yet observed** (it ends the VM; to check on the next ISO).
+- **Taskbar locked** like Windows: no "Add Widgets", no edit mode or panel
+  settings; taskbar items offer no "Configure …" dialogs. Plasma's applets
+  follow the lock of the whole shell, not of their panel, so
+  `session-fixups` locks every applet (also those in the tray, twice,
+  because loading applets may restore their old lock state) and the kiosk
+  key `plasma/allow_configure_when_locked=false` hides the dialogs. The
+  shell itself is not locked (SystemImmutable would also block the D-Bus
+  scripts used by Settings and `plasma-apply-wallpaperimage`).
+  Right-click menus (`system/context-menus`, written before plasmashell
+  starts): the desktop keeps its file entries only, the empty taskbar
+  shows none, taskbar buttons say "Pin to taskbar" / "Unpin from taskbar".
+  Verified in the VM.
+- **Notifications** (Plasma override): toasts in the bottom-right corner
+  12 px from the edge, Windows' width, no line under the app name, picture
+  on the left, action buttons of equal width, newest toast nearest the
+  taskbar; no bell in the tray — the clock shows the unread count in an
+  accent circle (and a muted bell for "do not disturb") and opens the
+  notification centre. Plasma's pop-up model lists the oldest first even
+  with `sortOrder` changed (tried), so the positioning loop is reversed;
+  `Layout.horizontalStretchFactor` did not give equal button widths,
+  `RowLayout.uniformCellSizes` did. Verified with test notifications.
+- **"Disks & Devices"** is now "Safely Remove Hardware" (Turkish
+  "Donanımı Güvenle Kaldır"): small flyout, one list, no sideways scroll
+  bar; tray flyouts have no settings or pin buttons. Verified.
+- **Window frames like Windows 11's Mica**: the title bar has the colour of
+  the VeltOS apps' window background (no white bar above a grey window);
+  the minimise glyph sits on whole pixels. KWin had chosen **105 %
+  display scale** for the VM screen, which blurred every 1 px line and all
+  text; `display-scale` gives each new screen the nearest 25 % step
+  (Windows' steps) once, at sign-in. Verified: 100 %, crisp buttons.
+- **Icons**: original VeltOS "This PC" (monitor with a blue bloom) and
+  Recycle Bin (frosted bin, empty/full) in the Windows 11 style replace
+  Fluent's `computer` and `user-trash(-full)` at all sizes — Microsoft's
+  icons are not used (copyright).
+- **Wallpapers**: new default "VeltOS Bloom" (soft translucent petals
+  around the centre) plus "VeltOS Flow", "VeltOS Glow" and the previous
+  design as "VeltOS Lake", each light and dark (`tools/wallpapers.py`);
+  Settings hides KDE's "Next". Verified on the desktop (light).
+- Taskbar window tooltips use a plain close glyph instead of KDE's red one.
+
+Problems: `pkill -f` patterns in `vm exec` killed the shell running them
+again (the welcome window then was not restarted); a host-side unit test
+run left `__pycache__` in the tree and the repository test failed the
+package build; Bash heredocs turned `\` + newline in Python sources into
+real newlines again (fixed with the Edit tool).
+
 ## 2026-10-20 (night) — ISO with all of today's work; Konqueror out
 
 - ISO `veltos-0.1.0-dev-20261019-222530` (everything up to the Task

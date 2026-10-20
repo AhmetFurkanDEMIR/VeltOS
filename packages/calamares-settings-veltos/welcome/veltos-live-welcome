@@ -115,9 +115,15 @@ def welcome_object(texts):
             """Store the language and sign out; the live session signs in
             again by itself (SDDM Relogin) and starts in that language."""
             write_session_language(code)
-            subprocess.Popen(["dbus-send", "--session", "--dest=org.kde.Shutdown",
-                              "--type=method_call", "/Shutdown", "org.kde.Shutdown.logout"],
-                             start_new_session=True)
+            # Wait for the session manager to accept the request before this
+            # window goes away: sent without waiting, the request was lost
+            # and the window just closed (VM test 2026-10-20).
+            try:
+                subprocess.run(["dbus-send", "--session", "--print-reply", "--dest=org.kde.Shutdown",
+                                "--type=method_call", "/Shutdown", "org.kde.Shutdown.logout"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
             QGuiApplication.instance().quit()
 
     return Welcome()

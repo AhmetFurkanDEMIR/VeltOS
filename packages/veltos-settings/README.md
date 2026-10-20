@@ -17,7 +17,8 @@ options.
   - **Home**: this PC (name, model, VeltOS version, Rename), Light/Dark
     theme, recommended settings;
   - **Personalization**: Light/Dark theme with previews (applies the VeltOS
-    Light/Dark global theme with `plasma-apply-lookandfeel`);
+    Light/Dark global theme with `plasma-apply-lookandfeel`); Background
+    lists the installed wallpapers (VeltOS's first, KDE's "Next" left out);
   - **System > About**: device name (rename through `hostnamectl`, which
     asks for the administrator password), model, processor, RAM, graphics,
     system type, VeltOS version and kernel, with "Copy" buttons;

@@ -1,0 +1,36 @@
+{
+  "plugin": "org.kde.plasma.devicenotifier",
+  "about": "Removable drives flyout like Windows 11's \"Safely Remove Hardware\": Windows' name, a small flyout with one plain list (no type headings, no sideways scroll bar). Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "replacements": [
+    {
+      "file": "metadata.json",
+      "why": "Windows' name for the tray item",
+      "old": "        \"Name\": \"Disks & Devices\",\n",
+      "new": "        \"Name\": \"Safely Remove Hardware\",\n"
+    },
+    {
+      "file": "metadata.json",
+      "why": "Windows' Turkish name for the tray item",
+      "old": "        \"Name[tr]\": \"Diskler ve Aygıtlar\",\n",
+      "new": "        \"Name[tr]\": \"Donanımı Güvenle Kaldır\",\n"
+    },
+    {
+      "file": "contents/ui/FullRepresentation.qml",
+      "why": "small flyout",
+      "old": "    Layout.minimumHeight: Kirigami.Units.gridUnit * 18\n",
+      "new": "    Layout.minimumHeight: Kirigami.Units.gridUnit * 8 // VeltOS: small flyout, like Windows\n"
+    },
+    {
+      "file": "contents/ui/FullRepresentation.qml",
+      "why": "no sideways scroll bar",
+      "old": "        contentWidth: availableWidth - contentItem.leftMargin - contentItem.rightMargin\n",
+      "new": "        contentWidth: availableWidth - contentItem.leftMargin - contentItem.rightMargin\n        PlasmaComponents3.ScrollBar.horizontal.policy: PlasmaComponents3.ScrollBar.AlwaysOff // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/FullRepresentation.qml",
+      "why": "one list without device type headings",
+      "old": "                property: \"deviceType\"\n",
+      "new": "                property: \"\" // VeltOS: one list without headings, like Windows\n"
+    }
+  ]
+}

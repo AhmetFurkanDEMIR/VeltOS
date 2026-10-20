@@ -20,6 +20,26 @@ License: LGPL-2+
 Comment: Copies of plasma-workspace 6.3.6 QML (Debian 13), used to test
  plasma-overrides/*.json.
 
+Files: tests/data/devicenotifier/*
+Copyright: 2011-2022 Viranch Mehta, Jacopo De Simoi, David Edmundson, Marco Martin,
+ Kai Uwe Broulik, Nate Graham, Harald Sitter and other KDE contributors
+License: LGPL-2+
+Comment: Copies of plasma-workspace 6.3.6 QML and metadata (Debian 13), used
+ to test plasma-overrides/*.json.
+
+Files: tests/data/taskmanager/contents/ui/ContextMenu.qml
+Copyright: 2012-2016 Eike Hein, Kai Uwe Broulik and other KDE contributors
+License: GPL-2+
+Comment: Copy of plasma-desktop 6.3.6 QML (Debian 13), used to test
+ plasma-overrides/*.json.
+
+Files: tests/data/taskmanager/contents/ui/ToolTipInstance.qml
+Copyright: 2013-2024 Sebastian Kügler, Martin Gräßlin, Kai Uwe Broulik, Roman Gilg,
+ Nate Graham and other KDE contributors
+License: LGPL-2+
+Comment: Copy of plasma-desktop 6.3.6 QML (Debian 13), used to test
+ plasma-overrides/*.json.
+
 Files: artwork/*
 Copyright: 2026 VeltOS Developers
 License: CC-BY-SA-4.0
@@ -66,3 +86,12 @@ License: GPL-3
 License: LGPL-2+
  On Debian systems, the complete text of the GNU Library General Public License
  version 2 can be found in "/usr/share/common-licenses/LGPL-2".
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in "/usr/share/common-licenses/GPL-2".

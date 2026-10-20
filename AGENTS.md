@@ -60,11 +60,11 @@ owner sets priorities; agents act as the engineering team.
 | `build/scripts/` | In-container scripts: package build, ISO build |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpaper, splash, master logo |
+| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus), master logo |
 | `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML) with built-in Wi-Fi, Bluetooth, Sound, Display, Background, Colours, Date & time pages; other settings open KDE modules (KDE System Settings hidden from Start) |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
-| `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed) |
+| `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook) |
 | `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding, partition layout (BitLocker-like encryption), installer jobs, live welcome window (Try/Install), live session settings |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi` → install/open via Wine |
@@ -273,3 +273,20 @@ owner sets priorities; agents act as the engineering team.
 - Every ISO build leaves a 3.5 GB directory in `out/iso`; the product
   owner's C: drive filled up after eight builds, the last ISO could not be
   written and Docker Desktop hung. Delete superseded builds regularly.
+- Plasma applets take their lock (immutability) from the whole shell, not
+  from their panel: `panel.locked = true` alone leaves the taskbar's items
+  configurable. Lock each applet (`session-fixups`). Locking the shell
+  itself (SystemImmutable) makes `evaluateScript` refuse D-Bus scripts.
+- Plasma's notification pop-up model lists the oldest first whatever its
+  `sortOrder`; position toasts by iterating backwards. For equal widths in
+  a `RowLayout` use `uniformCellSizes` (stretch factors did not work).
+- KWin chose 105 % display scale for QEMU's screen; fractional scales blur
+  1 px lines and text. `display-scale` rounds to 25 % steps once per screen.
+- Restart the welcome window or other programs in `vm exec` with a
+  pattern the command line itself does not contain
+  (`pkill -f '[v]eltos-live-welcome'`), and start them in a second call.
+- Running package unit tests on the host leaves `__pycache__` directories;
+  the repository test then fails the package build. Delete them first.
+- `plasma-workspace-data` (not `plasma-workspace`) ships the QML of
+  Plasma's applets; extract it with `apt-get download` in the builder to
+  read the exact upstream text for overrides (`out/upstream/`).

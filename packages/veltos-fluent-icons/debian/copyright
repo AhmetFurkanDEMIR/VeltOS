@@ -7,7 +7,16 @@ Files: *
 Copyright: Vince Liuice and Fluent-icon-theme contributors
 License: GPL-3
 
-Files: debian/* upstream.json
+Files: branding/*
+Copyright: 2026 VeltOS Developers
+License: CC-BY-SA-4.0
+ This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+ International License. To view a copy of this license, visit
+ https://creativecommons.org/licenses/by-sa/4.0/
+Comment: The VeltOS logo and VeltOS's own "This PC" and Recycle Bin icons
+ (original artwork in the style of Windows 11, not Microsoft's icons).
+
+Files: debian/* upstream.json tools/*
 Copyright: 2026 VeltOS Developers
 License: GPL-3
 

@@ -58,6 +58,8 @@ def play(actions, qmp, outdir):
         elif kind in ("click", "rclick"):
             x, y = (int(v) for v in arg.split(","))
             qmp.click(x, y, "left" if kind == "click" else "right")
+        elif kind == "powerbutton":  # ACPI power button (VirtualBox: "ACPI Shutdown")
+            qmp.execute("system_powerdown")
         elif kind == "sleep":
             time.sleep(float(arg))
         elif kind == "shot":

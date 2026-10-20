@@ -1,6 +1,6 @@
 {
   "plugin": "org.kde.plasma.private.systemtray",
-  "about": "Windows 11 hidden-icons flyout: icons only in a small grid, no header while no item is open. Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "about": "Windows 11 hidden-icons flyout: icons only in a small grid, no header while no item is open; item flyouts without KDE's settings and pin buttons. Matched against plasma-workspace 6.3.6 (Debian 13).",
   "replacements": [
     {
       "file": "contents/ui/items/AbstractItem.qml",
@@ -10,9 +10,9 @@
     },
     {
       "file": "contents/ui/HiddenItemsView.qml",
-      "why": "four columns",
+      "why": "up to four icons per row",
       "old": "        readonly property int columns: 2\n",
-      "new": "        readonly property int columns: 4 // VeltOS\n"
+      "new": "        readonly property int columns: Math.max(1, Math.min(4, count)) // VeltOS: up to four per row\n"
     },
     {
       "file": "contents/ui/HiddenItemsView.qml",
@@ -22,9 +22,9 @@
     },
     {
       "file": "contents/ui/ExpandedRepresentation.qml",
-      "why": "small flyout while no item is open",
+      "why": "small flyouts: the icons only while no item is open, a small drives list",
       "old": "    Layout.minimumWidth: Kirigami.Units.gridUnit * 24\n    Layout.minimumHeight: Kirigami.Units.gridUnit * 24\n",
-      "new": "    // VeltOS: as small as the icons need while no item is open.\n    readonly property int veltosIconsWidth: hiddenItemsView.layout.cellHeight * 4 + Kirigami.Units.smallSpacing * 2\n    readonly property int veltosIconsHeight: hiddenItemsView.layout.cellHeight * Math.max(1, Math.ceil(hiddenItemsView.layout.itemCount / 4)) + Kirigami.Units.smallSpacing * 2\n    Layout.minimumWidth: systemTrayState.activeApplet ? Kirigami.Units.gridUnit * 24 : veltosIconsWidth\n    Layout.minimumHeight: systemTrayState.activeApplet ? Kirigami.Units.gridUnit * 24 : veltosIconsHeight\n    Layout.preferredWidth: Layout.minimumWidth\n    Layout.preferredHeight: Layout.minimumHeight\n    Layout.maximumWidth: systemTrayState.activeApplet ? Infinity : veltosIconsWidth\n    Layout.maximumHeight: systemTrayState.activeApplet ? Infinity : veltosIconsHeight\n"
+      "new": "    // VeltOS: as small as the icons need while no item is open (at most\n    // four per row), and the drives list (\"Safely Remove Hardware\") as a\n    // small flyout, like Windows.\n    readonly property int veltosIconsWidth: hiddenItemsView.layout.cellHeight * Math.max(1, Math.min(4, hiddenItemsView.layout.itemCount)) + Kirigami.Units.smallSpacing * 2\n    readonly property int veltosIconsHeight: hiddenItemsView.layout.cellHeight * Math.max(1, Math.ceil(hiddenItemsView.layout.itemCount / 4)) + Kirigami.Units.smallSpacing * 2\n    readonly property bool veltosSmallApplet: !!systemTrayState.activeApplet\n        && systemTrayState.activeApplet.plasmoid.pluginName === \"org.kde.plasma.devicenotifier\"\n    readonly property int veltosAppletWidth: Kirigami.Units.gridUnit * (veltosSmallApplet ? 18 : 24)\n    readonly property int veltosAppletHeight: Kirigami.Units.gridUnit * (veltosSmallApplet ? 10 : 24)\n    Layout.minimumWidth: systemTrayState.activeApplet ? veltosAppletWidth : veltosIconsWidth\n    Layout.minimumHeight: systemTrayState.activeApplet ? veltosAppletHeight : veltosIconsHeight\n    Layout.preferredWidth: Layout.minimumWidth\n    Layout.preferredHeight: Layout.minimumHeight\n    Layout.maximumWidth: systemTrayState.activeApplet ? (veltosSmallApplet ? veltosAppletWidth : Infinity) : veltosIconsWidth\n    Layout.maximumHeight: systemTrayState.activeApplet ? (veltosSmallApplet ? veltosAppletHeight : Infinity) : veltosIconsHeight\n"
     },
     {
       "file": "contents/ui/ExpandedRepresentation.qml",
@@ -55,6 +55,18 @@
       "why": "no scroll bar",
       "old": "    hoverEnabled: true\n    background: null\n",
       "new": "    hoverEnabled: true\n    background: null\n    PlasmaComponents3.ScrollBar.vertical.policy: PlasmaComponents3.ScrollBar.AlwaysOff // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/ExpandedRepresentation.qml",
+      "why": "no button opening KDE's settings dialogs in flyouts",
+      "old": "                id: configureButton\n                icon.name: \"configure\"\n                visible: actionsButton.applet && actionsButton.applet.plasmoid.internalAction(\"configure\")\n",
+      "new": "                id: configureButton\n                icon.name: \"configure\"\n                visible: false // VeltOS: Windows flyouts have no settings button\n"
+    },
+    {
+      "file": "contents/ui/ExpandedRepresentation.qml",
+      "why": "no pin button in flyouts",
+      "old": "                id: pinButton\n                checkable: true\n",
+      "new": "                id: pinButton\n                visible: false // VeltOS: Windows flyouts cannot be pinned\n                checkable: true\n"
     }
   ]
 }

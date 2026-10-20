@@ -1,0 +1,68 @@
+#!/usr/bin/python3
+"""Display scale in Windows' steps: 100, 125, 150, 175, 200 %, ...
+
+KWin picks a screen's scale from its size and resolution in 5 % steps
+(105 % for QEMU's virtual screen, VM test 2026-10-20). Such fractional
+scales draw text, icons and the 1 px window button glyphs blurred, and
+Windows offers 25 % steps only (100 % for that screen). At sign-in, each
+screen this user has not had before gets the nearest 25 % step; a scale
+the user picks later in Settings is kept.
+
+    display-scale            (run by session-fixups)
+"""
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def seen_file():
+    state = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state")
+    return state / "veltos/display-scale-seen"
+
+
+def windows_step(scale):
+    """The nearest 25 % step, at least 100 %."""
+    return max(1.0, round(scale * 4) / 4)
+
+
+def plan(outputs, seen):
+    """kscreen-doctor commands for the screens not seen before, and the
+    names to remember."""
+    commands, names = [], []
+    for output in outputs:
+        name = output.get("name")
+        if not name or not output.get("enabled", False) or name in seen:
+            continue
+        names.append(name)
+        scale = float(output.get("scale") or 1.0)
+        target = windows_step(scale)
+        if abs(target - scale) > 0.001:
+            commands.append(["kscreen-doctor", f"output.{name}.scale.{target:g}"])
+    return commands, names
+
+
+def main():
+    try:
+        result = subprocess.run(["kscreen-doctor", "-j"], capture_output=True, text=True, timeout=20)
+        outputs = json.loads(result.stdout).get("outputs", [])
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return 0
+    path = seen_file()
+    try:
+        seen = set(path.read_text(encoding="utf-8").split())
+    except OSError:
+        seen = set()
+    commands, names = plan(outputs, seen)
+    for command in commands:
+        subprocess.run(command, capture_output=True, timeout=20)
+    if names:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("".join(f"{name}\n" for name in sorted(seen | set(names))), encoding="utf-8")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
