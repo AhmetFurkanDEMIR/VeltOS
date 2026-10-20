@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -98,6 +99,31 @@ class WindowTests(unittest.TestCase):
         self.assertIn("--print-reply", calls[1][1])
         self.assertIn("org.kde.Shutdown.logout", calls[1][1])
         self.assertTrue(calls[1][2])
+
+    def test_window_comes_back_when_the_installer_closes(self):
+        # The product owner could not change the language again after
+        # opening the installer: the window quit.
+        app = QGuiApplication.instance() or QGuiApplication([])
+        welcome.LOGO = str(PKG / "branding/veltos-logo.svg")
+        with tempfile.TemporaryDirectory() as tmp:
+            fake = Path(tmp, "install-veltos")
+            fake.write_text("#!/bin/sh\nsleep 0.3\n")
+            fake.chmod(0o755)
+            backend = welcome.welcome_object(welcome.TEXTS["en"])
+            engine = QQmlApplicationEngine()
+            engine.rootContext().setContextProperty("welcome", backend)
+            engine.load(QUrl.fromLocalFile(str(welcome.qml_file())))
+            window = engine.rootObjects()[0]
+            with mock.patch.dict(os.environ, {"PATH": f"{tmp}:{os.environ.get('PATH', '')}"}):
+                backend.install()
+                self.assertFalse(window.isVisible())
+                deadline = time.monotonic() + 10
+                while not window.isVisible() and time.monotonic() < deadline:
+                    app.processEvents()
+                    time.sleep(0.02)
+            self.assertTrue(window.isVisible())
+            engine.deleteLater()
+            app.processEvents()
 
 
 class LiveSessionScriptTests(unittest.TestCase):

@@ -3,7 +3,10 @@
 
 Started once when the live session begins (/etc/xdg/autostart) and only on
 the install medium; on an installed system it exits at once. "Install"
-starts the installer (install-veltos) and closes the window.
+starts the installer (install-veltos) and hides the window until the
+installer is closed, so the language can be changed again or "Try"
+chosen. The language buttons sign out; the live session signs in again
+in that language (desktop, apps and installer), as often as wanted.
 
     veltos-live-welcome [--force]    (--force: show it outside the live system)
 """
@@ -85,8 +88,11 @@ def qml_file():
 def welcome_object(texts):
     """The object the window talks to (PySide6 is imported only when the
     window is really shown)."""
-    from PySide6.QtCore import QObject, QUrl, Slot
+    from PySide6.QtCore import QObject, QProcess, QUrl, Slot
     from PySide6.QtGui import QGuiApplication
+
+    def windows():
+        return QGuiApplication.instance().topLevelWindows()
 
     class Welcome(QObject):
         @Slot(str, result=str)
@@ -99,8 +105,25 @@ def welcome_object(texts):
 
         @Slot()
         def install(self):
-            subprocess.Popen(["install-veltos"], start_new_session=True)
-            QGuiApplication.instance().quit()
+            """Run the installer; the window comes back when it is closed
+            (it used to quit, and the language could not be changed any
+            more once the installer had been opened)."""
+            for window in windows():
+                window.hide()
+            process = QProcess(self)
+            process.finished.connect(self.installerClosed)
+            process.errorOccurred.connect(
+                lambda error: self.installerClosed() if error == QProcess.ProcessError.FailedToStart else None)
+            self._installer = process
+            process.start("install-veltos", [])
+
+        @Slot()
+        def installerClosed(self, *_args):
+            self._installer = None
+            for window in windows():
+                window.show()
+                window.raise_()
+                window.requestActivate()
 
         @Slot()
         def close(self):

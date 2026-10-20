@@ -8,13 +8,16 @@ helper scripts are derived, ISC licence).
 ## What the user sees
 
 - When the live system starts, a **welcome window**: "Try VeltOS"
-  (closes the window) or "Install VeltOS" (starts the installer), and an
-  English / Türkçe switch in the corner. Switching writes the language and
-  keyboard layout for the session (`plasma-localerc`, `kxkbrc`) and signs
-  out (waiting for the session manager's answer before the window closes); SDDM signs the live user in again at once (`Relogin=true` from
-  `/etc/sddm.conf.d/veltos-live.conf`), now in that language. The boot
-  menu therefore has no separate Turkish entry. Shown only on the install
-  medium.
+  (closes the window) or "Install VeltOS" (starts the installer and hides
+  the window until the installer is closed, so the language can be changed
+  again), and an English / Türkçe switch in the corner. Switching writes
+  the language and keyboard layout for the session (`plasma-localerc`,
+  `kxkbrc`) and signs out (waiting for the session manager's answer before
+  the window closes); SDDM signs the live user in again at once
+  (`Relogin=true` from `/etc/sddm.conf.d/veltos-live.conf`), now in that
+  language, and the welcome window opens again — the switch works as often
+  as wanted. The boot menu therefore has no separate Turkish entry. Shown
+  only on the install medium.
 - In the live session the screen never locks, dims or turns off and the
   computer does not go to sleep (nobody knows the live user's password).
 - An "Install VeltOS" icon on the live desktop and in the Start menu
@@ -58,7 +61,8 @@ helper scripts are derived, ISC licence).
 is a known Calamares module or a shipped job, job scripts exist and pass
 `sh -n`, and no user-visible installer string mentions Debian.
 `tests/test_welcome.py`: language detection, complete translations, the
-welcome window loads offscreen without QML warnings, and the live session
+welcome window loads offscreen without QML warnings and comes back when
+the installer closes, and the live session
 script writes the no-lock/no-sleep settings only on the install medium.
 
 `tests/test_efi_label.py` and `tests/test_crypttab_tries.py` run the job
