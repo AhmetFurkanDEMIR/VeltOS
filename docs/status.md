@@ -74,6 +74,9 @@ checks that passed.
 
 ## Next steps
 
+0. Restart Docker Desktop (it hung when the disk was full), build an ISO
+   with the Konqueror/Firefox fix and run the boot tests.
+
 1. Build an ISO with the 2026-10-20 changes and run the boot tests; check
    the quiet start-up and shutdown on screen.
 2. Taskbar window tooltip in Windows design (`update-plasma-overrides`).

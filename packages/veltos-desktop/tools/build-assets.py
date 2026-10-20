@@ -181,6 +181,9 @@ def build_kdeglobals(scheme_groups, root):
         "menuFont": UI_FONT,
         "toolBarFont": UI_FONT,
         "smallestReadableFont": UI_FONT_SMALL,
+        # Start's first pinned app and "open link" in KDE programs: Firefox
+        # (Debian's KDE defaults name Falkon, which is not installed).
+        "BrowserApplication": "firefox-esr.desktop",
     }
     groups["[WM]"]["activeFont"] = UI_FONT
     groups["[Icons]"] = {"Theme": lnf["icons"]}

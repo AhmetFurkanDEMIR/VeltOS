@@ -21,3 +21,10 @@ Pin-Priority: -1
 Package: xwaylandvideobridge
 Pin: release a=*
 Pin-Priority: -1
+
+# Konqueror (recommended by kde-baseapps) became the default browser of the
+# live session (first pinned app in Start) and preloads itself at every
+# sign-in; VeltOS' browser is Firefox.
+Package: konqueror
+Pin: release a=*
+Pin-Priority: -1
