@@ -89,6 +89,23 @@ class AppNameTests(unittest.TestCase):
         self.assertIn("\nExec=konsole --notransparency\n", text)
         self.assertIn("\nExec=konsole --notransparency --new-tab\n", text)
 
+    def test_spectacle_loses_its_shortcuts(self):
+        spectacle = ("[Desktop Entry]\nName=Spectacle\nExec=/usr/bin/spectacle\nX-KDE-Shortcuts=Print,Meta+Shift+S\n"
+                     "\n[Desktop Action FullScreenScreenShot]\nExec=/usr/bin/spectacle -f\nX-KDE-Shortcuts=Shift+Print\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            src, out = Path(tmp) / "src", Path(tmp) / "xdg" / "applications"
+            src.mkdir()
+            (src / "org.kde.spectacle.desktop").write_text(spectacle, encoding="utf-8")
+            app_names.update(src, out)
+            copy = (out / "org.kde.spectacle.desktop").read_text(encoding="utf-8")
+            self.assertNotIn("X-KDE-Shortcuts", copy)
+            self.assertIn("NoDisplay=true", copy)
+            off = (Path(tmp) / "xdg/kglobalaccel/org.kde.spectacle.desktop").read_text(encoding="utf-8")
+            self.assertIn("\nNoDisplay=true\n", off)
+            (src / "org.kde.spectacle.desktop").unlink()       # Spectacle removed
+            app_names.update(src, out)
+            self.assertFalse((Path(tmp) / "xdg/kglobalaccel/org.kde.spectacle.desktop").exists())
+
     def test_file_without_name_is_rejected(self):
         with self.assertRaises(ValueError):
             app_names.rewrite("[Desktop Entry]\nExec=x\n", "x", hide=True)

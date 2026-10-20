@@ -1,0 +1,28 @@
+[Desktop Entry]
+Type=Application
+Name=Snipping Tool
+Name[tr]=Ekran Alıntısı Aracı
+GenericName=Screenshots
+GenericName[tr]=Ekran görüntüleri
+Comment=Snip part of the screen, a window or the whole screen and mark it up
+Comment[tr]=Ekranın bir bölümünün, bir pencerenin ya da tüm ekranın görüntüsünü alın ve üzerine not ekleyin
+Exec=veltos-snip %f
+Icon=veltos-snip
+Categories=Graphics;Utility;
+Keywords=screenshot;snip;print screen;capture;ekran görüntüsü;alıntı;yakala;
+StartupNotify=false
+Actions=NewSnip;FullScreen;
+
+# Windows: Print Screen and Windows + Shift + S start a snip, Windows +
+# Print Screen saves the whole screen (kglobalaccel reads these keys).
+[Desktop Action NewSnip]
+Name=New snip
+Name[tr]=Yeni ekran alıntısı
+Exec=veltos-snip --snip
+X-KDE-Shortcuts=Print,Meta+Shift+S
+
+[Desktop Action FullScreen]
+Name=Save a screenshot of the whole screen
+Name[tr]=Tüm ekranın görüntüsünü kaydet
+Exec=veltos-snip --full-screen
+X-KDE-Shortcuts=Meta+Print
