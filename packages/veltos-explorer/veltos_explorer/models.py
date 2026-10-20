@@ -289,9 +289,10 @@ class Tab(QObject):
     loadingChanged = Signal()
     renameRequested = Signal(str)       # path of a new item to rename at once
 
-    def __init__(self, backend, location, parent=None):
+    def __init__(self, backend, location, parent=None, select=""):
         super().__init__(parent)
         self.backend = backend
+        self._pending_select = select   # a file to select once its folder is listed
         self.lang = backend.lang
         self.model = FolderModel(self.lang, self)
         self._location = ""
@@ -429,6 +430,8 @@ class Tab(QObject):
         self._view = self.backend.view_for(location)
         self.model.set_cut(self.backend.cut_paths_in(location))
         self._select_after = previous if previous and Path(previous).parent == Path(location) else ""
+        if self._pending_select:
+            self._select_after, self._pending_select = self._pending_select, ""
         self.changed.emit()
         self.load()
 

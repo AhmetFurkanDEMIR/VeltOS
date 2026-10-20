@@ -1,4 +1,5 @@
-"""VeltOS Windows app runner: what happens when a user opens an .exe/.msi.
+"""VeltOS Windows app runner: what happens when a user opens an .exe, .msi,
+.bat or .cmd file.
 
     veltos-run FILE
 
@@ -7,6 +8,8 @@ Flow: confirm (name, publisher, icon) -> prepare the Windows environment
 "Open" buttons for the shortcuts the installer created, or a readable error.
 """
 
+import configparser
+import os
 import sys
 import tempfile
 import time
@@ -25,6 +28,25 @@ QML_DIR = Path(__file__).resolve().parent / "qml"
 # A portable program that is still running after this long is considered
 # started; the runner window then gets out of the way.
 STARTED_AFTER_MS = 5000
+
+
+def kde_value(group, key):
+    """A kdeglobals value as the session sees it (user, kdedefaults, /etc/xdg)."""
+    home = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    for path in (home / "kdeglobals", home / "kdedefaults/kdeglobals", Path("/etc/xdg/kdeglobals")):
+        parser = configparser.RawConfigParser(interpolation=None, strict=False)
+        try:
+            parser.read(path, encoding="utf-8")
+        except (configparser.Error, OSError, UnicodeDecodeError):
+            continue
+        if parser.has_option(group, key):
+            return parser.get(group, key)
+    return ""
+
+
+def accent_colour():
+    parts = [p for p in kde_value("General", "AccentColor").split(",") if p.strip().isdigit()]
+    return "#%02x%02x%02x" % tuple(int(p) for p in parts[:3]) if len(parts) >= 3 else ""
 
 
 class Runner(QObject):
@@ -75,16 +97,49 @@ class Runner(QObject):
     def appName(self):
         return self.info.name
 
-    @Property(str, notify=changed)
-    def subtitle(self):
-        publisher = self.info.publisher or self.t.get("unknown_publisher")
+    @Property("QStringList", notify=changed)
+    def details(self):
+        """Lines under the title, as in the Windows App Installer."""
+        if not self.info.valid:
+            return [self.info.path.name]
+        if self.info.kind == "batch":
+            return [self.t.get("kind_batch")]
+        lines = [self.t.get("publisher", publisher=self.info.publisher or self.t.get("unknown_publisher"))]
+        if self.info.version:
+            lines.append(self.t.get("version", version=self.info.version))
         kind = self.t.get("kind_installer" if self.info.is_installer else "kind_program")
         arch = {"x86": " · 32-bit", "x64": " · 64-bit"}.get(self.info.arch, "")
-        return f"{publisher} — {kind}{arch}"
+        lines.append(kind + arch)
+        return lines
+
+    @Property(str, constant=True)
+    def fallbackIcon(self):
+        return "text-x-script" if self.info.kind == "batch" else "application-x-ms-dos-executable"
 
     @Property(bool, notify=changed)
     def isInstaller(self):
         return self.info.is_installer
+
+    @Property(bool, constant=True)
+    def canAddToStart(self):
+        """Programs that need no installation can be added to Start (not
+        installers, which add their own entries, and not batch files)."""
+        return not self.info.is_installer and self.info.kind != "batch"
+
+    @Property(str, constant=True)
+    def actionKey(self):
+        """Text key of the main button: Install, Run (batch files) or Open."""
+        if self.info.is_installer:
+            return "install"
+        return "run" if self.info.kind == "batch" else "open"
+
+    @Property(bool, constant=True)
+    def darkMode(self):
+        return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
+
+    @Property(str, constant=True)
+    def accent(self):
+        return accent_colour()
 
     @Property("QVariantList", notify=changed)
     def newApps(self):
@@ -106,6 +161,7 @@ class Runner(QObject):
         texts = {
             "invalid": ("not_windows", None),
             "confirm": ("confirm_install", "confirm_install_body") if self.info.is_installer
+            else ("confirm_batch", "confirm_batch_body") if self.info.kind == "batch"
             else ("confirm_run", "confirm_run_body"),
             "preparing": ("preparing", "preparing_body"),
             "running": ("installing", "installing_body") if self.info.is_installer else ("running", None),
@@ -264,7 +320,7 @@ def main(argv=None):
     app.setDesktopFileName("veltos-run")
     app.setWindowIcon(QIcon.fromTheme("veltos-logo"))
     if len(argv) < 2:
-        print("usage: veltos-run FILE.exe|FILE.msi", file=sys.stderr)
+        print("usage: veltos-run FILE.exe|FILE.msi|FILE.bat|FILE.cmd", file=sys.stderr)
         return 2
     runner = Runner(Path(argv[1]).resolve())
     engine = QQmlApplicationEngine()

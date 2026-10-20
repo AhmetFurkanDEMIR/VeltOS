@@ -23,15 +23,16 @@ TRAY = "org.kde.plasma.private.systemtray"
 class OverrideTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
-        self.source = self.tmp / "plasma"
-        applets = self.source / "plasmoids"
+        self.source = self.tmp / "share"
+        applets = self.source / "plasma/plasmoids"
         shutil.copytree(PKG / "tests/data/systemtray", applets / TRAY)
         shutil.copytree(PKG / "tests/data/notifications", applets / "org.kde.plasma.notifications")
         shutil.copytree(PKG / "tests/data/devicenotifier", applets / "org.kde.plasma.devicenotifier")
         shutil.copytree(PKG / "tests/data/taskmanager", applets / "org.kde.plasma.taskmanager")
-        shutil.copytree(PKG / "tests/data/shell", self.source / "shells/org.kde.plasma.desktop")
+        shutil.copytree(PKG / "tests/data/shell", self.source / "plasma/shells/org.kde.plasma.desktop")
+        shutil.copytree(PKG / "tests/data/aurorae", self.source / "kwin/aurorae")
         self.out = self.tmp / "out"
-        self.applets = self.out / "plasmoids"
+        self.applets = self.out / "plasma/plasmoids"
 
     def run_tool(self, specs=PKG / "plasma-overrides"):
         return overrides.main(["--source", str(self.source), "--specs", str(specs),
@@ -74,24 +75,33 @@ class OverrideTests(unittest.TestCase):
         self.assertEqual(menu.count('"Pin to taskbar"'), 2)
         self.assertIn('"Unpin from taskbar"', menu)
         self.assertIn("VeltOS Settings has the taskbar options", menu)
+        task = (self.applets / "org.kde.plasma.taskmanager/contents/ui/Task.qml").read_text(encoding="utf-8")
+        self.assertIn("Windows shows no spinner on the taskbar button", task)
 
     def test_changed_upstream_falls_back_to_plasma(self):
         self.run_tool()
-        view = self.source / "plasmoids" / TRAY / "contents/ui/HiddenItemsView.qml"
+        view = self.source / "plasma/plasmoids" / TRAY / "contents/ui/HiddenItemsView.qml"
         view.write_text(view.read_text().replace("readonly property int columns: 2", "property int columns: 3"))
         self.assertEqual(self.run_tool(), 1)            # --check reports it
         self.assertFalse((self.applets / TRAY).exists())    # Plasma's own version is used
 
     def test_lock_screen_replaced_while_plasma_file_unchanged(self):
         self.assertEqual(self.run_tool(), 0)
-        shell = self.out / "shells/org.kde.plasma.desktop"
+        shell = self.out / "plasma/shells/org.kde.plasma.desktop"
         ui = (shell / "contents/lockscreen/LockScreenUi.qml").read_text(encoding="utf-8")
         self.assertIn("VeltOS lock screen in the Windows 11 layout", ui)
         self.assertTrue((shell / "contents/lockscreen/LockScreen.qml").exists())   # the rest stays Plasma's
-        original = self.source / "shells/org.kde.plasma.desktop/contents/lockscreen/LockScreenUi.qml"
+        original = self.source / "plasma/shells/org.kde.plasma.desktop/contents/lockscreen/LockScreenUi.qml"
         original.write_text(original.read_text(encoding="utf-8") + "// changed\n", encoding="utf-8")
         self.assertEqual(self.run_tool(), 1)
         self.assertFalse(shell.exists())        # Plasma's own lock screen is used
+
+    def test_window_frame_buttons_have_maximised_pictures(self):
+        self.assertEqual(self.run_tool(), 0)
+        button = (self.out / "kwin/aurorae/AuroraeButton.qml").read_text(encoding="utf-8")
+        self.assertIn('prefix: "hover" + buttonSvg.maximizedSuffix', button)
+        self.assertIn('prefix: "pressed" + buttonSvg.maximizedSuffix', button)
+        self.assertIn('hasElementPrefix("hover-maximized")', button)
 
     def test_specs_are_complete(self):
         for path in sorted((PKG / "plasma-overrides").glob("*.json")):

@@ -6,14 +6,19 @@ import os
 TEXTS = {
     "en": {
         "window_title": "Windows program",
-        "unknown_publisher": "Unknown publisher",
+        "unknown_publisher": "Unknown",
+        "publisher": "Publisher: {publisher}",
+        "version": "Version: {version}",
         "kind_installer": "Windows installer",
         "kind_program": "Windows program",
+        "kind_batch": "Windows batch file",
         "confirm_install": "Install {name} on VeltOS?",
         "confirm_install_body": "VeltOS will prepare a private Windows environment for this program, "
                                 "start its installer and add the program to Start.",
         "confirm_run": "Open {name}?",
         "confirm_run_body": "This Windows program runs without installation.",
+        "confirm_batch": "Run {name}?",
+        "confirm_batch_body": "This Windows batch file runs its commands in a console window.",
         "add_to_start": "Add to Start",
         "trust_note": "Windows programs can read and change your personal files. "
                       "Only open programs from sources you trust.",
@@ -34,6 +39,7 @@ TEXTS = {
                        "do not work on VeltOS yet.",
         "install": "Install",
         "open": "Open",
+        "run": "Run",
         "open_app": "Open {name}",
         "cancel": "Cancel",
         "close": "Close",
@@ -49,14 +55,19 @@ TEXTS = {
     },
     "tr": {
         "window_title": "Windows programı",
-        "unknown_publisher": "Bilinmeyen yayımcı",
+        "unknown_publisher": "Bilinmiyor",
+        "publisher": "Yayımcı: {publisher}",
+        "version": "Sürüm: {version}",
         "kind_installer": "Windows kurulum programı",
         "kind_program": "Windows programı",
+        "kind_batch": "Windows toplu iş dosyası",
         "confirm_install": "{name} VeltOS'a kurulsun mu?",
         "confirm_install_body": "VeltOS bu program için özel bir Windows ortamı hazırlayacak, "
                                 "kurulumu başlatacak ve programı Başlat menüsüne ekleyecek.",
         "confirm_run": "{name} açılsın mı?",
         "confirm_run_body": "Bu Windows programı kurulum gerektirmeden çalışır.",
+        "confirm_batch": "{name} çalıştırılsın mı?",
+        "confirm_batch_body": "Bu Windows toplu iş dosyası komutlarını bir konsol penceresinde çalıştırır.",
         "add_to_start": "Başlat'a ekle",
         "trust_note": "Windows programları kişisel dosyalarınızı okuyup değiştirebilir. "
                       "Yalnızca güvendiğiniz kaynaklardan gelen programları açın.",
@@ -77,6 +88,7 @@ TEXTS = {
                        "VeltOS'ta henüz çalışmıyor.",
         "install": "Kur",
         "open": "Aç",
+        "run": "Çalıştır",
         "open_app": "{name} uygulamasını aç",
         "cancel": "İptal",
         "close": "Kapat",

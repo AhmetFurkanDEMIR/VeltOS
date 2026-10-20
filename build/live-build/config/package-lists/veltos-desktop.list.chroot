@@ -1,10 +1,22 @@
-# VeltOS desktop: KDE Plasma 6 built from a minimal base (kde-plasma-desktop)
-# plus a short list of everyday applications, instead of the much larger
-# task-kde-desktop selection. See docs/architecture.md.
+# VeltOS desktop: KDE Plasma 6 built from a minimal base plus a short list
+# of everyday applications, instead of the much larger task-kde-desktop
+# selection. See docs/architecture.md. The kde-plasma-desktop and
+# kde-baseapps metapackages are spelled out (minus Dolphin and Konqueror):
+# kde-baseapps depends on Dolphin, and VeltOS has one file manager, File
+# Explorer (Debian 13: kde-plasma-desktop 5:162).
 veltos-desktop
 veltos-settings
 
-kde-plasma-desktop
+plasma-desktop
+plasma-workspace
+udisks2
+upower
+kdialog
+kde-inotify-survey
+kwin-x11
+libpam-fprintd
+webext-plasma-browser-integration
+xserver-xorg
 sddm
 sddm-theme-breeze
 plasma-nm
@@ -20,9 +32,6 @@ xdg-desktop-portal-kde
 veltos-explorer
 veltos-taskmanager
 veltos-store
-# KDE's file manager stays for "show in folder" requests of other programs
-# (org.freedesktop.FileManager1); hidden from Start.
-dolphin
 konsole
 kwrite
 ark

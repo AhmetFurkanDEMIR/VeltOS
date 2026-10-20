@@ -68,7 +68,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook) |
 | `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding, partition layout (BitLocker-like encryption), installer jobs, live welcome window (Try/Install), live session settings |
-| `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi` → install/open via Wine |
+| `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
 | `tests/boot/vmtest.py` | QEMU/KVM boot test with screenshots, checks and measurements (`build/run.sh test`) |
@@ -296,6 +296,17 @@ owner sets priorities; agents act as the engineering team.
   (`/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen`),
   not from the look-and-feel package; VeltOS replaces `LockScreenUi.qml`
   through `update-plasma-overrides` (type "shells").
+- KWin's Aurorae engine loads its QML from `kwin/aurorae/` in the XDG data
+  dirs (`/usr/share/kwin/aurorae`, package kwin-data), so it can be
+  changed like Plasma's packages (type "kwin"). KWin reads it at start:
+  sign out and in after installing a changed copy. Aurorae button SVGs
+  have no state for maximised windows; VeltOS adds `*-maximized` pictures.
+- In a live system made from an older ISO, Dolphin may still be
+  installed; its `org.kde.dolphin.FileManager1.service` and VeltOS File
+  Explorer's service claim the same D-Bus name and dbus picked Dolphin's.
+  The image leaves Dolphin out; when testing in an old live system, move
+  Dolphin's service file away and reload the bus configuration.
+- `vsess` (VM helper) takes the whole command as one argument.
 - `plasma-workspace-data` (not `plasma-workspace`) ships the QML of
   Plasma's applets; extract it with `apt-get download` in the builder to
   read the exact upstream text for overrides (`out/upstream/`).

@@ -239,10 +239,19 @@ class CaptionButtonTests(unittest.TestCase):
                 svg = fluent.caption_svg(kind, variant)
                 root = ET.fromstring(svg)
                 ids = {el.get("id") for el in root.iter() if el.get("id")}
-                self.assertEqual(ids, {"active-center", "inactive-center", "hover-center",
-                                       "pressed-center", "deactivated-center"}, kind)
+                states = {"active-center", "inactive-center", "hover-center",
+                          "pressed-center", "deactivated-center"}
+                if kind == "close":
+                    states |= {"hover-maximized-center", "pressed-maximized-center"}
+                self.assertEqual(ids, states, kind)
                 hover = svg.split('id="hover-center"', 1)[1].split("</g>", 1)[0]
                 self.assertEqual(fluent.CLOSE_RED in hover, kind == "close", kind)
+                if kind == "close":
+                    # Rounded top right corner; square when maximised.
+                    self.assertIn(" A ", hover)
+                    square = svg.split('id="hover-maximized-center"', 1)[1].split("</g>", 1)[0]
+                    self.assertIn(fluent.CLOSE_RED, square)
+                    self.assertNotIn(" A ", square)
         with self.assertRaises(ValueError):
             fluent.caption_svg("shade", "light")
 

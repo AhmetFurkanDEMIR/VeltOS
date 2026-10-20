@@ -5,6 +5,6 @@ set -e
 
 if [ "$1" = remove ] || [ "$1" = purge ]; then
     rm -rf /var/lib/veltos/xdg/applications
-    rm -rf /var/lib/veltos/xdg/plasma
+    rm -rf /var/lib/veltos/xdg/plasma /var/lib/veltos/xdg/kwin
     rmdir --ignore-fail-on-non-empty /var/lib/veltos/xdg /var/lib/veltos 2>/dev/null || true
 fi

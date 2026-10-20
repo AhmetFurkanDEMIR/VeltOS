@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=VeltOS Store
+Name[tr]=VeltOS Mağaza
+Comment=Find, install and update apps and games
+Comment[tr]=Uygulama ve oyunları bulun, yükleyin ve güncelleştirin
+Exec=veltos-store
+TryExec=veltos-store
+Icon=veltos-store

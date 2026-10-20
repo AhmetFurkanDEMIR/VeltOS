@@ -24,11 +24,23 @@ ColumnLayout {
     readonly property var osRows: [
         [backend.text("edition"), about.os],
         [backend.text("version"), about.version || backend.text("unknown")],
-        [backend.text("os_build"), about.build || backend.text("unknown")]
+        [backend.text("os_build"), about.build || backend.text("unknown")],
+        [backend.text("developer"), "Ahmet Furkan Demir"],
+        [backend.text("email"), "1ahmetfurkandemir@gmail.com"],
+        [backend.text("website"), "https://ahmetfurkandemir.com/"]
     ]
 
     function rowsText(rows) {
         return rows.map(r => r[0] + ": " + r[1].replace(/\n/g, ", ")).join("\n");
+    }
+
+    // Web addresses and email addresses open in the browser / mail program.
+    function linked(value) {
+        if (/^https?:\/\/\S+$/.test(value))
+            return "<a href=\"" + value + "\">" + value + "</a>";
+        if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value))
+            return "<a href=\"mailto:" + value + "\">" + value + "</a>";
+        return value;
     }
 
     spacing: 12
@@ -74,10 +86,18 @@ ColumnLayout {
                         Layout.preferredWidth: isKey ? 170 : -1
                         Layout.fillWidth: !isKey
                         Layout.alignment: Qt.AlignTop
-                        text: spec.rows[Math.floor(index / 2)][isKey ? 0 : 1]
+                        readonly property string value: spec.rows[Math.floor(index / 2)][isKey ? 0 : 1]
+                        text: isKey ? value : page.linked(value)
+                        textFormat: isKey ? Text.PlainText : Text.StyledText
+                        linkColor: Theme.accent
                         color: isKey ? Theme.subtext : Theme.text
                         font.pixelSize: 13
                         wrapMode: Text.WordWrap
+                        onLinkActivated: link => Qt.openUrlExternally(link)
+                        HoverHandler {
+                            enabled: parent.hoveredLink !== ""
+                            cursorShape: Qt.PointingHandCursor
+                        }
                     }
                 }
             }

@@ -1,6 +1,6 @@
 {
   "plugin": "org.kde.plasma.taskmanager",
-  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13).",
+  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph; no spinning circle over a starting app. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13).",
   "replacements": [
     {
       "file": "contents/ui/ContextMenu.qml",
@@ -32,6 +32,12 @@
       "why": "plain close glyph in window tooltips",
       "old": "                visible: toolTipDelegate.isWin\n                icon.name: \"window-close\"\n",
       "new": "                visible: toolTipDelegate.isWin\n                icon.name: \"window-close-symbolic\" // VeltOS: Windows' plain close glyph\n"
+    },
+    {
+      "file": "contents/ui/Task.qml",
+      "why": "no spinning circle over the icon of a starting app",
+      "old": "            active: model.IsStartup\n            sourceComponent: busyIndicator\n",
+      "new": "            active: false // VeltOS: Windows shows no spinner on the taskbar button\n            sourceComponent: busyIndicator\n"
     }
   ]
 }

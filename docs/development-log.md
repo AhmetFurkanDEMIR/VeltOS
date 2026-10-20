@@ -3,6 +3,65 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (night) — product owner's list, first part
+
+Requests from the product owner's long list; everything below was built
+(`build/run.sh packages ...`, unit tests passing) and, where stated,
+checked in the live VM (ISO 20261020-083729 with the rebuilt packages
+installed, 4 GB RAM).
+
+- **Maximised windows: square close-button hover.** The red hover of the
+  close button rounds the window's top right corner; on a maximised
+  window that rounding showed in the screen corner. KWin's Aurorae engine
+  has no button pictures for maximised windows, so `update-plasma-overrides`
+  now also changes KWin's Aurorae QML (`/usr/share/kwin/aurorae`, located
+  through `XDG_DATA_DIRS` like Plasma's packages): a button SVG may have
+  `hover-maximized` / `pressed-maximized` pictures, used while the window
+  is maximised (`plasma-overrides/aurorae.json`, three exact
+  replacements in `AuroraeButton.qml` of KWin 6.3.6). The script's paths
+  changed to share roots (`--source /usr/share`, `--out /var/lib/veltos/xdg`).
+  VM: rounded hover on a normal window, square hover when maximised
+  (after signing out and in, KWin loads the QML at start).
+- **No spinning circle** over a taskbar button while its app starts
+  (Task.qml override). VM: none while Firefox started.
+- **Desktop order** Install VeltOS, Recycle Bin, This PC, VeltOS Store
+  (date order with fixed old dates); **Store on the desktop and pinned to
+  the taskbar** (layout script for new users, once for existing users by
+  `session-fixups`). VM: both.
+- **Dolphin removed** from the image (only VeltOS File Explorer):
+  `kde-plasma-desktop` replaced by its dependencies without
+  `kde-baseapps`, Dolphin pinned out; the verify hook rejects it. Needs an
+  ISO build to be seen.
+- **File Explorer answers "show in folder"** (`org.freedesktop.FileManager1`,
+  D-Bus activated `veltos-explorer --filemanager1`); a file argument opens
+  its folder with the file selected. VM: `ShowItems` opened Downloads with
+  the file selected — after moving Dolphin's service file away, because
+  this older live system still has Dolphin and dbus picked Dolphin's
+  (two services for one name are undefined; the new image has only ours).
+  **Scrolling** with the mouse wheel works in long folders (fixed earlier
+  tonight; VM).
+- **Icons:** small (16–24 px) Local Disk and Recycle Bin icons drawn on a
+  16 px grid (the scaled-down large ones looked cut off); "Close" in menus,
+  dialogs and tabs is a thin monochrome cross like Windows 11 instead of
+  Fluent's red disc. VM: taskbar menu "Close".
+- **Settings > System > About:** Developer Ahmet Furkan Demir, email and
+  website as links. VM: shown.
+- **Windows program runner:** `.bat` and `.cmd` files open in the runner
+  ("Run hello.cmd?"), run by Wine's `start` like a double click in
+  Explorer; `.cmd` gets the batch MIME type (`veltos-winapps.xml`, shared-
+  mime-info 2.4 has only `*.bat`). The runner window now has the Windows
+  11 App Installer layout (question and publisher/version left, icon
+  right, InfoBar, check box, accent button, thin progress bar) in the
+  VeltOS palette instead of KDE controls. VM: confirmation page, "not
+  enough space" page (live session with 4 GB RAM). **Not observed:** the
+  batch file's console window — the live VM had too little memory to
+  create the Windows environment; that Wine opens one comes from Wine
+  10.0's `start.c` (ShellExecuteEx without `SEE_MASK_NO_CONSOLE`).
+- **Bottles** (asked as a second engine next to Wine) is not in Debian 13
+  (checked on packages.debian.org); it is only on Flathub, which the
+  "signed Debian archives only" rule excludes. Waiting for the product
+  owner's decision.
+
 ## 2026-10-20 (evening, again) — ISO 20261020-083729, black UEFI boot menu, lock screen
 
 - **ISO 20261020-083729** (everything up to the Store): verify hook passed;

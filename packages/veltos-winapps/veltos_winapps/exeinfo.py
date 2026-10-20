@@ -3,7 +3,8 @@
 Reads the PE headers and resources of an .exe (with python3-pefile) to find
 what a Windows user would see in Explorer: product name, publisher,
 version and icon, plus what VeltOS needs to decide how to run it: 32/64-bit,
-.NET or native, and whether it is an installer (and which kind).
+.NET or native, and whether it is an installer (and which kind). Batch
+files (.bat, .cmd) are text files run by Windows' command interpreter.
 """
 
 import io
@@ -31,13 +32,14 @@ NAME_HINTS = re.compile(r"(setup|install|installer|_inst\b|redist|vc_?redist)", 
 SCAN_BYTES = 24 * 1024 * 1024
 
 MACHINES = {0x14C: "x86", 0x8664: "x64", 0xAA64: "arm64"}
+BATCH_SUFFIXES = (".bat", ".cmd")
 RT_ICON, RT_GROUP_ICON = 3, 14
 
 
 @dataclass
 class ExeInfo:
     path: Path
-    kind: str                      # "exe" or "msi"
+    kind: str                      # "exe", "msi" or "batch"
     name: str
     publisher: str = ""
     version: str = ""
@@ -148,6 +150,15 @@ def inspect(path):
     fallback_name = path.stem.replace("_", " ").replace("-", " ").strip() or path.name
     if path.suffix.lower() == ".msi":
         return ExeInfo(path=path, kind="msi", name=fallback_name, installer="MSI")
+    if path.suffix.lower() in BATCH_SUFFIXES:
+        # Windows shows a batch file by its file name. A file with NUL bytes
+        # is not a batch file (cmd would stop at them).
+        try:
+            with open(path, "rb") as fh:
+                valid = b"\0" not in fh.read(64 * 1024)
+        except OSError:
+            valid = False
+        return ExeInfo(path=path, kind="batch", name=path.name, gui=False, valid=valid)
 
     try:
         import pefile

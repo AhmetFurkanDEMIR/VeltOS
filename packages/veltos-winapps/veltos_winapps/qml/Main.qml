@@ -1,6 +1,9 @@
 /*
-    VeltOS Windows app runner window: a compact dialog in the style of the
-    Windows 11 app installer. `runner` (Python) drives the pages.
+    VeltOS Windows app runner window, in the layout of the Windows 11 App
+    Installer: the question ("Install 7-Zip?") with publisher and version on
+    the left, the program's icon on the right, the action buttons at the
+    bottom right and a thin progress bar while it works. `runner` (Python)
+    drives the pages.
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -13,16 +16,19 @@ import org.kde.kirigami as Kirigami
 ApplicationWindow {
     id: window
 
-    width: Kirigami.Units.gridUnit * 30
-    height: Kirigami.Units.gridUnit * 19
+    width: 600
+    height: 400
     minimumWidth: width
     minimumHeight: height
+    maximumWidth: width
+    maximumHeight: height
     visible: true
     title: runner.tr("window_title")
-    color: Kirigami.Theme.backgroundColor
+    color: Theme.window
 
     readonly property string page: runner.page
     readonly property bool busy: ["preparing", "running", "waiting"].includes(page)
+    readonly property bool problem: ["failed", "invalid", "nospace"].includes(page)
 
     onClosing: close => {
         if (busy && page !== "running") {
@@ -32,157 +38,261 @@ ApplicationWindow {
         }
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: Kirigami.Units.gridUnit * 1.5
-        spacing: Kirigami.Units.largeSpacing * 2
+    // Header: question and program details left, icon right.
+    RowLayout {
+        id: header
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.topMargin: 28
+        anchors.leftMargin: 32
+        anchors.rightMargin: 32
+        spacing: 24
 
-        // Program identity, like the header of the Windows app installer.
-        RowLayout {
+        ColumnLayout {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.largeSpacing * 2
+            Layout.alignment: Qt.AlignTop
+            spacing: 4
 
-            Rectangle {
-                implicitWidth: Kirigami.Units.iconSizes.huge + Kirigami.Units.largeSpacing * 2
-                implicitHeight: implicitWidth
-                radius: Kirigami.Units.cornerRadius !== undefined ? Kirigami.Units.cornerRadius * 2 : 10
-                color: Qt.alpha(Kirigami.Theme.textColor, 0.05)
-
-                Image {
-                    anchors.centerIn: parent
-                    width: Kirigami.Units.iconSizes.huge
-                    height: width
-                    source: runner.iconUrl
-                    visible: runner.iconUrl !== ""
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
-                }
-                Kirigami.Icon {
-                    anchors.centerIn: parent
-                    width: Kirigami.Units.iconSizes.huge
-                    height: width
-                    source: "application-x-ms-dos-executable"
-                    visible: runner.iconUrl === ""
-                }
-            }
-
-            ColumnLayout {
+            Text {
+                objectName: "title"
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
-                Label {
+                Layout.bottomMargin: 8
+                text: runner.title
+                color: Theme.text
+                font.pixelSize: Theme.titleSize
+                font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+                elide: Text.ElideRight
+            }
+            Repeater {
+                model: runner.details
+                delegate: Text {
+                    required property string modelData
                     Layout.fillWidth: true
-                    text: runner.appName
-                    font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.5
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-                Label {
-                    Layout.fillWidth: true
-                    text: runner.subtitle
-                    opacity: 0.7
+                    text: modelData
+                    color: Theme.subtext
+                    font.pixelSize: Theme.bodySize
                     elide: Text.ElideRight
                 }
             }
         }
 
-        // Current step
-        ColumnLayout {
+        Item {
+            Layout.alignment: Qt.AlignTop
+            implicitWidth: 88
+            implicitHeight: 88
+
+            Image {
+                anchors.fill: parent
+                source: runner.iconUrl
+                visible: runner.iconUrl !== ""
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+            }
+            Kirigami.Icon {
+                anchors.fill: parent
+                source: runner.fallbackIcon
+                visible: runner.iconUrl === ""
+            }
+        }
+    }
+
+    // What happens: explanation, result, programs the installer added.
+    ColumnLayout {
+        anchors.top: header.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: footer.top
+        anchors.topMargin: 20
+        anchors.leftMargin: 32
+        anchors.rightMargin: 32
+        anchors.bottomMargin: 12
+        spacing: 12
+
+        RowLayout {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: Kirigami.Units.largeSpacing
+            spacing: 10
+            visible: body.text !== ""
 
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.largeSpacing
-
-                BusyIndicator {
-                    visible: window.busy
-                    running: visible
-                    implicitWidth: Kirigami.Units.iconSizes.medium
-                    implicitHeight: implicitWidth
-                }
-                Kirigami.Icon {
-                    visible: ["done", "failed", "invalid", "nospace"].includes(window.page)
-                    implicitWidth: Kirigami.Units.iconSizes.medium
-                    implicitHeight: implicitWidth
-                    source: window.page === "done" ? "emblem-success" : "dialog-error"
-                }
-                Label {
-                    Layout.fillWidth: true
-                    text: runner.title
-                    font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.2
-                    font.weight: Font.DemiBold
-                    wrapMode: Text.Wrap
+            // Result mark, as in Windows' status messages.
+            Rectangle {
+                visible: window.page === "done" || window.problem
+                Layout.alignment: Qt.AlignTop
+                Layout.topMargin: 1
+                implicitWidth: 18
+                implicitHeight: 18
+                radius: 9
+                color: window.page === "done" ? Theme.success : Theme.danger
+                Text {
+                    anchors.centerIn: parent
+                    text: window.page === "done" ? "✓" : "!"
+                    color: Theme.dark ? "#000000" : "#FFFFFF"
+                    font.pixelSize: 12
+                    font.weight: Font.Bold
                 }
             }
-
-            Label {
+            Text {
+                id: body
+                objectName: "body"
                 Layout.fillWidth: true
-                visible: text !== ""
                 text: runner.body
+                color: Theme.text
+                font.pixelSize: Theme.bodySize
                 wrapMode: Text.Wrap
-                opacity: 0.85
+                lineHeight: 1.15
             }
+        }
 
-            CheckBox {
+        // Programs the installer created, each with an Open button.
+        Repeater {
+            model: window.page === "done" ? runner.newApps : []
+            delegate: Rectangle {
+                required property int index
+                required property var modelData
+                Layout.fillWidth: true
+                implicitHeight: 48
+                radius: Theme.radius
+                color: Theme.card
+                border.color: Theme.cardBorder
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 8
+                    Text {
+                        Layout.fillWidth: true
+                        text: modelData.name
+                        color: Theme.text
+                        font.pixelSize: Theme.bodySize
+                        elide: Text.ElideRight
+                    }
+                    VButton {
+                        text: runner.tr("open")
+                        implicitWidth: 96
+                        onClicked: runner.openApp(index)
+                    }
+                }
+            }
+        }
+
+        Item { Layout.fillHeight: true }
+
+        // Information bar (Windows 11 InfoBar).
+        Rectangle {
+            Layout.fillWidth: true
+            visible: window.page === "confirm"
+            implicitHeight: note.implicitHeight + 24
+            radius: Theme.smallRadius
+            color: Theme.card
+            border.color: Theme.cardBorder
+            Rectangle {
+                id: infoMark
+                x: 14
+                y: 13
+                width: 16
+                height: 16
+                radius: 8
+                color: Theme.accent
+                Text {
+                    anchors.centerIn: parent
+                    text: "i"
+                    color: Theme.accentText
+                    font.pixelSize: 11
+                    font.weight: Font.Bold
+                }
+            }
+            Text {
+                id: note
+                anchors.left: infoMark.right
+                anchors.right: parent.right
+                anchors.leftMargin: 10
+                anchors.rightMargin: 14
+                anchors.verticalCenter: parent.verticalCenter
+                text: runner.tr("trust_note")
+                color: Theme.text
+                font.pixelSize: Theme.captionSize
+                wrapMode: Text.Wrap
+            }
+        }
+    }
+
+    // Footer: progress while busy; option on the left, buttons on the right.
+    ColumnLayout {
+        id: footer
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 32
+        anchors.rightMargin: 32
+        anchors.bottomMargin: 24
+        spacing: 16
+
+        // Windows 11 indeterminate progress bar: a short accent bar running
+        // along a thin track.
+        Item {
+            objectName: "progress"
+            Layout.fillWidth: true
+            visible: window.busy
+            implicitHeight: 3
+            clip: true
+            Rectangle {
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.width
+                height: 1
+                color: Theme.track
+            }
+            Rectangle {
+                id: runningBar
+                height: 3
+                radius: 1.5
+                width: parent.width * 0.35
+                color: Theme.accent
+                NumberAnimation on x {
+                    running: window.busy && window.visible
+                    loops: Animation.Infinite
+                    from: -runningBar.width
+                    to: footer.width
+                    duration: 1600
+                    easing.type: Easing.InOutQuad
+                }
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            VCheckBox {
                 id: addToStart
-                visible: window.page === "confirm" && !runner.isInstaller
+                visible: window.page === "confirm" && runner.canAddToStart
                 checked: true
                 text: runner.tr("add_to_start")
             }
-
-            // Shortcuts the installer created
-            Repeater {
-                model: window.page === "done" ? runner.newApps : []
-                delegate: Button {
-                    required property int index
-                    required property var modelData
-                    text: runner.tr("open_app").replace(runner.appName, modelData.name)
-                    icon.name: "media-playback-start"
-                    onClicked: runner.openApp(index)
-                }
-            }
-
-            Item { Layout.fillHeight: true }
-
-            Kirigami.InlineMessage {
-                Layout.fillWidth: true
-                visible: window.page === "confirm"
-                type: Kirigami.MessageType.Information
-                text: runner.tr("trust_note")
-            }
-        }
-
-        // Buttons, primary action on the right as in Windows dialogs.
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Kirigami.Units.largeSpacing
-
-            Button {
+            VButton {
                 visible: window.page === "failed"
                 text: runner.tr("details")
-                icon.name: "document-preview"
                 onClicked: runner.showDetails()
             }
             Item { Layout.fillWidth: true }
-            Button {
+            VButton {
                 visible: window.page === "waiting"
                 text: runner.tr("installer_done")
                 onClicked: runner.finishWaiting()
             }
-            Button {
+            VButton {
                 visible: !["done", "waiting"].includes(window.page)
-                text: ["failed", "invalid", "nospace"].includes(window.page) ? runner.tr("close") : runner.tr("cancel")
+                text: window.problem ? runner.tr("close") : runner.tr("cancel")
                 onClicked: runner.cancel()
             }
-            Button {
+            VButton {
+                objectName: "primary"
                 visible: window.page === "confirm" || window.page === "done"
-                highlighted: true
+                accent: true
                 focus: true
-                text: window.page === "done" ? runner.tr("done_button")
-                    : (runner.isInstaller ? runner.tr("install") : runner.tr("open"))
-                icon.name: window.page === "confirm" && runner.isInstaller ? "install" : ""
-                onClicked: window.page === "done" ? runner.cancel() : runner.start(addToStart.checked)
+                text: window.page === "done" ? runner.tr("done_button") : runner.tr(runner.actionKey)
+                onClicked: window.page === "done" ? runner.cancel() : runner.start(addToStart.visible && addToStart.checked)
             }
         }
     }

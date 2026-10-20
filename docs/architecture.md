@@ -271,6 +271,17 @@ the public APIs allow it: Start, clock and notification centre, Quick
 Settings). Trade-off: the replacements depend on Plasma's private QML and
 must be checked when Plasma is updated; the fallback keeps Plasma working.
 
+The same mechanism changes KWin's window frame engine (Aurorae), whose QML
+KWin also finds through `XDG_DATA_DIRS` (`kwin/aurorae/aurorae.qml`):
+Aurorae button SVGs cannot differ between normal and maximised windows,
+so the rounded corner of the close button's red hover showed in the screen
+corner of maximised windows. VeltOS lets a button SVG carry
+`hover-maximized`/`pressed-maximized` pictures (three replacements in
+`AuroraeButton.qml`; themes without them look as before). Alternatives:
+a square hover everywhere (sticks out of the rounded window corner), a QML
+window decoration of our own (much more code to maintain), Breeze-style
+C++ decoration (a fork).
+
 #### 2.3.9 Non-KDE programs
 
 - **GTK programs** use the `VeltOS` GTK theme: Breeze (KDE's GTK theme,
