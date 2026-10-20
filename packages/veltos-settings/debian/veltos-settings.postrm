@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = remove ] || [ "$1" = abort-install ] || [ "$1" = disappear ]; then
+    for f in /usr/bin/systemsettings /usr/bin/kcmshell6; do
+        dpkg-divert --package veltos-settings --remove --rename --divert "$f.kde" "$f"
+    done
+fi

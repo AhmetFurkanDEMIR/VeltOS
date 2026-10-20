@@ -45,9 +45,7 @@ ApplicationWindow {
     }
 
     function activate(item) {
-        if (item.kcm)
-            backend.openModule(item.kcm);
-        else if (item.action)
+        if (item.action)
             backend.runAction(item.action);
         else if (item.page)
             showPage(item.pageId || pageId, item.page);
@@ -67,11 +65,19 @@ ApplicationWindow {
         "windows-apps": windowsAppsComponent, "wifi": wifiComponent,
         "bluetooth": bluetoothComponent, "sound": soundComponent,
         "display": displayComponent, "background": backgroundComponent,
-        "colours": coloursComponent, "datetime": dateTimeComponent
+        "colours": coloursComponent, "datetime": dateTimeComponent,
+        "notifications": notificationsComponent, "power": powerComponent,
+        "nightlight": nightLightComponent, "multitasking": multitaskingComponent,
+        "mouse": mouseComponent, "touchpad": touchpadComponent, "keyboard": keyboardComponent,
+        "lockscreen": lockScreenComponent, "defaultapps": defaultAppsComponent,
+        "startup": startupComponent, "yourinfo": yourInfoComponent, "signin": signInComponent,
+        "otherusers": otherUsersComponent, "region": regionComponent,
+        "accessibility": accessibilityComponent, "searching": searchingComponent
     })
 
     // `veltos-settings PAGE`: a navigation page or a built-in page.
     Component.onCompleted: {
+        backend.refreshAccounts();
         const start = backend.startPage;
         if (pageById(start)) {
             showPage(start, "");
@@ -105,27 +111,19 @@ ApplicationWindow {
             Layout.bottomMargin: 14
             spacing: 4
 
+            // The account, as at the top of Windows 11 Settings; opens Your info.
             RowLayout {
                 Layout.leftMargin: 6
                 Layout.bottomMargin: 14
                 spacing: 12
-                Rectangle {
-                    Layout.preferredWidth: 56
-                    Layout.preferredHeight: 56
-                    radius: 28
-                    color: Theme.accent
-                    Label {
-                        anchors.centerIn: parent
-                        text: backend.userName.charAt(0).toUpperCase()
-                        color: "#FFFFFF"
-                        font.pixelSize: 24
-                        font.weight: Font.DemiBold
-                    }
+                Avatar {
+                    size: 56
+                    source: backend.accounts.me.icon || ""
                 }
                 ColumnLayout {
                     spacing: 0
                     Label {
-                        text: backend.userName
+                        text: backend.accounts.me.realName || backend.userName
                         color: Theme.text
                         font.pixelSize: 15
                         font.weight: Font.DemiBold
@@ -136,6 +134,8 @@ ApplicationWindow {
                         font.pixelSize: 12
                     }
                 }
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: window.showPage("accounts", "yourinfo") }
             }
 
             SearchField {
@@ -315,6 +315,103 @@ ApplicationWindow {
     Component {
         id: dateTimeComponent
         DateTimePage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: notificationsComponent
+        NotificationsPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: powerComponent
+        PowerPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: nightLightComponent
+        NightLightPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: multitaskingComponent
+        MultitaskingPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: mouseComponent
+        MousePage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: touchpadComponent
+        MousePage {
+            touchpad: true
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: keyboardComponent
+        KeyboardPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: lockScreenComponent
+        LockScreenPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: defaultAppsComponent
+        DefaultAppsPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: startupComponent
+        StartupPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: yourInfoComponent
+        YourInfoPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: signInComponent
+        SignInPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: otherUsersComponent
+        OtherUsersPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: regionComponent
+        RegionPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: accessibilityComponent
+        AccessibilityPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: searchingComponent
+        SearchingPage {
             onItemActivated: item => window.activate(item)
         }
     }

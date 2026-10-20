@@ -3,6 +3,7 @@
     veltos-settings [PAGE]      (PAGE: home, system, about, storage, ...)
 """
 
+import re
 import subprocess
 import sys
 import threading
@@ -10,12 +11,12 @@ import traceback
 from pathlib import Path
 from types import SimpleNamespace
 
-from PySide6.QtCore import Property, QObject, Qt, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QLocale, QObject, Qt, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import catalog, devices, strings, sysinfo
+from . import accounts, apps, catalog, devices, inputs, prefs, strings, sysinfo
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 LOOK_AND_FEEL = {False: "org.veltos.light", True: "org.veltos.dark"}
@@ -65,11 +66,31 @@ def windows_programs():
     return apps
 
 
-def system_tools(runner=devices.run):
-    """The objects that read and change system settings (devices.py)."""
+def system_tools(runner=devices.run, lang="en"):
+    """The objects that read and change system settings (devices.py,
+    prefs.py, inputs.py, accounts.py, apps.py)."""
     return SimpleNamespace(network=devices.Network(runner), bluetooth=devices.Bluetooth(runner),
                            sound=devices.Sound(runner), display=devices.Display(runner),
-                           personal=devices.Personalization(runner), time=devices.Time(runner))
+                           personal=devices.Personalization(runner), time=devices.Time(runner),
+                           prefs=prefs.Preferences(runner), inputs=inputs.Inputs(runner),
+                           accounts=accounts.Accounts(runner), defaults=apps.DefaultApps(runner, lang=lang),
+                           startup=apps.StartupApps(lang=lang))
+
+
+def duration_label(lang, minutes):
+    """"5 minutes", "1 hour", "Never" as Windows lists them."""
+    if minutes == 0:
+        return strings.text(lang, "never")
+    if minutes % 60 == 0:
+        hours = minutes // 60
+        return strings.text(lang, "one_hour") if hours == 1 else strings.text(lang, "hours", count=hours)
+    return strings.text(lang, "one_minute") if minutes == 1 else strings.text(lang, "minutes", count=minutes)
+
+
+def format_label(name):
+    """"Türkçe (Türkiye)" for tr_TR, in the language of the format itself."""
+    locale = QLocale(name)
+    return f"{locale.nativeLanguageName()} ({locale.nativeTerritoryName()})"
 
 
 class Jobs(QObject):
@@ -114,6 +135,12 @@ class Backend(QObject):
     displayChanged = Signal()
     personalChanged = Signal()
     timeChanged = Signal()
+    prefsChanged = Signal()
+    inputsChanged = Signal()
+    accountsChanged = Signal()
+    appsChanged = Signal()
+    # "password", "adduser": "" when it worked, otherwise a text key.
+    accountResult = Signal(str, str)
 
     def __init__(self, lang=None, start=detached, start_page="home", system=None, threaded=True):
         super().__init__()
@@ -124,7 +151,7 @@ class Backend(QObject):
         self._storage = None
         self._windows_apps = None
         self._start_page = start_page
-        self.system = system or system_tools()
+        self.system = system or system_tools(lang=self.lang)
         self.jobs = Jobs(threaded)
         self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
                          "loaded": False, "scanning": False, "connecting": "", "failed": ""}
@@ -136,6 +163,11 @@ class Backend(QObject):
                           "accents": devices.ACCENTS, "loaded": False}
         self._time = {"timezone": "", "automatic": False, "canAutomatic": True, "zones": [],
                       "loaded": False}
+        self._prefs = {"loaded": False}
+        self._inputs = {"loaded": False, "hasMouse": False, "hasTouchpad": False}
+        self._accounts = {"loaded": False, "me": {"name": sysinfo.user_name(), "realName": sysinfo.user_name(),
+                                                  "icon": "", "admin": False}, "others": []}
+        self._apps = {"loaded": False, "groups": [], "startup": [], "notificationApps": []}
 
     # --- texts and structure ------------------------------------------------
 
@@ -209,14 +241,8 @@ class Backend(QObject):
         self.changed.emit()
 
     @Slot(str)
-    def openModule(self, kcm):
-        self._start(["kcmshell6", kcm])
-
-    @Slot(str)
     def runAction(self, action):
-        if action == "control-panel":
-            self._start(["systemsettings"])
-        elif action == "store":
+        if action == "store":
             self._start(["veltos-store"])
         elif action == "updates":
             self._start(["veltos-store", "--updates"])
@@ -445,6 +471,208 @@ class Backend(QObject):
         self.jobs.submit(lambda: self.system.time.set_automatic(on),
                          lambda _ok: self.refreshTime())
 
+    @Slot(str, str, result=bool)
+    def setDateTime(self, date, clock):
+        """Set the date and time by hand (timedatectl; polkit may ask)."""
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date) or not re.fullmatch(r"\d{1,2}:\d{2}", clock):
+            return False
+        hours, minutes = (int(v) for v in clock.split(":"))
+        if hours > 23 or minutes > 59:
+            return False
+        self.jobs.submit(lambda: devices.run(["timedatectl", "set-time", f"{date} {hours:02d}:{minutes:02d}:00"],
+                                             timeout=300), lambda _r: self.refreshTime())
+        return True
+
+    # --- settings kept in KDE files (prefs.py) ------------------------------------------------
+
+    @Property("QVariantMap", notify=prefsChanged)
+    def prefs(self):
+        return self._prefs
+
+    @Slot()
+    def refreshPrefs(self):
+        tools = self.system.prefs
+
+        def work():
+            state = tools.state()
+            state["formatOptions"] = [{"value": name, "label": format_label(name)}
+                                      for name in tools.available_formats()]
+            return state
+        self.jobs.submit(work, self._merge("_prefs", self.prefsChanged))
+
+    @Slot(str, "QVariant")
+    def setPref(self, name, value):
+        if name not in prefs.SETTINGS:
+            return
+        self._update("_prefs", self.prefsChanged, {name: value})
+        self.jobs.submit(lambda: self.system.prefs.set(name, value))
+
+    @Slot(bool)
+    def setDoNotDisturb(self, on):
+        self._update("_prefs", self.prefsChanged, {"doNotDisturb": on})
+        self.jobs.submit(lambda: self.system.prefs.set_do_not_disturb(on))
+
+    @Slot(bool)
+    def setAnimations(self, on):
+        self._update("_prefs", self.prefsChanged, {"animations": on})
+        self.jobs.submit(lambda: self.system.prefs.set_animations(on))
+
+    @Slot(bool)
+    def setFileSearch(self, on):
+        self._update("_prefs", self.prefsChanged, {"fileSearch": on})
+        self.jobs.submit(lambda: self.system.prefs.set_file_search(on))
+
+    @Slot(int)
+    def setTextSize(self, percent):
+        self._update("_prefs", self.prefsChanged, {"textSize": percent})
+        self.jobs.submit(lambda: self.system.prefs.set_text_size(percent))
+
+    @Slot(str)
+    def setLanguage(self, code):
+        self._update("_prefs", self.prefsChanged, {"language": code})
+        self.jobs.submit(lambda: self.system.prefs.set_language(code))
+
+    @Slot(str)
+    def setFormats(self, name):
+        options = [o["value"] for o in self._prefs.get("formatOptions", [])]
+        self._update("_prefs", self.prefsChanged, {"formats": name})
+        self.jobs.submit(lambda: self.system.prefs.set_formats(name, options))
+
+    @Slot("QVariantList")
+    def setLayouts(self, layouts):
+        layouts = [str(l) for l in layouts]
+        self._update("_prefs", self.prefsChanged, {"layouts": layouts})
+        self.jobs.submit(lambda: self.system.prefs.set_layouts(layouts))
+
+    @Property("QVariantList", constant=True)
+    def layoutOptions(self):
+        index = 2 if self.lang == "tr" else 1
+        return [{"value": entry[0], "label": entry[index]} for entry in prefs.KEYBOARD_LAYOUTS]
+
+    @Property("QVariantList", constant=True)
+    def timeoutOptions(self):
+        """Screen off / sleep choices, values in seconds."""
+        return [{"value": m * 60, "label": duration_label(self.lang, m)} for m in prefs.TIMEOUT_MINUTES]
+
+    @Property("QVariantList", constant=True)
+    def lockOptions(self):
+        return [{"value": m, "label": duration_label(self.lang, m)} for m in prefs.LOCK_MINUTES]
+
+    @Property("QVariantList", constant=True)
+    def powerActionOptions(self):
+        names = ("sleep", "hibernate", "shutdown", "screenoff", "nothing")
+        return [{"value": prefs.POWER_ACTIONS[n], "label": strings.text(self.lang, "action_" + n)} for n in names]
+
+    @Property("QVariantList", constant=True)
+    def languageOptions(self):
+        return [{"value": "en", "label": "English (United States)"}, {"value": "tr", "label": "Türkçe"}]
+
+    # --- Mouse and touchpad (inputs.py) ------------------------------------------------------
+
+    @Property("QVariantMap", notify=inputsChanged)
+    def inputs(self):
+        return self._inputs
+
+    @Slot()
+    def refreshInputs(self):
+        self.jobs.submit(self.system.inputs.state, self._merge("_inputs", self.inputsChanged))
+
+    @Slot(str, "QVariant", str)
+    def setInput(self, prop, value, target):
+        """target: "mouse", "touchpad" or "all"."""
+        key = {("leftHanded", "all"): "leftHanded", ("pointerAcceleration", "mouse"): "speed",
+               ("scrollFactor", "mouse"): "scrollFactor", ("naturalScroll", "mouse"): "mouseNaturalScroll",
+               ("enabled", "touchpad"): "touchpadOn", ("tapToClick", "touchpad"): "tapToClick",
+               ("naturalScroll", "touchpad"): "touchpadNaturalScroll",
+               ("pointerAcceleration", "touchpad"): "touchpadSpeed"}.get((prop, target))
+        if key:
+            self._update("_inputs", self.inputsChanged, {key: value})
+        touchpad = {"mouse": False, "touchpad": True}.get(target)
+        self.jobs.submit(lambda: self.system.inputs.set(prop, value, touchpad))
+
+    # --- Accounts (accounts.py) ------------------------------------------------------------
+
+    @Property("QVariantMap", notify=accountsChanged)
+    def accounts(self):
+        return self._accounts
+
+    @Slot()
+    def refreshAccounts(self):
+        self.jobs.submit(self.system.accounts.state, self._merge("_accounts", self.accountsChanged))
+
+    @Slot(str)
+    def setRealName(self, name):
+        self.jobs.submit(lambda: self.system.accounts.set_real_name(name), lambda _ok: self.refreshAccounts())
+
+    @Slot()
+    def choosePicture(self):
+        pictures = Path.home() / "Pictures"
+        start = pictures if pictures.is_dir() else Path.home()
+        title = strings.text(self.lang, "choose_file")
+
+        def done(path):
+            if path:
+                self.jobs.submit(lambda: self.system.accounts.set_picture(path),
+                                 lambda _ok: self.refreshAccounts())
+        self.jobs.submit(lambda: self.system.personal.pick_image(start, title), done)
+
+    @Slot(str, str, str)
+    def changePassword(self, current, new, confirm):
+        if new != confirm:
+            self.accountResult.emit("password", "passwords_differ")
+            return
+        self.jobs.submit(lambda: accounts.change_password(current, new),
+                         lambda error: self.accountResult.emit("password", error or ""))
+
+    @Slot(str, str, str, bool)
+    def addUser(self, username, full_name, password, admin):
+        def done(error):
+            self.accountResult.emit("adduser", error or "")
+            self.refreshAccounts()
+        self.jobs.submit(lambda: self.system.accounts.add_user(username.strip(), full_name, password, admin), done)
+
+    @Slot(str)
+    def removeUser(self, username):
+        self.jobs.submit(lambda: self.system.accounts.remove_user(username), lambda _ok: self.refreshAccounts())
+
+    @Slot(str, bool)
+    def setAdmin(self, username, admin):
+        self.jobs.submit(lambda: self.system.accounts.set_admin(username, admin),
+                         lambda _ok: self.refreshAccounts())
+
+    # --- Apps > Default apps, Startup; notification senders (apps.py) -----------------------
+
+    @Property("QVariantMap", notify=appsChanged)
+    def apps(self):
+        return self._apps
+
+    @Slot()
+    def refreshApps(self):
+        tools = self.system
+
+        def work():
+            return {"groups": tools.defaults.state()["groups"], "startup": tools.startup.entries(),
+                    "notificationApps": tools.prefs.notification_apps(lang=self.lang)}
+        self.jobs.submit(work, self._merge("_apps", self.appsChanged))
+
+    @Slot(str, str)
+    def setDefaultApp(self, group_id, desktop):
+        groups = [dict(g, current=desktop) if g["id"] == group_id else g for g in self._apps["groups"]]
+        self._update("_apps", self.appsChanged, {"groups": groups})
+        self.jobs.submit(lambda: self.system.defaults.set_default(group_id, desktop))
+
+    @Slot(str, bool)
+    def setStartupEnabled(self, entry_id, on):
+        entries = [dict(e, enabled=on) if e["id"] == entry_id else e for e in self._apps["startup"]]
+        self._update("_apps", self.appsChanged, {"startup": entries})
+        self.jobs.submit(lambda: self.system.startup.set_enabled(entry_id, on))
+
+    @Slot(str, bool)
+    def setAppBanners(self, entry, on):
+        senders = [dict(a, banners=on) if a["id"] == entry else a for a in self._apps["notificationApps"]]
+        self._update("_apps", self.appsChanged, {"notificationApps": senders})
+        self.jobs.submit(lambda: self.system.prefs.set_app_banners(entry, on))
+
 
 def main(argv=None):
     argv = sys.argv if argv is None else argv
@@ -457,7 +685,9 @@ def main(argv=None):
     app.setApplicationDisplayName(strings.text(strings.language(), "app_title"))
     app.setDesktopFileName("veltos-settings")
     app.setWindowIcon(QIcon.fromTheme("veltos-settings"))
-    start_page = argv[1] if len(argv) > 1 else "home"
+    # A VeltOS page id or a KDE settings module name (the redirect of
+    # systemsettings / kcmshell6 passes those).
+    start_page = catalog.page_for_module(argv[1]) if len(argv) > 1 else "home"
     backend = Backend(start_page=start_page)
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)

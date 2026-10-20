@@ -31,7 +31,7 @@ ColumnLayout {
             title: modelData.title
             description: modelData.description
             note: modelData.pageTitle
-            external: modelData.kcm !== "" || modelData.action !== ""
+            external: modelData.action !== ""
             onActivated: page.itemActivated(modelData)
         }
     }

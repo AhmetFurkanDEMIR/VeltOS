@@ -41,7 +41,7 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "preferences-system-time"
+        icon: "preferences-system-time-symbolic"
         title: backend.text("set_time_automatically")
         ToggleSwitch {
             checked: page.t.automatic
@@ -53,7 +53,7 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "preferences-desktop-locale"
+        icon: "preferences-desktop-locale-symbolic"
         title: backend.text("time_zone")
         VComboBox {
             Layout.preferredWidth: 340
@@ -67,12 +67,71 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "view-calendar"
+        icon: "preferences-system-time-symbolic"
         title: backend.text("set_manually")
         VButton {
             text: backend.text("change")
             enabledState: !page.t.automatic
-            onClicked: page.itemActivated({ kcm: "kcm_clock", action: "", page: "" })
+            onClicked: {
+                dateField.text = Qt.formatDate(page.now, "yyyy-MM-dd");
+                timeField.text = Qt.formatTime(page.now, "HH:mm");
+                dateDialog.failed = false;
+                dateDialog.open();
+            }
+        }
+    }
+
+    Popup {
+        id: dateDialog
+        property bool failed: false
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        modal: true
+        width: 380
+        padding: 24
+        background: Rectangle {
+            radius: Theme.radius
+            color: Theme.popup
+            border.color: Theme.cardBorder
+        }
+        contentItem: ColumnLayout {
+            spacing: 10
+            Label {
+                text: backend.text("set_date_time")
+                color: Theme.text
+                font.pixelSize: 20
+                font.weight: Font.DemiBold
+            }
+            Label { text: backend.text("date"); color: Theme.text; font.pixelSize: Theme.bodySize }
+            VTextField { id: dateField; Layout.fillWidth: true; placeholder: "2026-10-20" }
+            Label { text: backend.text("time"); color: Theme.text; font.pixelSize: Theme.bodySize }
+            VTextField { id: timeField; Layout.fillWidth: true; placeholder: "14:30" }
+            Label {
+                Layout.fillWidth: true
+                text: dateDialog.failed ? backend.text("set_time_failed") : backend.text("date_format_hint")
+                color: dateDialog.failed ? Theme.danger : Theme.subtext
+                font.pixelSize: Theme.bodySize
+                wrapMode: Text.WordWrap
+            }
+            RowLayout {
+                Layout.topMargin: 8
+                spacing: 8
+                Item { Layout.fillWidth: true }
+                VButton {
+                    primary: true
+                    text: backend.text("change")
+                    onClicked: {
+                        if (backend.setDateTime(dateField.text.trim(), timeField.text.trim()))
+                            dateDialog.close();
+                        else
+                            dateDialog.failed = true;
+                    }
+                }
+                VButton {
+                    text: backend.text("cancel")
+                    onClicked: dateDialog.close()
+                }
+            }
         }
     }
 

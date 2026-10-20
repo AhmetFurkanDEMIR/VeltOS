@@ -1,0 +1,46 @@
+#!/usr/bin/python3
+"""VeltOS: KDE's settings programs open VeltOS Settings instead.
+
+Installed as /usr/bin/systemsettings and /usr/bin/kcmshell6 (KDE's are
+diverted to *.kde by the veltos-settings package), so every "Configure"
+link in KDE programs, the Start menu and KRunner opens the matching
+VeltOS Settings page, never KDE's own settings window (product owner's
+rule). Unknown modules open VeltOS Settings' Home.
+
+    systemsettings [MODULE] [--args ...]
+    kcmshell6 [options] MODULE [--args ...]
+"""
+import os
+import sys
+
+# Options of systemsettings / kcmshell6 that take a value.
+WITH_VALUE = {"--args", "--icon", "--caption", "--platform", "--qwindowtitle", "--qwindowicon",
+              "--desktopfile", "--highlight"}
+
+
+def module(argv):
+    skip = False
+    for arg in argv:
+        if skip:
+            skip = False
+            continue
+        if arg in WITH_VALUE:
+            skip = True
+            continue
+        if arg.startswith("-"):
+            continue
+        return arg
+    return ""
+
+
+def main():
+    try:
+        from veltos_settings.catalog import page_for_module
+        page = page_for_module(module(sys.argv[1:]))
+    except Exception:  # never fall back to KDE's window
+        page = "home"
+    os.execvp("veltos-settings", ["veltos-settings", page])
+
+
+if __name__ == "__main__":
+    main()

@@ -32,7 +32,7 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "network-wireless"
+        icon: "network-wireless-symbolic"
         title: "Wi-Fi"
         description: page.net.connection.type === "wifi"
                      ? backend.format("connected_to", page.net.connection.name)
@@ -205,12 +205,6 @@ ColumnLayout {
                             onClicked: backend.connectWifi(entry.modelData.ssid, key.text, entry.modelData.security)
                         }
                         VButton {
-                            visible: entry.modelData.enterprise && !entry.modelData.active
-                            primary: true
-                            text: backend.text("advanced_network")
-                            onClicked: backend.openModule("kcm_networkmanagement")
-                        }
-                        VButton {
                             visible: entry.modelData.active
                             text: backend.text("disconnect")
                             onClicked: backend.disconnectWifi()
@@ -243,13 +237,4 @@ ColumnLayout {
         }
     }
 
-    SettingCard {
-        Layout.fillWidth: true
-        Layout.topMargin: 18
-        icon: "network-wired"
-        title: backend.text("advanced_network")
-        description: backend.text("advanced_network_desc")
-        external: true
-        onActivated: page.itemActivated({ kcm: "kcm_networkmanagement", action: "", page: "" })
-    }
 }

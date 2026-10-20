@@ -118,13 +118,4 @@ ColumnLayout {
         deviceIcon: "audio-input-microphone"
     }
 
-    SettingCard {
-        Layout.fillWidth: true
-        Layout.topMargin: 18
-        icon: "preferences-desktop-sound"
-        title: backend.text("more_sound")
-        description: backend.text("more_sound_desc")
-        external: true
-        onActivated: page.itemActivated({ kcm: "kcm_pulseaudio", action: "", page: "" })
-    }
 }

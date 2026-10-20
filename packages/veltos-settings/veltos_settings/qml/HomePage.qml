@@ -129,7 +129,7 @@ ColumnLayout {
             description: !item ? "" : (item.id === "windows-apps" && backend.windowsApps.length > 0
                          ? backend.format("windows_programs_count", String(backend.windowsApps.length))
                          : item.description)
-            external: item !== null && (item.kcm !== "" || item.action !== "")
+            external: item !== null && item.action !== ""
             onActivated: page.itemActivated(item)
         }
     }

@@ -67,7 +67,7 @@ ColumnLayout {
     SettingRow {
         Layout.fillWidth: true
         visible: page.output !== null
-        icon: "zoom-in"
+        icon: "zoom-in-symbolic"
         title: backend.text("scale")
         description: backend.text("scale_desc")
         VComboBox {
@@ -81,7 +81,7 @@ ColumnLayout {
     SettingRow {
         Layout.fillWidth: true
         visible: page.output !== null
-        icon: "video-display"
+        icon: "video-display-symbolic"
         title: backend.text("resolution")
         description: backend.text("resolution_desc")
         VComboBox {
@@ -101,22 +101,12 @@ ColumnLayout {
     }
     SettingCard {
         Layout.fillWidth: true
-        icon: "redshift-status-on"
+        icon: "night-light-symbolic"
         title: backend.pages.find(p => p.id === "system").items.find(i => i.id === "nightlight").title
         description: backend.pages.find(p => p.id === "system").items.find(i => i.id === "nightlight").description
-        external: true
-        onActivated: page.itemActivated({ kcm: "kcm_nightlight", action: "", page: "" })
+        onActivated: page.itemActivated({ action: "", page: "nightlight", pageId: "system" })
     }
 
-    SettingCard {
-        Layout.fillWidth: true
-        Layout.topMargin: 18
-        icon: "preferences-desktop-display"
-        title: backend.text("advanced_display")
-        description: backend.text("advanced_display_desc")
-        external: true
-        onActivated: page.itemActivated({ kcm: "kcm_kscreen", action: "", page: "" })
-    }
 
     Popup {
         id: keepDialog

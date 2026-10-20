@@ -182,6 +182,7 @@ FocusScope {
     function pinFileExplorer() {
         replacePinned("org.kde.dolphin.desktop", "veltos-explorer.desktop", "explorerPinned");
         replacePinned("org.kde.discover.desktop", "veltos-store.desktop", "storePinned");
+        replacePinned("org.kde.spectacle.desktop", "veltos-snip.desktop", "snipPinned");
     }
 
     // The pinned apps model may not be ready when Start first opens; try
@@ -189,7 +190,8 @@ FocusScope {
     Timer {
         interval: 1000
         repeat: true
-        running: !(Plasmoid.configuration.explorerPinned && Plasmoid.configuration.storePinned)
+        running: !(Plasmoid.configuration.explorerPinned && Plasmoid.configuration.storePinned
+                   && Plasmoid.configuration.snipPinned)
         onTriggered: menu.pinFileExplorer()
     }
 
@@ -772,7 +774,8 @@ FocusScope {
                             required property int index
                             required property var model
                             visible: ["lock-screen", "logout"].includes(model.favoriteId)
-                            text: model.display
+                            // Windows' wording: "Sign out", not Plasma's "Log Out".
+                            text: model.favoriteId === "logout" ? i18n("Sign out") : model.display
                             icon: model.decoration
                             onClicked: menu.systemModel.trigger(index, "", null)
                         }

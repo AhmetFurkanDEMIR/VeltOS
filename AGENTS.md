@@ -61,7 +61,7 @@ owner sets priorities; agents act as the engineering team.
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
 | `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus), master logo |
-| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML) with built-in Wi-Fi, Bluetooth, Sound, Display, Background, Colours, Date & time pages; other settings open KDE modules (KDE System Settings hidden from Start) |
+| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy); diverts `systemsettings`/`kcmshell6` to itself so KDE's settings window never opens |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
@@ -325,6 +325,13 @@ owner sets priorities; agents act as the engineering team.
   digits. PySide6 cannot send D-Bus `uint` arguments; VeltOS sends
   notifications with `gdbus call` and receives the signals with a
   `QDBusMessage` slot.
+- KDE's `systemsettings` and `kcmshell6` are diverted by veltos-settings
+  (`/usr/bin/*.kde`) to `veltos-settings-redirect`: never send users to
+  KDE's settings window; add a VeltOS Settings page instead.
+- `xdg-mime query default text/plain` failed in the Plasma session
+  ("Illegal number", xdg-utils 1.2): read mimeapps.list directly.
+- Fluent's 12 px `window-pin` icon draws as a cut "x"; File Explorer draws
+  its pin (Glyph "pin").
 - Plasma's clipboard (Klipper) ignores images by default; VeltOS turns
   that off so screenshots stay on the clipboard after the program ends.
 - KWin keeps the QML of a scene effect (Task View) after

@@ -46,9 +46,11 @@ Rectangle {
 
         Kirigami.Icon {
             visible: row.icon !== ""
-            Layout.preferredWidth: 22
-            Layout.preferredHeight: 22
+            Layout.preferredWidth: 20
+            Layout.preferredHeight: 20
             source: row.icon
+            isMask: row.icon.endsWith("-symbolic")
+            color: Theme.text
         }
         ColumnLayout {
             Layout.fillWidth: true

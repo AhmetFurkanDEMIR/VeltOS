@@ -9,6 +9,7 @@ Build-Depends: debhelper-compat (= 13),
                python3-pyside6.qtquick,
                qml6-module-org-kde-kirigami,
                qml6-module-qtquick-controls,
+               qml6-module-qtquick-effects,
                qml6-module-qtquick-layouts,
                qml6-module-qtquick-window,
                qt6-svg-plugins
@@ -18,17 +19,23 @@ Rules-Requires-Root: no
 Package: veltos-settings
 Architecture: all
 Depends: ${python3:Depends},
+         accountsservice,
          kde-cli-tools,
+         kdialog,
+         libglib2.0-bin,
+         openssl,
          pciutils,
          plasma-workspace,
          python3-pyside6.qtqml,
          python3-pyside6.qtquick,
          qml6-module-org-kde-kirigami,
          qml6-module-qtquick-controls,
+         qml6-module-qtquick-effects,
          qml6-module-qtquick-layouts,
          qml6-module-qtquick-window,
          qt6-svg-plugins,
          systemd,
+         xdg-utils,
          systemsettings,
          ${misc:Depends}
 Recommends: bluedevil,
@@ -49,6 +56,9 @@ Description: VeltOS Settings, a Windows 11 style settings app
  Built in: Home, About (device specifications, rename this PC), Storage,
  Wi-Fi, Bluetooth, Sound, Display (scale, resolution), Background,
  Colours (light/dark mode, accent colour), Date & time and the list of
- installed Windows programs. Detailed settings open KDE's settings modules
- in their own windows; the complete KDE System Settings is available as
- "Control Panel".
+ installed Windows programs, Notifications, Power & battery, Night light,
+ Multitasking, Mouse, Touchpad, Typing (keyboard layouts), Lock screen,
+ Default apps, Startup, Your info, Sign-in options (password), Other
+ users, Language & region, Accessibility (text size, animations) and file
+ search. KDE's settings windows never open: `systemsettings` and
+ `kcmshell6` are diverted to a redirect that opens the matching page.

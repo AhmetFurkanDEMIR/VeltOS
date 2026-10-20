@@ -73,10 +73,10 @@ ColumnLayout {
     SettingCard {
         Layout.fillWidth: true
         Layout.topMargin: 12
-        icon: "partitionmanager"
+        icon: "drive-harddisk-symbolic"
         title: backend.text("disk_management")
         description: backend.text("disk_management_desc")
         external: true
-        onActivated: page.itemActivated({ action: "disk-management", kcm: "", page: "" })
+        onActivated: page.itemActivated({ action: "disk-management", page: "" })
     }
 }

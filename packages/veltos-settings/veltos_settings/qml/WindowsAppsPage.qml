@@ -79,10 +79,10 @@ ColumnLayout {
     SettingCard {
         Layout.fillWidth: true
         Layout.topMargin: 12
-        icon: "edit-delete"
+        icon: "edit-delete-symbolic"
         title: backend.text("uninstall_programs")
         description: backend.text("uninstall_desc")
         external: true
-        onActivated: page.itemActivated({ action: "uninstall-windows", kcm: "", page: "" })
+        onActivated: page.itemActivated({ action: "uninstall-windows", page: "" })
     }
 }

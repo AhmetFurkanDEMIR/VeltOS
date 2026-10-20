@@ -37,7 +37,7 @@ ColumnLayout {
     SettingRow {
         Layout.fillWidth: true
         visible: page.bt.available
-        icon: "preferences-system-bluetooth"
+        icon: "bluetooth-symbolic"
         title: "Bluetooth"
         description: backend.text("bluetooth_desc")
         ToggleSwitch {
@@ -50,7 +50,7 @@ ColumnLayout {
     SettingRow {
         Layout.fillWidth: true
         visible: page.bt.available
-        icon: "list-add"
+        icon: "list-add-symbolic"
         title: backend.text("add_device")
         description: backend.text("add_device_desc")
         VButton {
@@ -96,13 +96,4 @@ ColumnLayout {
         }
     }
 
-    SettingCard {
-        Layout.fillWidth: true
-        Layout.topMargin: 18
-        icon: "preferences-system-bluetooth"
-        title: backend.text("more_bluetooth")
-        description: backend.text("more_bluetooth_desc")
-        external: true
-        onActivated: page.itemActivated({ kcm: "kcm_bluetooth", action: "", page: "" })
-    }
 }

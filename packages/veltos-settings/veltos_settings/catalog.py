@@ -1,233 +1,215 @@
 """What VeltOS Settings shows: pages and the settings on them.
 
-Every item does one of three things:
-  * "kcm": open one of KDE's settings modules in its own window (the
-    complete, maintained implementation of that setting);
+Every item does one of two things:
   * "page": show a page built into VeltOS Settings (About, Storage, ...);
-  * "action": run something (open the Store, the Control Panel, ...).
+  * "action": run something (open the Store, check for updates, ...).
+KDE's own settings modules are never opened (the product owner's rule:
+no old settings window anywhere); `systemsettings` and `kcmshell6` are
+diverted to VeltOS Settings (bin/veltos-settings-redirect).
 
-Texts are (English, Turkish) pairs; "keywords" are extra search words in
-both languages.
+Icons are the monochrome Fluent symbolic icons ("-symbolic"), drawn in
+the text colour like the line icons of Windows 11 Settings. Texts are
+(English, Turkish) pairs; "keywords" are extra search words in both
+languages.
 """
 
 LANGUAGES = ("en", "tr")
 
-# Pages built into the app (QML components in qml/pages/).
+# Pages built into the app (QML components, see Main.qml).
 BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound", "bluetooth",
-                 "wifi", "background", "colours", "datetime")
+                 "wifi", "background", "colours", "datetime", "notifications", "power",
+                 "nightlight", "multitasking", "mouse", "touchpad", "keyboard", "lockscreen",
+                 "defaultapps", "startup", "yourinfo", "signin", "otherusers", "region",
+                 "accessibility", "searching")
 # Actions the backend knows (app.Backend.runAction).
-ACTIONS = ("control-panel", "store", "updates", "uninstall-windows", "disk-management")
+ACTIONS = ("store", "updates", "uninstall-windows", "disk-management")
 
-# Navigation pane icons are monochrome line icons, as in Windows 11
-# Settings; the settings on the pages keep their coloured icons.
+# Navigation pane icons are monochrome line icons, as in Windows 11 Settings.
 PAGES = [
-    {"id": "home", "icon": "go-home", "title": ("Home", "Giriş"), "builtin": True, "items": []},
-    {"id": "system", "icon": "computer", "title": ("System", "Sistem"), "items": [
-        {"id": "display", "icon": "preferences-desktop-display", "page": "display",
+    {"id": "home", "icon": "go-home-symbolic", "title": ("Home", "Giriş"), "builtin": True, "items": []},
+    {"id": "system", "icon": "computer-symbolic", "title": ("System", "Sistem"), "items": [
+        {"id": "display", "icon": "video-display-symbolic", "page": "display",
          "title": ("Display", "Ekran"),
-         "desc": ("Monitors, resolution, scale, brightness", "Monitörler, çözünürlük, ölçek, parlaklık"),
+         "desc": ("Monitors, resolution, scale, night light", "Monitörler, çözünürlük, ölçek, gece ışığı"),
          "keywords": "monitor screen resolution scale refresh hdr çözünürlük monitör"},
-        {"id": "nightlight", "icon": "redshift-status-on", "kcm": "kcm_nightlight",
-         "title": ("Night light", "Gece ışığı"),
-         "desc": ("Warmer colours in the evening", "Akşamları daha sıcak renkler"),
-         "keywords": "blue light eye mavi ışık göz"},
-        {"id": "sound", "icon": "preferences-desktop-sound", "page": "sound",
+        {"id": "sound", "icon": "audio-volume-high-symbolic", "page": "sound",
          "title": ("Sound", "Ses"),
          "desc": ("Volume, output and input devices", "Ses düzeyi, çıkış ve giriş aygıtları"),
          "keywords": "audio speaker headphones microphone volume hoparlör kulaklık mikrofon"},
-        {"id": "notifications", "icon": "preferences-desktop-notification", "kcm": "kcm_notifications",
+        {"id": "notifications", "icon": "preferences-system-notifications-symbolic", "page": "notifications",
          "title": ("Notifications", "Bildirimler"),
          "desc": ("Alerts from apps and the system, do not disturb",
                   "Uygulama ve sistem uyarıları, rahatsız etmeyin"),
-         "keywords": "alerts do not disturb focus uyarı"},
-        {"id": "power", "icon": "preferences-system-power-management", "kcm": "kcm_powerdevilprofilesconfig",
+         "keywords": "alerts do not disturb focus banner uyarı rahatsız"},
+        {"id": "power", "icon": "battery-full-symbolic", "page": "power",
          "title": ("Power & battery", "Güç ve pil"),
-         "desc": ("Sleep, screen off, power button, battery", "Uyku, ekranı kapatma, güç düğmesi, pil"),
-         "keywords": "sleep battery energy suspend hibernate uyku enerji"},
-        {"id": "storage", "icon": "drive-harddisk", "page": "storage",
+         "desc": ("Sleep, screen off, power button", "Uyku, ekranı kapatma, güç düğmesi"),
+         "keywords": "sleep battery energy suspend hibernate lid uyku enerji kapak"},
+        {"id": "storage", "icon": "drive-harddisk-symbolic", "page": "storage",
          "title": ("Storage", "Depolama"),
          "desc": ("Space used on your drives", "Sürücülerinizde kullanılan alan"),
          "keywords": "disk drive space free ssd hdd alan sürücü"},
-        {"id": "multitasking", "icon": "preferences-system-windows", "kcm": "kcm_kwin_virtualdesktops",
+        {"id": "nightlight", "icon": "night-light-symbolic", "page": "nightlight",
+         "title": ("Night light", "Gece ışığı"),
+         "desc": ("Warmer colours in the evening", "Akşamları daha sıcak renkler"),
+         "keywords": "blue light eye warm mavi ışık göz"},
+        {"id": "multitasking", "icon": "view-dual-symbolic", "page": "multitasking",
          "title": ("Multitasking", "Çoklu görev"),
-         "desc": ("Virtual desktops", "Sanal masaüstleri"),
-         "keywords": "desktops workspaces snap masaüstü"},
-        {"id": "windowbehaviour", "icon": "preferences-system-windows-actions", "kcm": "kcm_kwinoptions",
-         "title": ("Window behaviour", "Pencere davranışı"),
-         "desc": ("Focus, titlebar actions, moving windows", "Odak, başlık çubuğu eylemleri, pencere taşıma"),
-         "keywords": "windows focus click pencere"},
-        {"id": "about", "icon": "help-about", "page": "about",
+         "desc": ("Snap windows, desktops", "Pencereleri yaslama, masaüstleri"),
+         "keywords": "snap desktops virtual workspaces yasla masaüstü sanal"},
+        {"id": "about", "icon": "help-about-symbolic", "page": "about",
          "title": ("About", "Hakkında"),
          "desc": ("Device specifications, rename this PC, VeltOS version",
                   "Cihaz özellikleri, bu bilgisayarı yeniden adlandırma, VeltOS sürümü"),
          "keywords": "pc name computer hardware cpu ram gpu version bilgisayar adı donanım sürüm"},
     ]},
-    {"id": "devices", "icon": "bluetooth", "title": ("Bluetooth & devices", "Bluetooth ve cihazlar"), "items": [
-        {"id": "bluetooth", "icon": "preferences-system-bluetooth", "page": "bluetooth",
+    {"id": "devices", "icon": "bluetooth-symbolic", "title": ("Bluetooth & devices", "Bluetooth ve cihazlar"), "items": [
+        {"id": "bluetooth", "icon": "bluetooth-symbolic", "page": "bluetooth",
          "title": ("Bluetooth", "Bluetooth"),
          "desc": ("Pair headphones, mice, phones", "Kulaklık, fare ve telefon eşleştirme"),
          "keywords": "pair wireless eşleştir kablosuz"},
-        {"id": "mouse", "icon": "input-mouse", "kcm": "kcm_mouse",
+        {"id": "mouse", "icon": "input-mouse-symbolic", "page": "mouse",
          "title": ("Mouse", "Fare"),
-         "desc": ("Pointer speed, buttons, scrolling", "İşaretçi hızı, düğmeler, kaydırma"),
-         "keywords": "pointer cursor scroll işaretçi"},
-        {"id": "touchpad", "icon": "input-touchpad", "kcm": "kcm_touchpad",
+         "desc": ("Buttons, pointer speed, scrolling", "Düğmeler, işaretçi hızı, kaydırma"),
+         "keywords": "pointer cursor scroll left handed işaretçi solak"},
+        {"id": "touchpad", "icon": "input-touchpad-symbolic", "page": "touchpad",
          "title": ("Touchpad", "Dokunmatik yüzey"),
-         "desc": ("Taps, gestures, scrolling", "Dokunma, hareketler, kaydırma"),
-         "keywords": "trackpad gestures tap hareket"},
-        {"id": "keyboard", "icon": "input-keyboard", "kcm": "kcm_keyboard",
-         "title": ("Keyboard", "Klavye"),
-         "desc": ("Layouts, repeat, NumLock", "Düzenler, tekrar, NumLock"),
-         "keywords": "layout typing q f türkçe klavye düzen"},
-        {"id": "touchscreen", "icon": "input-touchscreen", "kcm": "kcm_touchscreen",
-         "title": ("Touch screen", "Dokunmatik ekran"),
-         "desc": ("Which screen your touch screen controls", "Dokunmatik ekranın hangi ekranı yönettiği"),
-         "keywords": "touch dokunma"},
-        {"id": "tablet", "icon": "input-tablet", "kcm": "kcm_tablet",
-         "title": ("Pen & tablet", "Kalem ve tablet"),
-         "desc": ("Drawing tablets and pens", "Çizim tabletleri ve kalemler"),
-         "keywords": "wacom stylus drawing çizim"},
-        {"id": "gamecontroller", "icon": "input-gaming", "kcm": "kcm_gamecontroller",
-         "title": ("Game controllers", "Oyun kumandaları"),
-         "desc": ("Test and set up gamepads and joysticks", "Gamepad ve joystick testi ve ayarı"),
-         "keywords": "gamepad joystick xbox playstation controller kumanda"},
+         "desc": ("Taps, scrolling, cursor speed", "Dokunma, kaydırma, imleç hızı"),
+         "keywords": "trackpad tap click scroll dokunma"},
+        {"id": "keyboard", "icon": "input-keyboard-symbolic", "page": "keyboard",
+         "title": ("Typing", "Yazma"),
+         "desc": ("Keyboard layouts", "Klavye düzenleri"),
+         "keywords": "layout keyboard q f türkçe klavye düzen"},
     ]},
-    {"id": "network", "icon": "network-wireless", "title": ("Network & internet", "Ağ ve internet"), "items": [
-        {"id": "wifi", "icon": "network-wireless", "page": "wifi",
+    {"id": "network", "icon": "network-wireless-symbolic", "title": ("Network & internet", "Ağ ve internet"), "items": [
+        {"id": "wifi", "icon": "network-wireless-symbolic", "page": "wifi",
          "title": ("Wi-Fi", "Wi-Fi"),
          "desc": ("Connect, manage known networks", "Bağlanma, bilinen ağları yönetme"),
-         "keywords": "wireless wlan network password internet kablosuz ağ parola"},
-        {"id": "advancednetwork", "icon": "network-wired", "kcm": "kcm_networkmanagement",
-         "title": ("Ethernet, VPN & advanced", "Ethernet, VPN ve gelişmiş"),
-         "desc": ("Cable connections, VPN, hotspot, IP addresses",
-                  "Kablolu bağlantılar, VPN, erişim noktası, IP adresleri"),
-         "keywords": "lan cable ethernet hotspot vpn ip dns kablo internet"},
-        {"id": "proxy", "icon": "preferences-system-network-proxy", "kcm": "kcm_proxy",
-         "title": ("Proxy", "Ara sunucu"),
-         "desc": ("Proxy server settings", "Ara sunucu ayarları"),
-         "keywords": "proxy vekil"},
-        {"id": "firewall", "icon": "security-high", "kcm": "kcm_firewall",
-         "title": ("Firewall", "Güvenlik duvarı"),
-         "desc": ("Allow or block network connections", "Ağ bağlantılarına izin verme veya engelleme"),
-         "keywords": "firewall ufw security güvenlik"},
+         "keywords": "wireless wlan network password internet ethernet kablosuz ağ parola"},
     ]},
-    {"id": "personalization", "icon": "brush-symbolic", "title": ("Personalization", "Kişiselleştirme"), "theme_picker": True, "items": [
-        {"id": "background", "icon": "preferences-desktop-wallpaper", "page": "background",
+    {"id": "personalization", "icon": "applications-graphics-symbolic", "title": ("Personalization", "Kişiselleştirme"), "theme_picker": True, "items": [
+        {"id": "background", "icon": "preferences-desktop-wallpaper-symbolic", "page": "background",
          "title": ("Background", "Arka plan"),
          "desc": ("Desktop picture", "Masaüstü resmi"),
          "keywords": "wallpaper picture image duvar kağıdı resim"},
-        {"id": "colors", "icon": "preferences-desktop-color", "page": "colours",
+        {"id": "colors", "icon": "preferences-color-symbolic", "page": "colours",
          "title": ("Colours", "Renkler"),
          "desc": ("Light or dark mode, accent colour", "Açık veya koyu mod, vurgu rengi"),
          "keywords": "accent color colour dark light mode theme vurgu renk koyu açık tema"},
-        {"id": "lockscreen", "icon": "system-lock-screen", "kcm": "kcm_screenlocker",
+        {"id": "lockscreen", "icon": "system-lock-screen-symbolic", "page": "lockscreen",
          "title": ("Lock screen", "Kilit ekranı"),
-         "desc": ("When to lock, lock screen picture", "Ne zaman kilitleneceği, kilit ekranı resmi"),
-         "keywords": "lock password kilit parola"},
-        {"id": "fonts", "icon": "preferences-desktop-font", "kcm": "kcm_fonts",
-         "title": ("Fonts", "Yazı tipleri"),
-         "desc": ("Text size and fonts", "Yazı boyutu ve yazı tipleri"),
-         "keywords": "text size font yazı boyutu"},
-        {"id": "cursor", "icon": "preferences-cursors", "kcm": "kcm_cursortheme",
-         "title": ("Mouse pointer", "Fare işaretçisi"),
-         "desc": ("Pointer style and size", "İşaretçi stili ve boyutu"),
-         "keywords": "cursor pointer imleç"},
+         "desc": ("When to lock, password on wake", "Ne zaman kilitleneceği, uyanınca parola"),
+         "keywords": "lock password screensaver kilit parola"},
     ]},
-    {"id": "apps", "icon": "applications-all", "title": ("Apps", "Uygulamalar"), "items": [
-        {"id": "windows-apps", "icon": "application-x-ms-dos-executable", "page": "windows-apps",
+    {"id": "apps", "icon": "view-app-grid-symbolic", "title": ("Apps", "Uygulamalar"), "items": [
+        {"id": "windows-apps", "icon": "application-x-executable-symbolic", "page": "windows-apps",
          "title": ("Windows programs", "Windows programları"),
          "desc": ("Programs installed from .exe and .msi files", ".exe ve .msi dosyalarından kurulan programlar"),
          "keywords": "exe msi wine windows uninstall kaldır program"},
-        {"id": "store", "icon": "veltos-store", "action": "store",
+        {"id": "store", "icon": "view-app-grid-symbolic", "action": "store",
          "title": ("Get apps from the Store", "Mağazadan uygulama edinin"),
          "desc": ("Install and remove apps", "Uygulama kurma ve kaldırma"),
          "keywords": "install remove uninstall software discover kur kaldır yazılım mağaza"},
-        {"id": "defaultapps", "icon": "preferences-desktop-default-applications", "kcm": "kcm_componentchooser",
+        {"id": "defaultapps", "icon": "preferences-desktop-apps-symbolic", "page": "defaultapps",
          "title": ("Default apps", "Varsayılan uygulamalar"),
-         "desc": ("Web browser, email, file manager", "Web tarayıcısı, e-posta, dosya yöneticisi"),
-         "keywords": "browser default open with tarayıcı varsayılan"},
-        {"id": "filetypes", "icon": "preferences-desktop-filetype-association", "kcm": "kcm_filetypes",
-         "title": ("Open files with", "Dosyaları şununla aç"),
-         "desc": ("Which app opens which file type", "Hangi dosya türünü hangi uygulamanın açacağı"),
-         "keywords": "file association extension dosya türü uzantı"},
-        {"id": "startup", "icon": "system-run", "kcm": "kcm_autostart",
+         "desc": ("Web browser, email, music, photos, PDF", "Web tarayıcısı, e-posta, müzik, fotoğraf, PDF"),
+         "keywords": "browser default open with file type tarayıcı varsayılan dosya türü"},
+        {"id": "startup", "icon": "system-run-symbolic", "page": "startup",
          "title": ("Startup", "Başlangıç"),
          "desc": ("Apps that start when you sign in", "Oturum açınca başlayan uygulamalar"),
          "keywords": "autostart login boot başlangıç"},
     ]},
-    {"id": "accounts", "icon": "user-identity", "title": ("Accounts", "Hesaplar"), "items": [
-        {"id": "users", "icon": "user-identity", "kcm": "kcm_users",
-         "title": ("Your info & other users", "Bilgileriniz ve diğer kullanıcılar"),
-         "desc": ("Name, picture, password, add a user", "Ad, resim, parola, kullanıcı ekleme"),
-         "keywords": "user password account picture kullanıcı parola hesap"},
+    {"id": "accounts", "icon": "avatar-default-symbolic", "title": ("Accounts", "Hesaplar"), "items": [
+        {"id": "yourinfo", "icon": "user-info-symbolic", "page": "yourinfo",
+         "title": ("Your info", "Bilgileriniz"),
+         "desc": ("Name, profile photo", "Ad, profil fotoğrafı"),
+         "keywords": "user account picture photo name kullanıcı hesap resim fotoğraf ad"},
+        {"id": "signin", "icon": "dialog-password-symbolic", "page": "signin",
+         "title": ("Sign-in options", "Oturum açma seçenekleri"),
+         "desc": ("Password, lock on wake", "Parola, uyanınca kilitleme"),
+         "keywords": "password change sign in parola değiştir oturum"},
+        {"id": "otherusers", "icon": "system-users-symbolic", "page": "otherusers",
+         "title": ("Other users", "Diğer kullanıcılar"),
+         "desc": ("Add or remove people who use this PC", "Bu bilgisayarı kullananları ekleyin veya kaldırın"),
+         "keywords": "users family add user administrator kullanıcı ekle yönetici aile"},
     ]},
-    {"id": "time", "icon": "clock", "title": ("Time & language", "Saat ve dil"), "items": [
-        {"id": "datetime", "icon": "preferences-system-time", "page": "datetime",
+    {"id": "time", "icon": "preferences-system-time-symbolic", "title": ("Time & language", "Saat ve dil"), "items": [
+        {"id": "datetime", "icon": "preferences-system-time-symbolic", "page": "datetime",
          "title": ("Date & time", "Tarih ve saat"),
          "desc": ("Time zone, set the time automatically", "Saat dilimi, saati otomatik ayarlama"),
          "keywords": "clock timezone ntp saat dilimi"},
-        {"id": "region", "icon": "preferences-desktop-locale", "kcm": "kcm_regionandlang",
+        {"id": "region", "icon": "preferences-desktop-locale-symbolic", "page": "region",
          "title": ("Language & region", "Dil ve bölge"),
-         "desc": ("Display language, formats", "Görüntü dili, biçimler"),
+         "desc": ("Display language, regional format", "Görüntüleme dili, bölgesel biçim"),
          "keywords": "language locale format türkçe english dil biçim"},
-        {"id": "typing", "icon": "input-keyboard", "kcm": "kcm_keyboard",
+        {"id": "typing", "icon": "input-keyboard-symbolic", "page": "keyboard",
          "title": ("Typing", "Yazma"),
          "desc": ("Keyboard layouts", "Klavye düzenleri"),
          "keywords": "layout keyboard klavye"},
-        {"id": "spelling", "icon": "tools-check-spelling", "kcm": "kcmspellchecking",
-         "title": ("Spelling", "Yazım denetimi"),
-         "desc": ("Spell checking languages", "Yazım denetimi dilleri"),
-         "keywords": "spell check yazım"},
     ]},
-    {"id": "gaming", "icon": "input-gaming", "title": ("Gaming", "Oyun"), "items": [
-        {"id": "gamecontrollers", "icon": "input-gaming", "kcm": "kcm_gamecontroller",
-         "title": ("Game controllers", "Oyun kumandaları"),
-         "desc": ("Test and set up gamepads and joysticks", "Gamepad ve joystick testi ve ayarı"),
-         "keywords": "gamepad joystick controller kumanda"},
-        {"id": "graphics", "icon": "video-display", "page": "about",
+    {"id": "gaming", "icon": "applications-games-symbolic", "title": ("Gaming", "Oyun"), "items": [
+        {"id": "graphics", "icon": "video-display-symbolic", "page": "about",
          "title": ("Graphics", "Grafik"),
          "desc": ("Your graphics card", "Ekran kartınız"),
          "keywords": "gpu graphics card nvidia amd intel ekran kartı"},
     ]},
     {"id": "accessibility", "icon": "preferences-desktop-accessibility-symbolic", "title": ("Accessibility", "Erişilebilirlik"), "items": [
-        {"id": "access", "icon": "preferences-desktop-accessibility", "kcm": "kcm_access",
-         "title": ("Accessibility", "Erişilebilirlik"),
-         "desc": ("Sticky keys, visual bell, screen reader", "Yapışkan tuşlar, görsel uyarı, ekran okuyucu"),
-         "keywords": "screen reader sticky keys bell ekran okuyucu"},
-        {"id": "virtualkeyboard", "icon": "input-keyboard-virtual", "kcm": "kcm_virtualkeyboard",
-         "title": ("On-screen keyboard", "Ekran klavyesi"),
-         "desc": ("Keyboard on the screen for touch use", "Dokunmatik kullanım için ekran klavyesi"),
-         "keywords": "virtual keyboard sanal klavye"},
-        {"id": "textsize", "icon": "preferences-desktop-font", "kcm": "kcm_fonts",
-         "title": ("Text size", "Yazı boyutu"),
+        {"id": "textsize", "icon": "preferences-desktop-font-symbolic", "page": "accessibility",
+         "title": ("Text size", "Metin boyutu"),
          "desc": ("Make text bigger", "Yazıları büyütme"),
-         "keywords": "font size bigger zoom büyüt"},
+         "keywords": "font size bigger zoom büyüt yazı"},
+        {"id": "effects", "icon": "applications-graphics-symbolic", "page": "accessibility",
+         "title": ("Visual effects", "Görsel efektler"),
+         "desc": ("Animation effects", "Animasyon efektleri"),
+         "keywords": "animation motion animasyon hareket"},
     ]},
-    {"id": "privacy", "icon": "security-high", "title": ("Privacy & security", "Gizlilik ve güvenlik"), "items": [
-        {"id": "lock", "icon": "system-lock-screen", "kcm": "kcm_screenlocker",
+    {"id": "privacy", "icon": "preferences-system-privacy-symbolic", "title": ("Privacy & security", "Gizlilik ve güvenlik"), "items": [
+        {"id": "lock", "icon": "system-lock-screen-symbolic", "page": "lockscreen",
          "title": ("Screen lock", "Ekran kilidi"),
          "desc": ("Lock automatically, ask for the password", "Otomatik kilitleme, parola sorma"),
          "keywords": "lock password kilit"},
-        {"id": "firewall2", "icon": "security-high", "kcm": "kcm_firewall",
-         "title": ("Firewall", "Güvenlik duvarı"),
-         "desc": ("Allow or block network connections", "Ağ bağlantılarına izin verme veya engelleme"),
-         "keywords": "firewall security güvenlik"},
-        {"id": "recent", "icon": "document-open-recent", "kcm": "kcm_recentFiles",
-         "title": ("Activity history", "Etkinlik geçmişi"),
-         "desc": ("Remember recently used files", "Son kullanılan dosyaları hatırlama"),
-         "keywords": "history recent files geçmiş son dosyalar"},
-        {"id": "search", "icon": "system-search", "kcm": "kcm_baloofile",
+        {"id": "searching", "icon": "system-search-symbolic", "page": "searching",
          "title": ("Searching files", "Dosya arama"),
-         "desc": ("Which folders search indexes", "Aramanın hangi klasörleri dizinlediği"),
+         "desc": ("Index your files for search", "Arama için dosyalarınızı dizinleme"),
          "keywords": "index search arama dizin"},
     ]},
-    {"id": "update", "icon": "view-refresh", "title": ("VeltOS Update", "VeltOS Güncelleme"), "items": [
-        {"id": "updates", "icon": "system-software-update", "action": "updates",
+    {"id": "update", "icon": "view-refresh-symbolic", "title": ("VeltOS Update", "VeltOS Güncelleme"), "items": [
+        {"id": "updates", "icon": "software-update-available-symbolic", "action": "updates",
          "title": ("Check for updates", "Güncellemeleri denetle"),
          "desc": ("Security fixes and app updates", "Güvenlik düzeltmeleri ve uygulama güncellemeleri"),
          "keywords": "update upgrade patch security güncelleme yama güvenlik"},
     ]},
 ]
+
+# KDE settings module -> VeltOS Settings page (used by the redirect of
+# `systemsettings` and `kcmshell6`; "home" for anything else).
+KCM_PAGES = {
+    "kcm_users": "yourinfo", "kcm_networkmanagement": "wifi", "kcm_wifi": "wifi",
+    "kcm_bluetooth": "bluetooth", "kcm_pulseaudio": "sound", "kcm_kscreen": "display",
+    "kcm_wallpaper": "background", "kcm_colors": "colours", "kcm_lookandfeel": "colours",
+    "kcm_clock": "datetime", "kcm_powerdevilprofilesconfig": "power",
+    "kcm_powerdevilglobalconfig": "power", "kcm_notifications": "notifications",
+    "kcm_screenlocker": "lockscreen", "kcm_nightlight": "nightlight",
+    "kcm_componentchooser": "defaultapps", "kcm_filetypes": "defaultapps",
+    "kcm_autostart": "startup", "kcm_regionandlang": "region", "kcm_keyboard": "keyboard",
+    "kcm_mouse": "mouse", "kcm_touchpad": "touchpad", "kcm_kwin_virtualdesktops": "multitasking",
+    "kcm_kwinscreenedges": "multitasking", "kcm_about-distro": "about", "kcm_access": "accessibility",
+    "kcm_fonts": "accessibility", "kcm_baloofile": "searching", "kcm_storage": "storage",
+}
+
+
+def page_for_module(name):
+    """The VeltOS page for a KDE settings module name or a VeltOS page id."""
+    name = (name or "").strip()
+    if name.endswith(".desktop"):
+        name = name[:-len(".desktop")]
+    if name in KCM_PAGES:
+        return KCM_PAGES[name]
+    if name.startswith("kcm_") and "kcm_" + name[4:] in KCM_PAGES:
+        return KCM_PAGES["kcm_" + name[4:]]
+    if name in BUILTIN_PAGES or any(p["id"] == name for p in PAGES):
+        return name
+    return "home"
 
 
 def page(page_id):
@@ -247,7 +229,6 @@ def localized_item(item, lang, page_entry=None):
         "icon": item["icon"],
         "title": _pick(item["title"], lang),
         "description": _pick(item["desc"], lang),
-        "kcm": item.get("kcm", ""),
         "page": item.get("page", ""),
         "action": item.get("action", ""),
     }

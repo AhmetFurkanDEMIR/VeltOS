@@ -84,22 +84,52 @@ class SettingsWindowTests(unittest.TestCase):
         for page, sub in (("system", "about"), ("system", "storage"), ("apps", "windows-apps"),
                           ("system", "display"), ("system", "sound"), ("devices", "bluetooth"),
                           ("network", "wifi"), ("personalization", "background"),
-                          ("personalization", "colours"), ("time", "datetime")):
+                          ("personalization", "colours"), ("time", "datetime"),
+                          ("system", "notifications"), ("system", "power"), ("system", "nightlight"),
+                          ("system", "multitasking"), ("devices", "mouse"), ("devices", "touchpad"),
+                          ("devices", "keyboard"), ("personalization", "lockscreen"),
+                          ("apps", "defaultapps"), ("apps", "startup"), ("accounts", "yourinfo"),
+                          ("accounts", "signin"), ("accounts", "otherusers"), ("time", "region"),
+                          ("accessibility", "accessibility"), ("privacy", "searching")):
             self.show(page, sub)
             self.assertEqual(self.window.property("subPage"), sub)
+            self.assertEqual(self.problems(), [], sub)
         self.window.setProperty("query", "sound")
         self.app.processEvents()
         self.window.setProperty("query", "nothing matches this")
         self.app.processEvents()
         self.assertEqual(self.problems(), [])
 
-    def test_items_open_modules_and_actions(self):
-        self.call("activate", {"kcm": "kcm_pulseaudio", "action": "", "page": ""})
-        self.call("activate", {"kcm": "", "action": "updates", "page": ""})
-        self.call("activate", {"kcm": "", "action": "", "page": "about", "pageId": "system"})
-        self.assertEqual(self.started, [["kcmshell6", "kcm_pulseaudio"],
-                                        ["veltos-store", "--updates"]])
+    def test_items_open_pages_and_actions(self):
+        self.call("activate", {"action": "updates", "page": ""})
+        self.call("activate", {"action": "", "page": "about", "pageId": "system"})
+        self.assertEqual(self.started, [["veltos-store", "--updates"]])
         self.assertEqual(self.window.property("subPage"), "about")
+
+    def test_new_pages_change_settings(self):
+        self.backend.setPref("lockAfter", 10)
+        self.backend.setPref("nightLight", True)
+        self.backend.setDoNotDisturb(True)
+        self.backend.setLayouts(["tr", "us"])
+        self.backend.setInput("leftHanded", True, "all")
+        self.backend.setAnimations(False)
+        self.app.processEvents()
+        commands = [" ".join(c) for c in self.system.commands]
+        for expected in ("kwriteconfig6 --notify --file kscreenlockerrc --group Daemon --key Timeout 10",
+                         "kwriteconfig6 --notify --file kwinrc --group NightColor --type bool --key Active true",
+                         "kwriteconfig6 --notify --file plasmanotifyrc --group DoNotDisturb --key Until 2999,12,31,0,0,0",
+                         "kwriteconfig6 --notify --file kxkbrc --group Layout --key LayoutList tr,us",
+                         "kwriteconfig6 --notify --file kdeglobals --group KDE --key AnimationDurationFactor 0"):
+            self.assertIn(expected, commands)
+        self.assertEqual(self.backend.prefs["lockAfter"], 10)
+        self.assertTrue(self.backend.prefs["doNotDisturb"])
+        results = []
+        self.backend.accountResult.connect(lambda op, error: results.append((op, error)))
+        self.backend.changePassword("old", "one", "two")
+        self.backend.addUser("Bad Name", "", "pw", False)
+        self.app.processEvents()
+        self.assertEqual(results, [("password", "passwords_differ"), ("adduser", "bad_username")])
+        self.assertEqual(self.problems(), [])
 
     def test_theme_switch_applies_global_theme(self):
         self.backend.setDarkMode(True)
@@ -178,7 +208,7 @@ class SettingsWindowTests(unittest.TestCase):
     def test_start_page_argument(self):
         from veltos_settings import app as settings_app
         for start, page, sub in (("wifi", "network", "wifi"), ("devices", "devices", ""),
-                                 ("about", "system", "about")):
+                                 ("about", "system", "about"), ("signin", "accounts", "signin")):
             backend = settings_app.Backend(lang=self.lang, start=lambda c, env=None: None, start_page=start,
                                            system=settings_app.system_tools(FakeSystem()), threaded=False)
             engine = QQmlApplicationEngine()

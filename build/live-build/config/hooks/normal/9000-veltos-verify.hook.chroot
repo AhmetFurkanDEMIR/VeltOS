@@ -80,6 +80,12 @@ grep -q '^X-KDE-Shortcuts=Print,Meta+Shift+S$' /usr/share/applications/veltos-sn
 grep -q '^NoDisplay=true$' /var/lib/veltos/xdg/kglobalaccel/org.kde.spectacle.desktop \
     || fail "Spectacle's global shortcuts are not switched off"
 grep -q '^IgnoreImages=false$' /etc/xdg/klipperrc || fail "clipboard does not keep pictures"
+# KDE's settings windows never open: systemsettings and kcmshell6 lead to
+# VeltOS Settings.
+for f in /usr/bin/systemsettings /usr/bin/kcmshell6; do
+    [ "$(readlink -f "$f")" = /usr/libexec/veltos/settings-redirect ] \
+        || fail "$f does not open VeltOS Settings"
+done
 # Locked taskbar without KDE's widget editing, Windows' power key, scale steps.
 grep -q '^plasma/allow_configure_when_locked=false$' /etc/xdg/kdeglobals \
     || fail "kiosk setting for the locked taskbar missing"

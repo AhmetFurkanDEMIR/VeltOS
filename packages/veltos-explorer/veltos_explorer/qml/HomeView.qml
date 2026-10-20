@@ -115,12 +115,11 @@ ScrollView {
                                 font.pixelSize: Theme.smallFont
                                 elide: Text.ElideRight
                             }
-                            Kirigami.Icon {
-                                Layout.preferredWidth: 11
-                                Layout.preferredHeight: 11
-                                source: "window-pin"
+                            Glyph {
+                                Layout.preferredWidth: 12
+                                Layout.preferredHeight: 12
+                                kind: "pin"
                                 color: Theme.subtext
-                                isMask: true
                             }
                         }
                     }

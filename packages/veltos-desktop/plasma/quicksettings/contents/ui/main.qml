@@ -334,9 +334,9 @@ PlasmoidItem {
                     if (nightLight.enabled)
                         nightLight.toggleInhibition();
                     else
-                        root.run("kcmshell6 kcm_nightlight");
+                        root.run("veltos-settings nightlight");
                 }
-                onMore: root.run("kcmshell6 kcm_nightlight")
+                onMore: root.run("veltos-settings nightlight")
             }
         }
 
