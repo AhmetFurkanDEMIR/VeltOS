@@ -242,10 +242,11 @@ def caption_glyph(kind, x, colour, opacity=1.0):
     raise ValueError(kind)
 
 
-def caption_background(kind, x, colour, opacity):
+def caption_background(kind, x, colour, opacity, maximized=False):
     """Hover/pressed background; the close button rounds the window's top
-    right corner, as on Windows 11."""
-    if kind == "close":
+    right corner, as on Windows 11 (square on maximised windows, whose
+    corners are square)."""
+    if kind == "close" and not maximized:
         r = WINDOW_RADIUS
         return (f'<path d="M {x} 0 H {x + CAPTION_W - r} A {r} {r} 0 0 1 {x + CAPTION_W} {r} '
                 f'V {CAPTION_H} H {x} Z" fill="{colour}" opacity="{opacity:g}"/>')
@@ -255,7 +256,10 @@ def caption_background(kind, x, colour, opacity):
 def caption_svg(kind, variant):
     """An Aurorae button SVG: the five states Aurorae reads (active,
     inactive, hover, pressed, deactivated), side by side, each the full
-    46 x 32 button (an invisible rectangle keeps the size)."""
+    46 x 32 button (an invisible rectangle keeps the size). The close
+    button also has square hover/pressed pictures for maximised windows
+    (hover-maximized, pressed-maximized: read by VeltOS' change to KWin's
+    AuroraeButton.qml, plasma-overrides/aurorae.json)."""
     c = CAPTION_COLOURS[variant]
     red = kind == "close"
     states = [
@@ -266,13 +270,16 @@ def caption_svg(kind, variant):
          (CLOSE_RED, 0.85) if red else c["pressed"]),
         ("deactivated", c["glyph"], 0.3, None),
     ]
+    if red:
+        states += [(f"{state}-maximized", colour, opacity, background)
+                   for state, colour, opacity, background in states if state in ("hover", "pressed")]
     parts = []
     for i, (state, colour, opacity, background) in enumerate(states):
         x = i * (CAPTION_W + 2)
         group = [f'<g id="{state}-center">',
                  f'<rect x="{x}" y="0" width="{CAPTION_W}" height="{CAPTION_H}" fill="#000000" opacity="0.001"/>']
         if background:
-            group.append(caption_background(kind, x, *background))
+            group.append(caption_background(kind, x, *background, maximized=state.endswith("-maximized")))
         group.append(caption_glyph(kind, x, colour, opacity))
         group.append("</g>")
         parts.append("".join(group))

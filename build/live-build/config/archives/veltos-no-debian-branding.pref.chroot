@@ -28,3 +28,10 @@ Pin-Priority: -1
 Package: konqueror
 Pin: release a=*
 Pin-Priority: -1
+
+# Dolphin, KDE's file manager: VeltOS has one file manager, File Explorer
+# (veltos-explorer), which also answers "show in folder" requests
+# (org.freedesktop.FileManager1).
+Package: dolphin
+Pin: release a=*
+Pin-Priority: -1

@@ -15,7 +15,15 @@
 # title only, like Windows with visual effects off; with a real GPU the
 # previews stay on. Decided at every sign-in, so moving a disk between a VM
 # and real hardware does the right thing.
+#
+# The Store is pinned to the taskbar once for users whose taskbar was made
+# before it existed (new users get it from the layout script); unpinning it
+# is kept.
 set -u
+
+state="${XDG_STATE_HOME:-$HOME/.local/state}/veltos"
+pin_store=true
+[ -e "$state/taskbar-store-pinned" ] && pin_store=false
 
 # plasmashell and KWin answer on the session bus a moment after sign-in.
 i=0
@@ -48,6 +56,12 @@ function lockAll(containment) {
         widget.locked = true;
     });
 }
+// Desktop icons in date order (see layout.js), also for existing users.
+desktops().forEach(function (desktop) {
+    desktop.currentConfigGroup = ['General'];
+    desktop.writeConfig('sortMode', 2);
+    desktop.writeConfig('sortDirsFirst', false);
+});
 panels().forEach(function (panel) {
     lockAll(panel);
     panel.widgets('org.kde.plasma.systemtray').forEach(function (tray) {
@@ -60,10 +74,20 @@ panels().forEach(function (panel) {
         panel.widgets(id).forEach(function (tasks) {
             tasks.currentConfigGroup = ['General'];
             tasks.writeConfig('showToolTips', $previews);
+            if ($pin_store) {
+                var launchers = tasks.readConfig('launchers', []);
+                if (typeof launchers === 'string') {
+                    launchers = launchers ? launchers.split(',') : [];
+                }
+                if (launchers.indexOf('applications:veltos-store.desktop') < 0) {
+                    tasks.writeConfig('launchers', launchers.concat(['applications:veltos-store.desktop']));
+                }
+            }
         });
     });
 });"
-qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$script" >/dev/null 2>&1
+qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$script" >/dev/null 2>&1 &&
+    mkdir -p "$state" && : > "$state/taskbar-store-pinned"
 sleep 15
 qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$script" >/dev/null 2>&1
 exit 0

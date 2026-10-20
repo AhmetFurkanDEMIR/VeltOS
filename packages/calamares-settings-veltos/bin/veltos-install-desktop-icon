@@ -5,6 +5,9 @@ DESKTOP="$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")"
 mkdir -p "$DESKTOP"
 cp /usr/share/applications/install-veltos.desktop "$DESKTOP/"
 chmod +x "$DESKTOP/install-veltos.desktop"
+# The desktop lists icons by date (veltos-desktop): the oldest date puts
+# "Install VeltOS" first, before the Recycle Bin and This PC.
+touch -d @1 "$DESKTOP/install-veltos.desktop"
 
 # Warm the page cache so the installer opens quickly.
 ionice -c 3 cat /usr/bin/calamares >/dev/null 2>&1 &

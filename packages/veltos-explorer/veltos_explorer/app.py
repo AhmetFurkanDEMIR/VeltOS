@@ -58,7 +58,13 @@ class Backend(QObject):
         self._current = 0
         self._clipboard = {"paths": [], "cut": False}
         for path in open_paths or [HOME]:
-            self._tabs.append(Tab(self, to_path(path), self))
+            path = to_path(path)
+            if os.path.isfile(path):
+                # A file: its folder, the file selected (Windows' explorer
+                # /select; "Show in folder" requests, see filemanager1.py).
+                self._tabs.append(Tab(self, os.path.dirname(path), self, select=path))
+            else:
+                self._tabs.append(Tab(self, path, self))
         self._dark = self.read_dark_mode()
         # kdeglobals is replaced (not edited) when it changes: watch its folder.
         self.config_watcher = QFileSystemWatcher(self)
@@ -613,6 +619,9 @@ class Backend(QObject):
 
 def main(argv=None):
     argv = sys.argv if argv is None else argv
+    if "--filemanager1" in argv[1:]:
+        from . import filemanager1
+        return filemanager1.serve(argv)
     app = QGuiApplication(argv)
     # Text drawn like KDE programs (FreeType, hinted) instead of Qt Quick's
     # distance-field glyphs, which looked uneven at fractional display

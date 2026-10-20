@@ -58,6 +58,19 @@ def play(actions, qmp, outdir):
         elif kind in ("click", "rclick"):
             x, y = (int(v) for v in arg.split(","))
             qmp.click(x, y, "left" if kind == "click" else "right")
+        elif kind in ("wheeldown", "wheelup"):  # wheeldown:x,y,clicks
+            x, y, clicks = (int(v) for v in arg.split(","))
+            qmp._move(x, y)
+            button = "wheel-down" if kind == "wheeldown" else "wheel-up"
+            for _ in range(clicks):
+                for down in (True, False):
+                    qmp.execute("input-send-event", events=[
+                        {"type": "btn", "data": {"down": down, "button": button}}])
+                time.sleep(0.05)
+        elif kind == "dblclick":
+            x, y = (int(v) for v in arg.split(","))
+            qmp.click(x, y)
+            qmp.click(x, y)
         elif kind == "powerbutton":  # ACPI power button (VirtualBox: "ACPI Shutdown")
             qmp.execute("system_powerdown")
         elif kind == "sleep":

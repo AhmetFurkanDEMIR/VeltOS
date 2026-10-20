@@ -23,7 +23,7 @@ with Windows applications and games through Wine and Proton.
   …), a Windows 11 style Settings app, sign-in screen, boot screen (logo
   and spinner, no visible boot menu) and a live-system welcome window
   ("Try VeltOS" / "Install VeltOS", English / Türkçe).
-- Double-clicking a Windows `.exe`/`.msi` installs or runs it through Wine
+- Double-clicking a Windows `.exe`/`.msi` (or a `.bat`/`.cmd` batch file) installs or runs it through Wine
   (VeltOS runner); Wine is not a security sandbox, and not every Windows
   program works.
 - A VeltOS installer (Calamares) with VeltOS branding.

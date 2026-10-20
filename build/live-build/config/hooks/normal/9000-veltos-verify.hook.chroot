@@ -20,7 +20,7 @@ for pkg in veltos-base veltos-desktop veltos-settings veltos-boot veltos-fluent-
 done
 
 # Third-party branding that must stay out of VeltOS.
-for pkg in desktop-base calamares-settings-debian plasma-welcome xwaylandvideobridge konqueror; do
+for pkg in desktop-base calamares-settings-debian plasma-welcome xwaylandvideobridge konqueror dolphin; do
     installed "$pkg" && fail "$pkg must not be installed (non-VeltOS branding)"
 done
 
@@ -62,6 +62,8 @@ for p in org.kde.plasma.private.systemtray org.kde.plasma.notifications \
 done
 [ -f /var/lib/veltos/xdg/plasma/shells/org.kde.plasma.desktop/.veltos-override ] \
     || fail "Windows 11 lock screen (desktop shell override) missing"
+[ -f /var/lib/veltos/xdg/kwin/aurorae/.veltos-override ] \
+    || fail "window frame buttons for maximised windows (Aurorae override) missing"
 # Locked taskbar without KDE's widget editing, Windows' power key, scale steps.
 grep -q '^plasma/allow_configure_when_locked=false$' /etc/xdg/kdeglobals \
     || fail "kiosk setting for the locked taskbar missing"
@@ -129,10 +131,11 @@ grep -q '^Name=File Explorer$' /usr/share/applications/veltos-explorer.desktop \
     || fail "VeltOS File Explorer missing"
 grep -q 'inode/directory=veltos-explorer.desktop' /etc/xdg/kde-mimeapps.list \
     || fail "folders do not open in VeltOS File Explorer"
-for f in org.kde.dolphin systemsettings; do
-    grep -q '^NoDisplay=true$' "/var/lib/veltos/xdg/applications/$f.desktop" \
-        || fail "$f is not hidden from Start"
-done
+grep -q '^NoDisplay=true$' /var/lib/veltos/xdg/applications/systemsettings.desktop \
+    || fail "KDE System Settings is not hidden from Start"
+grep -q '^Exec=/usr/bin/veltos-explorer --filemanager1$' \
+    /usr/share/dbus-1/services/org.freedesktop.FileManager1.service \
+    || fail "\"show in folder\" requests do not go to File Explorer"
 [ -f /usr/share/applications/veltos-settings.desktop ] || fail "VeltOS Settings missing"
 grep -q '^X-KDE-Shortcuts=Ctrl+Shift+Esc$' /usr/share/applications/veltos-taskmanager.desktop \
     || fail "VeltOS Task Manager (Ctrl+Shift+Esc) missing"

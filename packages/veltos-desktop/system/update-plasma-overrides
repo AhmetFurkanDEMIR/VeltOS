@@ -1,26 +1,28 @@
 #!/usr/bin/python3
 """Windows 11 look for a few Plasma components without forking them.
 
-    update-plasma-overrides [--source /usr/share/plasma]
+    update-plasma-overrides [--source /usr/share]
                             [--specs /usr/share/veltos/plasma-overrides]
-                            [--out /var/lib/veltos/xdg/plasma] [--check]
+                            [--out /var/lib/veltos/xdg] [--check]
 
 Each spec (<plugin id>.json) changes one installed Plasma package: an
-applet in plasmoids/ (the default) or, with "type": "shells", a shell
-package (the lock screen lives in the desktop shell). A change is either
+applet in plasma/plasmoids/ (the default), with "type": "shells" a shell
+package in plasma/shells/ (the lock screen lives in the desktop shell),
+or with "type": "kwin" a folder of KWin's QML in kwin/ (the Aurorae
+window frame engine, kwin/aurorae). A change is either
 an exact text replacement ("old" -> "new", for example "the hidden tray
 icons have no labels") or a whole file replaced by a VeltOS file
 ("replace_with", from the files/ folder next to the specs), allowed only
 while Plasma's file has the recorded "upstream_sha256". This script
 copies the installed package to --out, applies the changes and checks that
 every replacement matched exactly as often as expected. The Plasma session
-puts /var/lib/veltos/xdg first in XDG_DATA_DIRS, so Plasma loads the
-changed copy instead of the original.
+puts /var/lib/veltos/xdg first in XDG_DATA_DIRS, so Plasma (and KWin)
+load the changed copy instead of the original.
 
 If Plasma is updated and a change no longer fits, the copy is removed and
 Plasma's own version is used: the component then looks like KDE's, but it
-keeps working. A dpkg trigger on /usr/share/plasma re-runs this script
-after every Plasma update. --check reports problems with a non-zero exit
+keeps working. dpkg triggers on these folders re-run this script after
+every Plasma or KWin update. --check reports problems with a non-zero exit
 code (used by the image build).
 """
 
@@ -31,19 +33,20 @@ import shutil
 import sys
 from pathlib import Path
 
-SOURCE = Path("/usr/share/plasma")
+SOURCE = Path("/usr/share")
 SPECS = Path("/usr/share/veltos/plasma-overrides")
-OUT = Path("/var/lib/veltos/xdg/plasma")
+OUT = Path("/var/lib/veltos/xdg")
 MARKER = ".veltos-override"
-TYPES = ("plasmoids", "shells")
+# Spec type -> folder (below SOURCE and OUT) that holds such packages.
+TYPES = {"plasmoids": "plasma/plasmoids", "shells": "plasma/shells", "kwin": "kwin"}
 
 
 def apply_spec(spec, source_root, out_root, files_dir):
     """Write the changed copy of one package; returns a problem or None."""
     plugin = spec["plugin"]
     kind = spec.get("type", "plasmoids")
-    src = source_root / kind / plugin
-    out_dir = out_root / kind
+    src = source_root / TYPES[kind] / plugin
+    out_dir = out_root / TYPES[kind]
     out_dir.mkdir(parents=True, exist_ok=True)
     dest = out_dir / plugin
     tmp = out_dir / f".{plugin}.tmp"
@@ -96,8 +99,8 @@ def main(argv=None):
     specs = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(args.specs.glob("*.json"))]
     wanted = {(spec.get("type", "plasmoids"), spec["plugin"]) for spec in specs}
     # Copies whose spec is gone (package update) are removed.
-    for kind in TYPES:
-        directory = args.out / kind
+    for kind, folder in TYPES.items():
+        directory = args.out / folder
         if not directory.is_dir():
             continue
         for old in directory.iterdir():

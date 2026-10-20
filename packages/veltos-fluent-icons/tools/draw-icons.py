@@ -281,13 +281,68 @@ def local_disk():
       <stop offset="1" stop-color="#8E98A5"/>
     </linearGradient>
   </defs>
-  <path d="M 44 118 L 70 82 H 186 L 212 118 Z" fill="url(#top)" stroke="#A9B2BD" stroke-width="2" stroke-linejoin="round"/>
-  <rect x="44" y="118" width="168" height="52" rx="8" fill="url(#side)"/>
-  <rect x="44" y="118" width="168" height="4" fill="#FFFFFF" opacity="0.5"/>
-  <rect x="60" y="140" width="92" height="6" rx="3" fill="#6E7884"/>
-  <circle cx="190" cy="143" r="6" fill="#36C26A"/>
+  <path d="M 30 116 L 62 62 H 194 L 226 116 Z" fill="url(#top)" stroke="#A9B2BD" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="30" y="116" width="196" height="80" rx="12" fill="url(#side)"/>
+  <rect x="30" y="116" width="196" height="5" fill="#FFFFFF" opacity="0.5"/>
+  <rect x="52" y="150" width="104" height="10" rx="5" fill="#5E6873"/>
+  <circle cx="198" cy="155" r="9" fill="#36C26A"/>
 </svg>
 """
+
+
+# --- Small sizes (16, 22, 24 px) ---------------------------------------------------
+# Drawn on the 16 px grid with lines on whole pixels: the large drawings
+# shrunk to 16 px turned into a grey dash (disk) and a cut-off box (bin)
+# in File Explorer's navigation pane (VM test 2026-10-20).
+
+SMALL_HEADER = ('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">\n'
+                '  <!-- {what}, small sizes: VeltOS artwork in the look of Windows 11\n'
+                '       (tools/draw-icons.py). SPDX-License-Identifier: CC-BY-SA-4.0 -->\n')
+
+
+def small_disk():
+    return SMALL_HEADER.format(what="Local disk") + """  <defs>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C3CAD3"/>
+      <stop offset="1" stop-color="#97A1AD"/>
+    </linearGradient>
+  </defs>
+  <path d="M 1.5 7.5 L 3.5 4.5 H 12.5 L 14.5 7.5 Z" fill="#EEF1F4" stroke="#8F99A6" stroke-linejoin="round"/>
+  <rect x="1.5" y="7.5" width="13" height="5" rx="1" fill="url(#side)" stroke="#7E8894"/>
+  <rect x="3" y="9.5" width="6" height="1" fill="#55606B"/>
+  <rect x="11" y="9" width="2" height="2" rx="1" fill="#2FBF62"/>
+</svg>
+"""
+
+
+def small_bin(full):
+    paper = ""
+    if full:
+        paper = """  <path d="M 4.5 4 L 5.5 0.5 L 9 1.5 L 8 4 Z" fill="#FFFFFF" stroke="#9AA9BA" stroke-width="0.8" stroke-linejoin="round"/>
+  <path d="M 7.5 4 L 9.5 1 L 12 2.5 L 11 4 Z" fill="#DCEBFB" stroke="#9AA9BA" stroke-width="0.8" stroke-linejoin="round"/>
+"""
+    what = "Recycle Bin (full)" if full else "Recycle Bin (empty)"
+    return SMALL_HEADER.format(what=what) + paper + """  <path d="M 3.5 4.5 H 12.5 L 11.6 14.5 H 4.4 Z" fill="#DCE9F6" stroke="#7D97B2" stroke-linejoin="round"/>
+  <rect x="2.5" y="3.5" width="11" height="2" rx="0.8" fill="#FFFFFF" stroke="#7D97B2"/>
+  <path d="M 8 7.2 L 10.3 11.2 H 5.7 Z" fill="none" stroke="#1F78D1" stroke-width="1.4" stroke-linejoin="round"/>
+</svg>
+"""
+
+
+# --- Close (menus, dialogs, tabs) -------------------------------------------------
+# Windows 11 shows a thin monochrome cross where Fluent (like Breeze) has a
+# red disc with a cross ("Close" in menus, dialog buttons, tab buttons).
+# The colour follows the KDE colour scheme (current-color-scheme).
+
+def close_glyph(colour):
+    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">\n'
+            '  <!-- Close: VeltOS artwork in the look of Windows 11 (tools/draw-icons.py).\n'
+            '       SPDX-License-Identifier: CC-BY-SA-4.0 -->\n'
+            '  <defs><style type="text/css" id="current-color-scheme">'
+            f'.ColorScheme-Text {{ color:{colour}; }}</style></defs>\n'
+            '  <path class="ColorScheme-Text" style="fill:none;stroke:currentColor;stroke-width:1.15;'
+            'stroke-linecap:round" d="M 4.5 4.5 L 11.5 11.5 M 11.5 4.5 L 4.5 11.5"/>\n'
+            '</svg>\n')
 
 
 def main():
@@ -299,6 +354,13 @@ def main():
     (OUT / "drive-harddisk.svg").write_text(local_disk(), encoding="utf-8", newline="\n")
     # The icon of folders as a file type.
     (OUT / "inode-directory.svg").write_text(folder("folder"), encoding="utf-8", newline="\n")
+    (OUT / "close.svg").write_text(close_glyph("#363636"), encoding="utf-8", newline="\n")
+    (OUT / "close-dark.svg").write_text(close_glyph("#dedede"), encoding="utf-8", newline="\n")
+    small = OUT / "small"
+    small.mkdir(exist_ok=True)
+    (small / "drive-harddisk.svg").write_text(small_disk(), encoding="utf-8", newline="\n")
+    (small / "user-trash.svg").write_text(small_bin(False), encoding="utf-8", newline="\n")
+    (small / "user-trash-full.svg").write_text(small_bin(True), encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

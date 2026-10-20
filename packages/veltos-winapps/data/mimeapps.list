@@ -8,9 +8,11 @@ application/x-msi=veltos-run.desktop
 application/vnd.microsoft.portable-executable=veltos-run.desktop
 application/x-ms-ne-executable=veltos-run.desktop
 application/x-wine-extension-msp=veltos-run.desktop
+application/x-bat=veltos-run.desktop
 
 [Added Associations]
 application/x-ms-dos-executable=veltos-run.desktop;
 application/x-msdownload=veltos-run.desktop;
 application/x-msi=veltos-run.desktop;
 application/vnd.microsoft.portable-executable=veltos-run.desktop;
+application/x-bat=veltos-run.desktop;

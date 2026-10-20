@@ -32,10 +32,21 @@ override_dh_auto_install:
 	# "This PC", the Recycle Bin, folders and the local disk in the look of
 	# Windows 11 (VeltOS artwork, branding/, tools/draw-icons.py), at all
 	# sizes and in the dark theme too. Many of Fluent's are symbolic links
-	# (folder -> default-folder.svg): those are replaced by the file.
+	# (folder -> default-folder.svg): those are replaced by the file. The
+	# 16, 22 and 24 px folders get the drawings made for small sizes
+	# (branding/small/) where there is one.
 	for name in $(VELTOS_ICONS); do \
 		find $(ICONS) \( -type f -o -type l \) \( -name "$$name.svg" -o -name "$$name-dark.svg" \) \
-			-exec sh -c 'rm -f "$$1" && cp "$$2" "$$1"' sh {} branding/$$name.svg \; ; \
+			-exec sh -c 'src="$$2"; case "$$1" in */16/*|*/16@*/*|*/22/*|*/22@*/*|*/24/*|*/24@*/*) \
+				[ -f "$$3" ] && src="$$3";; esac; rm -f "$$1" && cp "$$src" "$$1"' \
+				sh {} branding/$$name.svg branding/small/$$name.svg \; ; \
+	done
+	# "Close" in menus, dialogs and tabs: a thin monochrome cross like Windows
+	# 11, not Fluent's red disc (light and dark theme colours).
+	for name in window-close dialog-close tab-close; do \
+		find $(ICONS) \( -type f -o -type l \) -path '*/actions/*' -name "$$name.svg" \
+			-exec sh -c 'case "$$1" in *-dark*) src=branding/close-dark.svg;; *) src=branding/close.svg;; esac; \
+				rm -f "$$1" && cp "$$src" "$$1"' sh {} \; ; \
 	done
 	# Yellow folders like Windows 11 (Fluent's are blue), coloured at all sizes.
 	python3 tools/recolour-folders.py $(ICONS)
@@ -58,7 +69,8 @@ execute_after_dh_auto_install:
 	for name in $(VELTOS_ICONS); do \
 		test -n "$$(find -L $(ICONS)/Fluent -name "$$name.svg")" || exit 1; \
 		for f in $$(find -L $(ICONS)/Fluent $(ICONS)/Fluent-dark -name "$$name.svg"); do \
-			cmp -s $$f branding/$$name.svg || exit 1; done; \
+			cmp -s $$f branding/$$name.svg || cmp -s $$f branding/small/$$name.svg || exit 1; done; \
 	done
+	! grep -rqi 'da4453' $(ICONS)/.Fluent-base/16/actions/window-close.svg $(ICONS)/.Fluent-dark-base/22/actions/tab-close.svg
 	! grep -qi '198ee6' $(ICONS)/.Fluent-base/scalable/places/default-folder.svg
 	grep -q 'FFC83D' $(ICONS)/.Fluent-base/scalable/apps/file-manager.svg

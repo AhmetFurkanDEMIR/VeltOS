@@ -181,6 +181,10 @@ class Environment:
         self.marker.write_text(wine_version() + "\n")
 
     def run_command(self, path, kind):
+        """Programs and batch files go through Wine's `start`, like a double
+        click in Windows Explorer: a batch file runs in cmd in a new console
+        window (start uses ShellExecuteEx without SEE_MASK_NO_CONSOLE,
+        Wine 10.0 programs/start/start.c). /wait gives its exit code."""
         if kind == "msi":
             return [wine_tool("wine"), "msiexec", "/i", str(path)]
         return [wine_tool("wine"), "start", "/wait", "/unix", str(path)]

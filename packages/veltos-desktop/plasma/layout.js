@@ -16,9 +16,14 @@ for (var i = 0; i < desktopsArray.length; i++) {
     desktop.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
     desktop.writeConfig("Image", wallpaper);
     // Desktop icons top to bottom from the top-left corner, like Windows
-    // (folder view: arrangement 1 = columns).
+    // (folder view: arrangement 1 = columns), in date order (2 = KDirModel's
+    // modified-time column) with folders not first: the Recycle Bin, This PC
+    // and the Store have fixed old dates (veltos-session.sh), new files
+    // follow them.
     desktop.currentConfigGroup = ["General"];
     desktop.writeConfig("arrangement", 1);
+    desktop.writeConfig("sortMode", 2);
+    desktop.writeConfig("sortDirsFirst", false);
 }
 
 var panel = new Panel;
@@ -48,12 +53,16 @@ panel.addWidget("org.veltos.taskview");
 
 var tasks = panel.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
-// Pinned like a fresh Windows 11 PC: File Explorer, browser, Settings.
+// Pinned like a fresh Windows 11 PC: File Explorer, browser, Settings,
+// Store.
 tasks.writeConfig("launchers", [
     "applications:veltos-explorer.desktop",
     "applications:firefox-esr.desktop",
-    "applications:veltos-settings.desktop"
+    "applications:veltos-settings.desktop",
+    "applications:veltos-store.desktop"
 ]);
+// Each virtual desktop shows only its own windows, as on Windows.
+tasks.writeConfig("showOnlyCurrentDesktop", true);
 
 panel.addWidget("org.kde.plasma.panelspacer");
 

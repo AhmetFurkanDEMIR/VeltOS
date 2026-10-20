@@ -176,10 +176,10 @@ def run_checks(args, report, qmp, agent):
     report.check("session uses VeltOS application names (XDG_DATA_DIRS)",
                  "/var/lib/veltos/xdg:" in out, out.strip())
     _, out, _ = agent.run("grep -h '^Name=' /usr/share/applications/veltos-explorer.desktop; "
-                          "grep -c '^NoDisplay=true' /var/lib/veltos/xdg/applications/org.kde.dolphin.desktop "
-                          "/var/lib/veltos/xdg/applications/systemsettings.desktop")
-    report.check("VeltOS File Explorer; KDE file manager and System Settings hidden",
-                 "Name=File Explorer" in out and out.count(":1") == 2,
+                          "grep -c '^NoDisplay=true' /var/lib/veltos/xdg/applications/systemsettings.desktop; "
+                          "dpkg-query -W -f='${db:Status-Abbrev}' dolphin 2>/dev/null || echo no-dolphin")
+    report.check("VeltOS File Explorer only (no Dolphin); KDE System Settings hidden",
+                 "Name=File Explorer" in out and "\n1\n" in out + "\n" and "ii" not in out,
                  out.replace("\n", "; "))
     _, out, _ = agent.run(f"cat {home}/.config/Kvantum/kvantum.kvconfig; "
                           f"grep -c 'GroupState-Remote-IsHidden>true' {home}/.local/share/user-places.xbel; "

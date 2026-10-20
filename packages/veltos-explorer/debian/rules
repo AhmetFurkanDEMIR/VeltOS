@@ -18,6 +18,9 @@ override_dh_auto_install:
 	install -D -m 644 data/veltos-explorer.svg \
 		debian/veltos-explorer/usr/share/icons/hicolor/scalable/apps/veltos-explorer.svg
 	install -D -m 644 data/kde-mimeapps.list debian/veltos-explorer/etc/xdg/kde-mimeapps.list
+	# "Show in folder" requests of other programs (D-Bus activation).
+	install -D -m 644 data/org.freedesktop.FileManager1.service \
+		debian/veltos-explorer/usr/share/dbus-1/services/org.freedesktop.FileManager1.service
 
 override_dh_auto_test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

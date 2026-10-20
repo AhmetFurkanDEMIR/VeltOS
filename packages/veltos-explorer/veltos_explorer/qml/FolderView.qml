@@ -11,6 +11,7 @@ import "."
 
 FocusScope {
     id: root
+    objectName: "folderView"
 
     readonly property var tab: backend.current
     readonly property var model: tab.items
@@ -224,6 +225,21 @@ FocusScope {
         }
     }
 
+    // Scrolls the current view by a wheel delta (positive: towards the top),
+    // vertically or, for the left-to-right "small icons" columns, sideways.
+    function scrollBy(delta) {
+        const v = root.view;
+        if (!v || delta === 0)
+            return;
+        if (v === gridView && gridView.flow === GridView.FlowTopToBottom) {
+            const maxX = Math.max(0, v.contentWidth - v.width);
+            v.contentX = Math.max(v.originX, Math.min(v.originX + maxX, v.contentX - delta));
+        } else {
+            const maxY = Math.max(0, v.contentHeight - v.height);
+            v.contentY = Math.max(v.originY, Math.min(v.originY + maxY, v.contentY - delta));
+        }
+    }
+
     // --- Views -------------------------------------------------------------------------
 
     Item {
@@ -265,15 +281,6 @@ FocusScope {
             flow: root.mode === "small" ? GridView.FlowTopToBottom : GridView.FlowLeftToRight
             ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
             delegate: IconCell {}
-        }
-
-        WheelHandler {
-            target: null
-            onWheel: event => {
-                const v = root.view;
-                const max = Math.max(0, v.contentHeight - v.height);
-                v.contentY = Math.max(0, Math.min(max, v.contentY - event.angleDelta.y));
-            }
         }
 
         // Empty folder, loading, errors.
@@ -330,6 +337,12 @@ FocusScope {
             anchors.fill: parent
             anchors.rightMargin: 14           // leave the scroll bar usable
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+
+            // The mouse wheel scrolls the items. Handled here, for every kind
+            // of pointing device: a WheelHandler ignored the wheel of the
+            // absolute pointers of virtual machines (QEMU, VirtualBox), so
+            // long folders could not be scrolled (VM test 2026-10-20).
+            onWheel: wheel => root.scrollBy(wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y)
 
             onPressed: event => {
                 root.forceActiveFocus();

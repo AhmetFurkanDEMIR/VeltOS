@@ -67,6 +67,19 @@ class ExeInfoTests(unittest.TestCase):
         info = exeinfo.inspect(self.write("broken.exe", b"not a program"))
         self.assertFalse(info.valid)
 
+    def test_batch_files(self):
+        for name in ("Start Server.bat", "build.CMD"):
+            info = exeinfo.inspect(self.write(name, b"@echo off\r\necho VeltOS\r\npause\r\n"))
+            self.assertEqual((info.kind, info.name, info.valid), ("batch", name, True))
+            self.assertFalse(info.is_installer)
+        self.assertFalse(exeinfo.inspect(self.write("odd.bat", minimal_pe())).valid)
+
+    def test_batch_files_open_with_the_runner(self):
+        data = Path(__file__).resolve().parent.parent / "data"
+        self.assertIn('<glob pattern="*.cmd"/>', (data / "veltos-winapps.xml").read_text(encoding="utf-8"))
+        self.assertIn("application/x-bat;", (data / "veltos-run.desktop").read_text(encoding="utf-8"))
+        self.assertIn("application/x-bat=veltos-run.desktop\n", (data / "mimeapps.list").read_text(encoding="utf-8"))
+
 
 class EnvironmentTests(unittest.TestCase):
     def setUp(self):
@@ -105,6 +118,7 @@ class EnvironmentTests(unittest.TestCase):
         env = winenv.Environment()
         self.assertIn("msiexec", env.run_command(Path("/x/a.msi"), "msi"))
         self.assertEqual(env.run_command(Path("/x/a.exe"), "exe")[1:4], ["start", "/wait", "/unix"])
+        self.assertEqual(env.run_command(Path("/x/a.bat"), "batch")[1:], ["start", "/wait", "/unix", "/x/a.bat"])
 
     def test_records(self):
         env = winenv.Environment()

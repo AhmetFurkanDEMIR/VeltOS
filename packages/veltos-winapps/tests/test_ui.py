@@ -75,6 +75,22 @@ class RunnerWindowTests(unittest.TestCase):
         self.assertTrue(installer.isInstaller)
         self.assertFalse(program.isInstaller)
         self.assertNotEqual(installer.title, program.title)
+        self.assertEqual((installer.actionKey, program.actionKey), ("install", "open"))
+        self.assertTrue(program.canAddToStart)
+        self.assertFalse(installer.canAddToStart)
+        # Publisher (unknown here) and kind, as in the Windows App Installer.
+        self.assertEqual(len(installer.details), 2)
+        self.assertTrue(installer.details[1].endswith("64-bit"))
+
+    def test_batch_file_pages(self):
+        runner, engine, warnings = self.load("start.cmd", b"@echo off\r\necho hi\r\n")
+        self.assertTrue(engine.rootObjects(), "Main.qml did not load")
+        self.assertEqual((runner.actionKey, runner.canAddToStart), ("run", False))
+        self.assertIn("start.cmd", runner.title)
+        for page in ["confirm", "running", "failed"]:
+            runner._go(page)
+            self.app.processEvents()
+        self.assertEqual(warnings, [])
 
 
 if __name__ == "__main__":

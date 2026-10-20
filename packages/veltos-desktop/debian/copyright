@@ -27,7 +27,14 @@ License: LGPL-2+
 Comment: Copies of plasma-workspace 6.3.6 QML and metadata (Debian 13), used
  to test plasma-overrides/*.json.
 
+Files: tests/data/aurorae/AuroraeButton.qml
+Copyright: 2012 Martin Gräßlin <mgraesslin@kde.org>
+License: GPL-2+
+Comment: Unchanged copy of KWin 6.3.6 (Debian 13) for the tests of
+ update-plasma-overrides.
+
 Files: tests/data/taskmanager/contents/ui/ContextMenu.qml
+ tests/data/taskmanager/contents/ui/Task.qml
 Copyright: 2012-2016 Eike Hein, Kai Uwe Broulik and other KDE contributors
 License: GPL-2+
 Comment: Copy of plasma-desktop 6.3.6 QML (Debian 13), used to test

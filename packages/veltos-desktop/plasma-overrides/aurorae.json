@@ -1,0 +1,25 @@
+{
+  "plugin": "aurorae",
+  "type": "kwin",
+  "about": "KWin's Aurorae engine draws the VeltOS window frames from SVG files and has no button pictures for maximised windows. The close button's red hover rounds the window's top right corner like Windows 11; on a maximised window the corner is square, so the hover must be too. With these changes a button SVG may carry hover-maximized / pressed-maximized pictures (VeltOS' close button does, tools/fluent.py) that are used while the window is maximised; themes without them look as before.",
+  "replacements": [
+    {
+      "file": "AuroraeButton.qml",
+      "why": "pick the maximised variants when the theme has them",
+      "old": "        property bool supportsInactiveDeactivated: hasElementPrefix(\"deactivated-inactive\")\n",
+      "new": "        property bool supportsInactiveDeactivated: hasElementPrefix(\"deactivated-inactive\")\n        // VeltOS: square hover/pressed pictures for maximised windows, if the theme has them\n        readonly property string maximizedSuffix: decoration.client.maximized && hasElementPrefix(\"hover-maximized\") ? \"-maximized\" : \"\"\n"
+    },
+    {
+      "file": "AuroraeButton.qml",
+      "why": "hover picture of maximised windows",
+      "old": "        prefix: \"hover\"\n",
+      "new": "        prefix: \"hover\" + buttonSvg.maximizedSuffix // VeltOS\n"
+    },
+    {
+      "file": "AuroraeButton.qml",
+      "why": "pressed picture of maximised windows",
+      "old": "        prefix: \"pressed\"\n",
+      "new": "        prefix: \"pressed\" + buttonSvg.maximizedSuffix // VeltOS\n"
+    }
+  ]
+}

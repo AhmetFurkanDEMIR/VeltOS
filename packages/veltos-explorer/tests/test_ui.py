@@ -118,6 +118,33 @@ class ExplorerWindowTests(unittest.TestCase):
         self.app.processEvents()
         self.assertEqual(self.problems(), [])
 
+    def test_long_folders_scroll_with_the_wheel(self):
+        from PySide6.QtCore import QObject, QPoint, QPointF, Qt
+        from PySide6.QtGui import QWheelEvent
+        many = self.home / "Many"
+        many.mkdir(exist_ok=True)
+        for i in range(150):
+            (many / f"file-{i:03}.txt").write_text("x", encoding="utf-8")
+        self.window.setProperty("width", 1000)
+        self.window.setProperty("height", 600)
+        tab = self.backend.current
+        tab.navigate(str(many))
+        tab.setViewMode("details")
+        self.app.processEvents()
+        view = self.window.findChild(QObject, "folderView")
+        details = view.property("view")
+        self.assertEqual(details.property("contentY"), details.property("originY"))
+        # A wheel turn over the items, as a virtual machine's absolute
+        # pointer sends it (the old WheelHandler ignored it).
+        centre = QPointF(self.window.property("width") / 2, self.window.property("height") / 2)
+        for _ in range(3):
+            event = QWheelEvent(centre, centre, QPoint(0, 0), QPoint(0, -120), Qt.NoButton, Qt.NoModifier,
+                                Qt.NoScrollPhase, False)
+            self.app.sendEvent(self.window, event)
+            self.app.processEvents()
+        self.assertGreater(details.property("contentY"), details.property("originY") + 100)
+        self.assertEqual(self.problems(), [])
+
     def test_tabs(self):
         self.backend.newTab(str(self.home / "Pictures"))
         self.app.processEvents()

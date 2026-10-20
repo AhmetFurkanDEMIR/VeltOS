@@ -213,7 +213,14 @@ class SessionScriptTests(unittest.TestCase):
         (home / ".config/user-dirs.dirs").write_text('XDG_DESKTOP_DIR="$HOME/Masaüstü"\n', encoding="utf-8")
         self.source(home)
         desktop = home / "Masaüstü"
-        self.assertEqual(sorted(p.name for p in desktop.iterdir()), ["recycle-bin.desktop", "this-pc.desktop"])
+        self.assertEqual(sorted(p.name for p in desktop.iterdir()),
+                         ["recycle-bin.desktop", "this-pc.desktop", "veltos-store.desktop"])
+        # Fixed dates give the desktop's date order: Recycle Bin, This PC, Store.
+        self.assertEqual(sorted(desktop.iterdir(), key=lambda p: p.stat().st_mtime)[0].name, "recycle-bin.desktop")
+        self.assertEqual((desktop / "veltos-store.desktop").stat().st_mtime, 4)
+        (desktop / "veltos-store.desktop").unlink()           # the Store icon may go for good
+        self.source(home)
+        self.assertFalse((desktop / "veltos-store.desktop").exists())
         self.assertTrue(os.access(desktop / "this-pc.desktop", os.X_OK))
         (desktop / "this-pc.desktop").unlink()
         self.source(home)
@@ -285,6 +292,37 @@ class ContextMenuTests(unittest.TestCase):
             self.assertIn(f"{desktop} {entry}", lines)
         self.assertIn("[ActionPlugins][1] RightButton;NoModifier=org.kde.contextmenu", lines)
         self.assertEqual(self.run_script(tmp), lines)   # already set: nothing written again
+
+
+class SessionFixupsTests(unittest.TestCase):
+    """system/session-fixups with recording qdbus6 and an instant sleep."""
+
+    FAKE_QDBUS = ('#!/bin/sh\n'
+                  'if [ "${3:-}" = org.kde.PlasmaShell.evaluateScript ]; then\n'
+                  '    printf "%s\\n=====\\n" "$4" >> "$FAKE_LOG"\n'
+                  'fi\n'
+                  'exit 0\n')
+
+    def run_fixups(self, tmp):
+        log = tmp / "scripts"
+        log.unlink(missing_ok=True)
+        env = {"PATH": f"{tmp}:/usr/bin:/bin", "HOME": str(tmp / "home"), "FAKE_LOG": str(log)}
+        subprocess.run(["sh", str(PKG / "system/session-fixups")], env=env, check=True)
+        return [s for s in log.read_text().split("=====\n") if s.strip()]
+
+    def test_store_pinned_once_and_taskbar_locked(self):
+        tmp = Path(tempfile.mkdtemp())
+        for name, text in (("qdbus6", self.FAKE_QDBUS), ("sleep", "#!/bin/sh\nexit 0\n")):
+            (tmp / name).write_text(text)
+            (tmp / name).chmod(0o755)
+        scripts = self.run_fixups(tmp)
+        self.assertEqual(len(scripts), 2)
+        self.assertIn("if (true) {", scripts[0])
+        self.assertIn("applications:veltos-store.desktop", scripts[0])
+        self.assertIn("lockAll(panel);", scripts[0])
+        self.assertTrue((tmp / "home/.local/state/veltos/taskbar-store-pinned").exists())
+        # Later sign-ins leave the taskbar pins alone (the user may unpin it).
+        self.assertIn("if (false) {", self.run_fixups(tmp)[0])
 
 
 
