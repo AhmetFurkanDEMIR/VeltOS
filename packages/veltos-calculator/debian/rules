@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-calculator
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-calculator/usr/lib/python3/dist-packages
+	cp -r veltos_calculator debian/veltos-calculator/usr/lib/python3/dist-packages/
+	find debian/veltos-calculator -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-calculator debian/veltos-calculator/usr/bin/veltos-calculator
+	install -D -m 644 data/veltos-calculator.desktop \
+		debian/veltos-calculator/usr/share/applications/veltos-calculator.desktop
+	install -D -m 644 data/veltos-calculator.svg \
+		debian/veltos-calculator/usr/share/icons/hicolor/scalable/apps/veltos-calculator.svg
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
