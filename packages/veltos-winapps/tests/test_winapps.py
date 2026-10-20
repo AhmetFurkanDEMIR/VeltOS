@@ -138,11 +138,6 @@ class ShortcutTests(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         os.environ["XDG_DATA_HOME"] = str(self.tmp)
 
-    def test_exec_quoting(self):
-        self.assertEqual(shortcuts.quote_exec_arg("wine"), "wine")
-        self.assertEqual(shortcuts.quote_exec_arg("/a b/c.exe"), '"/a b/c.exe"')
-        self.assertEqual(shortcuts.quote_exec_arg('x"$'), '"x\\"\\$"')
-
     def test_finds_only_new_shortcuts_of_this_prefix(self):
         apps = self.tmp / "applications/wine/Programs"
         apps.mkdir(parents=True)
@@ -154,13 +149,6 @@ class ShortcutTests(unittest.TestCase):
         found = shortcuts.entries_for_prefix(
             shortcuts.changed(before, shortcuts.snapshot([self.tmp])), "/p/foo/prefix")
         self.assertEqual([e["name"] for e in found], ["Foo"])
-
-    def test_launcher_for_portable_program(self):
-        path = shortcuts.write_launcher("shared-tool", "Tool", Path("/home/u/My Apps/tool.exe"),
-                                        Path("/home/u/.local/share/veltos/windows-apps/shared/prefix"))
-        entry = shortcuts.read_entry(path)
-        self.assertEqual(entry["name"], "Tool")
-        self.assertIn('"/home/u/My Apps/tool.exe"', entry["exec"])
 
 
 class StringTests(unittest.TestCase):

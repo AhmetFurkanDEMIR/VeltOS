@@ -1,8 +1,9 @@
 /*
     VeltOS Windows app runner window, in the layout of the Windows 11 App
-    Installer: the question ("Install 7-Zip?") with publisher and version on
-    the left, the program's icon on the right, the action buttons at the
-    bottom right and a thin progress bar while it works. `runner` (Python)
+    Installer: what happens ("Installing 7-Zip") with publisher and version
+    on the left, the program's icon on the right, a thin progress bar while
+    it works and the buttons at the bottom right. There is no question
+    first: opening the file starts it, as in Windows. `runner` (Python)
     drives the pages.
 
     SPDX-License-Identifier: GPL-3.0-or-later
@@ -179,10 +180,10 @@ ApplicationWindow {
 
         Item { Layout.fillHeight: true }
 
-        // Information bar (Windows 11 InfoBar).
+        // Information bar (Windows 11 InfoBar): Wine is not a sandbox.
         Rectangle {
             Layout.fillWidth: true
-            visible: window.page === "confirm"
+            visible: window.page === "preparing" || window.page === "running"
             implicitHeight: note.implicitHeight + 24
             radius: Theme.smallRadius
             color: Theme.card
@@ -264,12 +265,6 @@ ApplicationWindow {
             Layout.fillWidth: true
             spacing: 8
 
-            VCheckBox {
-                id: addToStart
-                visible: window.page === "confirm" && runner.canAddToStart
-                checked: true
-                text: runner.tr("add_to_start")
-            }
             VButton {
                 visible: window.page === "failed"
                 text: runner.tr("details")
@@ -288,11 +283,11 @@ ApplicationWindow {
             }
             VButton {
                 objectName: "primary"
-                visible: window.page === "confirm" || window.page === "done"
+                visible: window.page === "done"
                 accent: true
                 focus: true
-                text: window.page === "done" ? runner.tr("done_button") : runner.tr(runner.actionKey)
-                onClicked: window.page === "done" ? runner.cancel() : runner.start(addToStart.visible && addToStart.checked)
+                text: runner.tr("done_button")
+                onClicked: runner.cancel()
             }
         }
     }

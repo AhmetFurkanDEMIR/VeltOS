@@ -2,15 +2,14 @@
 
 Wine adds shortcuts created by installers to the Linux menus itself
 (~/.local/share/applications/wine/...), so they appear in VeltOS Start like
-any other app. This module finds the ones an installer just created, and
-writes launchers for programs that need no installation.
+any other app. This module finds the ones an installer just created.
 """
 
 import configparser
 import subprocess
 from pathlib import Path
 
-from .winenv import data_home, wine_tool
+from .winenv import data_home
 
 
 def desktop_dir():
@@ -66,40 +65,3 @@ def entries_for_prefix(paths, prefix):
             seen.add(entry["name"])
             found.append(entry)
     return found
-
-
-def quote_exec_arg(arg):
-    """Quote one argument for a desktop entry Exec key (XDG spec)."""
-    if arg and not any(c in arg for c in ' \t\n"\'\\><~|&;$*?#()`'):
-        return arg
-    escaped = arg.replace("\\", "\\\\").replace('"', '\\"').replace("`", "\\`").replace("$", "\\$")
-    return f'"{escaped}"'
-
-
-def write_launcher(slug, name, exe_path, prefix, icon_png=b""):
-    """Start menu entry for a program that runs without installation."""
-    apps = data_home() / "applications"
-    apps.mkdir(parents=True, exist_ok=True)
-    icon = "application-x-ms-dos-executable"
-    if icon_png:
-        icon_dir = data_home() / "icons/hicolor/256x256/apps"
-        icon_dir.mkdir(parents=True, exist_ok=True)
-        icon_file = icon_dir / f"veltos-win-{slug}.png"
-        icon_file.write_bytes(icon_png)
-        icon = str(icon_file)
-    command = " ".join(quote_exec_arg(a) for a in [
-        "env", f"WINEPREFIX={prefix}", wine_tool("wine"), "start", "/unix", str(exe_path)])
-    path = apps / f"veltos-win-{slug}.desktop"
-    path.write_text(
-        "[Desktop Entry]\n"
-        "Type=Application\n"
-        f"Name={name}\n"
-        "Comment=Windows program\n"
-        "Comment[tr]=Windows programı\n"
-        f"Exec={command}\n"
-        f"Icon={icon}\n"
-        f"Path={Path(exe_path).parent}\n"
-        "Categories=Wine;\n"
-        "StartupNotify=true\n",
-        encoding="utf-8")
-    return path
