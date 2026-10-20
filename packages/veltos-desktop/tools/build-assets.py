@@ -478,7 +478,9 @@ def build_static_config(root):
             "InputMethod=\n"
             "\n[Theme]\n"
             "Current=veltos\n"
-            f"CursorTheme={CURSOR_THEME}\n"),
+            f"CursorTheme={CURSOR_THEME}\n"
+            # Accounts without a picture: the VeltOS default picture.
+            f"FacesDir=/{FACES_DIR}\n"),
         # VeltOS sign-in screen (sddm/veltos, Windows 11 layout).
         "usr/share/sddm/themes/veltos/theme.conf": (
             "[General]\n"
@@ -559,6 +561,20 @@ PLASMOIDS = {"startmenu": STARTMENU_ID, "quicksettings": QUICKSETTINGS_ID, "sear
              "taskview": TASKVIEW_ID, "clock": CLOCK_ID, "showdesktop": SHOWDESKTOP_ID}
 
 
+# Default account picture (artwork/user-avatar.svg): the sign-in screen
+# shows it through SDDM's FacesDir, session-defaults copies it to a new
+# account's ~/.face at the first sign-in (packages may not use /etc/skel),
+# and VeltOS apps show it for accounts without a picture.
+FACES_DIR = "usr/share/veltos/faces"
+
+
+def build_user_picture(root, tmp_dir):
+    svg = (SRC / "artwork/user-avatar.svg").read_text(encoding="utf-8")
+    picture = root / FACES_DIR / "default.png"
+    render_svg(svg, 256, 256, picture, tmp_dir)
+    shutil.copy(picture, root / FACES_DIR / ".face.icon")
+
+
 def build_plasmoids(root):
     """Install the VeltOS plasmoids and compile their translations."""
     for directory, plugin_id in PLASMOIDS.items():
@@ -605,6 +621,7 @@ def main(argv=None):
     build_look_and_feel(root, tmp_dir)
     build_plasmoids(root)
     build_static_config(root)
+    build_user_picture(root, tmp_dir)
     gtktheme.build(root)
     firefox.build(root)
     sounds.build(root)

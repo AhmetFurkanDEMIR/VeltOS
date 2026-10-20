@@ -3,6 +3,24 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (00:00) — Default account picture
+
+- The product owner asked for a nice default account picture for "Velt"
+  and new accounts. `veltos-desktop/artwork/user-avatar.svg` (VeltOS
+  gradient disc, white person; VeltOS artwork) is rendered to
+  `/usr/share/veltos/faces/default.png`.
+- Where it shows: SDDM (`FacesDir=/usr/share/veltos/faces`, its
+  `.face.icon` is the default for accounts without a picture);
+  `session-defaults` copies it to `~/.face` and `~/.face.icon` at an
+  account's first sign-in unless the account already has a picture (own
+  files or AccountsService) — Debian packages may not ship files in
+  /etc/skel (lintian error, tried first); Start's account button and VeltOS
+  Settings fall back to it.
+- Package builds: veltos-desktop 75 tests, veltos-settings 78 tests. VM
+  (live, fresh session): `~/.face` created, picture in Start and in
+  Settings > Accounts > Your info. The sign-in screen itself is not seen
+  in the live system (automatic sign-in); untested there.
+
 ## 2026-10-20 (23:45) — Start in the layout of Windows 11's 2025 Start
 
 - The product owner sent a screenshot of the current Windows 11 Start
