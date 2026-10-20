@@ -322,6 +322,24 @@ def terminal():
 """
 
 
+# Windows drive (NTFS) in File Explorer: the local disk with a blue window
+# mark on its top, the way Windows marks its own drive. The mark is a
+# window (frame and title bar), not Microsoft's four-pane logo, which is a
+# trademark and is not shipped by VeltOS.
+WINDOWS_MARK = """  <g transform="translate(100 70)">
+    <rect x="0" y="0" width="56" height="38" rx="5" fill="#2F7BE6" stroke="#1D5FC2" stroke-width="2"/>
+    <rect x="0" y="0" width="56" height="10" rx="5" fill="#9CC8FF"/>
+    <rect x="0" y="6" width="56" height="4" fill="#9CC8FF"/>
+    <rect x="7" y="16" width="42" height="15" rx="2" fill="#FFFFFF" opacity="0.9"/>
+  </g>
+"""
+
+
+def windows_disk():
+    return local_disk().replace("</svg>\n", WINDOWS_MARK + "</svg>\n").replace(
+        "<!-- Local disk:", "<!-- Windows drive:")
+
+
 # --- Small sizes (16, 22, 24 px) ---------------------------------------------------
 # Drawn on the 16 px grid with lines on whole pixels: the large drawings
 # shrunk to 16 px turned into a grey dash (disk) and a cut-off box (bin)
@@ -361,6 +379,13 @@ def small_bin(full):
 """
 
 
+def small_windows_disk():
+    return small_disk().replace("</svg>\n", """  <rect x="9.5" y="0.5" width="6" height="5" rx="1" fill="#2F7BE6" stroke="#1D5FC2"/>
+  <rect x="10" y="1" width="5" height="1.2" fill="#9CC8FF"/>
+</svg>
+""")
+
+
 def small_terminal():
     return SMALL_HEADER.format(what="Terminal") + """  <rect x="1" y="2" width="14" height="12" rx="2" fill="#26272C"/>
   <path d="M 3 2 H 13 A 2 2 0 0 1 15 4 V 5 H 1 V 4 A 2 2 0 0 1 3 2 Z" fill="#7C808A"/>
@@ -393,6 +418,7 @@ def main():
     for name in FOLDER_MARKS:
         (OUT / f"{name}.svg").write_text(folder(name), encoding="utf-8", newline="\n")
     (OUT / "drive-harddisk.svg").write_text(local_disk(), encoding="utf-8", newline="\n")
+    (OUT / "drive-harddisk-windows.svg").write_text(windows_disk(), encoding="utf-8", newline="\n")
     # The icon of folders as a file type.
     (OUT / "inode-directory.svg").write_text(folder("folder"), encoding="utf-8", newline="\n")
     for name in TERMINAL_NAMES:
@@ -402,6 +428,7 @@ def main():
     small = OUT / "small"
     small.mkdir(exist_ok=True)
     (small / "drive-harddisk.svg").write_text(small_disk(), encoding="utf-8", newline="\n")
+    (small / "drive-harddisk-windows.svg").write_text(small_windows_disk(), encoding="utf-8", newline="\n")
     (small / "user-trash.svg").write_text(small_bin(False), encoding="utf-8", newline="\n")
     (small / "user-trash-full.svg").write_text(small_bin(True), encoding="utf-8", newline="\n")
     for name in TERMINAL_NAMES:

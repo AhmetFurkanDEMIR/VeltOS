@@ -36,7 +36,10 @@ LSBLK = {"blockdevices": [
      "parttype": None, "children": [
          {"name": "sdb1", "path": "/dev/sdb1", "label": "Data", "size": 1000202788864, "fstype": "ntfs",
           "mountpoints": [None], "rm": False, "hotplug": False, "type": "part", "fssize": None,
-          "fsused": None, "parttype": None}]},
+          "fsused": None, "parttype": None},
+         {"name": "sdb2", "path": "/dev/sdb2", "label": None, "size": 900000000, "fstype": "ntfs",
+          "mountpoints": [None], "rm": False, "hotplug": False, "type": "part", "fssize": None,
+          "fsused": None, "parttype": "de94bba4-06d1-4d40-a16a-bfd50179d6ac"}]},
 ]}
 
 
@@ -61,6 +64,20 @@ class DriveTests(unittest.TestCase):
         self.assertEqual(data["mount"], "")          # can be mounted from This PC
         self.assertTrue(usb["removable"])
         self.assertEqual(usb["label"], "PHOTOS")
+        # Windows drives are marked (icon), Windows' recovery partition is not listed.
+        self.assertTrue(data["windows"])
+        self.assertEqual(data["icon"], "drive-harddisk-windows")
+        self.assertEqual(usb["icon"], "drive-removable-media-usb")
+        self.assertFalse(system["windows"])
+
+    def test_read_only_mounts_are_reported(self):
+        tree = {"blockdevices": [{"name": "sdc1", "path": "/dev/sdc1", "label": "W", "size": 10 ** 10,
+                                  "fstype": "ntfs", "mountpoints": ["/media/velt/W x"], "rm": False,
+                                  "hotplug": False, "type": "part", "fssize": 10 ** 10, "fsused": 10 ** 9,
+                                  "parttype": None}]}
+        mounts = "/dev/sdc1 /media/velt/W\\040x fuseblk ro,nosuid,nodev,relatime 0 0\n"
+        drive = places.drives(Runner({"lsblk": (0, json.dumps(tree))}), live=False, mounts_text=mounts)[0]
+        self.assertTrue(drive["readonly"])
 
     def test_live_root_is_shown(self):
         drives = places.drives(Runner({"lsblk": (0, json.dumps({"blockdevices": []}))}), live=True)
@@ -72,9 +89,27 @@ class DriveTests(unittest.TestCase):
 
     def test_mount_and_eject(self):
         runner = Runner({"udisksctl": (0, "Mounted /dev/sdb1 at /media/velt/Data\n")})
-        self.assertEqual(places.mount("/dev/sdb1", runner), "/media/velt/Data")
+        self.assertEqual(places.mount("/dev/sdb1", runner), ("/media/velt/Data", False))
         self.assertTrue(places.eject("/dev/sda1", runner))
         self.assertEqual(runner.commands[-1], ["udisksctl", "power-off", "-b", "/dev/sda"])
+
+
+class HibernatedWindowsTests(unittest.TestCase):
+    def test_windows_that_did_not_shut_down_opens_read_only(self):
+        class Refusing(Runner):
+            def __call__(self, command, timeout=20):
+                self.commands.append(command)
+                if command[-2:] == ["-o", "ro"]:
+                    return 0, "Mounted /dev/sdb1 at /media/velt/Windows\n"
+                return 1, "Error mounting: wrong fs type (Windows is hibernated, refused to mount)"
+        runner = Refusing({})
+        self.assertEqual(places.mount("/dev/sdb1", runner, windows=True), ("/media/velt/Windows", True))
+        self.assertEqual(places.mount("/dev/sdb1", Refusing({}), windows=False), ("", False))
+        # ntfs-3g mounted it read only by itself.
+        runner = Runner({"udisksctl": (0, "Mounted /dev/sdb1 at /media/velt/Windows\n")})
+        mounts = "/dev/sdb1 /media/velt/Windows fuseblk ro,nosuid 0 0\n"
+        self.assertEqual(places.mount("/dev/sdb1", runner, windows=True, mounts_text=mounts),
+                         ("/media/velt/Windows", True))
 
 
 class PinTests(unittest.TestCase):
