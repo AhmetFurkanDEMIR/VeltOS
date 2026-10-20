@@ -2,3 +2,4 @@
 interest-noawait /usr/share/applications
 # Changed copies of Plasma components (update-plasma-overrides) follow Plasma updates.
 interest-noawait /usr/share/plasma/plasmoids
+interest-noawait /usr/share/plasma/shells

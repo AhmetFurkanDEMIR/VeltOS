@@ -1,0 +1,19 @@
+#!/bin/sh
+# GRUB's PNG reader failed on the live boot menu background of one build:
+# the menu stayed black and GRUB waited for a key that nobody could see
+# (ISO 20261020-083729, UEFI; the same picture with another build date
+# worked). Every picture of the live boot menu is rewritten unfiltered and
+# uncompressed (build/scripts/plain-png.py), which GRUB always reads.
+# Runs in binary/ after live-build has rendered splash.png.
+set -e
+
+tool=/src/build/scripts/plain-png.py
+if [ ! -f "$tool" ]; then
+    echo "veltos-grub-png: $tool missing (the image is built by build/run.sh iso)" >&2
+    exit 1
+fi
+for png in boot/grub/splash.png boot/grub/live-theme/*.png; do
+    [ -f "$png" ] || continue
+    python3 "$tool" "$png"
+    echo "veltos-grub-png: rewrote $png"
+done

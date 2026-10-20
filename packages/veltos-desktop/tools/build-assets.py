@@ -479,6 +479,8 @@ def build_static_config(root):
     overrides.mkdir(parents=True, exist_ok=True)
     for spec in sorted((SRC / "plasma-overrides").glob("*.json")):
         shutil.copy(spec, overrides / spec.name)
+    # Whole files that replace Plasma's (the Windows 11 lock screen).
+    shutil.copytree(SRC / "plasma-overrides/files", overrides / "files", dirs_exist_ok=True)
 
     # KWin effects in QML (Windows 11 Task View).
     shutil.copytree(SRC / "kwin/effects", root / "usr/share/kwin/effects", dirs_exist_ok=True)

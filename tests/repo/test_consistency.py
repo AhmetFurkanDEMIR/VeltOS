@@ -16,6 +16,13 @@ class ArtworkTests(unittest.TestCase):
         for copy in copies:
             self.assertEqual(copy.read_bytes(), source, f"{copy} differs from the source logo")
 
+    def test_grub_png_tool_copies_match(self):
+        """veltos-boot builds in isolation and keeps a copy of the tool that
+        rewrites GRUB's pictures (build/scripts/plain-png.py)."""
+        source = (REPO / "build/scripts/plain-png.py").read_bytes()
+        copy = REPO / "packages/veltos-boot/tools/plain_png.py"
+        self.assertEqual(copy.read_bytes(), source, f"{copy} differs from build/scripts/plain-png.py")
+
     def test_boot_menu_splash_embeds_current_logo(self):
         logo = (REPO / "packages/veltos-desktop/artwork/veltos-logo.svg").read_text()
         inner = logo[logo.index(">", logo.index("<svg")) + 1:logo.rindex("</svg>")]

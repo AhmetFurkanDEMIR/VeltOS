@@ -57,7 +57,6 @@ checks that passed.
 - Settings pages that are not built in still open KDE's own pages in a
   separate window (mouse, keyboard, notifications, power, default apps,
   startup apps, users, region, accessibility, …).
-- The screen locker after sign-in is Plasma's design.
 - Product owner's requests not done yet: Control Panel pages in the
   Settings design; Windows 11 modern Wine dialogs; installer pages; a full check that no old KDE/Qt window is left (KDE's
   own dialogs still open from some places, e.g. "Change a password" opens
@@ -84,8 +83,9 @@ checks that passed.
 
 ## Next steps
 
-1. Build an ISO with all 2026-10-20 changes and run the boot tests; check
-   the power key, the quiet start-up and shutdown on screen.
+1. Build an ISO with the GRUB picture fix and run the boot tests (ISO
+   20261020-083729 failed UEFI: black boot menu, see the development log);
+   check the power key, the quiet start-up and shutdown on screen.
 2. Control Panel pages inside Settings ("Change a password", taskbar
    settings, default apps, ...), "Taskbar settings" and "Personalize"
    menu entries.

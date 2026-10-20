@@ -200,10 +200,105 @@ def recycle_bin(full):
             + "</svg>\n")
 
 
+# --- Folders and the local disk -----------------------------------------------------
+
+FOLDER_DEFS = """  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7B52C"/>
+      <stop offset="1" stop-color="#E8960C"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE07A"/>
+      <stop offset="1" stop-color="#FFC53A"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4FB0F5"/>
+      <stop offset="1" stop-color="#1A6DD6"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6CC4FA"/>
+      <stop offset="1" stop-color="#2C86E0"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF8A3D"/>
+      <stop offset="1" stop-color="#E35A0C"/>
+    </linearGradient>
+    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A487E0"/>
+      <stop offset="1" stop-color="#6E4DB8"/>
+    </linearGradient>
+  </defs>
+"""
+
+FOLDER_BODY = """  <path d="M 18 58 Q 18 44 32 44 H 94 Q 103 44 109 51 L 119 62 H 224 Q 238 62 238 76 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z" fill="url(#back)"/>
+  <path d="M 18 96 Q 18 84 30 84 H 226 Q 238 84 238 96 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z" fill="url(#front)"/>
+  <path d="M 30 86 H 226" stroke="#FFFFFF" stroke-opacity="0.65" stroke-width="3" stroke-linecap="round"/>
+"""
+
+# Coloured marks on the front of the special folders (centre about 128, 152).
+FOLDER_MARKS = {
+    "folder": "",
+    "user-desktop": """  <rect x="82" y="116" width="92" height="64" rx="7" fill="url(#blue)"/>
+  <rect x="88" y="122" width="80" height="44" rx="3" fill="#FFFFFF" opacity="0.25"/>
+  <rect x="112" y="180" width="32" height="8" rx="2" fill="#1A5DB8"/>
+""",
+    "folder-download": """  <path d="M 116 108 H 140 V 146 H 160 L 128 182 L 96 146 H 116 Z" fill="url(#blue)"/>
+  <rect x="90" y="188" width="76" height="9" rx="4.5" fill="#1A6DD6"/>
+""",
+    "folder-documents": """  <path d="M 96 106 H 146 L 166 126 V 196 Q 166 202 160 202 H 96 Q 90 202 90 196 V 112 Q 90 106 96 106 Z" fill="#FFFFFF"/>
+  <path d="M 146 106 V 126 H 166 Z" fill="#D9E2EC"/>
+  <path d="M 102 140 H 154 M 102 156 H 154 M 102 172 H 140" stroke="#3A8EE6" stroke-width="7" stroke-linecap="round"/>
+""",
+    "folder-pictures": """  <rect x="80" y="112" width="96" height="76" rx="8" fill="#FFFFFF"/>
+  <rect x="87" y="119" width="82" height="62" rx="4" fill="url(#sky)"/>
+  <path d="M 87 172 L 112 146 L 130 164 L 146 150 L 169 172 V 177 Q 169 181 165 181 H 91 Q 87 181 87 177 Z" fill="#41B86B"/>
+  <circle cx="150" cy="134" r="8" fill="#FFD54A"/>
+""",
+    "folder-music": """  <path d="M 112 120 L 162 108 V 172" fill="none" stroke="url(#orange)" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M 112 120 V 184" fill="none" stroke="url(#orange)" stroke-width="10"/>
+  <ellipse cx="100" cy="186" rx="16" ry="12" fill="url(#orange)"/>
+  <ellipse cx="150" cy="174" rx="16" ry="12" fill="url(#orange)"/>
+""",
+    "folder-videos": """  <rect x="80" y="114" width="96" height="72" rx="10" fill="url(#purple)"/>
+  <path d="M 118 132 L 146 150 L 118 168 Z" fill="#FFFFFF"/>
+""",
+}
+
+
+def folder(name):
+    what = "Folder" if name == "folder" else f"Folder ({name})"
+    return HEADER.format(what=what) + FOLDER_DEFS + FOLDER_BODY + FOLDER_MARKS[name] + "</svg>\n"
+
+
+def local_disk():
+    return HEADER.format(what="Local disk") + """  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset="1" stop-color="#DDE2E8"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B9C1CB"/>
+      <stop offset="1" stop-color="#8E98A5"/>
+    </linearGradient>
+  </defs>
+  <path d="M 44 118 L 70 82 H 186 L 212 118 Z" fill="url(#top)" stroke="#A9B2BD" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="44" y="118" width="168" height="52" rx="8" fill="url(#side)"/>
+  <rect x="44" y="118" width="168" height="4" fill="#FFFFFF" opacity="0.5"/>
+  <rect x="60" y="140" width="92" height="6" rx="3" fill="#6E7884"/>
+  <circle cx="190" cy="143" r="6" fill="#36C26A"/>
+</svg>
+"""
+
+
 def main():
     (OUT / "computer.svg").write_text(computer(), encoding="utf-8", newline="\n")
     (OUT / "user-trash.svg").write_text(recycle_bin(False), encoding="utf-8", newline="\n")
     (OUT / "user-trash-full.svg").write_text(recycle_bin(True), encoding="utf-8", newline="\n")
+    for name in FOLDER_MARKS:
+        (OUT / f"{name}.svg").write_text(folder(name), encoding="utf-8", newline="\n")
+    (OUT / "drive-harddisk.svg").write_text(local_disk(), encoding="utf-8", newline="\n")
+    # The icon of folders as a file type.
+    (OUT / "inode-directory.svg").write_text(folder("folder"), encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

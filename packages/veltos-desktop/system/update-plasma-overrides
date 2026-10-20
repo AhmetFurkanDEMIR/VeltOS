@@ -1,63 +1,83 @@
 #!/usr/bin/python3
 """Windows 11 look for a few Plasma components without forking them.
 
-    update-plasma-overrides [--source /usr/share/plasma/plasmoids]
+    update-plasma-overrides [--source /usr/share/plasma]
                             [--specs /usr/share/veltos/plasma-overrides]
-                            [--out /var/lib/veltos/xdg/plasma/plasmoids] [--check]
+                            [--out /var/lib/veltos/xdg/plasma] [--check]
 
-Each spec (<plugin id>.json) lists exact text replacements in the QML of
-one installed Plasma package, for example "the hidden tray icons have no
-labels". This script copies the installed package to --out, applies the
-replacements and checks that every one matched exactly as often as
-expected. The Plasma session puts /var/lib/veltos/xdg first in
-XDG_DATA_DIRS, so Plasma loads the changed copy instead of the original.
+Each spec (<plugin id>.json) changes one installed Plasma package: an
+applet in plasmoids/ (the default) or, with "type": "shells", a shell
+package (the lock screen lives in the desktop shell). A change is either
+an exact text replacement ("old" -> "new", for example "the hidden tray
+icons have no labels") or a whole file replaced by a VeltOS file
+("replace_with", from the files/ folder next to the specs), allowed only
+while Plasma's file has the recorded "upstream_sha256". This script
+copies the installed package to --out, applies the changes and checks that
+every replacement matched exactly as often as expected. The Plasma session
+puts /var/lib/veltos/xdg first in XDG_DATA_DIRS, so Plasma loads the
+changed copy instead of the original.
 
-If Plasma is updated and a replacement no longer matches, the copy is
-removed and Plasma's own version is used: the component then looks like
-KDE's, but it keeps working. A dpkg trigger on /usr/share/plasma/plasmoids
-re-runs this script after every Plasma update. --check reports problems
-with a non-zero exit code (used by the image build).
+If Plasma is updated and a change no longer fits, the copy is removed and
+Plasma's own version is used: the component then looks like KDE's, but it
+keeps working. A dpkg trigger on /usr/share/plasma re-runs this script
+after every Plasma update. --check reports problems with a non-zero exit
+code (used by the image build).
 """
 
 import argparse
+import hashlib
 import json
 import shutil
 import sys
 from pathlib import Path
 
-SOURCE = Path("/usr/share/plasma/plasmoids")
+SOURCE = Path("/usr/share/plasma")
 SPECS = Path("/usr/share/veltos/plasma-overrides")
-OUT = Path("/var/lib/veltos/xdg/plasma/plasmoids")
+OUT = Path("/var/lib/veltos/xdg/plasma")
 MARKER = ".veltos-override"
+TYPES = ("plasmoids", "shells")
 
 
-def apply_spec(spec, source_dir, out_dir):
+def apply_spec(spec, source_root, out_root, files_dir):
     """Write the changed copy of one package; returns a problem or None."""
     plugin = spec["plugin"]
-    src = source_dir / plugin
+    kind = spec.get("type", "plasmoids")
+    src = source_root / kind / plugin
+    out_dir = out_root / kind
+    out_dir.mkdir(parents=True, exist_ok=True)
     dest = out_dir / plugin
     tmp = out_dir / f".{plugin}.tmp"
-    if not src.is_dir():
+
+    def give_up(problem):
+        shutil.rmtree(tmp, ignore_errors=True)
         shutil.rmtree(dest, ignore_errors=True)
-        return f"{plugin}: not installed"
+        return f"{plugin}: {problem}"
+
+    if not src.is_dir():
+        return give_up("not installed")
     shutil.rmtree(tmp, ignore_errors=True)
     shutil.copytree(src, tmp, symlinks=True)
     for number, change in enumerate(spec["replacements"], 1):
         path = tmp / change["file"]
         try:
-            text = path.read_text(encoding="utf-8")
+            data = path.read_bytes()
         except OSError:
-            shutil.rmtree(tmp, ignore_errors=True)
-            shutil.rmtree(dest, ignore_errors=True)
-            return f"{plugin}: {change['file']} missing"
+            return give_up(f"{change['file']} missing")
+        if "replace_with" in change:
+            digest = hashlib.sha256(data).hexdigest()
+            if digest != change["upstream_sha256"]:
+                return give_up(f"change {number} ({change['why']}): Plasma's {change['file']} has changed "
+                               f"(sha256 {digest}); using Plasma's own version")
+            path.unlink()
+            shutil.copyfile(files_dir / change["replace_with"], path)
+            continue
+        text = data.decode("utf-8")
         expected = change.get("count", 1)
         found = text.count(change["old"])
         if found != expected:
-            shutil.rmtree(tmp, ignore_errors=True)
-            shutil.rmtree(dest, ignore_errors=True)
-            return (f"{plugin}: replacement {number} ({change['why']}) matched {found} times "
-                    f"in {change['file']}, expected {expected}; using Plasma's own version")
-        path.write_text(text.replace(change["old"], change["new"]), encoding="utf-8")
+            return give_up(f"replacement {number} ({change['why']}) matched {found} times "
+                           f"in {change['file']}, expected {expected}; using Plasma's own version")
+        path.write_bytes(text.replace(change["old"], change["new"]).encode("utf-8"))
     (tmp / MARKER).write_text(f"Generated by veltos-desktop from {src}; do not edit.\n",
                               encoding="utf-8")
     shutil.rmtree(dest, ignore_errors=True)
@@ -73,14 +93,18 @@ def main(argv=None):
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
 
-    args.out.mkdir(parents=True, exist_ok=True)
     specs = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(args.specs.glob("*.json"))]
-    wanted = {spec["plugin"] for spec in specs}
+    wanted = {(spec.get("type", "plasmoids"), spec["plugin"]) for spec in specs}
     # Copies whose spec is gone (package update) are removed.
-    for old in args.out.iterdir():
-        if old.is_dir() and (old / MARKER).exists() and old.name not in wanted:
-            shutil.rmtree(old)
-    problems = [p for p in (apply_spec(spec, args.source, args.out) for spec in specs) if p]
+    for kind in TYPES:
+        directory = args.out / kind
+        if not directory.is_dir():
+            continue
+        for old in directory.iterdir():
+            if old.is_dir() and (old / MARKER).exists() and (kind, old.name) not in wanted:
+                shutil.rmtree(old)
+    problems = [p for p in (apply_spec(spec, args.source, args.out, args.specs / "files") for spec in specs)
+                if p]
     for problem in problems:
         print(f"update-plasma-overrides: {problem}", file=sys.stderr)
     return 1 if problems and args.check else 0
