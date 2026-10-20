@@ -1,46 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <!-- VeltOS Recycle Bin (empty): a frosted, slightly see-through bin in
-       the style of Windows 11's icons (original artwork).
+  <!-- Recycle Bin (empty): VeltOS artwork in the look of Windows 11 (tools/draw-icons.py).
        SPDX-License-Identifier: CC-BY-SA-4.0 -->
   <defs>
-    <linearGradient id="body" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#cfdbe8"/>
-      <stop offset="0.35" stop-color="#eef4fa"/>
-      <stop offset="0.7" stop-color="#dbe5f0"/>
-      <stop offset="1" stop-color="#b7c6d6"/>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C9DDF0" stop-opacity="0.95"/>
+      <stop offset="0.3" stop-color="#EAF4FC" stop-opacity="0.82"/>
+      <stop offset="0.7" stop-color="#DCEBF8" stop-opacity="0.82"/>
+      <stop offset="1" stop-color="#B9D0E8" stop-opacity="0.95"/>
     </linearGradient>
-    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
-      <stop offset="1" stop-color="#5a6f88" stop-opacity="0.22"/>
+    <linearGradient id="glassShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#7F9DBD" stop-opacity="0.18"/>
     </linearGradient>
     <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f7fafd"/>
-      <stop offset="1" stop-color="#c3d0de"/>
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D3E3F2"/>
     </linearGradient>
-    <linearGradient id="inside" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#8295ab"/>
-      <stop offset="1" stop-color="#b5c3d3"/>
+    <linearGradient id="foot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B8BCC2"/>
+      <stop offset="1" stop-color="#8E949B"/>
+    </linearGradient>
+    <linearGradient id="arrow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E8BE6"/>
+      <stop offset="1" stop-color="#0B5FB8"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E4E8EE"/>
     </linearGradient>
   </defs>
-  <!-- shadow -->
-  <ellipse cx="128" cy="232" rx="66" ry="8" fill="#000000" opacity="0.12"/>
-  <!-- body: narrower at the bottom -->
-  <path d="M46 62 H210 L190 222 Q189 230 180 230 H76 Q67 230 66 222 Z" fill="url(#body)"/>
-  <path d="M46 62 H210 L190 222 Q189 230 180 230 H76 Q67 230 66 222 Z" fill="url(#shade)"/>
-  <!-- flutes -->
-  <g stroke="#ffffff" stroke-opacity="0.75" stroke-width="5" stroke-linecap="round" fill="none">
-    <path d="M86 84 L94 210"/>
-    <path d="M128 84 V210"/>
-    <path d="M170 84 L162 210"/>
-  </g>
-  <g stroke="#7d93ad" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round" fill="none">
-    <path d="M92 84 L100 210"/>
-    <path d="M134 84 V210"/>
-    <path d="M176 84 L168 210"/>
-  </g>
-  <path d="M46 62 H210 L190 222 Q189 230 180 230 H76 Q67 230 66 222 Z" fill="none" stroke="#6f86a1" stroke-opacity="0.45" stroke-width="2"/>
-  <!-- opening and rim -->
-  <ellipse cx="128" cy="62" rx="82" ry="14" fill="url(#inside)"/>
-  <path d="M42 60 Q42 46 128 46 Q214 46 214 60 Q214 76 128 76 Q42 76 42 60 Z M54 61 Q56 70 128 70 Q200 70 202 61 Q200 52 128 52 Q56 52 54 61 Z"
-        fill="url(#rim)" fill-rule="evenodd" stroke="#7a90aa" stroke-opacity="0.5" stroke-width="1.5"/>
+  <clipPath id="inside"><path d="M 34 46 L 222 46 L 208 222 L 48 222 Z"/></clipPath>
+  <ellipse cx="128" cy="232" rx="84" ry="7" fill="#000000" opacity="0.10"/>
+  <path d="M 34 46 L 222 46 L 208 222 L 48 222 Z" fill="url(#glass)"/>
+  <path d="M 34 46 L 222 46 L 208 222 L 48 222 Z" fill="url(#glassShade)"/>
+  <path d="M 52 60 L 62 210" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 34 46 L 222 46 L 208 222 L 48 222 Z" fill="none" stroke="#9DB6CF" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="30" y="40" width="196" height="12" rx="4" fill="url(#rim)" stroke="#A9C0D8" stroke-width="1.5"/>
+  <path d="M 47 214 L 209 214 L 208 228 Q 208 232 204 232 L 52 232 Q 48 232 48 228 Z" fill="url(#foot)"/>
+  <rect x="48" y="214" width="161" height="2.5" fill="#FFFFFF" opacity="0.5"/>
+  <path d="M 153.1 133.5 L 171.3 165.0 L 152.2 165.0" fill="none" stroke="url(#arrow)" stroke-width="16" stroke-linejoin="round"/>
+  <polygon points="154.0,146.6 130.6,165.0 154.0,183.4" fill="url(#arrow)" stroke="url(#arrow)" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 121.1 165.0 L 84.7 165.0 L 94.2 148.5" fill="none" stroke="url(#arrow)" stroke-width="16" stroke-linejoin="round"/>
+  <polygon points="109.3,159.2 105.1,129.8 77.4,140.8" fill="url(#arrow)" stroke="url(#arrow)" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 109.8 121.5 L 128.0 90.0 L 137.5 106.5" fill="none" stroke="url(#arrow)" stroke-width="16" stroke-linejoin="round"/>
+  <polygon points="120.7,114.2 148.4,125.2 152.6,95.8" fill="url(#arrow)" stroke="url(#arrow)" stroke-width="2" stroke-linejoin="round"/>
 </svg>

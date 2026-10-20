@@ -163,19 +163,34 @@ FocusScope {
 
     // Users who signed in before VeltOS had its own File Explorer have the
     // hidden KDE file manager pinned; replace it once, in the same place.
-    function pinFileExplorer() {
-        if (Plasmoid.configuration.explorerPinned || !favoritesModel || !favoritesModel.enabled) {
+    // Pinned KDE apps that a VeltOS app replaced are swapped in place, once
+    // per user (the flags remember it, so a user may pin them again).
+    function replacePinned(oldId, newId, done) {
+        if (Plasmoid.configuration[done] || !favoritesModel || !favoritesModel.enabled) {
             return;
         }
-        const dolphin = "org.kde.dolphin.desktop";
-        if (favoritesModel.isFavorite(dolphin)) {
-            const at = favoritesModel.favorites ? favoritesModel.favorites.indexOf(dolphin) : -1;
-            favoritesModel.removeFavorite(dolphin);
-            if (!favoritesModel.isFavorite("veltos-explorer.desktop")) {
-                favoritesModel.addFavorite("veltos-explorer.desktop", at);
+        if (favoritesModel.isFavorite(oldId)) {
+            const at = favoritesModel.favorites ? favoritesModel.favorites.indexOf(oldId) : -1;
+            favoritesModel.removeFavorite(oldId);
+            if (!favoritesModel.isFavorite(newId)) {
+                favoritesModel.addFavorite(newId, at);
             }
         }
-        Plasmoid.configuration.explorerPinned = true;
+        Plasmoid.configuration[done] = true;
+    }
+
+    function pinFileExplorer() {
+        replacePinned("org.kde.dolphin.desktop", "veltos-explorer.desktop", "explorerPinned");
+        replacePinned("org.kde.discover.desktop", "veltos-store.desktop", "storePinned");
+    }
+
+    // The pinned apps model may not be ready when Start first opens; try
+    // again until both swaps are done (VM test: Discover stayed pinned).
+    Timer {
+        interval: 1000
+        repeat: true
+        running: !(Plasmoid.configuration.explorerPinned && Plasmoid.configuration.storePinned)
+        onTriggered: menu.pinFileExplorer()
     }
 
     Component.onCompleted: {

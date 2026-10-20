@@ -36,7 +36,6 @@ APPS = {
                                              "System Monitor;Sensors;Sistem İzleyicisi;Algılayıcılar;"),
     "org.kde.kinfocenter.desktop": ("System Information", "Sistem Bilgisi",
                                     "About;Hardware;Donanım;Hakkında;"),
-    "org.kde.discover.desktop": ("Store", "Mağaza", "Software;Apps;Install;Yazılım;Uygulama;"),
     "org.kde.partitionmanager.desktop": ("Disk Management", "Disk Yönetimi",
                                          "Partition;Format;Bölüm;Biçimlendir;"),
     "org.kde.plasma.emojier.desktop": ("Emoji", "Emoji", "Smiley;Emoticon;"),
@@ -48,6 +47,7 @@ APPS = {
 HIDE = [
     "calamares.desktop",                # the installer opens as "Install VeltOS"
     "org.kde.dolphin.desktop",          # VeltOS File Explorer (veltos-explorer) replaces it
+    "org.kde.discover.desktop",         # VeltOS Store (veltos-store) replaces it
     "systemsettings.desktop",           # its pages open from VeltOS Settings
     "kdesystemsettings.desktop",        # duplicate of Settings
     "konqbrowser.desktop",              # second web browser

@@ -1,0 +1,43 @@
+Source: veltos-store
+Section: admin
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtnetwork,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qt6-svg-plugins
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-store
+Architecture: all
+Depends: ${python3:Depends},
+         appstream,
+         gir1.2-appstream-1.0,
+         libgtk-3-bin,
+         packagekit,
+         packagekit-tools,
+         python3-gi,
+         python3-pyside6.qtnetwork,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qt6-svg-plugins,
+         ${misc:Depends}
+Description: VeltOS Store, apps and games in the Windows 11 Store layout
+ Browse, search, install, open and uninstall the desktop apps and games of
+ the Debian archive, and install updates, laid out like the Windows 11
+ Microsoft Store: Home with featured apps, Apps by category, Gaming,
+ Library, and a page per app with screenshots and description. The
+ catalogue is Debian's AppStream data; installing goes through PackageKit,
+ which asks for the administrator password.

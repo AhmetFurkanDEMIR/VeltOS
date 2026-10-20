@@ -98,7 +98,7 @@ class SettingsWindowTests(unittest.TestCase):
         self.call("activate", {"kcm": "", "action": "updates", "page": ""})
         self.call("activate", {"kcm": "", "action": "", "page": "about", "pageId": "system"})
         self.assertEqual(self.started, [["kcmshell6", "kcm_pulseaudio"],
-                                        ["plasma-discover", "--mode", "update"]])
+                                        ["veltos-store", "--updates"]])
         self.assertEqual(self.window.property("subPage"), "about")
 
     def test_theme_switch_applies_global_theme(self):

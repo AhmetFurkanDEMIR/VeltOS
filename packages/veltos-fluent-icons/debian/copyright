@@ -14,7 +14,8 @@ License: CC-BY-SA-4.0
  International License. To view a copy of this license, visit
  https://creativecommons.org/licenses/by-sa/4.0/
 Comment: The VeltOS logo and VeltOS's own "This PC" and Recycle Bin icons
- (original artwork in the style of Windows 11, not Microsoft's icons).
+ (original artwork drawn by tools/draw-icons.py in the look of Windows 11,
+ not Microsoft's icon files; the recycling symbol is in the public domain).
 
 Files: debian/* upstream.json tools/*
 Copyright: 2026 VeltOS Developers
