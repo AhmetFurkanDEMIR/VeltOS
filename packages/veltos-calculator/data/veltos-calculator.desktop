@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Calculator
+Name[tr]=Hesap Makinesi
+GenericName=Calculator
+GenericName[tr]=Hesap makinesi
+Comment=Standard and scientific calculator
+Comment[tr]=Standart ve bilimsel hesap makinesi
+Exec=veltos-calculator
+Icon=veltos-calculator
+Categories=Utility;Calculator;
+Keywords=calculator;calc;math;scientific;hesap;makine;matematik;bilimsel;
+StartupNotify=false
+# The calculator key of keyboards opens it, as in Windows (same key name
+# as KCalc 25.04: Calculator).
+X-KDE-Shortcuts=Calculator

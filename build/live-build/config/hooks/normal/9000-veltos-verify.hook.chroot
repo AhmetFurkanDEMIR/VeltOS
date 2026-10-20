@@ -79,6 +79,9 @@ grep -q '^X-KDE-Shortcuts=Print,Meta+Shift+S$' /usr/share/applications/veltos-sn
     || fail "Snipping Tool shortcuts missing"
 grep -q '^NoDisplay=true$' /var/lib/veltos/xdg/kglobalaccel/org.kde.spectacle.desktop \
     || fail "Spectacle's global shortcuts are not switched off"
+# The calculator key opens VeltOS Calculator.
+grep -q '^X-KDE-Shortcuts=Calculator$' /usr/share/applications/veltos-calculator.desktop \
+    || fail "Calculator key shortcut missing"
 grep -q '^IgnoreImages=false$' /etc/xdg/klipperrc || fail "clipboard does not keep pictures"
 # KDE's settings windows never open: systemsettings and kcmshell6 lead to
 # VeltOS Settings.

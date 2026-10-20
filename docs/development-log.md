@@ -3,6 +3,49 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (23:30) — VeltOS Calculator
+
+- The product owner asked for a calculator "like Windows 11, in the same
+  theme". New package `veltos-calculator` (PySide6 + QML, like the other
+  VeltOS apps).
+- Behaviour taken from Windows 11's Calculator: Standard runs operations
+  in the order they are entered and shows the running result above the
+  number; Scientific respects precedence and has parentheses; "=" repeats;
+  % depends on the pending operation; functions are written into the line
+  above ("sqr(5)", "sin(30°)"); memory list with per-item MC/M+/M−;
+  history; errors "Cannot divide by zero", "Result is undefined",
+  "Overflow", "Invalid input"; 16 digits shown in Standard, 32 in
+  Scientific, more kept (so 1 ÷ 3 × 3 = 1); "1.e+16" style exponents.
+- Decimal arithmetic throughout (Python `decimal`, 60-digit working
+  precision): trigonometry by series with exact values at multiples of a
+  quarter turn (cos 90° = 0, tan 90° = Invalid input, sin π = 0 with the
+  π key), inverse functions through arctangent, logarithms and powers from
+  `decimal`. Only n! of a non-integer uses floating point (gamma, 15
+  digits).
+- Window: title row with navigation, mode name, Keep on top and History;
+  memory row; DEG/F-E and the Trigonometry/Function flyouts in Scientific;
+  keypad with lighter digit keys and the accent "=" (VeltOS palette,
+  light and dark); History/Memory beside the keypad from 640 px width,
+  over it below; navigation pane with Standard, Scientific and Settings
+  (app theme, About). Keep on top shrinks the window to the basic keypad
+  and sets KWin's "keep above" through a KWin script (Wayland clients
+  cannot do it themselves).
+- The calculator key: KCalc 25.04's desktop file (downloaded in the
+  builder) uses `X-KDE-Shortcuts=Calculator`; VeltOS Calculator uses the
+  same. Pinned in Start for new users (`main.xml`); the verify hook
+  checks the shortcut.
+- Problems found on the way: Qt's StyledText has no `<sup>` (x² read
+  "x2", now RichText); a QML property called `checked` broke the settings
+  page (FINAL property of Qt's buttons); `findChild` misses Repeater
+  delegates; `apt-get install` of a same-version local `.deb` left the old
+  veltos-desktop in the VM (AGENTS.md gotchas).
+- Package build: 42 unit tests OK (veltos-desktop: 71). VM (live, fresh
+  session): Calculator pinned in Start, 12 + 7 × 3 = 57 in Standard
+  ("19 × 3 =" above), 2 + 3 × 4 = 14 in Scientific, navigation pane,
+  Trigonometry flyout, Keep on top stayed above the active welcome window.
+- Not done: Graphing, Programmer and Date calculation modes, unit
+  converters.
+
 ## 2026-10-20 (23:05) — Welcome window: language can be changed again
 
 - The product owner: the English/Türkçe switch of the live welcome window

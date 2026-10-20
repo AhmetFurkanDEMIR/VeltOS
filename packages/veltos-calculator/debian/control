@@ -1,0 +1,39 @@
+Source: veltos-calculator
+Section: utils
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtdbus,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qml6-module-qtqml-models
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-calculator
+Architecture: all
+Depends: ${python3:Depends},
+         python3-pyside6.qtdbus,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qml6-module-qtqml-models,
+         ${misc:Depends}
+Description: VeltOS Calculator, a Windows 11 style calculator
+ The Standard and Scientific modes of Windows 11's Calculator: operations
+ in the order they are entered (Standard) or with precedence and
+ parentheses (Scientific), percent, square, square root and reciprocal,
+ trigonometry in degrees, radians and gradians, logarithms, powers and
+ roots, factorial, memory (MS, MR, M+, M-, MC) and history, the
+ navigation pane, "Keep on top" and an app theme setting (light, dark or
+ the system's).
+ .
+ Decimal arithmetic: 0.1 + 0.2 is exactly 0.3; like Windows, more digits
+ are kept than shown.

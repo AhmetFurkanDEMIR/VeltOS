@@ -64,6 +64,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy); diverts `systemsettings`/`kcmshell6` to itself so KDE's settings window never opens |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
+| `packages/veltos-calculator/` | VeltOS Calculator: Windows 11 Calculator (Standard and Scientific modes, memory, history, keep on top, app theme); decimal engine in `engine.py` |
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
 | `packages/veltos-store/` | VeltOS Store: Microsoft Store layout (Home, Apps, Gaming, Library, app pages) on AppStream (gir1.2-appstream-1.0) and PackageKit (pkcon); replaces Discover |
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
@@ -339,6 +340,17 @@ owner sets priorities; agents act as the engineering team.
   that off so screenshots stay on the clipboard after the program ends.
 - KWin keeps the QML of a scene effect (Task View) after
   unloadEffect/loadEffect; sign out and in to test a changed effect.
+- Qt's `Text.StyledText` ignores `<sup>`/`<sub>` (x² showed as "x2");
+  use `Text.RichText` for such labels.
+- `findChild` does not find Repeater delegates (they are not QObject
+  children); tests walk `contentItem().childItems()` instead.
+- A QML property named `checked` on a button type clashes with the FINAL
+  property of Qt's buttons ("Cannot override FINAL property"); the whole
+  file then fails to load.
+- `apt-get install ./x.deb` does not reinstall a package of the same
+  version (all VeltOS packages are `0.1.0~dev1`): the old files stayed in
+  the VM. Use `dpkg -i` to replace an installed package of the same
+  version.
 - `plasma-workspace-data` (not `plasma-workspace`) ships the QML of
   Plasma's applets; extract it with `apt-get download` in the builder to
   read the exact upstream text for overrides (`out/upstream/`).

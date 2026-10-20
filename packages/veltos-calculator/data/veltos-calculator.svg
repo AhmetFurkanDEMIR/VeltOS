@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS Calculator: a calculator with a light display and a VeltOS
+       blue "=" key. VeltOS artwork. SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A3F5C"/>
+      <stop offset="1" stop-color="#20233A"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCE4FF"/>
+    </linearGradient>
+    <linearGradient id="equals" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2FA8F0"/>
+      <stop offset="0.55" stop-color="#4F7CFF"/>
+      <stop offset="1" stop-color="#5B3FE0"/>
+    </linearGradient>
+  </defs>
+  <rect x="40" y="22" width="176" height="216" rx="30" fill="#000000" opacity="0.18"/>
+  <rect x="40" y="18" width="176" height="216" rx="30" fill="url(#body)"/>
+  <rect x="58" y="38" width="140" height="52" rx="10" fill="url(#screen)"/>
+  <rect x="122" y="56" width="62" height="16" rx="4" fill="#1B1D24" opacity="0.75"/>
+  <g fill="#5A6082">
+    <rect x="58" y="104" width="40" height="28" rx="7"/>
+    <rect x="108" y="104" width="40" height="28" rx="7"/>
+    <rect x="158" y="104" width="40" height="28" rx="7"/>
+    <rect x="58" y="142" width="40" height="28" rx="7"/>
+    <rect x="108" y="142" width="40" height="28" rx="7"/>
+    <rect x="58" y="180" width="40" height="34" rx="7"/>
+    <rect x="108" y="180" width="40" height="34" rx="7"/>
+  </g>
+  <rect x="158" y="142" width="40" height="72" rx="7" fill="url(#equals)"/>
+  <g stroke="#FFFFFF" stroke-width="5" stroke-linecap="round">
+    <path d="M 170 172 L 186 172"/>
+    <path d="M 170 184 L 186 184"/>
+  </g>
+</svg>
