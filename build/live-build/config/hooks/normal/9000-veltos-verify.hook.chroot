@@ -20,7 +20,7 @@ for pkg in veltos-base veltos-desktop veltos-settings veltos-boot veltos-fluent-
 done
 
 # Third-party branding that must stay out of VeltOS.
-for pkg in desktop-base calamares-settings-debian plasma-welcome xwaylandvideobridge; do
+for pkg in desktop-base calamares-settings-debian plasma-welcome xwaylandvideobridge konqueror; do
     installed "$pkg" && fail "$pkg must not be installed (non-VeltOS branding)"
 done
 

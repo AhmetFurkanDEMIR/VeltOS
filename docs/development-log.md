@@ -3,6 +3,27 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (night) — ISO with all of today's work; Konqueror out
+
+- ISO `veltos-0.1.0-dev-20261019-222530` (everything up to the Task
+  Manager): verify hook passed; boot tests UEFI PASS (16 checks) and BIOS
+  PASS (15), no crashed processes. Its live session showed Konqueror as
+  the first pinned app in Start: `preferred://browser` fell back to it
+  because Debian's KDE defaults name Falkon (not installed), and
+  Konqueror (recommended by kde-baseapps) also preloads itself at every
+  sign-in (it showed in Task Manager's Startup apps).
+- Fix: Konqueror pinned out of the image (verify hook checks it) and
+  `BrowserApplication=firefox-esr.desktop` in kdeglobals.
+- The ISO with this fix (20261020-021732) passed the verify hook (no
+  Konqueror), but copying it to `out/` failed: the host's C: drive was
+  full (325 MB free; eight 3.5 GB ISOs in `out/iso`). Superseded ISO
+  outputs were deleted (kept: 20261019-174700, used for the encrypted
+  install test, and 20261019-222530, the latest tested one); 22 GB free
+  again. Docker Desktop stopped answering after the disk had been full
+  and needs a restart; the fix is therefore **not yet in a built ISO**.
+  Keep `out/iso` small (`build/run.sh clean` or delete old builds).
+
+
 ## 2026-10-20 (evening) — VeltOS Task Manager
 
 New package `veltos-taskmanager` (PySide6/QML, psutil 7.0.0 from Debian):

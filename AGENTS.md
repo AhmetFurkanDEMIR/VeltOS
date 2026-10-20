@@ -270,3 +270,6 @@ owner sets priorities; agents act as the engineering team.
   database and the taskbar showed "?" icons.
 - Linux cuts process names (`comm`) to 15 characters; match programs by
   their command line (VeltOS Task Manager `program_of`).
+- Every ISO build leaves a 3.5 GB directory in `out/iso`; the product
+  owner's C: drive filled up after eight builds, the last ISO could not be
+  written and Docker Desktop hung. Delete superseded builds regularly.
