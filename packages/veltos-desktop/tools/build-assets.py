@@ -412,6 +412,12 @@ def build_static_config(root):
             "SearchTabsButton=HideSearchTabsButton\n"
             "CloseTabButton=OnEachTab\n"
             "TabBarStyleSheet=QTabBar::tab { min-width: 12em ; max-width: 15em }\n"),
+        # The clipboard keeps pictures too (Windows' clipboard does), so a
+        # snip stays pasteable after VeltOS Snipping Tool has ended: Plasma's
+        # Klipper ignores images by default (klipper.kcfg, Plasma 6.3.6).
+        "etc/xdg/klipperrc": (
+            "[General]\n"
+            "IgnoreImages=false\n"),
         "etc/xdg/ksmserverrc": (
             "[General]\n"
             "confirmLogout=false\n"

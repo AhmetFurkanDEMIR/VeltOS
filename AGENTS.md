@@ -64,6 +64,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML) with built-in Wi-Fi, Bluetooth, Sound, Display, Background, Colours, Date & time pages; other settings open KDE modules (KDE System Settings hidden from Start) |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
+| `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
 | `packages/veltos-store/` | VeltOS Store: Microsoft Store layout (Home, Apps, Gaming, Library, app pages) on AppStream (gir1.2-appstream-1.0) and PackageKit (pkcon); replaces Discover |
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook) |
@@ -314,6 +315,18 @@ owner sets priorities; agents act as the engineering team.
 - Konsole sets a see-through window background (for transparent
   profiles); with Kvantum the tab bar and toolbar areas then showed the
   windows behind. VeltOS starts it with `--notransparency`.
+- On Wayland only programs KWin trusts may take screenshots
+  (`org.kde.KWin.ScreenShot2`); VeltOS Snipping Tool runs `spectacle
+  --background --nonotify --fullscreen --output FILE`. kglobalacceld takes
+  shortcuts from `X-KDE-Shortcuts` in application desktop files and skips
+  files in `kglobalaccel/` with `NoDisplay=true` (first file of a name in
+  `XDG_DATA_DIRS` wins); it reads them when the session starts.
+- gdbus prints a notification number as "(uint32 5,)": do not collect all
+  digits. PySide6 cannot send D-Bus `uint` arguments; VeltOS sends
+  notifications with `gdbus call` and receives the signals with a
+  `QDBusMessage` slot.
+- Plasma's clipboard (Klipper) ignores images by default; VeltOS turns
+  that off so screenshots stay on the clipboard after the program ends.
 - KWin keeps the QML of a scene effect (Task View) after
   unloadEffect/loadEffect; sign out and in to test a changed effect.
 - `plasma-workspace-data` (not `plasma-workspace`) ships the QML of

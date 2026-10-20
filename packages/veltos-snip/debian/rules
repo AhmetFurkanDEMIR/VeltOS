@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-snip
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-snip/usr/lib/python3/dist-packages
+	cp -r veltos_snip debian/veltos-snip/usr/lib/python3/dist-packages/
+	find debian/veltos-snip -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-snip debian/veltos-snip/usr/bin/veltos-snip
+	install -D -m 644 data/veltos-snip.desktop \
+		debian/veltos-snip/usr/share/applications/veltos-snip.desktop
+	install -D -m 644 data/veltos-snip.svg \
+		debian/veltos-snip/usr/share/icons/hicolor/scalable/apps/veltos-snip.svg
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

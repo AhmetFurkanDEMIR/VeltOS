@@ -18,6 +18,7 @@ Actions (space separated):
   typeraw:TEXT      type text literally (US layout symbols allowed), space as "~"
   click:X,Y         left click at screen coordinates (1920x1080)
   rclick:X,Y        right click
+  drag:X1,Y1,X2,Y2  drag with the left button
   sleep:SECONDS     wait
   shot:NAME         save screenshot NAME.png
 """
@@ -71,6 +72,15 @@ def play(actions, qmp, outdir):
             x, y = (int(v) for v in arg.split(","))
             qmp.click(x, y)
             qmp.click(x, y)
+        elif kind == "drag":  # drag:x1,y1,x2,y2 with the left button, in steps
+            x1, y1, x2, y2 = (int(v) for v in arg.split(","))
+            qmp._move(x1, y1)
+            time.sleep(0.15)
+            qmp.execute("input-send-event", events=[{"type": "btn", "data": {"down": True, "button": "left"}}])
+            for step in range(1, 11):
+                qmp._move(x1 + (x2 - x1) * step // 10, y1 + (y2 - y1) * step // 10)
+                time.sleep(0.04)
+            qmp.execute("input-send-event", events=[{"type": "btn", "data": {"down": False, "button": "left"}}])
         elif kind == "powerbutton":  # ACPI power button (VirtualBox: "ACPI Shutdown")
             qmp.execute("system_powerdown")
         elif kind == "sleep":

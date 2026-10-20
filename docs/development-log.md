@@ -3,6 +3,41 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (night, latest) — VeltOS Snipping Tool
+
+- **New package `veltos-snip`**: Windows 11's Snipping Tool. Print Screen
+  or Windows + Shift + S freezes and dims the screen with the snipping bar
+  (Rectangle, Window, Full screen, Freeform, close); the snip goes to the
+  clipboard, into `Pictures/Screenshots/Screenshot YYYY-MM-DD HHMMSS.png`
+  and a notification with the picture ("Snip copied to clipboard") opens
+  it for markup. Windows + Print Screen saves the whole screen. The app
+  window has "+ New", mode, delay, ballpoint pen, highlighter, eraser,
+  crop, undo/redo, Save and Copy.
+- Capture: KWin gives screenshots on Wayland only to programs it trusts
+  (`org.kde.KWin.ScreenShot2` is restricted); the tool runs Spectacle in
+  the background for one full-desktop picture (`spectacle --background
+  --nonotify --fullscreen --output`, 0.37 s in the VM) and does the rest.
+  Window mode gets the window frames from a KWin script that calls back
+  over D-Bus.
+- Shortcuts: `X-KDE-Shortcuts` in the tool's desktop actions. Spectacle's
+  shortcuts are switched off by `update-app-names` (copy without the keys,
+  plus `kglobalaccel/org.kde.spectacle.desktop` with `NoDisplay=true`,
+  which kglobalacceld 6.3.6 skips — read in its source) and Spectacle is
+  hidden from Start. Plasma's clipboard keeps pictures now
+  (`/etc/xdg/klipperrc` `IgnoreImages=false`; Klipper's default ignores
+  them, klipper.kcfg 6.3.6), so a snip stays pasteable after the tool ends.
+- Package names checked in the VM (`apt-cache policy`): kde-spectacle
+  4:6.3.5-2, libglib2.0-bin 2.84.4, qml6-module-qtqml-models 6.8.2.
+- VM (live, rebuilt packages): kglobalaccel lists Print and Meta+Shift+S
+  for the tool and nothing for Spectacle; Print showed the dimmed screen
+  and the bar; a dragged rectangle was saved and the notification showed
+  it; selecting the notification opened the markup window; pen and
+  highlighter drew. Found on the way: the notification number was read
+  from gdbus' "(uint32 5,)" with the digits of "uint32" (325), so the
+  click was not recognised — fixed and tested.
+- Not yet: video recording, "Save as" dialog, several screens with
+  different scale factors (untested).
+
 ## 2026-10-20 (night, later) — Terminal like Windows Terminal, Task View desktops
 
 - **Terminal** (Konsole) in the look of Windows Terminal: VeltOS profile
