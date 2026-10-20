@@ -136,7 +136,7 @@ class SettingsWindowTests(unittest.TestCase):
         self.app.processEvents()
         command = self.started[-1]
         self.assertEqual(command[:2], ["sh", "-c"])
-        self.assertEqual(command[3:], ["sh", "org.veltos.dark", "VeltOS-Dark"])
+        self.assertEqual(command[3:], ["sh", "org.veltos.dark", "VeltOS-Dark", "dark"])
         self.assertIn("plasma-apply-lookandfeel --apply", command[2])
         self.assertTrue(self.backend.darkMode)
         self.assertEqual(self.problems(), [])
@@ -165,7 +165,7 @@ class SettingsWindowTests(unittest.TestCase):
                     plasmarc.write_text(before)
                 env = dict(os.environ, HOME=home, PATH=f"{bin_dir}:{os.environ['PATH']}")
                 env.pop("XDG_CONFIG_HOME", None)
-                subprocess.run(["sh", "-c", APPLY_THEME, "sh", "org.veltos.dark", "VeltOS-Dark"],
+                subprocess.run(["sh", "-c", APPLY_THEME, "sh", "org.veltos.dark", "VeltOS-Dark", "dark"],
                                env=env, check=True)
                 self.assertEqual(plasmarc.read_text(), after, before)
 

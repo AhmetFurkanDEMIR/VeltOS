@@ -66,7 +66,7 @@ done
     || fail "window frame buttons for maximised windows (Aurorae override) missing"
 # Terminal like Windows Terminal: VeltOS profile, Cascadia Mono, no toolbars,
 # opaque window (update-app-names adds --notransparency).
-grep -q '^DefaultProfile=VeltOS.profile$' /etc/xdg/konsolerc \
+grep -q '^DefaultProfile=VeltOS Light.profile$' /etc/xdg/konsolerc \
     || fail "VeltOS terminal profile is not the default"
 fc-list | grep -q 'Cascadia Mono' || fail "terminal font Cascadia Mono missing"
 for f in konsoleui.rc sessionui.rc; do

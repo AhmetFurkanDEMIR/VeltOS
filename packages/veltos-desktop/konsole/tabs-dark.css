@@ -1,0 +1,31 @@
+/* VeltOS Terminal tabs, dark mode: tabs with rounded top corners; the
+   selected tab has the colour of the terminal (Campbell), as in Windows
+   Terminal. Read by Konsole (konsolerc TabBarUserStyleSheetFile, set by
+   system/terminal-theme). SPDX-License-Identifier: GPL-3.0-or-later */
+QTabBar::tab {
+    min-width: 12em;
+    max-width: 15em;
+    padding: 6px 12px;
+    margin-top: 6px;
+    border: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    background: transparent;
+    color: #AEB3C5;
+}
+QTabBar::tab:selected {
+    background: #0C0C0C;
+    color: #F2F2F2;
+}
+QTabBar::tab:hover:!selected {
+    background: rgba(255, 255, 255, 20);
+}
+QTabBar::close-button {
+    image: url(/usr/share/veltos/konsole/tab-close-dark.svg);
+    subcontrol-position: right;
+    margin-right: 4px;
+    border-radius: 4px;
+}
+QTabBar::close-button:hover {
+    background: rgba(255, 255, 255, 28);
+}

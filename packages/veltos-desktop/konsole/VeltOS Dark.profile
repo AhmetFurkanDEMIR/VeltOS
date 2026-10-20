@@ -1,6 +1,7 @@
-# VeltOS terminal profile: the look of Windows Terminal's default profile
-# (Campbell colours, Cascadia Mono 12, bar cursor, 120 x 30, 9001 lines of
-# history). Made the default by /etc/xdg/konsolerc.
+# VeltOS terminal profile for dark mode: the look of Windows Terminal's
+# default profile (Campbell colours, Cascadia Mono 12, bar cursor, 120 x 30,
+# 9001 lines of history). system/terminal-theme makes it the default in
+# dark mode, "VeltOS Light" in light mode.
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 [Appearance]
@@ -11,7 +12,7 @@ Font=Cascadia Mono,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 CursorShape=1
 
 [General]
-Name=VeltOS
+Name=VeltOS Dark
 Parent=FALLBACK/
 TerminalColumns=120
 TerminalRows=30

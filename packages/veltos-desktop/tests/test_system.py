@@ -320,6 +320,35 @@ class ContextMenuTests(unittest.TestCase):
         self.assertEqual(self.run_script(tmp), lines)   # already set: nothing written again
 
 
+class TerminalThemeTests(unittest.TestCase):
+    """system/terminal-theme with recording KDE tools."""
+
+    def run_theme(self, mode, current=""):
+        tmp = Path(tempfile.mkdtemp())
+        log = tmp / "log"
+        for name, body in (("kreadconfig6", f"#!/bin/sh\necho '{current}'\n"),
+                           ("kwriteconfig6", '#!/bin/sh\nprintf "%s|" "$@" >> "$LOG"; echo >> "$LOG"\n'),
+                           ("qdbus6", '#!/bin/sh\nexit 0\n')):
+            (tmp / name).write_text(body)
+            (tmp / name).chmod(0o755)
+        env = {"PATH": f"{tmp}:/usr/bin:/bin", "LOG": str(log)}
+        result = subprocess.run(["sh", str(PKG / "system/terminal-theme"), mode], env=env)
+        return result.returncode, log.read_text().splitlines() if log.exists() else []
+
+    def test_light_and_dark(self):
+        code, lines = self.run_theme("dark", "VeltOS Light.profile")
+        self.assertEqual(code, 0)
+        self.assertIn("--file|konsolerc|--group|Desktop Entry|--key|DefaultProfile|VeltOS Dark.profile|", lines)
+        self.assertIn("--file|konsolerc|--group|TabBar|--key|TabBarUserStyleSheetFile|"
+                      "file:///usr/share/veltos/konsole/tabs-dark.css|", lines)
+        code, lines = self.run_theme("light")
+        self.assertIn("--file|konsolerc|--group|Desktop Entry|--key|DefaultProfile|VeltOS Light.profile|", lines)
+
+    def test_own_profile_is_kept(self):
+        self.assertEqual(self.run_theme("dark", "Mine.profile"), (0, []))
+        self.assertEqual(self.run_theme("blue")[0], 2)
+
+
 class SessionFixupsTests(unittest.TestCase):
     """system/session-fixups with recording qdbus6 and an instant sleep."""
 

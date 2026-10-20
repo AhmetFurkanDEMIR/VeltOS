@@ -28,6 +28,12 @@ fi
 # editing entries (read by plasmashell when it starts, so set here).
 /usr/libexec/veltos/context-menus || true
 
+# The Terminal follows the light/dark theme, like Windows Terminal.
+case "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage 2>/dev/null)" in
+    *.dark) /usr/libexec/veltos/terminal-theme dark ;;
+    *) /usr/libexec/veltos/terminal-theme light ;;
+esac >/dev/null 2>&1 || true
+
 # GTK programs (Firefox, ...) use the VeltOS GTK theme: Breeze with the
 # Windows 11 caption buttons of the window frames. Breeze, KDE's default,
 # is switched over; any other theme a user picked is kept.

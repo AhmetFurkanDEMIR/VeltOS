@@ -395,13 +395,15 @@ def build_static_config(root):
         # Shut down / restart / sign out from Start act at once, like on
         # Windows (no full-screen confirmation dialog), and sign-in starts
         # with a clean desktop instead of reopening the last session's apps.
-        # Terminal like Windows Terminal: the VeltOS profile (Campbell
-        # colours, Cascadia Mono, konsole/), tabs always shown with a "+"
-        # button, no toolbars (konsole/*.rc), opening at the profile's
-        # 120 x 30 like Windows Terminal instead of the last size.
+        # Terminal like Windows Terminal: the VeltOS profiles (One Half
+        # Light / Campbell colours, Cascadia Mono, konsole/; system/
+        # terminal-theme picks the one of the light/dark theme and styles the
+        # tabs), tabs always shown with a "+" button, no toolbars
+        # (konsole/*.rc), opening at the profile's 120 x 30 like Windows
+        # Terminal instead of the last size.
         "etc/xdg/konsolerc": (
             "[Desktop Entry]\n"
-            "DefaultProfile=VeltOS.profile\n"
+            "DefaultProfile=VeltOS Light.profile\n"
             "\n[KonsoleWindow]\n"
             "RememberWindowSize=false\n"
             "\n[MainWindow]\n"
@@ -411,7 +413,8 @@ def build_static_config(root):
             "NewTabButton=true\n"
             "SearchTabsButton=HideSearchTabsButton\n"
             "CloseTabButton=OnEachTab\n"
-            "TabBarStyleSheet=QTabBar::tab { min-width: 12em ; max-width: 15em }\n"),
+            "TabBarUseUserStyleSheet=true\n"
+            "TabBarUserStyleSheetFile=file:///usr/share/veltos/konsole/tabs-light.css\n"),
         # The clipboard keeps pictures too (Windows' clipboard does), so a
         # snip stays pasteable after VeltOS Snipping Tool has ended: Plasma's
         # Klipper ignores images by default (klipper.kcfg, Plasma 6.3.6).
@@ -515,8 +518,13 @@ def build_static_config(root):
     # layout without toolbars (usr/share/kxmlgui5/konsole).
     konsole = root / "usr/share/konsole"
     konsole.mkdir(parents=True, exist_ok=True)
-    for name in ("VeltOS.profile", "VeltOS-Campbell.colorscheme"):
+    for name in ("VeltOS Light.profile", "VeltOS Dark.profile", "VeltOS-OneHalfLight.colorscheme",
+                 "VeltOS-Campbell.colorscheme"):
         shutil.copy(SRC / "konsole" / name, konsole / name)
+    tabs = root / "usr/share/veltos/konsole"
+    tabs.mkdir(parents=True, exist_ok=True)
+    for name in ("tabs-light.css", "tabs-dark.css", "tab-close-light.svg", "tab-close-dark.svg"):
+        shutil.copy(SRC / "konsole" / name, tabs / name)
     kxmlgui = root / "usr/share/kxmlgui5/konsole"
     kxmlgui.mkdir(parents=True, exist_ok=True)
     for name in ("konsoleui.rc", "sessionui.rc"):
@@ -540,8 +548,8 @@ def build_static_config(root):
     shutil.copy(SRC / "system/veltos-session-fixups.desktop", autostart / "veltos-session-fixups.desktop")
     libexec = root / "usr/libexec/veltos"
     libexec.mkdir(parents=True, exist_ok=True)
-    for helper in ("context-menus", "display-scale", "session-defaults", "session-fixups", "update-app-names",
-                   "update-plasma-overrides"):
+    for helper in ("context-menus", "display-scale", "session-defaults", "session-fixups", "terminal-theme",
+                   "update-app-names", "update-plasma-overrides"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
 

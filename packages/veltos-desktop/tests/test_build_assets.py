@@ -322,10 +322,20 @@ class FullBuildTest(unittest.TestCase):
         profile = build_assets.parse_kconfig(
             "\n".join(line for line in (root / "usr/share/konsole" / profile_name).read_text().splitlines()
                       if not line.startswith("#")))
-        scheme = profile["[Appearance]"]["ColorScheme"]
-        colours = (root / f"usr/share/konsole/{scheme}.colorscheme").read_text()
-        self.assertIn("[Background]\nColor=12,12,12\n", colours)        # Campbell
-        self.assertTrue(profile["[Appearance]"]["Font"].startswith("Cascadia Mono,12,"))
+        self.assertEqual(profile_name, "VeltOS Light.profile")          # the default theme is light
+        tab_style = konsolerc["[TabBar]"]["TabBarUserStyleSheetFile"].removeprefix("file:///")
+        self.assertIn("QTabBar::tab:selected", (root / tab_style).read_text())
+        self.assertTrue((root / "usr/share/veltos/konsole/tabs-dark.css").is_file())
+        backgrounds = {"VeltOS Light.profile": "250,250,250", "VeltOS Dark.profile": "12,12,12"}
+        for name, background in backgrounds.items():
+            profile = build_assets.parse_kconfig(
+                "\n".join(line for line in (root / "usr/share/konsole" / name).read_text().splitlines()
+                          if not line.startswith("#")))
+            scheme = profile["[Appearance]"]["ColorScheme"]
+            colours = (root / f"usr/share/konsole/{scheme}.colorscheme").read_text()
+            self.assertIn(f"[Background]\nColor={background}\n", colours)   # One Half Light, Campbell
+            self.assertTrue(profile["[Appearance]"]["Font"].startswith("Cascadia Mono,12,"))
+            self.assertEqual(profile["[General]"]["Name"], name.removesuffix(".profile"))
         expected = {"konsoleui.rc": ("konsole", "20"), "sessionui.rc": ("session", "36")}  # Konsole 25.04.2
         for name, (gui_name, number) in expected.items():
             text = (root / "usr/share/kxmlgui5/konsole" / name).read_text()
