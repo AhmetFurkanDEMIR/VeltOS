@@ -1189,13 +1189,14 @@ FocusScope {
                         anchors.centerIn: parent
                         spacing: Kirigami.Units.largeSpacing
 
-                        // Without a picture: a neutral person icon on grey,
-                        // like a Windows account, not coloured initials.
+                        // Without a picture: the VeltOS default account
+                        // picture (veltos-desktop), not coloured initials.
                         KirigamiComponents.Avatar {
                             implicitWidth: Kirigami.Units.iconSizes.medium
                             implicitHeight: Kirigami.Units.iconSizes.medium
                             name: kuser.fullName
-                            source: kuser.faceIconUrl
+                            source: kuser.faceIconUrl.toString() !== "" ? kuser.faceIconUrl
+                                    : "file:///usr/share/veltos/faces/default.png"
                             initialsMode: KirigamiComponents.Avatar.InitialsMode.UseIcon
                             color: Qt.alpha(Kirigami.Theme.textColor, 0.45)
                         }

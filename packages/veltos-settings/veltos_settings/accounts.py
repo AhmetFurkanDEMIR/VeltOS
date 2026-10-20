@@ -23,6 +23,8 @@ ROOT = "/org/freedesktop/Accounts"
 USER_IFACE = "org.freedesktop.Accounts.User"
 USERNAME_RE = re.compile(r"[a-z_][a-z0-9_-]{0,30}")
 ADMIN_GROUPS = ("sudo",)
+# Shown for accounts without a picture (veltos-desktop; SDDM shows it too).
+DEFAULT_PICTURE = "/usr/share/veltos/faces/default.png"
 
 
 def gdbus(*args):
@@ -98,8 +100,11 @@ class Accounts:
             icon = gvariant_value(props, "IconFile") or ""
             account_type = gvariant_value(props, "AccountType")
             admin = user["name"] in admins if account_type is None else account_type == 1
+            if not (icon and os.path.isfile(icon)):
+                # No picture yet: the VeltOS default one, as the sign-in screen shows.
+                icon = DEFAULT_PICTURE if os.path.isfile(DEFAULT_PICTURE) else ""
             result.append({"name": user["name"], "realName": real, "uid": user["uid"],
-                           "icon": icon if icon and os.path.isfile(icon) else "",
+                           "icon": icon,
                            "admin": bool(admin), "me": user["name"] == self.me, "path": path})
         return result
 

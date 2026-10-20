@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS default account picture: a person on the VeltOS gradient.
+       VeltOS artwork. SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="disc" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#2FA8F0"/>
+      <stop offset="0.5" stop-color="#4F7CFF"/>
+      <stop offset="1" stop-color="#5B3FE0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.2" r="0.8">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="person" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E4EAFF"/>
+    </linearGradient>
+    <clipPath id="round">
+      <circle cx="128" cy="128" r="128"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="256" height="256" fill="url(#disc)"/>
+    <rect width="256" height="256" fill="url(#glow)"/>
+    <circle cx="128" cy="100" r="46" fill="url(#person)"/>
+    <path d="M 36 256 C 36 196 76 160 128 160 C 180 160 220 196 220 256 Z" fill="url(#person)"/>
+  </g>
+</svg>

@@ -136,6 +136,25 @@ class AppNameTests(unittest.TestCase):
 
 
 class SessionDefaultsTests(unittest.TestCase):
+    def test_default_account_picture_only_without_one(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            picture = tmp / "default.png"
+            picture.write_bytes(b"\x89PNG picture")
+            icons = tmp / "icons"
+            icons.mkdir()
+            for user in ("new", "own", "accounts"):
+                (tmp / user).mkdir()
+            (tmp / "own/.face.icon").write_bytes(b"mine")
+            (icons / "accounts").write_bytes(b"set in Settings")
+            self.assertTrue(session_defaults.set_default_picture(tmp / "new", "new", picture, icons))
+            self.assertEqual((tmp / "new/.face").read_bytes(), b"\x89PNG picture")
+            self.assertEqual((tmp / "new/.face.icon").read_bytes(), b"\x89PNG picture")
+            self.assertFalse(session_defaults.set_default_picture(tmp / "own", "own", picture, icons))
+            self.assertEqual((tmp / "own/.face.icon").read_bytes(), b"mine")
+            self.assertFalse(session_defaults.set_default_picture(tmp / "accounts", "accounts", picture, icons))
+            self.assertFalse((tmp / "accounts/.face").exists())
+
     def run_defaults(self, home, extra_env=None):
         env = {"HOME": str(home), "PATH": "/nonexistent"}
         env.update(extra_env or {})

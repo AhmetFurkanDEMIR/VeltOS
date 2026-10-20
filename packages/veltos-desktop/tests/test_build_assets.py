@@ -366,9 +366,16 @@ class FullBuildTest(unittest.TestCase):
 
     def check_session_files(self, root, kdeglobals):
         self.assertTrue((root / "etc/xdg/plasma-workspace/env/veltos-session.sh").is_file())
-        for helper in ("session-defaults", "update-app-names"):
+        for helper in ("session-defaults", "update-app-names", "start-categories"):
             path = root / "usr/libexec/veltos" / helper
             self.assertTrue(path.stat().st_mode & 0o111, f"{helper} is not executable")
+        # Default account picture: new accounts (skel), sign-in screen (FacesDir).
+        picture = (root / "usr/share/veltos/faces/default.png").read_bytes()
+        self.assertTrue(picture.startswith(b"\x89PNG"))
+        self.assertEqual((root / "usr/share/veltos/faces/.face.icon").read_bytes(), picture)
+        self.assertFalse((root / "etc/skel").exists())     # Debian policy: no package files in skel
+        self.assertIn("FacesDir=/usr/share/veltos/faces\n",
+                      (root / "usr/lib/sddm/sddm.conf.d/10-veltos.conf").read_text())
         restrictions = kdeglobals["[KDE Control Module Restrictions]"]
         self.assertEqual(restrictions["kcm_kdeconnect"], "false")
         self.assertIn("ToolButtonStyle=IconOnly", (root / "etc/xdg/dolphinrc").read_text())

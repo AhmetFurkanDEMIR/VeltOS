@@ -19,7 +19,10 @@ always win:
 
 At the same first run, the "Templates" and "Public" folders that
 xdg-user-dirs creates (unknown on Windows) are switched off and removed if
-they are still empty, so the home folder shows what Windows users expect.
+they are still empty, so the home folder shows what Windows users expect,
+and an account without a picture gets the VeltOS default account picture
+(~/.face and ~/.face.icon, read by Plasma's Start, lock screen and
+AccountsService), like a new Windows account.
 """
 
 import os
@@ -49,6 +52,8 @@ DOLPHIN_UI = Path("/usr/share/veltos/dolphin/dolphinui.rc")
 DOLPHIN_VIEW = ("[Dolphin]\nVersion=4\nViewMode=1\n"
                 "VisibleRoles=Details_text,Details_modificationtime,Details_type,Details_size\n")
 HIDDEN_GROUPS = ("Remote", "RecentlySaved", "SearchFor", "Tags")
+DEFAULT_PICTURE = Path("/usr/share/veltos/faces/default.png")
+ACCOUNTS_ICONS = Path("/var/lib/AccountsService/icons")
 SHOWN_GROUPS = ("Places", "Devices", "RemovableDevices")
 
 
@@ -171,6 +176,20 @@ def write_new(path, text):
     return True
 
 
+def set_default_picture(home, user, picture=DEFAULT_PICTURE, icons=ACCOUNTS_ICONS):
+    """Copy the default picture to ~/.face and ~/.face.icon unless the
+    account already has a picture (own files or AccountsService)."""
+    if (home / ".face").exists() or (home / ".face.icon").exists() or (icons / user).exists():
+        return False
+    try:
+        data = picture.read_bytes()
+    except OSError:
+        return False
+    for name in (".face", ".face.icon"):
+        (home / name).write_bytes(data)
+    return True
+
+
 def main():
     home = Path.home()
     write_new(config_home() / "Kvantum/kvantum.kvconfig", f"[General]\ntheme={KVANTUM_THEME}\n")
@@ -179,6 +198,7 @@ def main():
         dirs = user_dirs(home)
         drop_unwanted_dirs(home)
         write_new(places, places_xbel(home, dirs, int(time.time())))
+        set_default_picture(home, home.name)
     try:
         layout = DOLPHIN_UI.read_text(encoding="utf-8")
     except OSError:

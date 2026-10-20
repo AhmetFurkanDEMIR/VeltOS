@@ -1,5 +1,5 @@
-// Round account picture; without a picture a person silhouette on grey,
-// like a Windows account.
+// Round account picture (accounts.py gives the VeltOS default picture for
+// accounts without one); without any picture a person silhouette on grey.
 import QtQuick
 import QtQuick.Effects
 import org.kde.kirigami as Kirigami
@@ -17,7 +17,7 @@ Item {
         anchors.fill: parent
         radius: width / 2
         color: Theme.dark ? "#4A4D5E" : "#C9CEDA"
-        visible: avatar.source === ""
+        visible: avatar.source === "" || picture.status === Image.Error
         Kirigami.Icon {
             anchors.centerIn: parent
             width: parent.width * 0.58
@@ -46,7 +46,7 @@ Item {
     }
     MultiEffect {
         anchors.fill: parent
-        visible: avatar.source !== ""
+        visible: avatar.source !== "" && picture.status !== Image.Error
         source: picture
         maskEnabled: true
         maskSource: mask
