@@ -3,6 +3,34 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (23:45) — Start in the layout of Windows 11's 2025 Start
+
+- The product owner sent a screenshot of the current Windows 11 Start
+  ("still not what I want"): search at the top, one scrolling page with
+  Pinned, Recommended ("Show all") and "All" with "View: Category", the
+  apps grouped into category cards of 2x2 icons, user and power at the
+  bottom. (The phone panel on the right is Microsoft's Phone Link and is
+  left out.)
+- `StartMenu.qml` rewritten to that layout: 46 x 47 grid units; Pinned in
+  8 columns, two rows until "Show all"; Recommended in 3 columns, two
+  rows; "All" with a View menu (Category, Grid, List; check mark like
+  Windows; kept in the applet's `allAppsView` setting). Category cards:
+  four a row; the first three icons start their apps, the card (or the
+  fourth place with four small icons) opens the category page.
+  Calculator is pinned once for existing users (`calculatorPinned`).
+- Categories: new helper `/usr/libexec/veltos/start-categories` prints
+  {desktop id: category} from the `Categories` keys of the desktop files
+  (user's first, then XDG_DATA_DIRS); the menu runs it through the
+  executable data engine when it opens. Fewer than three apps in a
+  category join "Other", as in Windows. Turkish names as Windows uses them
+  ("Üretkenlik", "Yardımcı Programlar ve Araçlar", "Diğer", ...).
+- Package build: 74 unit tests OK (3 new for the categories). VM (live):
+  Start shows Pinned (12 apps), Recommended (empty message), All in
+  categories (Productivity, Utilities & tools, Other); a category opens
+  and Esc goes back; Grid and List views; the View menu.
+- Known difference: Plasma places the popup above its own button, so
+  Start is centred on the Start button, not on the screen as in Windows.
+
 ## 2026-10-20 (23:30) — VeltOS Calculator
 
 - The product owner asked for a calculator "like Windows 11, in the same

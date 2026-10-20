@@ -25,6 +25,14 @@
       <label>Whether Spectacle in the pinned apps was replaced by VeltOS Snipping Tool (VeltOS 0.1, once).</label>
       <default>false</default>
     </entry>
+    <entry name="calculatorPinned" type="Bool">
+      <label>Whether VeltOS Calculator was pinned to Start (VeltOS 0.1, once).</label>
+      <default>false</default>
+    </entry>
+    <entry name="allAppsView" type="String">
+      <label>How the "All" section of Start shows the apps: category, grid or list.</label>
+      <default>category</default>
+    </entry>
     <entry name="favoritesPortedToKAstats" type="Bool">
       <label>Whether the default pinned apps were copied into the activity statistics store.</label>
       <default>false</default>

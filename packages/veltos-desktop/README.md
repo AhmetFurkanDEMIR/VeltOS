@@ -12,11 +12,19 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   battery, notifications; everything else behind the "^" arrow) and a
   Windows-sized clock with the date below the time. Pinned: File
   Explorer, Firefox, Settings.
-- **VeltOS Start** menu (opens with the Windows/Meta key or Alt+F1):
-  search field, "Pinned" grid with "All apps >", "Recommended" recent files,
-  account button (settings, lock, sign out) and power button (sleep,
-  restart, shut down). Right-click: Pin/Unpin to Start, Add to Desktop, etc.
-  English and Turkish.
+- **VeltOS Start** menu (opens with the Windows/Meta key or Alt+F1), in
+  the layout of Windows 11's Start of 2025: the search field at the top,
+  then one scrolling page with "Pinned" (8 columns, two rows until "Show
+  all"), "Recommended" (recent files, 3 columns, "Show all") and "All"
+  with "View: Category / Grid / List". The category view groups the apps
+  like Windows (Productivity, Utilities & tools, Creativity, Entertainment,
+  Games, Social, Developer tools, Education, Other) from their desktop
+  files (`/usr/libexec/veltos/start-categories`); a category needs three
+  apps, the rest is "Other"; a card's first three icons start their apps,
+  the card opens the category. Account button (settings, lock, sign out)
+  and power button (sleep, restart, shut down) at the bottom.
+  Right-click: Pin/Unpin to Start, Add to Desktop, etc. English and
+  Turkish.
 - **Windows 11 inspired look** everywhere, all in VeltOS colours:
   - application style (buttons, menus, lists, scroll bars): Kvantum theme
     `VeltOS` / `VeltOSDark`;

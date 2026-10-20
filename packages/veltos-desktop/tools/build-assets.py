@@ -548,8 +548,8 @@ def build_static_config(root):
     shutil.copy(SRC / "system/veltos-session-fixups.desktop", autostart / "veltos-session-fixups.desktop")
     libexec = root / "usr/libexec/veltos"
     libexec.mkdir(parents=True, exist_ok=True)
-    for helper in ("context-menus", "display-scale", "session-defaults", "session-fixups", "terminal-theme",
-                   "update-app-names", "update-plasma-overrides"):
+    for helper in ("context-menus", "display-scale", "session-defaults", "session-fixups", "start-categories",
+                   "terminal-theme", "update-app-names", "update-plasma-overrides"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
 
