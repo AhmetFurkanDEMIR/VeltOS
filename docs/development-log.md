@@ -3,6 +3,25 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (later) — Terminal follows light and dark
+
+- The product owner wanted the Terminal to change with light/dark mode
+  and a nicer look. Two profiles now: "VeltOS Light" (Windows Terminal's
+  One Half Light colours) and "VeltOS Dark" (Campbell).
+  `system/terminal-theme light|dark` sets the default profile, the tab
+  style and switches open terminals over Konsole's D-Bus
+  (`org.kde.konsole.Session.setProfile`); it runs at sign-in (from the
+  theme in kdeglobals) and from VeltOS Settings' Light/Dark switch. A
+  profile the user chose is left alone.
+- Tabs like Windows Terminal: rounded top corners, the selected tab in the
+  colour of the terminal, own close crosses for light and dark. Konsole
+  25.04 ignores `TabBarStyleSheet` unless `TabBarUseUserStyleSheet` points
+  to a file (read in `ViewContainer.cpp`), so the styles are
+  `/usr/share/veltos/konsole/tabs-{light,dark}.css`.
+- VM: dark and light terminals with two tabs, close buttons visible in
+  both; switching the theme recoloured an open terminal (its tab style
+  changes with the next window — Konsole does not reload it).
+
 ## 2026-10-21 — Settings without KDE's settings windows, pins in File Explorer
 
 The product owner asked that KDE's old settings never open ("Change

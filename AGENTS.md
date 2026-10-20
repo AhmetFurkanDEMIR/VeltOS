@@ -312,6 +312,9 @@ owner sets priorities; agents act as the engineering team.
   "version" after the first "gui" in an `.rc` file as its number: a
   comment mentioning "version" before the `<gui>` element made Konsole
   ignore VeltOS' file. Put comments inside the `<gui>` element.
+- Konsole 25.04 uses `TabBarStyleSheet` only when
+  `TabBarUseUserStyleSheet=true` and the file in `TabBarUserStyleSheetFile`
+  cannot be read; VeltOS ships the tab styles as files.
 - Konsole sets a see-through window background (for transparent
   profiles); with Kvantum the tab bar and toolbar areas then showed the
   windows behind. VeltOS starts it with `--notransparency`.

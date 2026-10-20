@@ -1,0 +1,39 @@
+#!/bin/sh
+# VeltOS: the Terminal (Konsole) follows the light or dark theme, as
+# Windows Terminal follows the Windows theme.
+#
+#   terminal-theme light|dark
+#
+# Sets the user's default Konsole profile ("VeltOS Light": One Half Light
+# colours, "VeltOS Dark": Campbell) and the tab style (konsole/tabs-*.css:
+# rounded tabs, the selected one in the colour of the terminal, as in
+# Windows Terminal), and switches open terminals to the new profile. A
+# profile the user chose is kept. Run by veltos-session.sh at sign-in and
+# by VeltOS Settings when the theme changes. (Konsole 25.04 uses the tab
+# style only from a file: TabBarUseUserStyleSheet + TabBarUserStyleSheetFile.)
+set -u
+
+case "${1:-}" in
+    light|dark) mode="$1" ;;
+    *) echo "usage: terminal-theme light|dark" >&2; exit 2 ;;
+esac
+[ "$mode" = dark ] && profile="VeltOS Dark" || profile="VeltOS Light"
+
+current="$(kreadconfig6 --file konsolerc --group 'Desktop Entry' --key DefaultProfile 2>/dev/null)"
+case "$current" in
+    ""|VeltOS.profile|"VeltOS Light.profile"|"VeltOS Dark.profile") ;;
+    *) exit 0 ;;
+esac
+
+kwriteconfig6 --file konsolerc --group 'Desktop Entry' --key DefaultProfile "$profile.profile"
+kwriteconfig6 --file konsolerc --group TabBar --type bool --key TabBarUseUserStyleSheet true
+kwriteconfig6 --file konsolerc --group TabBar --key TabBarUserStyleSheetFile \
+    "file:///usr/share/veltos/konsole/tabs-$mode.css"
+
+# Open terminals switch at once (Konsole's D-Bus session interface).
+for service in $(qdbus6 2>/dev/null | grep -o 'org\.kde\.konsole-[0-9]*' | sort -u); do
+    for session in $(qdbus6 "$service" 2>/dev/null | grep '^/Sessions/'); do
+        qdbus6 "$service" "$session" org.kde.konsole.Session.setProfile "$profile" >/dev/null 2>&1
+    done
+done
+exit 0

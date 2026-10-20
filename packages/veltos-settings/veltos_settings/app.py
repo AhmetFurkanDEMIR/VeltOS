@@ -37,6 +37,9 @@ awk -v name="$2" '
     END { if (!done) { if (!theme) print "[Theme]"; print "name=" name } }
 ' "$f" > "$f.veltos" && cat "$f.veltos" > "$f"
 rm -f "$f.veltos"
+# The Terminal follows the theme (veltos-desktop).
+[ -x /usr/libexec/veltos/terminal-theme ] && /usr/libexec/veltos/terminal-theme "$3"
+true
 '''
 
 
@@ -236,7 +239,8 @@ class Backend(QObject):
             return
         # The global theme switches colours, Plasma theme, window frames and
         # (through the kvantum / kvantum-dark style key) the application style.
-        self._start(["sh", "-c", APPLY_THEME, "sh", LOOK_AND_FEEL[dark], DESKTOP_THEME[dark]])
+        self._start(["sh", "-c", APPLY_THEME, "sh", LOOK_AND_FEEL[dark], DESKTOP_THEME[dark],
+                     "dark" if dark else "light"])
         self._dark = dark
         self.changed.emit()
 
