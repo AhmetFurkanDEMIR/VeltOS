@@ -44,5 +44,7 @@ firefox-esr-l10n-tr
 pipewire-audio
 
 fonts-noto-core
+# Cascadia Mono: the terminal font of Windows Terminal (VeltOS terminal profile).
+fonts-cascadia-code
 fonts-noto-color-emoji
 fonts-liberation

@@ -64,6 +64,16 @@ done
     || fail "Windows 11 lock screen (desktop shell override) missing"
 [ -f /var/lib/veltos/xdg/kwin/aurorae/.veltos-override ] \
     || fail "window frame buttons for maximised windows (Aurorae override) missing"
+# Terminal like Windows Terminal: VeltOS profile, Cascadia Mono, no toolbars,
+# opaque window (update-app-names adds --notransparency).
+grep -q '^DefaultProfile=VeltOS.profile$' /etc/xdg/konsolerc \
+    || fail "VeltOS terminal profile is not the default"
+fc-list | grep -q 'Cascadia Mono' || fail "terminal font Cascadia Mono missing"
+for f in konsoleui.rc sessionui.rc; do
+    [ -f "/usr/share/kxmlgui5/konsole/$f" ] || fail "Konsole window layout $f missing"
+done
+grep -q '^Exec=konsole --notransparency$' /var/lib/veltos/xdg/applications/org.kde.konsole.desktop \
+    || fail "Terminal launcher without --notransparency"
 # Locked taskbar without KDE's widget editing, Windows' power key, scale steps.
 grep -q '^plasma/allow_configure_when_locked=false$' /etc/xdg/kdeglobals \
     || fail "kiosk setting for the locked taskbar missing"

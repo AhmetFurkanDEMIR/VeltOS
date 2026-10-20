@@ -73,7 +73,8 @@ class Operations:
         self.start(["kioclient", "openProperties", str(path)])
 
     def terminal(self, folder):
-        self.start(["konsole", "--workdir", str(folder)], cwd=str(folder))
+        # Opaque window: see update-app-names (veltos-desktop).
+        self.start(["konsole", "--notransparency", "--workdir", str(folder)], cwd=str(folder))
 
     def compress(self, sources, folder):
         """Make a .zip of the items (Ark, in batch mode)."""

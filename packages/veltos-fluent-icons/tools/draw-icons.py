@@ -17,6 +17,8 @@ import random
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent.parent / "branding"
+# Icon names of the terminal (Konsole's desktop entry uses utilities-terminal).
+TERMINAL_NAMES = ("utilities-terminal", "org.kde.konsole", "konsole", "terminal")
 HEADER = ('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">\n'
           '  <!-- {what}: VeltOS artwork in the look of Windows 11 (tools/draw-icons.py).\n'
           '       SPDX-License-Identifier: CC-BY-SA-4.0 -->\n')
@@ -290,6 +292,36 @@ def local_disk():
 """
 
 
+# --- Terminal ------------------------------------------------------------------------
+# A dark window with a grey tab strip, the prompt chevron and a cursor bar,
+# in the look of Windows Terminal's icon (product owner's reference image).
+
+def terminal():
+    return HEADER.format(what="Terminal") + """  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3B3D44"/>
+      <stop offset="1" stop-color="#1D1E22"/>
+    </linearGradient>
+    <linearGradient id="strip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8A8E97"/>
+      <stop offset="1" stop-color="#666A73"/>
+    </linearGradient>
+    <clipPath id="window"><rect x="22" y="38" width="212" height="180" rx="24"/></clipPath>
+  </defs>
+  <rect x="22" y="42" width="212" height="180" rx="24" fill="#000000" opacity="0.18"/>
+  <rect x="22" y="38" width="212" height="180" rx="24" fill="url(#body)"/>
+  <g clip-path="url(#window)">
+    <rect x="22" y="38" width="212" height="44" fill="url(#strip)"/>
+    <rect x="22" y="38" width="212" height="3" fill="#FFFFFF" opacity="0.35"/>
+    <rect x="22" y="82" width="212" height="2" fill="#000000" opacity="0.35"/>
+  </g>
+  <rect x="23" y="39" width="210" height="178" rx="23" fill="none" stroke="#000000" stroke-opacity="0.35" stroke-width="2"/>
+  <path d="M 66 120 L 104 150 L 66 180" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="118" y="168" width="64" height="16" rx="8" fill="#FFFFFF"/>
+</svg>
+"""
+
+
 # --- Small sizes (16, 22, 24 px) ---------------------------------------------------
 # Drawn on the 16 px grid with lines on whole pixels: the large drawings
 # shrunk to 16 px turned into a grey dash (disk) and a cut-off box (bin)
@@ -329,6 +361,15 @@ def small_bin(full):
 """
 
 
+def small_terminal():
+    return SMALL_HEADER.format(what="Terminal") + """  <rect x="1" y="2" width="14" height="12" rx="2" fill="#26272C"/>
+  <path d="M 3 2 H 13 A 2 2 0 0 1 15 4 V 5 H 1 V 4 A 2 2 0 0 1 3 2 Z" fill="#7C808A"/>
+  <path d="M 3.5 7 L 6 9 L 3.5 11" fill="none" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="7" y="10.4" width="4" height="1.3" rx="0.6" fill="#FFFFFF"/>
+</svg>
+"""
+
+
 # --- Close (menus, dialogs, tabs) -------------------------------------------------
 # Windows 11 shows a thin monochrome cross where Fluent (like Breeze) has a
 # red disc with a cross ("Close" in menus, dialog buttons, tab buttons).
@@ -354,6 +395,8 @@ def main():
     (OUT / "drive-harddisk.svg").write_text(local_disk(), encoding="utf-8", newline="\n")
     # The icon of folders as a file type.
     (OUT / "inode-directory.svg").write_text(folder("folder"), encoding="utf-8", newline="\n")
+    for name in TERMINAL_NAMES:
+        (OUT / f"{name}.svg").write_text(terminal(), encoding="utf-8", newline="\n")
     (OUT / "close.svg").write_text(close_glyph("#363636"), encoding="utf-8", newline="\n")
     (OUT / "close-dark.svg").write_text(close_glyph("#dedede"), encoding="utf-8", newline="\n")
     small = OUT / "small"
@@ -361,6 +404,8 @@ def main():
     (small / "drive-harddisk.svg").write_text(small_disk(), encoding="utf-8", newline="\n")
     (small / "user-trash.svg").write_text(small_bin(False), encoding="utf-8", newline="\n")
     (small / "user-trash-full.svg").write_text(small_bin(True), encoding="utf-8", newline="\n")
+    for name in TERMINAL_NAMES:
+        (small / f"{name}.svg").write_text(small_terminal(), encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":
