@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS "This PC": a monitor with a soft blue bloom on the screen, in the
+       style of Windows 11's icons (original artwork).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a4f5c"/>
+      <stop offset="1" stop-color="#262a33"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8fd3ff"/>
+      <stop offset="0.45" stop-color="#3d8cf5"/>
+      <stop offset="1" stop-color="#1f4fd1"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.62" cy="0.78" r="0.55">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="petalA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#bfe6ff"/>
+      <stop offset="1" stop-color="#4f8cff"/>
+    </linearGradient>
+    <linearGradient id="petalB" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9fd0ff"/>
+      <stop offset="1" stop-color="#2a5fe0"/>
+    </linearGradient>
+    <linearGradient id="neck" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9aa1ad"/>
+      <stop offset="1" stop-color="#c9ced6"/>
+    </linearGradient>
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dfe3ea"/>
+      <stop offset="1" stop-color="#aeb4bf"/>
+    </linearGradient>
+    <clipPath id="screenClip">
+      <rect x="26" y="46" width="204" height="128" rx="5"/>
+    </clipPath>
+  </defs>
+  <!-- stand -->
+  <path d="M112 182 h32 l7 32 h-46 z" fill="url(#neck)"/>
+  <rect x="74" y="210" width="108" height="14" rx="7" fill="url(#base)"/>
+  <rect x="74" y="210" width="108" height="3" rx="1.5" fill="#ffffff" opacity="0.6"/>
+  <!-- monitor -->
+  <rect x="16" y="36" width="224" height="150" rx="12" fill="url(#bezel)"/>
+  <rect x="16.5" y="36.5" width="223" height="149" rx="11.5" fill="none" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="26" y="46" width="204" height="128" rx="5" fill="url(#screen)"/>
+  <g clip-path="url(#screenClip)">
+    <rect x="26" y="46" width="204" height="128" fill="url(#glow)"/>
+    <!-- soft bloom -->
+    <path d="M128 182 C 96 150, 98 108, 140 92 C 158 118, 160 152, 128 182 Z" fill="url(#petalA)" opacity="0.9"/>
+    <path d="M128 182 C 150 140, 186 120, 226 132 C 214 162, 176 182, 128 182 Z" fill="url(#petalB)" opacity="0.85"/>
+    <path d="M128 182 C 104 146, 70 128, 34 136 C 46 166, 86 184, 128 182 Z" fill="url(#petalB)" opacity="0.7"/>
+    <path d="M128 182 C 132 140, 160 104, 196 96 C 196 134, 168 168, 128 182 Z" fill="url(#petalA)" opacity="0.6"/>
+  </g>
+  <rect x="26" y="46" width="204" height="128" rx="5" fill="none" stroke="#000000" stroke-opacity="0.15"/>
+</svg>

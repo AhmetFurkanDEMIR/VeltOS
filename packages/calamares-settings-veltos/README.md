@@ -11,7 +11,7 @@ helper scripts are derived, ISC licence).
   (closes the window) or "Install VeltOS" (starts the installer), and an
   English / Türkçe switch in the corner. Switching writes the language and
   keyboard layout for the session (`plasma-localerc`, `kxkbrc`) and signs
-  out; SDDM signs the live user in again at once (`Relogin=true` from
+  out (waiting for the session manager's answer before the window closes); SDDM signs the live user in again at once (`Relogin=true` from
   `/etc/sddm.conf.d/veltos-live.conf`), now in that language. The boot
   menu therefore has no separate Turkish entry. Shown only on the install
   medium.

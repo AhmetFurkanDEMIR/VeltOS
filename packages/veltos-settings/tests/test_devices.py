@@ -195,8 +195,9 @@ class PersonalizationTests(unittest.TestCase):
         os.environ["XDG_CONFIG_HOME"] = str(self.tmp / "config")
         (self.tmp / "config").mkdir()
         walls = self.tmp / "wallpapers"
-        for name, files in (("Next", ["1920x1080.png", "3840x2160.png"]), ("VeltOS", ["1920x1080.png"]),
-                            ("Empty", [])):
+        for name, files in (("Next", ["1920x1080.png"]), ("VeltOS", ["1920x1080.png"]),
+                            ("VeltOS-Flow", ["1920x1080.png"]),
+                            ("Ocean", ["1920x1080.png", "3840x2160.png"]), ("Empty", [])):
             images = walls / name / "contents" / "images"
             images.mkdir(parents=True)
             for index, file in enumerate(files):
@@ -212,7 +213,8 @@ class PersonalizationTests(unittest.TestCase):
 
     def test_wallpapers(self):
         walls = devices.Personalization(FakeSystem()).wallpapers()
-        self.assertEqual([w["name"] for w in walls], ["VeltOS", "Next"])
+        # VeltOS first, KDE's own "Next" left out.
+        self.assertEqual([w["name"] for w in walls], ["VeltOS", "Ocean", "VeltOS-Flow"])
         self.assertTrue(walls[1]["preview"].endswith("3840x2160.png"))
 
     def test_current_wallpaper_and_accent(self):

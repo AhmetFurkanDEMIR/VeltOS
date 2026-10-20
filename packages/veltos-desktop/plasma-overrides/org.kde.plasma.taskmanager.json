@@ -1,0 +1,37 @@
+{
+  "plugin": "org.kde.plasma.taskmanager",
+  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13).",
+  "replacements": [
+    {
+      "file": "contents/ui/ContextMenu.qml",
+      "why": "Windows' wording for pinning",
+      "count": 2,
+      "old": "        text: i18n(\"&Pin to Task Manager\")\n",
+      "new": "        text: Qt.locale().name.startsWith(\"tr\") ? \"Görev çubuğuna sabitle\" : \"Pin to taskbar\" // VeltOS: Windows' wording\n"
+    },
+    {
+      "file": "contents/ui/ContextMenu.qml",
+      "why": "Windows' wording for unpinning",
+      "old": "        text: i18n(\"Unpin from Task Manager\")\n",
+      "new": "        text: Qt.locale().name.startsWith(\"tr\") ? \"Görev çubuğundan sabitlemeyi kaldır\" : \"Unpin from taskbar\" // VeltOS: Windows' wording\n"
+    },
+    {
+      "file": "contents/ui/ContextMenu.qml",
+      "why": "no entry opening KDE's widget settings dialog",
+      "old": "        enabled: configureAction && configureAction.enabled\n        visible: configureAction && configureAction.visible\n",
+      "new": "        enabled: configureAction && configureAction.enabled\n        visible: false // VeltOS: VeltOS Settings has the taskbar options\n"
+    },
+    {
+      "file": "contents/ui/ContextMenu.qml",
+      "why": "no edit mode entry",
+      "old": "        visible: editModeAction && editModeAction.visible\n",
+      "new": "        visible: false // VeltOS: the taskbar is not edited like a KDE panel\n"
+    },
+    {
+      "file": "contents/ui/ToolTipInstance.qml",
+      "why": "plain close glyph in window tooltips",
+      "old": "                visible: toolTipDelegate.isWin\n                icon.name: \"window-close\"\n",
+      "new": "                visible: toolTipDelegate.isWin\n                icon.name: \"window-close-symbolic\" // VeltOS: Windows' plain close glyph\n"
+    }
+  ]
+}

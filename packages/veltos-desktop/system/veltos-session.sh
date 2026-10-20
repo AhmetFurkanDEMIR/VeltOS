@@ -24,6 +24,10 @@ if [ ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig" ] ||
     /usr/libexec/veltos/session-defaults || true
 fi
 
+# Desktop and taskbar right-click menus without KDE's widget and panel
+# editing entries (read by plasmashell when it starts, so set here).
+/usr/libexec/veltos/context-menus || true
+
 # GTK programs (Firefox, ...) use the VeltOS GTK theme: Breeze with the
 # Windows 11 caption buttons of the window frames. Breeze, KDE's default,
 # is switched over; any other theme a user picked is kept.

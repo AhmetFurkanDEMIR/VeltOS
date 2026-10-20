@@ -77,6 +77,14 @@ CAPTION_COLOURS = {
              "pressed": ("#ffffff", 0.05)},
 }
 CLOSE_RED = "#c42b1c"
+# Title bar colours like Windows 11's Mica: the window background of the
+# VeltOS apps (Settings, File Explorer, Task Manager), so the title bar and
+# the window read as one surface; inactive windows a shade lighter (light)
+# or darker (dark). Fluent's solid frames are white / #202020.
+FRAME_COLOURS = {
+    "light": {"#ffffff": "#f3f5fa", "#f5f5f5": "#f8f9fc"},
+    "dark": {"#202020": "#1c1d26", "#2c2c2c": "#24252f"},
+}
 CAPTION_W, CAPTION_H = 46, 32
 WINDOW_RADIUS = 8
 
@@ -199,6 +207,13 @@ def build_aurorae(upstream, root):
             "X-KDE-PluginInfo-Author": "Vince Liuice (Fluent); VeltOS Developers",
         }, f"{fluent}/metadata.desktop")
         (dest / "metadata.desktop").write_text(metadata, encoding="utf-8")
+        decoration = dest / "decoration.svg"
+        frame = decoration.read_text(encoding="utf-8")
+        for old, new in FRAME_COLOURS[variant].items():
+            if f"fill:{old}" not in frame:
+                raise SystemExit(f"{fluent}/decoration.svg: frame colour {old} not found")
+            frame = frame.replace(f"fill:{old}", f"fill:{new}")
+        decoration.write_text(frame, encoding="utf-8")
         # The window buttons are monochrome; only the frame may carry the accent.
         for svg in dest.glob("*.svg"):
             text = svg.read_text(encoding="utf-8")
@@ -212,7 +227,8 @@ def caption_glyph(kind, x, colour, opacity=1.0):
     cx, cy = x + CAPTION_W / 2, CAPTION_H / 2
     stroke = f'fill="none" stroke="{colour}" stroke-width="1" opacity="{opacity:g}"'
     if kind == "minimize":
-        return f'<rect x="{cx - 5:g}" y="{cy - 0.5:g}" width="10" height="1" fill="{colour}" opacity="{opacity:g}"/>'
+        # On whole pixels: a line across two pixel rows looks grey and blurred.
+        return f'<rect x="{cx - 5:g}" y="{cy:g}" width="10" height="1" fill="{colour}" opacity="{opacity:g}"/>'
     if kind == "maximize":
         return f'<rect x="{cx - 4.5:g}" y="{cy - 4.5:g}" width="9" height="9" rx="1.5" {stroke}/>'
     if kind == "restore":

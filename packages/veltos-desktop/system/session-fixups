@@ -2,6 +2,13 @@
 # VeltOS adjustments that need the running session (started once at
 # sign-in by /etc/xdg/autostart/veltos-session-fixups.desktop, then exits).
 #
+# Taskbar locked, like Windows 11's: no widgets can be added, moved or
+# removed. Plasma's applets follow the lock of the whole shell, not of
+# their panel, so each one is locked as well (also those in the tray).
+# With the kiosk setting plasma/allow_configure_when_locked
+# (/etc/xdg/kdeglobals) they offer no KDE settings dialogs. Scripts
+# (VeltOS Settings) can still change the taskbar.
+#
 # Taskbar window previews: KWin's screen capture gives garbled preview
 # images when it renders in software (llvmpipe: virtual machines without 3D
 # acceleration; VM test 2026-10-20). There the taskbar shows the window
@@ -21,6 +28,10 @@ while [ $i -lt 30 ]; do
     sleep 1
 done
 
+# Screens get Windows' scale steps (100, 125, 150 %...) instead of KWin's
+# 5 % steps, which blur text and window buttons (see display-scale).
+/usr/libexec/veltos/display-scale || true
+
 renderer="$(qdbus6 org.kde.KWin /KWin org.kde.KWin.supportInformation 2>/dev/null |
             sed -n 's/^OpenGL renderer string: //p' | head -n 1)"
 case "$renderer" in
@@ -28,13 +39,31 @@ case "$renderer" in
     *) previews=true ;;
 esac
 
-qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
+# Applets still loading may reset their lock from the saved layout, so
+# the script runs twice.
+script="
+function lockAll(containment) {
+    containment.locked = true;
+    containment.widgets().forEach(function (widget) {
+        widget.locked = true;
+    });
+}
 panels().forEach(function (panel) {
+    lockAll(panel);
+    panel.widgets('org.kde.plasma.systemtray').forEach(function (tray) {
+        var id = tray.readConfig('SystrayContainmentId');
+        if (id) {
+            lockAll(desktopById(id));
+        }
+    });
     ['org.kde.plasma.icontasks', 'org.kde.plasma.taskmanager'].forEach(function (id) {
         panel.widgets(id).forEach(function (tasks) {
             tasks.currentConfigGroup = ['General'];
             tasks.writeConfig('showToolTips', $previews);
         });
     });
-});" >/dev/null 2>&1
+});"
+qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$script" >/dev/null 2>&1
+sleep 15
+qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$script" >/dev/null 2>&1
 exit 0

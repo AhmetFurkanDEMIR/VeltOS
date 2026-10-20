@@ -24,6 +24,7 @@ def load(name, path):
 app_names = load("update_app_names", PKG / "system/update-app-names")
 session_defaults = load("session_defaults", PKG / "system/session-defaults")
 fluent = load("fluent", PKG / "tools/fluent.py")
+display_scale = load("display_scale", PKG / "system/display-scale")
 
 DOLPHIN = """\
 [Desktop Entry]
@@ -229,6 +230,80 @@ class SessionScriptTests(unittest.TestCase):
     def test_veltos_names_come_first(self):
         self.assertEqual(self.data_dirs(None), "/var/lib/veltos/xdg:/usr/local/share:/usr/share")
         self.assertEqual(self.data_dirs("/usr/share:/opt/x"), "/var/lib/veltos/xdg:/usr/share:/opt/x")
+
+
+
+FAKE_KWRITECONFIG = """#!/bin/sh
+g=""; k=""
+while [ $# -gt 1 ]; do
+    case "$1" in
+        --file) shift 2 ;;
+        --group) g="$g[$2]"; shift 2 ;;
+        --key) k="$2"; shift 2 ;;
+        *) break ;;
+    esac
+done
+echo "$g $k=$1" >> "$FAKE_KCONFIG"
+"""
+
+FAKE_KREADCONFIG = """#!/bin/sh
+g=""; k=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --file) shift 2 ;;
+        --group) g="$g[$2]"; shift 2 ;;
+        --key) k="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+grep -F "$g $k=" "$FAKE_KCONFIG" 2>/dev/null | tail -n 1 | sed 's/^[^=]*=//'
+"""
+
+
+class ContextMenuTests(unittest.TestCase):
+    """system/context-menus: desktop and taskbar menus without KDE's editing
+    entries (kwriteconfig6 is replaced by a recorder)."""
+
+    def run_script(self, tmp):
+        env = {"PATH": f"{tmp}:/usr/bin:/bin", "FAKE_KCONFIG": str(tmp / "config")}
+        subprocess.run(["sh", str(PKG / "system/context-menus")], env=env, check=True)
+        config = tmp / "config"
+        return config.read_text().splitlines() if config.exists() else []
+
+    def test_menus_written_once(self):
+        tmp = Path(tempfile.mkdtemp())
+        for name, text in (("kwriteconfig6", FAKE_KWRITECONFIG), ("kreadconfig6", FAKE_KREADCONFIG)):
+            (tmp / name).write_text(text)
+            (tmp / name).chmod(0o755)
+        lines = self.run_script(tmp)
+        taskbar = "[ActionPlugins][1][RightButton;NoModifier]"
+        desktop = "[ActionPlugins][0][RightButton;NoModifier]"
+        for entry in ("add widgets=false", "configure=false", "_context=true"):
+            self.assertIn(f"{taskbar} {entry}", lines)
+        for entry in ("edit mode=false", "add widgets=false", "configure=false", "_add panel=false",
+                      "_context=true"):
+            self.assertIn(f"{desktop} {entry}", lines)
+        self.assertIn("[ActionPlugins][1] RightButton;NoModifier=org.kde.contextmenu", lines)
+        self.assertEqual(self.run_script(tmp), lines)   # already set: nothing written again
+
+
+
+class DisplayScaleTests(unittest.TestCase):
+    def test_windows_steps(self):
+        self.assertEqual(display_scale.windows_step(1.05), 1.0)
+        self.assertEqual(display_scale.windows_step(0.9), 1.0)
+        self.assertEqual(display_scale.windows_step(1.2), 1.25)
+        self.assertEqual(display_scale.windows_step(1.4), 1.5)
+        self.assertEqual(display_scale.windows_step(2.0), 2.0)
+
+    def test_only_new_screens_are_changed(self):
+        outputs = [{"name": "Virtual-1", "enabled": True, "scale": 1.05},
+                   {"name": "eDP-1", "enabled": True, "scale": 1.1},
+                   {"name": "HDMI-A-1", "enabled": True, "scale": 1.5},
+                   {"name": "DP-1", "enabled": False, "scale": 1.05}]
+        commands, names = display_scale.plan(outputs, seen={"eDP-1"})
+        self.assertEqual(commands, [["kscreen-doctor", "output.Virtual-1.scale.1"]])
+        self.assertEqual(names, ["Virtual-1", "HDMI-A-1"])
 
 
 if __name__ == "__main__":

@@ -22,7 +22,8 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
     `VeltOS` / `VeltOSDark`;
   - window frames: Aurorae theme `VeltOS` / `VeltOS-Dark` with Windows
     style minimise / maximise / close buttons on the right, the app icon
-    and a left-aligned title on the left;
+    and a left-aligned title on the left; the title bar has the VeltOS
+    apps' window colour, like Windows 11's Mica (no separate white bar);
   - taskbar, Start and popups: Plasma theme `VeltOS` / `VeltOS-Dark`
     (acrylic-like see-through popups when the GPU can blur, opaque
     otherwise);
@@ -61,7 +62,7 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   tray for new users. The home folder has no
   "Templates" and "Public" folders (switched off in xdg-user-dirs).
 - Fluent icons and cursors (`veltos-fluent-icons`), Inter UI font.
-- **"Velt Bloom" wallpaper** (light and dark variants), branded login
+- **Wallpapers**: "VeltOS Bloom" (default, soft translucent petals), "VeltOS Flow", "VeltOS Glow" and "VeltOS Lake" (the first design), each light and dark (`tools/wallpapers.py`); branded login
   splash, lock screen and SDDM login background.
 
 Existing users are not modified: Plasma runs the layout script only for
@@ -80,12 +81,15 @@ files that do not exist yet.
 | Session manager | `/etc/xdg/ksmserverrc` | `confirmLogout=false`, `loginMode=emptySession`. |
 | `session-defaults` | `/usr/libexec/veltos/` | Creates `~/.config/Kvantum/kvantum.kvconfig` (Kvantum has no system-wide setting) and `~/.local/share/user-places.xbel` (File Explorer side bar, with the user's localised folder names). Never overwrites. |
 | `update-app-names` | `/usr/libexec/veltos/` | Writes renamed/hidden copies of other packages' `.desktop` files to `/var/lib/veltos/xdg/applications/`. Run from `postinst` and from a dpkg trigger on `/usr/share/applications`, so the copies follow package updates. Other packages' files are never modified. |
-| `update-plasma-overrides` | `/usr/libexec/veltos/`, specs in `/usr/share/veltos/plasma-overrides/*.json` (source: `plasma-overrides/`) | Windows 11 changes to Plasma components without forking them: copies the installed package (e.g. the system tray) to `/var/lib/veltos/xdg/plasma/plasmoids/`, applies exact text replacements and checks each matched; if one no longer matches after a Plasma update, the copy is removed and Plasma's own version is used. Run from `postinst` and a dpkg trigger on `/usr/share/plasma/plasmoids`; the image build fails if a change does not fit. Currently: the taskbar's hidden-icons flyout (icons only, small, no header). |
+| `update-plasma-overrides` | `/usr/libexec/veltos/`, specs in `/usr/share/veltos/plasma-overrides/*.json` (source: `plasma-overrides/`) | Windows 11 changes to Plasma components without forking them: copies the installed package (e.g. the system tray) to `/var/lib/veltos/xdg/plasma/plasmoids/`, applies exact text replacements and checks each matched; if one no longer matches after a Plasma update, the copy is removed and Plasma's own version is used. Run from `postinst` and a dpkg trigger on `/usr/share/plasma/plasmoids`; the image build fails if a change does not fit. Currently: the taskbar's hidden-icons flyout (icons only, small, no header) and item flyouts without settings/pin buttons; notification toasts like Windows 11 (bottom-right, picture left, equal buttons, newest at the bottom, no tray bell); "Safely Remove Hardware" (drives) flyout; taskbar button menus ("Pin to taskbar", no KDE settings) and tooltips. |
 | GTK theme `VeltOS` | `/usr/share/themes/VeltOS/` (`tools/gtktheme.py`) | Breeze (colours follow the KDE colour scheme) with Windows 11 caption buttons drawn by the same code as the window frames. The session script switches users from Breeze to it. |
 | Firefox caption buttons | `/usr/lib/firefox-esr/defaults/pref/veltos.js`, `/usr/lib/firefox-esr/veltos.cfg`, `/usr/share/veltos/firefox/caption-buttons.css` (`tools/firefox.py`) | Firefox draws its own round (libadwaita-like) title bar buttons on Linux and ignores the GTK theme; its autoconfig registers a style sheet with the 46 x 32 Windows 11 buttons and red close. |
-| Power screen | `contents/logout/Logout.qml` of both global themes (`plasma/logout/`) | Power key / Ctrl+Alt+Del: dimmed desktop and a Windows-style card (Lock, Sign out, Sleep, Shut down, Restart, Cancel) instead of Breeze's full-screen buttons and countdown. |
+| Ctrl+Alt+Del screen | `contents/logout/Logout.qml` of both global themes (`plasma/logout/`) | Windows' security options: blurred sign-in wallpaper, Lock, Switch user, Sign out, Change a password, Task Manager, Cancel, power menu bottom right. A program asking to shut down gets a small Windows-style card instead. |
+| Power key | `/etc/xdg/powerdevilrc` | Shuts down, Windows' default (also VirtualBox's "send the shutdown signal"). |
+| Locked taskbar | `/etc/xdg/kdeglobals` `[KDE Action Restrictions]`, `session-fixups`, `context-menus` | No widgets added/moved/removed and no KDE "Configure …" dialogs; desktop menu with the file entries only, no menu on the empty taskbar. |
 | Desktop icons | `/usr/share/veltos/desktop/*.desktop`, copied by the session script | "This PC" and "Recycle Bin" on every user's desktop; a deleted one comes back at the next sign-in. |
-| `session-fixups` | `/usr/libexec/veltos/`, started by `/etc/xdg/autostart/veltos-session-fixups.desktop` | One-shot at sign-in: with software rendering (llvmpipe, VMs without 3D) KWin's window captures are garbled, so the taskbar shows titles instead of window previews there. |
+| `session-fixups` | `/usr/libexec/veltos/`, started by `/etc/xdg/autostart/veltos-session-fixups.desktop` | One-shot at sign-in: locks the taskbar's items; display scale in 25 % steps for new screens (`display-scale`); with software rendering (llvmpipe, VMs without 3D) KWin's window captures are garbled, so the taskbar shows titles instead of window previews there. |
+| `context-menus` | `/usr/libexec/veltos/`, run by `veltos-session.sh` before plasmashell starts | Right-click menu options of the desktop and the taskbar (`[ActionPlugins]` in the Plasma layout file). |
 | Task View | `/usr/share/kwin/effects/veltostaskview/` (`kwin/effects/veltostaskview/`) | Windows 11 Task View as a KWin QML scene effect (public `org.kde.kwin` API): window thumbnails with icon, title and close button; desktops strip with "New desktop" and remove; Meta+Tab and the taskbar's Task View button. |
 | Sounds | `/usr/share/sounds/veltos/` (`tools/sounds.py`), `[Sounds] Theme=veltos` in kdeglobals, `/etc/xdg/plasma_workspace.notifyrc` | Original system sounds synthesised at build time (Windows' sounds are not shipped); a chime when the desktop appears after signing in. |
 | Animations | `KWIN_EFFECTS_FORCE_ANIMATIONS=1` in the session script | KWin switches its animations off with software rendering (most VMs); VeltOS keeps them on (open/close, minimise, maximise, sliding popups, desktop switching). |
@@ -98,19 +102,20 @@ files that do not exist yet.
 | `artwork/veltos-logo.svg` | **Master logo**: a "V" of two blue blades. Other packages keep checked copies. |
 | `upstream.json` | Pinned Fluent-kde release (commit 44794f29c89d, SHA-256 checked) |
 | `tools/fluent.py` | Derives the Kvantum, Aurorae and Plasma themes and colour schemes from Fluent-kde |
-| `tools/bloom.py` | Procedural generator of the wallpaper (fixed seed → reproducible, original artwork) |
+| `tools/wallpapers.py` | Procedural generator of the wallpapers (Bloom, Flow, Glow; reproducible, original artwork) |
+| `tools/bloom.py` | The first wallpaper design, kept as "VeltOS Lake" |
 | `tools/build-assets.py` | Generates the whole installed tree into `build-assets/root/` |
 | `plasma/layout.js` | Plasma 6 layout script (panel, widgets, wallpaper) |
 | `plasma/startmenu/` | VeltOS Start applet (`org.veltos.startmenu`): QML, config schema, Turkish translation |
 | `plasma/splash/Splash.qml` | Splash after signing in: blurred sign-in wallpaper, Windows dot spinner, "Welcome" (no progress bar) |
-| `plasma/logout/Logout.qml` | Power screen (power key, Ctrl+Alt+Del) |
+| `plasma/logout/Logout.qml` | Ctrl+Alt+Del security options screen, shut-down card |
 | `plasma/clock/` | Taskbar clock; its flyout is the Windows 11 notification centre (`NotificationCenter.qml`) above a calendar (`Calendar.qml`) |
 | `plasma-overrides/` | Text replacements for Plasma components (see `update-plasma-overrides`) |
 | `desktop/` | Desktop icons: This PC, Recycle Bin |
 | `tools/gtktheme.py`, `tools/firefox.py` | GTK theme and Firefox style sheet with Windows 11 caption buttons |
 | `tools/app_titles.py` | Program-name catalogs for the en@veltos / tr@veltos pseudo-languages |
 | `sddm/veltos/` | VeltOS sign-in screen (SDDM theme) |
-| `system/` | `veltos-session.sh`, `session-defaults`, `session-fixups`, `update-app-names`, `update-plasma-overrides` |
+| `system/` | `veltos-session.sh`, `context-menus`, `display-scale`, `session-defaults`, `session-fixups`, `update-app-names`, `update-plasma-overrides` |
 | `tests/` | Unit tests: asset build (incl. a full build), Fluent derivation, app names, session helpers |
 
 ## What is changed from Fluent-kde (`tools/fluent.py`)

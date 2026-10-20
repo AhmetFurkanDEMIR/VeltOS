@@ -2,7 +2,9 @@
     VeltOS Clock: the Windows 11 taskbar clock. Time above the date, both in
     the same small size and right-aligned, in the formats of the user's
     region (with a four-digit year, as Windows shows it). Clicking it opens
-    the calendar.
+    the notification centre and the calendar. Unread notifications show as
+    a count in an accent-coloured circle right of the clock, and "do not
+    disturb" as a muted bell (Windows 11).
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -12,6 +14,7 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.kirigami as Kirigami
+import org.kde.notificationmanager as NotificationManager
 
 PlasmoidItem {
     id: root
@@ -54,15 +57,41 @@ PlasmoidItem {
         }
     }
 
+    // Notifications that arrived since the notification centre was last
+    // opened.
+    NotificationManager.Notifications {
+        id: unread
+        showExpired: true
+        showDismissed: true
+        showJobs: false
+        urgencies: NotificationManager.Notifications.CriticalUrgency
+                   | NotificationManager.Notifications.NormalUrgency
+    }
+    readonly property int unreadCount: Math.min(99, unread.unreadNotificationsCount)
+    NotificationManager.Settings {
+        id: notificationSettings
+    }
+    readonly property bool doNotDisturb: {
+        const until = notificationSettings.notificationsInhibitedUntil;
+        return notificationSettings.notificationsInhibitedByApplication
+            || (!isNaN(until.getTime()) && until.getTime() > now.getTime());
+    }
+
     preferredRepresentation: compactRepresentation
     toolTipMainText: Qt.formatDate(now, Qt.locale().dateFormat(Locale.LongFormat))
     toolTipSubText: ""
-    onExpandedChanged: if (expanded) tick.triggered()
+    onExpandedChanged: {
+        if (expanded) {
+            tick.triggered();
+        } else {
+            unread.lastRead = undefined; // everything seen: now
+        }
+    }
 
     compactRepresentation: MouseArea {
         id: button
 
-        Layout.minimumWidth: lines.implicitWidth + Kirigami.Units.largeSpacing * 2
+        Layout.minimumWidth: row.implicitWidth + Kirigami.Units.largeSpacing * 2
         Layout.preferredWidth: Layout.minimumWidth
         hoverEnabled: true
         onClicked: root.expanded = !root.expanded
@@ -78,22 +107,51 @@ PlasmoidItem {
             Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
         }
 
-        ColumnLayout {
-            id: lines
+        RowLayout {
+            id: row
             anchors.right: parent.right
             anchors.rightMargin: Kirigami.Units.largeSpacing
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 0
+            spacing: Kirigami.Units.largeSpacing
 
-            PlasmaComponents3.Label {
-                Layout.alignment: Qt.AlignRight
-                text: root.timeText
-                font.pointSize: 9
+            ColumnLayout {
+                spacing: 0
+
+                PlasmaComponents3.Label {
+                    Layout.alignment: Qt.AlignRight
+                    text: root.timeText
+                    font.pointSize: 9
+                }
+                PlasmaComponents3.Label {
+                    Layout.alignment: Qt.AlignRight
+                    text: root.dateText
+                    font.pointSize: 9
+                }
             }
-            PlasmaComponents3.Label {
-                Layout.alignment: Qt.AlignRight
-                text: root.dateText
-                font.pointSize: 9
+
+            // Unread count, Windows 11 style.
+            Rectangle {
+                visible: root.unreadCount > 0 && !root.doNotDisturb
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: Math.max(implicitHeight, countLabel.implicitWidth + Kirigami.Units.smallSpacing * 2)
+                implicitHeight: Math.round(Kirigami.Units.gridUnit * 1.05)
+                radius: height / 2
+                color: Kirigami.Theme.highlightColor
+                PlasmaComponents3.Label {
+                    id: countLabel
+                    anchors.centerIn: parent
+                    text: root.unreadCount
+                    color: Kirigami.Theme.highlightedTextColor
+                    font.pointSize: 7.5
+                    font.weight: Font.DemiBold
+                }
+            }
+            Kirigami.Icon {
+                visible: root.doNotDisturb
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: Kirigami.Units.iconSizes.small
+                implicitHeight: Kirigami.Units.iconSizes.small
+                source: "notifications-disabled-symbolic"
             }
         }
     }

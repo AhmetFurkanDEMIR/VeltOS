@@ -293,6 +293,35 @@ llvmpipe. Its window captures are then garbled, so the taskbar shows window
 titles instead of previews there (`session-fixups`, decided at each
 sign-in from KWin's renderer); with a real GPU the previews stay on.
 
+#### 2.3.11 Taskbar lock, power key, Ctrl+Alt+Del, display scale
+
+- **Locked taskbar.** Windows' taskbar has no widgets to add, move or
+  configure. Plasma can lock the whole shell (SystemImmutable through the
+  kiosk key `plasma/plasmashell/unlockedDesktop`), but that also refuses
+  the D-Bus scripts VeltOS Settings and `plasma-apply-wallpaperimage` use.
+  VeltOS locks the taskbar's applets one by one (`session-fixups`; Plasma
+  applets follow the shell's lock, not their panel's), hides their
+  "Configure …" entries with `plasma/allow_configure_when_locked=false`,
+  and sets the right-click menu options of the desktop and the taskbar
+  (`context-menus`, the `[ActionPlugins]` groups plasmashell reads at
+  start). Trade-off: a user who edits the layout file can unlock it again.
+- **Power key**: shut down, Windows' default (`powerdevilrc`). Plasma's
+  default, its logout screen, cannot appear over the lock screen, so the
+  key seemed dead there (VirtualBox "send the shutdown signal").
+- **Ctrl+Alt+Del** opens Plasma's logout greeter, whose QML the VeltOS
+  global theme replaces with Windows' security options screen. The
+  greeter offers no way to start programs; the screen uses Plasma5Support's
+  "executable" data engine (Task Manager, KDE's Users page). Alternative: a
+  separate full-screen program bound to Ctrl+Alt+Del — a normal window
+  cannot cover the taskbar and the lock screen like the greeter's layer.
+- **Display scale** in Windows' 25 % steps: KWin picks 5 % steps from the
+  screen size (105 % for a VM screen), which blurs text and 1 px lines.
+  `display-scale` rounds each screen the user has not had before once, at
+  sign-in; later choices are kept.
+- **Title bars like Mica**: the frame colour is the VeltOS apps' window
+  background (Windows 11 apps draw no separate title bar), not Fluent's
+  white.
+
 ### 2.4 Graphics drivers
 
 - AMD and Intel: kernel drivers + Mesa from Debian (OpenGL, Vulkan via RADV

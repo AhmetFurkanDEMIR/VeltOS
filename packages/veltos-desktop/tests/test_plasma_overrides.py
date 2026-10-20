@@ -26,6 +26,8 @@ class OverrideTests(unittest.TestCase):
         self.source = self.tmp / "plasmoids"
         shutil.copytree(PKG / "tests/data/systemtray", self.source / TRAY)
         shutil.copytree(PKG / "tests/data/notifications", self.source / "org.kde.plasma.notifications")
+        shutil.copytree(PKG / "tests/data/devicenotifier", self.source / "org.kde.plasma.devicenotifier")
+        shutil.copytree(PKG / "tests/data/taskmanager", self.source / "org.kde.plasma.taskmanager")
         self.out = self.tmp / "out"
 
     def run_tool(self, specs=PKG / "plasma-overrides"):
@@ -36,7 +38,7 @@ class OverrideTests(unittest.TestCase):
         self.assertEqual(self.run_tool(), 0)
         ui = self.out / TRAY / "contents/ui"
         self.assertIn("visible: false // VeltOS", (ui / "items/AbstractItem.qml").read_text())
-        self.assertIn("columns: 4 // VeltOS", (ui / "HiddenItemsView.qml").read_text())
+        self.assertIn("Math.min(4, count)) // VeltOS", (ui / "HiddenItemsView.qml").read_text())
         self.assertIn("visible: !!systemTrayState.activeApplet // VeltOS",
                       (ui / "ExpandedRepresentation.qml").read_text())
         self.assertTrue((self.out / TRAY / overrides.MARKER).exists())
@@ -45,6 +47,30 @@ class OverrideTests(unittest.TestCase):
         self.assertEqual(self.run_tool(), 0)
         popup = self.out / "org.kde.plasma.notifications/contents/ui/delegates/DelegatePopup.qml"
         self.assertIn("Windows toasts have no timeout bar", popup.read_text())
+        self.assertIn("picture on the left, like Windows", popup.read_text())
+        ui = self.out / "org.kde.plasma.notifications/contents/ui"
+        self.assertIn("popupLocation: Qt.AlignBottom | Qt.AlignRight", (ui / "global/Globals.qml").read_text())
+        self.assertIn("equal widths filling the row", (ui / "components/ActionContainer.qml").read_text())
+        self.assertIn("uniformCellSizes: true", (ui / "components/ActionContainer.qml").read_text())
+        self.assertIn("objectAt(popupInstantiator.count - 1 - i)", (ui / "global/Globals.qml").read_text())
+        self.assertIn("effectiveStatus: PlasmaCore.Types.HiddenStatus", (ui / "main.qml").read_text())
+
+    def test_drives_flyout_changes_apply(self):
+        self.assertEqual(self.run_tool(), 0)
+        applet = self.out / "org.kde.plasma.devicenotifier"
+        self.assertIn('"Name[tr]": "Donanımı Güvenle Kaldır"', (applet / "metadata.json").read_text(encoding="utf-8"))
+        self.assertIn("one list without headings", (applet / "contents/ui/FullRepresentation.qml").read_text())
+        expanded = (self.out / TRAY / "contents/ui/ExpandedRepresentation.qml").read_text()
+        self.assertIn("Windows flyouts cannot be pinned", expanded)
+        self.assertIn("veltosSmallApplet ? 10 : 24", expanded)
+        self.assertIn("veltosSmallApplet ? veltosAppletHeight : Infinity", expanded)
+
+    def test_taskbar_menu_changes_apply(self):
+        self.assertEqual(self.run_tool(), 0)
+        menu = (self.out / "org.kde.plasma.taskmanager/contents/ui/ContextMenu.qml").read_text(encoding="utf-8")
+        self.assertEqual(menu.count('"Pin to taskbar"'), 2)
+        self.assertIn('"Unpin from taskbar"', menu)
+        self.assertIn("VeltOS Settings has the taskbar options", menu)
 
     def test_changed_upstream_falls_back_to_plasma(self):
         self.run_tool()
