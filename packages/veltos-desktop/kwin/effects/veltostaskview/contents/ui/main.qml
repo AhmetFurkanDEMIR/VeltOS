@@ -4,8 +4,9 @@
     The desktop dims behind an acrylic-like layer; the windows of the
     current desktop appear as large thumbnails with their icon and title,
     a close button on hover; the virtual desktops are cards at the bottom
-    with "New desktop". Click a window to switch to it, a desktop to show
-    its windows; Esc or a click on the background closes the view.
+    with "New desktop". Pointing at a desktop card shows that desktop's
+    windows, as in Windows 11; click a window to switch to it, a desktop
+    to go there; Esc or a click on the background closes the view.
     Meta+Tab (Windows key + Tab) and the taskbar's Task View button open it.
 
     Uses KWin's public QML API (org.kde.kwin) only.
@@ -40,6 +41,9 @@ KWin.SceneEffect {
 
         readonly property QtObject screen: KWin.SceneView.screen
         readonly property int stripHeight: Math.round(Kirigami.Units.gridUnit * 9)
+        // The desktop card under the pointer: its windows are shown.
+        property QtObject previewDesktop: null
+        readonly property QtObject shownDesktop: previewDesktop || KWin.Workspace.currentDesktop
         focus: true
         opacity: 0
         scale: 0.97
@@ -76,7 +80,7 @@ KWin.SceneEffect {
         KWin.WindowFilterModel {
             id: windows
             activity: KWin.Workspace.currentActivity
-            desktop: KWin.Workspace.currentDesktop
+            desktop: view.shownDesktop
             screenName: view.screen.name
             windowModel: allWindows
             minimizedWindows: true
@@ -292,7 +296,17 @@ KWin.SceneEffect {
                         width: Math.round(Kirigami.Units.gridUnit * 9)
                         height: Math.round(width * view.height / view.width) + Kirigami.Units.gridUnit * 1.6
                         hoverEnabled: true
-                        onClicked: KWin.Workspace.currentDesktop = modelData
+                        onClicked: {
+                            view.previewDesktop = null;
+                            KWin.Workspace.currentDesktop = modelData;
+                        }
+                        onContainsMouseChanged: {
+                            if (containsMouse) {
+                                view.previewDesktop = modelData;
+                            } else if (view.previewDesktop === modelData) {
+                                view.previewDesktop = null;
+                            }
+                        }
 
                         Rectangle {
                             id: frame

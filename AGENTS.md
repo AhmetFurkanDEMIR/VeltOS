@@ -307,6 +307,15 @@ owner sets priorities; agents act as the engineering team.
   The image leaves Dolphin out; when testing in an old live system, move
   Dolphin's service file away and reload the bus configuration.
 - `vsess` (VM helper) takes the whole command as one argument.
+- KXMLGUI (`KXMLGUIClient::findVersionNumber`) takes the first word
+  "version" after the first "gui" in an `.rc` file as its number: a
+  comment mentioning "version" before the `<gui>` element made Konsole
+  ignore VeltOS' file. Put comments inside the `<gui>` element.
+- Konsole sets a see-through window background (for transparent
+  profiles); with Kvantum the tab bar and toolbar areas then showed the
+  windows behind. VeltOS starts it with `--notransparency`.
+- KWin keeps the QML of a scene effect (Task View) after
+  unloadEffect/loadEffect; sign out and in to test a changed effect.
 - `plasma-workspace-data` (not `plasma-workspace`) ships the QML of
   Plasma's applets; extract it with `apt-get download` in the builder to
   read the exact upstream text for overrides (`out/upstream/`).

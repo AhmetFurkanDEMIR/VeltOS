@@ -80,6 +80,15 @@ class AppNameTests(unittest.TestCase):
         text = app_names.rewrite(VIM, "vim", ("Text", "Metin", "Notepad;"))
         self.assertIn("Keywords=Notepad;Vim;", text)
 
+    def test_exec_options_in_every_exec_line(self):
+        text = app_names.rewrite(DOLPHIN, "dolphin", exec_options="--notransparency")
+        self.assertEqual(text.count("Exec=dolphin --notransparency %u"), 2)
+        konsole = "[Desktop Entry]\nName=Konsole\nExec=konsole\n\n[Desktop Action NewTab]\nExec=konsole --new-tab\n"
+        text = app_names.rewrite(konsole, "konsole", ("Terminal", "Terminal", "cmd;"),
+                                 exec_options=app_names.EXEC_OPTIONS["org.kde.konsole.desktop"])
+        self.assertIn("\nExec=konsole --notransparency\n", text)
+        self.assertIn("\nExec=konsole --notransparency --new-tab\n", text)
+
     def test_file_without_name_is_rejected(self):
         with self.assertRaises(ValueError):
             app_names.rewrite("[Desktop Entry]\nExec=x\n", "x", hide=True)

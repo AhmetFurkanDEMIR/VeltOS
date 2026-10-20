@@ -395,6 +395,23 @@ def build_static_config(root):
         # Shut down / restart / sign out from Start act at once, like on
         # Windows (no full-screen confirmation dialog), and sign-in starts
         # with a clean desktop instead of reopening the last session's apps.
+        # Terminal like Windows Terminal: the VeltOS profile (Campbell
+        # colours, Cascadia Mono, konsole/), tabs always shown with a "+"
+        # button, no toolbars (konsole/*.rc), opening at the profile's
+        # 120 x 30 like Windows Terminal instead of the last size.
+        "etc/xdg/konsolerc": (
+            "[Desktop Entry]\n"
+            "DefaultProfile=VeltOS.profile\n"
+            "\n[KonsoleWindow]\n"
+            "RememberWindowSize=false\n"
+            "\n[MainWindow]\n"
+            "MenuBar=Disabled\n"
+            "\n[TabBar]\n"
+            "TabBarVisibility=AlwaysShowTabBar\n"
+            "NewTabButton=true\n"
+            "SearchTabsButton=HideSearchTabsButton\n"
+            "CloseTabButton=OnEachTab\n"
+            "TabBarStyleSheet=QTabBar::tab { min-width: 12em ; max-width: 15em }\n"),
         "etc/xdg/ksmserverrc": (
             "[General]\n"
             "confirmLogout=false\n"
@@ -481,6 +498,17 @@ def build_static_config(root):
         shutil.copy(spec, overrides / spec.name)
     # Whole files that replace Plasma's (the Windows 11 lock screen).
     shutil.copytree(SRC / "plasma-overrides/files", overrides / "files", dirs_exist_ok=True)
+
+    # Terminal profile and colours (usr/share/konsole) and Konsole's window
+    # layout without toolbars (usr/share/kxmlgui5/konsole).
+    konsole = root / "usr/share/konsole"
+    konsole.mkdir(parents=True, exist_ok=True)
+    for name in ("VeltOS.profile", "VeltOS-Campbell.colorscheme"):
+        shutil.copy(SRC / "konsole" / name, konsole / name)
+    kxmlgui = root / "usr/share/kxmlgui5/konsole"
+    kxmlgui.mkdir(parents=True, exist_ok=True)
+    for name in ("konsoleui.rc", "sessionui.rc"):
+        shutil.copy(SRC / "konsole" / name, kxmlgui / name)
 
     # KWin effects in QML (Windows 11 Task View).
     shutil.copytree(SRC / "kwin/effects", root / "usr/share/kwin/effects", dirs_exist_ok=True)

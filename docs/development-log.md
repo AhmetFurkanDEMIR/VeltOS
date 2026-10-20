@@ -3,6 +3,28 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (night, later) — Terminal like Windows Terminal, Task View desktops
+
+- **Terminal** (Konsole) in the look of Windows Terminal: VeltOS profile
+  with the Campbell colours, Cascadia Mono 12 (`fonts-cascadia-code`
+  2407.24-1, Debian main, added to the image), bar cursor, 120 x 30,
+  9001 lines of history; tabs always shown with a "+" button; no toolbars
+  (copies of Konsole 25.04.2's `konsoleui.rc`/`sessionui.rc` without them,
+  same numbers as the built-in files, which were read from Konsole's
+  library in the VM: 20 and 36). Found on the way: a comment with the
+  word "version" before `<gui>` made KXMLGUI skip the files; Konsole's
+  see-through window showed other windows through the tab bar — the
+  Terminal launchers now pass `--notransparency`. **Terminal icon**: a
+  dark window with a grey tab strip, ">" and "_" (original drawing after
+  the product owner's Windows Terminal reference; 16 px version).
+  VM: Terminal opened with the profile, no toolbars, opaque tab bar.
+  VM: the new icon on the taskbar (after restarting plasmashell).
+- **Virtual desktops** checked in the VM: windows appear only on their
+  own desktop and in its taskbar; pinned apps (File Explorer, Firefox,
+  ...) appear on every desktop, as on Windows 11. Task View now shows a
+  desktop's windows while the pointer is on its card, like Windows 11
+  (VM: Desktop 2 showed only its Terminal, Desktop 1 its two windows).
+
 ## 2026-10-20 (night) — product owner's list, first part
 
 Requests from the product owner's long list; everything below was built

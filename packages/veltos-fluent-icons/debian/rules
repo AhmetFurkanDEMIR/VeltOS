@@ -3,7 +3,8 @@
 ICONS = $(CURDIR)/debian/veltos-fluent-icons/usr/share/icons
 # VeltOS's own icons in branding/ that replace Fluent's of the same name.
 VELTOS_ICONS = computer user-trash user-trash-full folder inode-directory user-desktop \
-	folder-download folder-documents folder-pictures folder-music folder-videos drive-harddisk
+	folder-download folder-documents folder-pictures folder-music folder-videos drive-harddisk \
+	utilities-terminal org.kde.konsole konsole terminal
 
 %:
 	dh $@
@@ -29,7 +30,7 @@ override_dh_auto_install:
 		-o -name 'distributor-logo.svg' -o -name 'distributor-logo-symbolic.svg' \) \
 		-exec cp branding/veltos-logo.svg {} \;
 	find $(ICONS) -type f \( -name 'wine.svg' -o -name 'wine-winecfg.svg' -o -name 'windows.svg' \) -delete
-	# "This PC", the Recycle Bin, folders and the local disk in the look of
+	# "This PC", the Recycle Bin, folders, the local disk and the terminal in the look of
 	# Windows 11 (VeltOS artwork, branding/, tools/draw-icons.py), at all
 	# sizes and in the dark theme too. Many of Fluent's are symbolic links
 	# (folder -> default-folder.svg): those are replaced by the file. The

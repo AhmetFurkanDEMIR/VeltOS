@@ -312,6 +312,32 @@ class FullBuildTest(unittest.TestCase):
             image = login.split("background=", 1)[1].strip()
             self.assertTrue((root / image.lstrip("/")).is_file(), image)
             self.check_fluent_themes(root, kdeglobals)
+            self.check_terminal(root)
+
+    def check_terminal(self, root):
+        import re
+        import xml.etree.ElementTree as ET
+        konsolerc = build_assets.parse_kconfig((root / "etc/xdg/konsolerc").read_text())
+        profile_name = konsolerc["[Desktop Entry]"]["DefaultProfile"]
+        profile = build_assets.parse_kconfig(
+            "\n".join(line for line in (root / "usr/share/konsole" / profile_name).read_text().splitlines()
+                      if not line.startswith("#")))
+        scheme = profile["[Appearance]"]["ColorScheme"]
+        colours = (root / f"usr/share/konsole/{scheme}.colorscheme").read_text()
+        self.assertIn("[Background]\nColor=12,12,12\n", colours)        # Campbell
+        self.assertTrue(profile["[Appearance]"]["Font"].startswith("Cascadia Mono,12,"))
+        expected = {"konsoleui.rc": ("konsole", "20"), "sessionui.rc": ("session", "36")}  # Konsole 25.04.2
+        for name, (gui_name, number) in expected.items():
+            text = (root / "usr/share/kxmlgui5/konsole" / name).read_text()
+            gui = ET.fromstring(text.split("\n", 2)[2])
+            self.assertEqual((gui.get("name"), gui.get("version")), (gui_name, number))
+            self.assertIsNone(gui.find("ToolBar"))
+            # KXMLGUI (KXMLGUIClient::findVersionNumber) takes the first
+            # "version" after the first "gui" after the first "<" as the
+            # file's number: a comment mentioning it hid the file (VM).
+            start = text.lower().index("gui", text.index("<") + 1)
+            found = re.match(r'version\s*=\s*"(\d+)"', text[text.lower().index("version", start):])
+            self.assertEqual(found and found.group(1), number, name)
 
     def check_explorer_layout(self, root):
         import xml.etree.ElementTree as ET

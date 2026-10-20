@@ -42,6 +42,14 @@ APPS = {
     "firefox-esr.desktop": ("Firefox", "Firefox", "Browser;Internet;Web;Tarayıcı;"),
 }
 
+# Options added to every Exec line of an application. Konsole draws its
+# window see-through (for profiles with a transparent background) and the
+# application style then leaves the tab bar unpainted: other windows showed
+# through it (VM, 2026-10-20). The VeltOS terminal profile is opaque.
+EXEC_OPTIONS = {
+    "org.kde.konsole.desktop": "--notransparency",
+}
+
 # Hidden from Start and search (still installed; they open from other apps
 # or Settings where needed): duplicates, developer tools, KDE-branded extras.
 HIDE = [
@@ -67,9 +75,10 @@ HIDE = [
 ]
 
 
-def rewrite(text, source_name, names=None, hide=False):
+def rewrite(text, source_name, names=None, hide=False, exec_options=""):
     """Return the .desktop text with the main group's names replaced and/or
-    NoDisplay set. Other groups ([Desktop Action ...]) are left alone.
+    NoDisplay set. Other groups ([Desktop Action ...]) are left alone,
+    except that exec_options are added after the program in every Exec line.
 
     The new keys go right after the [Desktop Entry] header; every Name,
     GenericName and their translations of the main group are dropped, and
@@ -111,6 +120,9 @@ def rewrite(text, source_name, names=None, hide=False):
                 has_keywords |= key == "Keywords"
                 separator = "" if not value or value.endswith(";") else ";"
                 line = f"{key}={value}{separator}{extra}"
+        if exec_options and "=" in stripped and stripped.split("=", 1)[0].strip() == "Exec":
+            program, _, rest = stripped.split("=", 1)[1].strip().partition(" ")
+            line = f"Exec={program} {exec_options}" + (f" {rest}" if rest else "")
         out.append(line)
     added = []
     if names:
@@ -138,7 +150,8 @@ def update(source_dir, out_dir):
             target.unlink(missing_ok=True)
             continue
         try:
-            text = rewrite(source.read_text(encoding="utf-8"), str(source), names, hide)
+            text = rewrite(source.read_text(encoding="utf-8"), str(source), names, hide,
+                           EXEC_OPTIONS.get(name, ""))
         except (OSError, UnicodeDecodeError, ValueError) as error:
             # One odd file must not break package installation.
             print(f"update-app-names: skipping {source}: {error}", file=sys.stderr)
