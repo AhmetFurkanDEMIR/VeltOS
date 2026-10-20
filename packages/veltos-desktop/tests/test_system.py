@@ -25,6 +25,7 @@ app_names = load("update_app_names", PKG / "system/update-app-names")
 session_defaults = load("session_defaults", PKG / "system/session-defaults")
 fluent = load("fluent", PKG / "tools/fluent.py")
 display_scale = load("display_scale", PKG / "system/display-scale")
+start_categories = load("start_categories", PKG / "system/start-categories")
 
 DOLPHIN = """\
 [Desktop Entry]
@@ -397,6 +398,46 @@ class DisplayScaleTests(unittest.TestCase):
         commands, names = display_scale.plan(outputs, seen={"eDP-1"})
         self.assertEqual(commands, [["kscreen-doctor", "output.Virtual-1.scale.1"]])
         self.assertEqual(names, ["Virtual-1", "HDMI-A-1"])
+
+
+class StartCategoryTests(unittest.TestCase):
+    def test_windows_like_groups(self):
+        cases = {
+            "Network;WebBrowser;": "productivity",
+            "Qt;KDE;Utility;TextEditor;": "productivity",
+            "Qt;KDE;Graphics;Viewer;": "creativity",
+            "Utility;Calculator;": "utilities",
+            "Qt;KDE;System;TerminalEmulator;": "utilities",
+            "Development;IDE;": "developer",
+            "Game;ArcadeGame;": "games",
+            "AudioVideo;Player;": "entertainment",
+            "Network;InstantMessaging;": "social",
+            "Wine;": "other",
+            "": "other",
+        }
+        for categories, key in cases.items():
+            self.assertEqual(start_categories.category(categories), key, categories)
+
+    def test_user_entries_win_and_subdirectories_become_ids(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home, system = Path(tmp, "home/applications"), Path(tmp, "usr/applications")
+            (home / "wine/Programs").mkdir(parents=True)
+            system.mkdir(parents=True)
+            (home / "wine/Programs/7-Zip.desktop").write_text("[Desktop Entry]\nCategories=Wine;\n")
+            (home / "org.kde.kwrite.desktop").write_text("[Desktop Entry]\nCategories=Game;\n")
+            (system / "org.kde.kwrite.desktop").write_text(
+                "[Desktop Entry]\nCategories=Utility;TextEditor;\n[Desktop Action new]\nCategories=Game;\n")
+            (system / "org.kde.ark.desktop").write_text(
+                "[Desktop Entry]\nName=Ark\nCategories=Qt;KDE;Utility;Archiving;\n")
+            result = start_categories.categories([home, system])
+        self.assertEqual(result, {"wine-Programs-7-Zip.desktop": "other",
+                                  "org.kde.kwrite.desktop": "games",
+                                  "org.kde.ark.desktop": "utilities"})
+
+    def test_search_path_follows_xdg(self):
+        dirs = start_categories.application_dirs({"HOME": "/home/u", "XDG_DATA_DIRS": "/a:/b"})
+        self.assertEqual(dirs, [Path("/home/u/.local/share/applications"), Path("/a/applications"),
+                                Path("/b/applications")])
 
 
 if __name__ == "__main__":

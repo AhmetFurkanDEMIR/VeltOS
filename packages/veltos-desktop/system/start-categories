@@ -1,0 +1,91 @@
+#!/usr/bin/python3
+"""Categories of the Start menu's "All" section, like Windows 11 groups
+its apps (Productivity, Utilities & tools, Creativity, ...).
+
+    start-categories        print {"<desktop file id>": "<category>", ...}
+
+The Start menu (org.veltos.startmenu) runs this when it opens and groups
+the apps of its "All" list by the result. The category comes from the
+freedesktop `Categories` key of each application's desktop file, found
+like the XDG menu finds them (the user's applications first, then
+XDG_DATA_DIRS in order; the first file of an id wins). Categories with
+fewer than three apps are merged into "other" by the menu, as in Windows.
+"""
+
+import json
+import os
+import sys
+from pathlib import Path
+
+# First match wins, so the more specific groups come first (a text editor
+# is "Utility;TextEditor": Productivity, not Utilities).
+RULES = (
+    ("games", {"Game"}),
+    ("developer", {"Development", "IDE", "Debugger", "WebDevelopment", "RevisionControl", "GUIDesigner"}),
+    ("productivity", {"Office", "WebBrowser", "Email", "Calendar", "ContactManagement", "Spreadsheet",
+                      "WordProcessor", "Presentation", "TextEditor", "FileManager", "Dictionary",
+                      "ProjectManagement", "Finance"}),
+    ("social", {"Chat", "InstantMessaging", "IRCClient", "VideoConference", "Telephony", "News"}),
+    ("education", {"Education", "Science", "Languages", "Geography", "Astronomy", "Math"}),
+    ("creativity", {"Graphics", "2DGraphics", "3DGraphics", "RasterGraphics", "VectorGraphics", "Photography",
+                    "Scanning", "AudioVideoEditing", "Publishing", "Art"}),
+    ("entertainment", {"AudioVideo", "Audio", "Video", "Player", "Music", "TV", "Recorder"}),
+    ("utilities", {"Utility", "System", "Settings", "Accessibility", "Archiving", "Compression", "Calculator",
+                   "TerminalEmulator", "Monitor", "Security", "PackageManager", "Filesystem", "Network",
+                   "FileTransfer", "HardwareSettings", "Printing", "Clock"}),
+)
+
+
+def category(categories):
+    names = {c.strip() for c in categories.split(";") if c.strip()}
+    for key, wanted in RULES:
+        if names & wanted:
+            return key
+    return "other"
+
+
+def application_dirs(environ=None):
+    environ = os.environ if environ is None else environ
+    home = environ.get("XDG_DATA_HOME") or str(Path(environ.get("HOME", "~")).expanduser() / ".local/share")
+    data_dirs = environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share"
+    return [Path(d) / "applications" for d in [home] + data_dirs.split(":") if d]
+
+
+def read_categories(path):
+    """The Categories value of the [Desktop Entry] group ("" if none)."""
+    group = ""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                line = line.strip()
+                if line.startswith("["):
+                    group = line
+                elif group == "[Desktop Entry]" and line.startswith("Categories") and "=" in line:
+                    key, value = line.split("=", 1)
+                    if key.strip() == "Categories":
+                        return value.strip()
+    except OSError:
+        pass
+    return ""
+
+
+def categories(dirs):
+    result = {}
+    for base in dirs:
+        if not base.is_dir():
+            continue
+        for path in sorted(base.rglob("*.desktop")):
+            desktop_id = str(path.relative_to(base)).replace(os.sep, "-")
+            if desktop_id not in result:
+                result[desktop_id] = category(read_categories(path))
+    return result
+
+
+def main():
+    json.dump(categories(application_dirs()), sys.stdout, separators=(",", ":"), sort_keys=True)
+    sys.stdout.write("\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

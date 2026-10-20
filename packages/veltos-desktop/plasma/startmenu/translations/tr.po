@@ -13,22 +13,16 @@ msgid "Edit Applications…"
 msgstr "Uygulamaları Düzenle…"
 
 msgid "Search for apps, settings and documents"
-msgstr "Uygulama, ayar ve belge arayın"
+msgstr "Uygulama, ayar ve belge ara"
 
 msgid "Pinned"
-msgstr "Sabitlenmiş"
-
-msgid "All apps"
-msgstr "Tüm uygulamalar"
+msgstr "Sabitlendi"
 
 msgid "Back"
 msgstr "Geri"
 
 msgid "Recommended"
 msgstr "Önerilenler"
-
-msgid "More"
-msgstr "Daha fazla"
 
 msgid "Your recently opened files will appear here."
 msgstr "Son açtığınız dosyalar burada görünür."
@@ -53,3 +47,51 @@ msgstr "Güç"
 
 msgid "Sign out"
 msgstr "Oturumu kapat"
+
+msgid "Show all"
+msgstr "Tümünü göster"
+
+msgid "Show less"
+msgstr "Daha az göster"
+
+msgid "All"
+msgstr "Tümü"
+
+msgid "View: %1"
+msgstr "Görünüm: %1"
+
+msgid "Category"
+msgstr "Kategori"
+
+msgid "Grid"
+msgstr "Kılavuz"
+
+msgid "List"
+msgstr "Liste"
+
+msgid "Productivity"
+msgstr "Üretkenlik"
+
+msgid "Social"
+msgstr "Sosyal"
+
+msgid "Creativity"
+msgstr "Yaratıcılık"
+
+msgid "Entertainment"
+msgstr "Eğlence"
+
+msgid "Games"
+msgstr "Oyunlar"
+
+msgid "Education"
+msgstr "Eğitim"
+
+msgid "Developer tools"
+msgstr "Geliştirici Araçları"
+
+msgid "Utilities & tools"
+msgstr "Yardımcı Programlar ve Araçlar"
+
+msgid "Other"
+msgstr "Diğer"
