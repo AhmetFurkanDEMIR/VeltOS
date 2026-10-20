@@ -3,6 +3,27 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-20 (23:05) — Welcome window: language can be changed again
+
+- The product owner: the English/Türkçe switch of the live welcome window
+  could be used once and then the installer took over; it should be
+  possible to come back and choose again, and the choice should change the
+  language of the running live system.
+- VM check first (live, 8 GB): the switch itself works in both directions
+  and as often as wanted (sign out, SDDM signs in again, desktop, apps,
+  the welcome window and the installer in the new language). What was
+  missing: "Install VeltOS" quit the welcome window, so after closing the
+  installer there was no way back to the language switch.
+- `veltos-live-welcome` now hides the window while `install-veltos` runs
+  (QProcess) and shows it again when the installer closes (or cannot
+  start). New unit test with a fake `install-veltos`; package build: 21
+  tests OK.
+- VM: Türkçe → "VeltOS'u kurun" → the installer in Turkish → İptal/Evet →
+  the welcome window is back → English → session and window in English.
+- Note: a welcome window started from outside the session (guest agent)
+  cannot start the installer (pkexec refuses a process outside the active
+  session); test with the autostarted window.
+
 ## 2026-10-20 (23:00) — Windows programs start without a question
 
 - The product owner: double-clicking an `.exe`, `.msi`, `.bat` or `.cmd`
