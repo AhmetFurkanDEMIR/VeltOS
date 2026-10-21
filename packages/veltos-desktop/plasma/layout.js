@@ -102,8 +102,9 @@ if (systrayContainmentId) {
 panel.addWidget("org.veltos.quicksettings");
 
 // Clock like Windows 11: time above the date in the same small size; it
-// opens the calendar.
-panel.addWidget("org.veltos.clock");
+// opens the notification centre and the calendar, also with Win+N.
+var clock = panel.addWidget("org.veltos.clock");
+clock.globalShortcut = "Meta+N";
 
 // The thin "show desktop" area at the right end, as on Windows 11.
 panel.addWidget("org.veltos.showdesktop");

@@ -1,8 +1,9 @@
 /*
-    Windows 11 calendar flyout: the full date as a heading, then the month
-    with up/down arrows, two-letter weekday names and the days of six
-    weeks; today in a filled accent circle, a clicked day ringed. The mouse
-    wheel changes the month. No week numbers, no Days/Months/Years tabs.
+    Windows 11 calendar (the lower flyout card): the month and year with
+    up/down arrows, two-letter weekday names and the days of six weeks;
+    today in a filled accent circle, a clicked day ringed, days of the
+    other months dimmed. The mouse wheel changes the month. No week
+    numbers, no Days/Months/Years tabs.
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -21,6 +22,8 @@ ColumnLayout {
 
     readonly property int firstDay: Qt.locale().firstDayOfWeek  // 0 = Sunday ... 6
     readonly property int offset: (month.getDay() - firstDay + 7) % 7
+    // Windows' two-letter names (Turkish: "Pt Sa Ça Pe Cu Ct Pa"), Sunday first.
+    readonly property var dayNames: i18n("Su Mo Tu We Th Fr Sa").split(" ")
 
     function sameDay(a, b) {
         return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
@@ -34,34 +37,36 @@ ColumnLayout {
         selected = today;
     }
 
-    spacing: Kirigami.Units.smallSpacing
-
-    PlasmaComponents3.Label {
-        Layout.fillWidth: true
-        Layout.bottomMargin: Kirigami.Units.largeSpacing
-        text: Qt.locale().toString(calendar.today, "dddd, d MMMM")
-        font.weight: Font.DemiBold
-        elide: Text.ElideRight
-    }
+    spacing: 0
 
     RowLayout {
         Layout.fillWidth: true
+        Layout.bottomMargin: Kirigami.Units.smallSpacing
+        spacing: Kirigami.Units.smallSpacing
+
         PlasmaComponents3.Label {
             Layout.fillWidth: true
+            Layout.leftMargin: Kirigami.Units.smallSpacing
             text: Qt.locale().standaloneMonthName(calendar.month.getMonth(), Locale.LongFormat)
                   + " " + calendar.month.getFullYear()
             font.weight: Font.DemiBold
         }
-        PlasmaComponents3.ToolButton {
-            icon.name: "go-up-symbolic"
-            display: PlasmaComponents3.AbstractButton.IconOnly
-            text: i18n("Previous month")
+        FlyoutButton {
+            flat: true
+            implicitWidth: 32
+            implicitHeight: 32
+            glyph: "triangle-up"
+            glyphSize: 14
+            toolTip: i18n("Previous month")
             onClicked: calendar.step(-1)
         }
-        PlasmaComponents3.ToolButton {
-            icon.name: "go-down-symbolic"
-            display: PlasmaComponents3.AbstractButton.IconOnly
-            text: i18n("Next month")
+        FlyoutButton {
+            flat: true
+            implicitWidth: 32
+            implicitHeight: 32
+            glyph: "triangle-down"
+            glyphSize: 14
+            toolTip: i18n("Next month")
             onClicked: calendar.step(1)
         }
     }
@@ -72,16 +77,18 @@ ColumnLayout {
         columns: 7
         rowSpacing: 2
         columnSpacing: 2
+        uniformCellWidths: true
 
         Repeater {
             model: 7
             PlasmaComponents3.Label {
                 required property int index
                 Layout.fillWidth: true
+                Layout.preferredHeight: 34
                 horizontalAlignment: Text.AlignHCenter
-                text: Qt.locale().dayName((calendar.firstDay + index) % 7, Locale.ShortFormat).slice(0, 2)
-                font: Kirigami.Theme.smallFont
-                opacity: 0.8
+                verticalAlignment: Text.AlignVCenter
+                text: calendar.dayNames[(calendar.firstDay + index) % 7] || ""
+                font.weight: Font.DemiBold
             }
         }
 
@@ -97,7 +104,7 @@ ColumnLayout {
                 readonly property bool isSelected: calendar.sameDay(day, calendar.selected)
 
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.round(Kirigami.Units.gridUnit * 2)
+                Layout.preferredHeight: 40
                 hoverEnabled: true
                 onClicked: calendar.selected = day
                 Accessible.name: Qt.formatDate(day, Locale.LongFormat)
@@ -105,11 +112,14 @@ ColumnLayout {
 
                 Rectangle {
                     anchors.centerIn: parent
-                    width: Math.min(parent.width, parent.height) - 2
+                    width: Math.min(parent.width, parent.height)
                     height: width
                     radius: width / 2
-                    color: cell.isToday ? Kirigami.Theme.highlightColor
-                         : Qt.alpha(Kirigami.Theme.textColor, cell.pressed ? 0.05 : (cell.containsMouse ? 0.08 : 0))
+                    color: cell.isToday
+                           ? (cell.pressed ? Qt.darker(Kirigami.Theme.highlightColor, 1.15)
+                              : cell.containsMouse ? Qt.lighter(Kirigami.Theme.highlightColor, 1.08)
+                              : Kirigami.Theme.highlightColor)
+                           : Qt.alpha(Kirigami.Theme.textColor, cell.pressed ? 0.05 : (cell.containsMouse ? 0.08 : 0))
                     border.width: cell.isSelected && !cell.isToday ? 1.5 : 0
                     border.color: Kirigami.Theme.highlightColor
                 }
