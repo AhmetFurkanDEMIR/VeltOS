@@ -1,0 +1,42 @@
+Source: veltos-photos
+Section: graphics
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pil,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-dialogs,
+               qml6-module-qtquick-effects,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qml6-module-qtqml-models
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-photos
+Architecture: all
+Depends: ${python3:Depends},
+         ffmpegthumbnailer,
+         python3-pil,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-dialogs,
+         qml6-module-qtquick-effects,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qml6-module-qtqml-models,
+         qt6-image-formats-plugins,
+         ${misc:Depends}
+Recommends: kio-extras
+Description: VeltOS Photos, a Windows 11 style photo viewer
+ The gallery and viewer of Windows 11's Photos: pictures and videos of
+ the Pictures and Videos folders (and added folders) grouped by month,
+ favorites, search, filter and sort; the viewer with zoom, rotate, delete,
+ file information, filmstrip and slideshow; "Edit image" with crop,
+ rotate, flip, brightness, contrast, saturation and warmth, saved in
+ place or as a copy. Videos open in VeltOS Media Player.

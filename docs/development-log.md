@@ -3,6 +3,28 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (19:40) — VeltOS Photos (Windows 11 Photos)
+
+- Product owner: photo and video apps exactly like Windows 11's. New
+  package `veltos-photos` (PySide6/QML) in Windows 11 Photos' layout:
+  search in the title bar, navigation pane, the gallery grouped by month,
+  the viewer with its toolbar, filmstrip and file information, "Edit
+  image" (crop, rotate, flip, brightness, contrast, saturation, warmth;
+  live preview with MultiEffect, the saved picture made by Pillow), slide
+  show, favorites, set as background/lock screen, Recycle Bin.
+- Verified in the builder: Debian 13 has ffmpegthumbnailer 2.2.3 (video
+  thumbnails), python3-pil 11.1, qt6-image-formats-plugins 6.8.2 (WebP,
+  TIFF, ...), python3-mutagen 1.47 (for Media Player), QtPdf for PySide6
+  and QML (for the PDF reader).
+- Default apps: pictures open in Photos (`DEFAULT_APPS`); Gwenview leaves
+  the image; Start's pinned Gwenview becomes Photos.
+- Verified: 15 unit tests (scan with EXIF dates, grouping, edits with real
+  Pillow pictures incl. EXIF orientation, window offscreen EN/TR); VM
+  (live): gallery of seven sample pictures in two months, viewer, edit
+  view, saturation/warmth preview, "Save as copy" wrote
+  "VeltOS-Ember - Copy.png" and showed it. Not checked: lock-screen picture
+  on screen, libraries of thousands of pictures, HEIC.
+
 ## 2026-10-21 (17:00) — VeltOS Notepad (Windows 11 Notepad)
 
 - Product owner: the text editor must be exactly Windows 11's Notepad.

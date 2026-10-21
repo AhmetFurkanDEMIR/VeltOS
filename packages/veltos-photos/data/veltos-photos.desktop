@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Photos
+Name[tr]=Fotoğraflar
+GenericName=Photo Viewer
+GenericName[tr]=Fotoğraf Görüntüleyici
+Comment=View, organise and edit your photos
+Comment[tr]=Fotoğraflarınızı görüntüleyin, düzenleyin
+Exec=veltos-photos %f
+Icon=veltos-photos
+Categories=Graphics;Viewer;Photography;
+Keywords=photos;pictures;images;gallery;viewer;fotoğraf;resim;galeri;görüntüleyici;
+MimeType=image/jpeg;image/png;image/gif;image/webp;image/bmp;image/tiff;image/avif;image/heif;image/heic;image/jxl;image/x-icon;image/vnd.microsoft.icon;image/svg+xml;
+StartupNotify=true

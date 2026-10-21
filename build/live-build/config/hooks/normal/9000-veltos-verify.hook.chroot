@@ -97,6 +97,10 @@ installed ark && fail "Ark must not be installed (VeltOS Archive replaces it)"
 # Text files open in VeltOS Notepad (KWrite and Kate are not installed).
 installed veltos-notepad || fail "VeltOS Notepad missing"
 installed kwrite && fail "KWrite must not be installed (VeltOS Notepad replaces it)"
+installed veltos-photos || fail "VeltOS Photos missing"
+installed gwenview && fail "Gwenview must not be installed (VeltOS Photos replaces it)"
+grep -q '^image/jpeg=veltos-photos.desktop;$' /var/lib/veltos/xdg/applications/kde-mimeapps.list \
+    || fail "pictures do not open in Photos"
 grep -q '^text/plain=veltos-notepad.desktop;$' /var/lib/veltos/xdg/applications/kde-mimeapps.list \
     || fail "text files do not open in Notepad"
 7z i 2>/dev/null | grep -q 'Rar5' || fail "7-Zip cannot open RAR5 archives (7zip-rar missing)"

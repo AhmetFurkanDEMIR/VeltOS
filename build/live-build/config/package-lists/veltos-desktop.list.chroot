@@ -42,7 +42,8 @@ veltos-notepad
 # RARLAB's unRAR code) lets 7-Zip open every RAR version.
 veltos-archive
 7zip-rar
-gwenview
+# Photos (Windows 11 layout) replaces Gwenview.
+veltos-photos
 okular
 kde-spectacle
 firefox-esr

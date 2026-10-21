@@ -335,6 +335,7 @@ FocusScope {
         replacePinned("org.kde.spectacle.desktop", "veltos-snip.desktop", "snipPinned");
         replacePinned("org.kde.ark.desktop", "veltos-archive.desktop", "archivePinned");
         replacePinned("org.kde.kwrite.desktop", "veltos-notepad.desktop", "notepadPinned");
+        replacePinned("org.kde.gwenview.desktop", "veltos-photos.desktop", "photosPinned");
         pinOnce("veltos-calculator.desktop", "calculatorPinned");
     }
 
