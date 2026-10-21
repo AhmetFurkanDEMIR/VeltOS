@@ -72,12 +72,14 @@
   <!-- New spreadsheets and presentations start with Carlito too, as
        Excel's and PowerPoint's documents start with Calibri; the fonts
        LibreOffice lists after it stay as fall-backs. Languages without a
-       list of their own (Turkish too) use the "en" list. -->
+       list of their own (Turkish too) use the "en" list. These are
+       properties of an extensible group: without their type LibreOffice
+       stopped at start with a RuntimeException (VM, 2026-10-21). -->
   <oor:component-data oor:name="VCL" oor:package="org.openoffice">
     <node oor:name="DefaultFonts">
       <node oor:name="en">
-        <prop oor:name="LATIN_SPREADSHEET"><value>Carlito;Liberation Sans;Albany AMT;Albany;Arial;Arimo;Nimbus Sans L;DejaVu Sans;Helvetica;Lucida;Geneva;Helmet;Arial Unicode MS;Lucida Sans Unicode;Tahoma;SansSerif</value></prop>
-        <prop oor:name="LATIN_PRESENTATION"><value>Carlito;Liberation Sans;Albany AMT;Albany;Arial;Arimo;Nimbus Sans L;DejaVu Sans;Helvetica;Lucida;Geneva;Helmet;Arial Unicode MS;Lucida Sans Unicode;Tahoma;SansSerif</value></prop>
+        <prop oor:name="LATIN_SPREADSHEET" oor:type="xs:string" oor:op="replace"><value>Carlito;Liberation Sans;Albany AMT;Albany;Arial;Arimo;Nimbus Sans L;DejaVu Sans;Helvetica;Lucida;Geneva;Helmet;Arial Unicode MS;Lucida Sans Unicode;Tahoma;SansSerif</value></prop>
+        <prop oor:name="LATIN_PRESENTATION" oor:type="xs:string" oor:op="replace"><value>Carlito;Liberation Sans;Albany AMT;Albany;Arial;Arimo;Nimbus Sans L;DejaVu Sans;Helvetica;Lucida;Geneva;Helmet;Arial Unicode MS;Lucida Sans Unicode;Tahoma;SansSerif</value></prop>
       </node>
     </node>
   </oor:component-data>

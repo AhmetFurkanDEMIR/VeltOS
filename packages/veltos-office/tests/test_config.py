@@ -101,6 +101,14 @@ class SchemaTests(unittest.TestCase):
                 return True
         return False
 
+    def test_extensible_properties_carry_their_type(self):
+        # LibreOffice ends at start ("terminate called after throwing ...
+        # RuntimeException") when a property of an extensible group comes
+        # without oor:type (VCL DefaultFonts, VM 2026-10-21).
+        for prop in self.layer.iter("prop"):
+            if prop.get(f"{OOR}name", "").startswith("LATIN_"):
+                self.assertEqual(prop.get(f"{OOR}type"), "xs:string", prop.get(f"{OOR}name"))
+
     def test_every_setting_exists_in_the_schema(self):
         count = 0
         for data in self.layer.iter(f"{OOR}component-data"):
