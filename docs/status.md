@@ -99,13 +99,16 @@ checks that passed.
 
 ## Next steps
 
-1. Current ISO: `veltos-0.1.0-dev-20261021-011259` (SHA-256
-   1f9bf0f2a8898d2b370ace3945f0158aaa3ccadc063a2e148f938d36fe28fb97):
-   boot tests PASS on UEFI and BIOS (`out/test-results/20261021-012725-uefi`,
-   `20261021-012927-bios`). Its packages were checked in VMs one by one
-   (see the development log of 2026-10-21); the image as a whole has only
-   had the automatic boot test. Still to check: the power key and
-   shutdown on screen, Camera with a real webcam, Mail with a real account.
+1. Current ISO: `veltos-0.1.0-dev-20261021-060905` (SHA-256
+   ab575c9f3886300e80fe83e42b8e0bdfee3964b3ab23e51a6c6100bf235de817):
+   boot tests PASS on UEFI and BIOS (`out/test-results/20261021-062320-uefi`,
+   `20261021-062522-bios`). It contains everything up to commit d24c424
+   (Archive, Mail look, app icon family, coloured folders, centred Start,
+   Camera). Its packages were checked in VMs one by one (development log
+   of 2026-10-21); the image as a whole has only had the automatic boot
+   test. Still to check: the power key and shutdown on screen, Camera with
+   a real webcam, Mail with a real account and in dark mode, the acrylic
+   Start on a PC with a GPU.
 2. Windows 11 UAC-style password dialog instead of KDE's polkit window
    (adding users, time zone, computer name). Remaining apps from the
    product owner's list: Notepad, Photos/Media player, document viewer
