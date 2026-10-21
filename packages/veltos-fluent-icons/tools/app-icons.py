@@ -225,6 +225,24 @@ def media_player():
                + '  <path d="M 104 84 Q 104 70 116 77 L 176 117 Q 188 128 176 139 L 116 179 Q 104 186 104 172 Z" fill="#FFFFFF"/>\n')
 
 
+def disk_management():
+    """The local disk (as in File Explorer) with a partition chart, like
+    Windows' Disk Management."""
+    top = "M 26 120 L 58 70 H 182 L 206 108"
+    return svg("Disk Management", grad("top", "#F4F6F8", "#DDE2E8") + grad("side", "#B9C1CB", "#8E98A5")
+               + grad("pie", "#5FC2FF", "#2F7BE6") + grad("slice", "#7BE0B0", "#2FB673"),
+               shadow("M 26 120 H 206 V 196 Q 206 208 194 208 H 38 Q 26 208 26 196 Z")
+               + f'  <path d="{top} L 206 120 Z" fill="url(#top)" stroke="#A9B2BD" stroke-width="3" stroke-linejoin="round"/>\n'
+               + '  <rect x="26" y="120" width="180" height="84" rx="12" fill="url(#side)"/>\n'
+               + '  <rect x="26" y="120" width="180" height="5" fill="#FFFFFF" opacity="0.5"/>\n'
+               + '  <rect x="46" y="156" width="88" height="10" rx="5" fill="#5E6873"/>\n'
+               + '  <circle cx="176" cy="161" r="9" fill="#36C26A"/>\n'
+               + '  <circle cx="186" cy="84" r="50" fill="#FFFFFF"/>\n'
+               + '  <circle cx="186" cy="84" r="42" fill="url(#pie)"/>\n'
+               + '  <path d="M 186 84 V 42 A 42 42 0 0 1 226 98 Z" fill="url(#slice)" stroke="#FFFFFF" stroke-width="4" '
+                 'stroke-linejoin="round"/>\n')
+
+
 # drawing -> icon names it is installed under
 NAMES = {
     calculator: ["veltos-calculator", "accessories-calculator", "org.kde.kcalc", "calc"],
@@ -240,6 +258,8 @@ NAMES = {
     document_viewer: ["org.kde.okular", "okular"],
     archive: ["veltos-archive", "org.kde.ark", "ark", "file-roller", "utilities-file-archiver"],
     media_player: ["veltos-media", "org.kde.haruna", "multimedia-video-player", "vlc"],
+    disk_management: ["veltos-disks", "partitionmanager", "org.kde.partitionmanager", "gnome-disks",
+                      "org.gnome.DiskUtility"],
 }
 
 

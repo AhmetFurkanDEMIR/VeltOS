@@ -3,6 +3,18 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (14:30) — Disk Management and Firefox icons
+
+- Disk Management showed Fluent's dull grey platter (product owner: "the
+  icon is broken"); it now has a VeltOS drawing in the app family (the
+  File Explorer local disk with a partition chart), also for gnome-disks.
+- Firefox: Fluent redraws Mozilla's logo flat; Windows 11 shows the real
+  one. Fluent's firefox* app icons are removed, so the theme falls back to
+  firefox-esr's own hicolor icons (official branding, 16-128 px; checked
+  in the VM). The package build fails if a Fluent copy comes back.
+- VM (live): Start shows both; contact sheet of the whole family rendered
+  with rsvg-convert (`out/vm/render-icons.sh`).
+
 ## 2026-10-21 (11:30) — Only VeltOS Settings opens; Start's quick link menu
 
 - Product owner: KDE/Debian's settings must never open, on purpose or by
