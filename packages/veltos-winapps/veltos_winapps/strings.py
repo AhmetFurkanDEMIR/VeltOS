@@ -42,6 +42,13 @@ TEXTS = {
         "no_space_live": "You are running VeltOS from the installation medium, where space for "
                          "Windows programs is limited by the computer's memory (about {needed} MB "
                          "are needed). Install VeltOS to use Windows programs.",
+        "choose_runner": "How do you want to open {name}?",
+        "choose_runner_body": "Other programs that run Windows software are installed on this PC.",
+        "runner_wine": "VeltOS",
+        "runner_wine_desc": "Opens at once in VeltOS' Windows environment (recommended)",
+        "runner_bottles_desc": "Keeps Windows programs in separate bottles",
+        "runner_lutris_desc": "Game library with its own runners",
+        "runner_playonlinux_desc": "Installs Windows programs with scripts",
     },
     "tr": {
         "window_title": "Windows programı",
@@ -81,6 +88,13 @@ TEXTS = {
         "no_space_live": "VeltOS'u kurulum ortamından çalıştırıyorsunuz; burada Windows programları "
                          "için alan bilgisayarın belleğiyle sınırlıdır (yaklaşık {needed} MB "
                          "gerekiyor). Windows programlarını kullanmak için VeltOS'u kurun.",
+        "choose_runner": "{name} nasıl açılsın?",
+        "choose_runner_body": "Bu bilgisayarda Windows yazılımı çalıştıran başka programlar da kurulu.",
+        "runner_wine": "VeltOS",
+        "runner_wine_desc": "VeltOS'un Windows ortamında hemen açılır (önerilen)",
+        "runner_bottles_desc": "Windows programlarını ayrı şişelerde tutar",
+        "runner_lutris_desc": "Kendi çalıştırıcılarıyla oyun kitaplığı",
+        "runner_playonlinux_desc": "Windows programlarını betiklerle kurar",
     },
 }
 

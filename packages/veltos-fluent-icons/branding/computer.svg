@@ -30,10 +30,10 @@
   <rect x="114" y="186" width="28" height="6" fill="#000000" opacity="0.18"/>
   <rect x="80" y="212" width="96" height="12" rx="3" fill="url(#base)"/>
   <rect x="80" y="212" width="96" height="2.5" rx="1.25" fill="#FFFFFF" opacity="0.45"/>
-  <!-- monitor -->
-  <rect x="18" y="34" width="220" height="156" rx="9" fill="url(#bezel)"/>
-  <rect x="24" y="40" width="208" height="144" rx="4" fill="url(#screen)"/>
-  <rect x="24" y="40" width="208" height="144" rx="4" fill="url(#sheen)"/>
-  <rect x="18.75" y="34.75" width="218.5" height="154.5" rx="8.5" fill="none"
+  <!-- monitor: a thin dark bezel around the screen, as on Windows 11 -->
+  <rect x="16" y="30" width="224" height="160" rx="8" fill="url(#bezel)"/>
+  <rect x="20" y="34" width="216" height="150" rx="4" fill="url(#screen)"/>
+  <rect x="20" y="34" width="216" height="150" rx="4" fill="url(#sheen)"/>
+  <rect x="16.75" y="30.75" width="222.5" height="158.5" rx="7.5" fill="none"
         stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="1.5"/>
 </svg>

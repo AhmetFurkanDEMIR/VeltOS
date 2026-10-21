@@ -123,7 +123,8 @@ def run_checks(args, report, qmp, agent):
     report.measurements["os-release"] = os_release
 
     code, out, _ = agent.run("dpkg-query -W -f='${Package} ${Version}\\n' "
-                             "veltos-base veltos-desktop plasma-workspace linux-image-amd64")
+                             "veltos-base veltos-desktop veltos-auth veltos-clock veltos-explorer "
+                             "plasma-workspace linux-image-amd64")
     report.check("VeltOS packages installed", code == 0, out)
     report.measurements["key_packages"] = out
 
@@ -186,6 +187,17 @@ def run_checks(args, report, qmp, agent):
                           f"grep -h 'Autolock' {home}/.config/kscreenlockerrc")
     report.check("per-user defaults: VeltOS style, File Explorer side bar, no live screen lock",
                  "theme=VeltOS" in out and "\n1\n" in out and "Autolock=false" in out,
+                 out.replace("\n", "; "))
+    # The session's helpers: VeltOS' password prompt (not KDE's agent),
+    # Clock's alarm agent, and the VeltOS file dialogs for every program.
+    _, out, _ = agent.run(f"pgrep -u {LIVE_USER} -f veltos-auth-agent >/dev/null && echo veltos-agent; "
+                          f"pgrep -u {LIVE_USER} -f polkit-kde-authentication-agent-1 >/dev/null && echo kde-agent; "
+                          f"pgrep -u {LIVE_USER} -f veltos-clock-agent >/dev/null && echo clock-agent; "
+                          "grep -h FileChooser /etc/xdg/xdg-desktop-portal/kde-portals.conf; "
+                          f"grep -c xdgdesktopportal /proc/$(pgrep -u {LIVE_USER} -x plasmashell | head -1)/environ")
+    report.check("VeltOS password prompt and Clock alarms run with the session; portal file dialogs",
+                 "veltos-agent" in out and "kde-agent" not in out and "clock-agent" in out
+                 and "FileChooser=veltos" in out and "\n1" in out,
                  out.replace("\n", "; "))
 
     # The welcome window covers the desktop: close it and show the desktop

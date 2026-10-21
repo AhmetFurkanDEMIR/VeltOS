@@ -167,12 +167,19 @@ class DefaultApps:
         return find_desktop(name, self.app_dirs or application_dirs()) is not None
 
     def current(self, mime):
-        """The app that opens `mime` now ("" if none is set or installed)."""
-        for path in config_files("mimeapps.list") + [d / "mimeapps.list" for d in self.app_dirs or application_dirs()]:
+        """The app that opens `mime` now: the recorded default (the user's
+        lists, /etc/xdg, then the lists next to the applications, where
+        VeltOS records its own defaults as kde-mimeapps.list), else the first
+        app in the applications' cache, which is what opens the type when
+        nothing was chosen; "" if none is installed."""
+        app_dirs = self.app_dirs or application_dirs()
+        lists = config_files("mimeapps.list") + [d / name for d in app_dirs
+                                                 for name in ("kde-mimeapps.list", "mimeapps.list")]
+        for path in lists:
             for name in list_values(path, "Default Applications").get(mime, []):
                 if self._installed(name):
                     return name
-        for folder in self.app_dirs or application_dirs():
+        for folder in app_dirs:
             for name in list_values(folder / "mimeinfo.cache", "MIME Cache").get(mime, []):
                 if self._installed(name):
                     return name
@@ -220,6 +227,11 @@ class DefaultApps:
             current = self.current(mimes[0])
             if current and current not in [o["value"] for o in options]:
                 current = ""
+            if not current and options:
+                # Nothing recorded and no cache: the first app that can open
+                # the type is what a double-click uses (Windows never shows
+                # an empty row either).
+                current = options[0]["value"]
             groups.append({"id": group_id, "title": turkish if self.lang == "tr" else english,
                            "options": options, "current": current})
         return {"groups": groups}

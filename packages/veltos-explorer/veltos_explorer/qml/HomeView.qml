@@ -82,7 +82,7 @@ ScrollView {
                 delegate: Rectangle {
                     id: tile
                     required property var modelData
-                    width: 230
+                    width: Math.round(230 * Theme.textScale)
                     height: 64
                     radius: 4
                     color: tileHover.hovered ? Theme.hover : "transparent"
@@ -194,7 +194,7 @@ ScrollView {
                         elide: Text.ElideRight
                     }
                     Text {
-                        Layout.preferredWidth: 160
+                        Layout.preferredWidth: Math.round(160 * Theme.textScale)
                         text: recentRow.modelData.modifiedText
                         color: Theme.subtext
                         font.pixelSize: Theme.fontSize

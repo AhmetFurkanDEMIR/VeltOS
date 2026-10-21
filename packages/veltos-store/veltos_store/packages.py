@@ -77,6 +77,37 @@ def parse_progress(line):
     return None
 
 
+def failure_key(error):
+    """A text key (strings.py) for PackageKit's error message, or "" for
+    one that has no better wording than "something went wrong"."""
+    text = (error or "").lower()
+    if "authentication" in text or "not authorized" in text or "permission" in text:
+        return "failed_auth"
+    if "could not find" in text or "no packages were found" in text or "not found" in text \
+            or "could not be found" in text:
+        return "failed_not_found"
+    if any(word in text for word in ("download", "network", "resolve", "fetch", "connect", "timed out",
+                                     "temporary failure", "mirror")):
+        return "failed_network"
+    if "lock" in text or "another" in text or "busy" in text or "in use" in text:
+        return "failed_busy"
+    return ""
+
+
+def lists_need_refresh(lists_dir="/var/lib/apt/lists", max_age_days=7, now=None):
+    """Whether the package lists are missing or old: an installed system
+    whose lists were last fetched when the image was built cannot find
+    newer packages (and finds none at all when the lists are gone)."""
+    import glob
+    import os
+    import time
+    packages_files = glob.glob(os.path.join(lists_dir, "*_Packages")) + glob.glob(os.path.join(lists_dir, "*_Packages.*"))
+    if not packages_files:
+        return True
+    newest = max(os.path.getmtime(f) for f in packages_files)
+    return ((now or time.time()) - newest) > max_age_days * 86400
+
+
 def count_updates(output):
     """Number of packages `pkcon -p get-updates` lists."""
     _, found, results = output.partition("Results:")
@@ -91,9 +122,10 @@ class Jobs(QObject):
     changed = Signal()
     finished = Signal(str, str, bool)   # action, package, process exit OK
 
-    def __init__(self, program="pkcon", parent=None):
+    def __init__(self, program="pkcon", parent=None, needs_refresh=lists_need_refresh):
         super().__init__(parent)
         self.program = program
+        self.needs_refresh = needs_refresh
         self.queue = []
         self.current = None      # (action, package)
         self.percent = -1
@@ -109,12 +141,19 @@ class Jobs(QObject):
         if self.current and self.current[1] == package:
             return self.status or {"install": "installing", "remove": "removing"}.get(self.current[0], "updating")
         if any(p == package for _a, p in self.queue):
-            return "waiting"
+            # Waiting behind the list refresh its own install asked for.
+            return "refreshing" if self.current and self.current[0] == "refresh" else "waiting"
         return ""
 
     def add(self, action, package):
         if self.busy(package):
             return
+        if action == "install" and self.needs_refresh() and not any(a == "refresh" for a, _p in self.queue) \
+                and not (self.current and self.current[0] == "refresh"):
+            # Old or missing package lists: fetch them first, or the app
+            # "could not be found" (an installed system keeps the image's
+            # lists until something refreshes them).
+            self.queue.append(("refresh", ""))
         self.queue.append((action, package))
         self.changed.emit()
         self._next()
@@ -124,6 +163,8 @@ class Jobs(QObject):
             return ["-p", "-y", "install", package]
         if action == "remove":
             return ["-p", "-y", "remove", package]
+        if action == "refresh":
+            return ["-p", "refresh"]
         return ["-p", "-y", "update"]
 
     def _next(self):

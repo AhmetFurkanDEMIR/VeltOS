@@ -40,6 +40,32 @@ class PrefsTests(unittest.TestCase):
         self.assertEqual(self.prefs.get("lockAfter"), 3)
         self.assertEqual(self.prefs.get("lockOnResume"), True)        # default
 
+    def test_lock_never_turns_the_automatic_lock_off(self):
+        self.prefs.set("lockAfter", 0)
+        commands = [" ".join(c) for c in self.runner.commands]
+        self.assertIn("kwriteconfig6 --notify --file kscreenlockerrc --group Daemon --type bool --key Autolock false",
+                      commands)
+        self.assertFalse(any("--key Timeout" in c for c in commands))
+        self.prefs.set("lockAfter", 15)
+        commands = [" ".join(c) for c in self.runner.commands]
+        self.assertIn("kwriteconfig6 --notify --file kscreenlockerrc --group Daemon --type bool --key Autolock true",
+                      commands)
+        self.assertIn("kwriteconfig6 --notify --file kscreenlockerrc --group Daemon --key Timeout 15", commands)
+        (self.home / "kscreenlockerrc").write_text("[Daemon]\nTimeout=10\nAutolock=false\n")
+        with mock.patch.object(prefs, "has_battery", return_value=False):
+            self.assertEqual(self.prefs.state()["lockAfter"], 0)
+
+    def test_file_search_is_its_setting_not_the_running_indexer(self):
+        self.assertTrue(self.prefs.file_search())                        # KDE's default: on
+        (self.home / "baloofilerc").write_text("[Basic Settings]\nIndexing-Enabled=false\n")
+        self.assertFalse(self.prefs.file_search())
+        self.assertTrue(self.prefs.set_file_search(True))
+        self.assertIn(["balooctl6", "enable"], self.runner.commands)
+        self.runner.fail.add("balooctl6")
+        self.assertTrue(self.prefs.set_file_search(False))              # recorded even without balooctl6
+        self.assertIn("kwriteconfig6 --notify --file baloofilerc --group Basic Settings --type bool "
+                      "--key Indexing-Enabled false", [" ".join(c) for c in self.runner.commands])
+
     def test_nested_groups(self):
         (self.home / "powerdevilrc").write_text("[AC][Display]\nTurnOffDisplayIdleTimeoutSec=300\n")
         self.assertEqual(self.prefs.get("screenOffAC"), 300)
@@ -144,11 +170,16 @@ class AccountsTests(unittest.TestCase):
 
     @unittest.skipUnless(os.name == "posix", "needs a pseudo terminal")
     def test_change_password_through_passwd(self):
+        # Like the real passwd: echo off while a password is typed, a newline
+        # after each answer, a pause while the old one is checked (the pause
+        # with echo on is where an answer sent too early was echoed and the
+        # last prompt stayed unanswered, VM 2026-10-21).
         fake = Path(tempfile.mkdtemp()) / "passwd"
         fake.write_text("#!/bin/sh\n"
-                        "printf 'Current password: '; read a\n"
-                        "printf 'New password: '; read b\n"
-                        "printf 'Retype new password: '; read c\n"
+                        "prompt() { stty -echo 2>/dev/null; printf '%s' \"$1\"; read ans; stty echo 2>/dev/null; echo; }\n"
+                        "prompt 'Current password: '; a=$ans; sleep 0.3\n"
+                        "prompt 'New password: '; b=$ans\n"
+                        "prompt 'Retype new password: '; c=$ans\n"
                         "[ \"$a\" = old ] || { echo 'passwd: Authentication token manipulation error'; exit 1; }\n"
                         "[ \"$b\" = \"$c\" ] && [ ${#b} -ge 6 ] || { echo 'BAD PASSWORD: it is too short'; exit 10; }\n"
                         "echo 'passwd: password updated successfully'\n")
@@ -217,7 +248,16 @@ class AppsTests(unittest.TestCase):
             defaults = apps.DefaultApps(FakeSystem(), [folder])
             groups = {g["id"]: g for g in defaults.state()["groups"]}
             self.assertEqual([o["value"] for o in groups["browser"]["options"]], ["firefox-esr.desktop"])
-            self.assertEqual(groups["browser"]["current"], "")
+            # Nothing recorded: the only app that opens it is the current one.
+            self.assertEqual(groups["browser"]["current"], "firefox-esr.desktop")
+            self.assertEqual(groups["email"]["current"], "")                 # nothing installed
+            # VeltOS' own defaults next to the applications (kde-mimeapps.list).
+            (folder / "kde-mimeapps.list").write_text("[Default Applications]\ntext/plain=editor.desktop;\n")
+            (folder / "editor.desktop").write_text(
+                "[Desktop Entry]\nType=Application\nName=Editor\nExec=editor %f\nMimeType=text/plain;\n")
+            (folder / "other.desktop").write_text(
+                "[Desktop Entry]\nType=Application\nName=Another\nExec=other %f\nMimeType=text/plain;\n")
+            self.assertEqual(defaults.current("text/plain"), "editor.desktop")
             self.assertEqual(groups["pdf"]["options"], [{"value": "okularApplication_pdf.desktop",
                                                          "label": "Document Viewer", "icon": "okular"}])
             self.assertEqual(groups["pdf"]["current"], "okularApplication_pdf.desktop")

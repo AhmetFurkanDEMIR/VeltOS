@@ -1,0 +1,28 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-auth
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-auth/usr/lib/python3/dist-packages
+	cp -r veltos_auth debian/veltos-auth/usr/lib/python3/dist-packages/
+	find debian/veltos-auth -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-auth-agent debian/veltos-auth/usr/bin/veltos-auth-agent
+	# Name and icon of the prompt's window on the taskbar (never in Start).
+	install -D -m 644 data/veltos-auth.desktop debian/veltos-auth/usr/share/applications/veltos-auth.desktop
+	# The prompt's icon: the VeltOS "V" on a shield with a padlock badge.
+	install -D -m 644 data/veltos-auth.svg debian/veltos-auth/usr/share/icons/hicolor/scalable/apps/veltos-auth.svg
+	# Started with the Plasma session like KDE's agent (a static unit pulled
+	# in by plasma-core.target); KDE's own unit is masked (debian/*.links).
+	install -D -m 644 data/veltos-auth-agent.service \
+		debian/veltos-auth/usr/lib/systemd/user/veltos-auth-agent.service
+	install -d debian/veltos-auth/usr/lib/systemd/user/plasma-core.target.wants
+	ln -s ../veltos-auth-agent.service \
+		debian/veltos-auth/usr/lib/systemd/user/plasma-core.target.wants/veltos-auth-agent.service
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

@@ -32,9 +32,9 @@ ColumnLayout {
         VComboBox {
             Layout.preferredWidth: 200
             accessibleName: backend.text("lock_after")
-            enabledState: page.p.loaded === true && page.p.autoLock !== false
+            enabledState: page.p.loaded === true
             options: backend.lockOptions
-            currentValue: page.p.lockAfter
+            currentValue: page.p.autoLock === false ? 0 : page.p.lockAfter
             onActivated: value => backend.setPref("lockAfter", value)
         }
     }

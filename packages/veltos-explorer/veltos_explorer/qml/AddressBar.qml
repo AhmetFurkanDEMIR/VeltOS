@@ -168,7 +168,7 @@ Rectangle {
                 clip: true
                 onAccepted: {
                     bar.editing = false;
-                    bar.tab.navigate(text);
+                    backend.enterAddress(text);      // a path, a place or "cmd"
                 }
                 Keys.onEscapePressed: bar.editing = false
                 onActiveFocusChanged: if (!activeFocus) bar.editing = false

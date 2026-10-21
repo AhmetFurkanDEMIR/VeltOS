@@ -29,6 +29,7 @@ ApplicationWindow {
 
     readonly property string page: runner.page
     readonly property bool busy: ["preparing", "running", "waiting"].includes(page)
+    readonly property bool choosing: page === "choose"
     readonly property bool problem: ["failed", "invalid", "nospace"].includes(page)
 
     onClosing: close => {
@@ -147,33 +148,102 @@ ApplicationWindow {
             }
         }
 
-        // Programs the installer created, each with an Open button.
-        Repeater {
-            model: window.page === "done" ? runner.newApps : []
-            delegate: Rectangle {
-                required property int index
-                required property var modelData
-                Layout.fillWidth: true
-                implicitHeight: 48
-                radius: Theme.radius
-                color: Theme.card
-                border.color: Theme.cardBorder
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 8
-                    Text {
+        // Programs the installer created, each with an Open button. A long
+        // list scrolls inside the window instead of pushing the buttons up.
+        ScrollView {
+            visible: window.page === "done" && runner.newApps.length > 0
+            Layout.fillWidth: true
+            Layout.preferredHeight: Math.min(appsColumn.implicitHeight, 160)
+            Layout.maximumHeight: 160
+            clip: true
+            contentWidth: availableWidth
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+            ColumnLayout {
+                id: appsColumn
+                width: parent.width
+                spacing: 8
+                Repeater {
+                    model: window.page === "done" ? runner.newApps : []
+                    delegate: Rectangle {
+                        required property int index
+                        required property var modelData
                         Layout.fillWidth: true
-                        text: modelData.name
-                        color: Theme.text
-                        font.pixelSize: Theme.bodySize
-                        elide: Text.ElideRight
+                        implicitHeight: 48
+                        radius: Theme.radius
+                        color: Theme.card
+                        border.color: Theme.cardBorder
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 16
+                            anchors.rightMargin: 8
+                            Text {
+                                Layout.fillWidth: true
+                                text: modelData.name
+                                color: Theme.text
+                                font.pixelSize: Theme.bodySize
+                                elide: Text.ElideRight
+                            }
+                            VButton {
+                                text: runner.tr("open")
+                                implicitWidth: 96
+                                onClicked: runner.openApp(index)
+                            }
+                        }
                     }
-                    VButton {
-                        text: runner.tr("open")
-                        implicitWidth: 96
-                        onClicked: runner.openApp(index)
+                }
+            }
+        }
+
+        // "How do you want to open this?" when Bottles or Lutris are
+        // installed next to VeltOS' own Wine environment.
+        ColumnLayout {
+            visible: window.page === "choose"
+            Layout.fillWidth: true
+            spacing: 8
+            Repeater {
+                model: window.page === "choose" ? runner.alternatives : []
+                delegate: Rectangle {
+                    id: option
+                    required property int index
+                    required property var modelData
+                    readonly property bool chosen: runner.chosenRunner === modelData.id
+                    Layout.fillWidth: true
+                    implicitHeight: 56
+                    radius: Theme.radius
+                    color: chosen ? Theme.controlHover : (optionHover.hovered ? Theme.controlHover : Theme.card)
+                    border.width: chosen ? 2 : 1
+                    border.color: chosen ? Theme.accent : Theme.cardBorder
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 14
+                        spacing: 12
+                        Kirigami.Icon {
+                            Layout.preferredWidth: 28
+                            Layout.preferredHeight: 28
+                            source: option.modelData.icon
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+                            Text {
+                                Layout.fillWidth: true
+                                text: option.modelData.name
+                                color: Theme.text
+                                font.pixelSize: Theme.bodySize
+                                elide: Text.ElideRight
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: option.modelData.description
+                                color: Theme.subtext
+                                font.pixelSize: Theme.captionSize
+                                elide: Text.ElideRight
+                            }
+                        }
                     }
+                    HoverHandler { id: optionHover }
+                    TapHandler { onTapped: runner.chosenRunner = option.modelData.id }
                 }
             }
         }
@@ -183,7 +253,7 @@ ApplicationWindow {
         // Information bar (Windows 11 InfoBar): Wine is not a sandbox.
         Rectangle {
             Layout.fillWidth: true
-            visible: window.page === "preparing" || window.page === "running"
+            visible: window.page === "preparing" || window.page === "running" || window.page === "choose"
             implicitHeight: note.implicitHeight + 24
             radius: Theme.smallRadius
             color: Theme.card
@@ -275,6 +345,13 @@ ApplicationWindow {
                 visible: window.page === "waiting"
                 text: runner.tr("installer_done")
                 onClicked: runner.finishWaiting()
+            }
+            VButton {
+                visible: window.page === "choose"
+                accent: true
+                focus: true
+                text: runner.tr("open")
+                onClicked: runner.chooseRunner(runner.chosenRunner)
             }
             VButton {
                 visible: !["done", "waiting"].includes(window.page)

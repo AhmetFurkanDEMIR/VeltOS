@@ -6,6 +6,8 @@ import QtQuick
 
 QtObject {
     readonly property bool dark: runner.darkMode
+    // Settings > Accessibility > Text size: every text size below scales with it.
+    readonly property real textScale: runner.textScale
 
     readonly property color window: dark ? "#1C1D26" : "#F3F5FA"
     readonly property color card: dark ? "#2A2C38" : "#FFFFFF"
@@ -25,7 +27,7 @@ QtObject {
 
     readonly property int radius: 8
     readonly property int smallRadius: 4
-    readonly property int titleSize: 24
-    readonly property int bodySize: 14
-    readonly property int captionSize: 12
+    readonly property int titleSize: Math.round(24 * textScale)
+    readonly property int bodySize: Math.round(14 * textScale)
+    readonly property int captionSize: Math.round(12 * textScale)
 }

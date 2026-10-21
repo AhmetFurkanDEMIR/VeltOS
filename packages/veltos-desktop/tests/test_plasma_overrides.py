@@ -81,6 +81,11 @@ class OverrideTests(unittest.TestCase):
         overlay = (self.applets / "org.kde.plasma.taskmanager/contents/ui/GroupExpanderOverlay.qml").read_text(
             encoding="utf-8")
         self.assertIn("visible: false // VeltOS", overlay)
+        # Progress as a thin bar under the icon (whole file replaced).
+        progress = (self.applets / "org.kde.plasma.taskmanager/contents/ui/TaskProgressOverlay.qml").read_text(
+            encoding="utf-8")
+        self.assertIn("thin bar under the icon", progress)
+        self.assertIn("task.smartLauncherItem.progress", progress)
 
     def test_changed_upstream_falls_back_to_plasma(self):
         self.run_tool()
@@ -105,7 +110,7 @@ class OverrideTests(unittest.TestCase):
         applet = (self.out / "plasma/shells/org.kde.plasma.desktop/contents/applet/CompactApplet.qml")
         text = applet.read_text(encoding="utf-8")
         self.assertIn("id: startCentre", text)
-        self.assertIn('Plasmoid.pluginName === "org.veltos.startmenu"', text)
+        self.assertIn('["org.veltos.startmenu", "org.veltos.search"].includes(Plasmoid.pluginName)', text)
         self.assertNotIn("        visualParent: root.compactRepresentation\n", text)
 
     def test_window_frame_buttons_have_maximised_pictures(self):

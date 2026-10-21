@@ -51,7 +51,8 @@ class Backend(QObject):
     settingsChanged = Signal()
     message = Signal(str)                  # a short error to show
 
-    def __init__(self, lang=None, start=None, threaded=True, runner=places.run, open_paths=()):
+    def __init__(self, lang=None, start=None, threaded=True, runner=places.run, open_paths=(),
+                 item_filter=None):
         super().__init__()
         self.lang = lang or strings.language()
         self.jobs = Jobs(threaded)
@@ -59,6 +60,10 @@ class Backend(QObject):
         self.runner = runner
         self.prefs = places.Pins()
         self.mime = MimeTypes(self.lang)
+        # The file dialog (picker.py) lists only what its filter allows and
+        # takes a double-clicked file as the answer instead of opening it.
+        self.item_filter = item_filter or (lambda items: items)
+        self.picker = None
         self._drives = []
         self._recent = []
         self._tabs = []
@@ -73,6 +78,7 @@ class Backend(QObject):
             else:
                 self._tabs.append(Tab(self, path, self))
         self._dark = self.read_dark_mode()
+        self._text_scale = self.read_text_scale()
         # kdeglobals is replaced (not edited) when it changes: watch its folder.
         self.config_watcher = QFileSystemWatcher(self)
         config_dir = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
@@ -111,10 +117,40 @@ class Backend(QObject):
         if os.path.isdir(path):
             return str(Path(path))
         if os.path.exists(path):
-            self.ops.open(path)
+            self.open_file(path)
             return None
         self.message.emit(self.text("cannot_open").replace("{name}", location))
         return None
+
+    # Words typed into the address box that open a terminal at the folder,
+    # as Windows 11 File Explorer does with "cmd" and "powershell".
+    TERMINAL_WORDS = ("cmd", "cmd.exe", "terminal", "powershell", "pwsh", "wt", "bash", "sh", "konsole")
+
+    @Slot(str)
+    def enterAddress(self, text):
+        """What was typed into the address box: a terminal word, a path or
+        a place."""
+        if text.strip().lower() in self.TERMINAL_WORDS:
+            self.openTerminal()
+            return
+        self.current_tab().navigate(text)
+
+    def open_file(self, path):
+        """Open a file: in the file dialog it is the answer; otherwise the
+        default app, or VeltOS' "open with" dialog for a type no app claims
+        (instead of KDE's)."""
+        if self.picker is not None:
+            self.picker.chosen([path])
+            return
+        if not self.appsFor(path):
+            self.chooseApp(path)
+            return
+        self.ops.open(path)
+
+    @Slot(str)
+    def chooseApp(self, path):
+        """Windows 11's "Select an app to open this file" (openwith.py)."""
+        ops.detached([sys.executable, "-m", "veltos_explorer", "--open-with", path])
 
     def location_title(self, location):
         if location == HOME:
@@ -327,7 +363,7 @@ class Backend(QObject):
         if path in SPECIAL or os.path.isdir(path):
             self.current_tab().navigate(path)
         else:
-            self.ops.open(path)
+            self.open_file(path)
 
     @Slot()
     def openSelection(self):
@@ -337,11 +373,14 @@ class Backend(QObject):
         if len(folders) == 1 and len(chosen) == 1:
             tab.navigate(folders[0]["path"])
             return
+        if self.picker is not None:
+            self.picker.chosen([i["path"] for i in chosen])
+            return
         for item in chosen:
             if item["isDir"]:
                 self.newTab(item["path"])
             else:
-                self.ops.open(item["path"])
+                self.open_file(item["path"])
 
     @Slot(str)
     def openInNewTab(self, path):
@@ -394,12 +433,41 @@ class Backend(QObject):
     def darkMode(self):
         return self._dark
 
+    @Property(float, notify=settingsChanged)
+    def textScale(self):
+        """Settings > Accessibility > Text size (the KDE font size over its
+        default of 10 pt): the texts scale with it, as Windows apps do."""
+        return self._text_scale
+
     def _config_changed(self, _path=""):
-        """Follow a switch between light and dark mode while open."""
-        dark = self.read_dark_mode()
-        if dark != self._dark:
-            self._dark = dark
+        """Follow a switch between light and dark mode, or a new text size,
+        while open."""
+        dark, scale = self.read_dark_mode(), self.read_text_scale()
+        if dark != self._dark or scale != self._text_scale:
+            self._dark, self._text_scale = dark, scale
             self.settingsChanged.emit()
+
+    @staticmethod
+    def read_text_scale():
+        config = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "kdeglobals"
+        for path in (config, Path("/etc/xdg/kdeglobals")):
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            section = text.split("[General]", 1)
+            if len(section) != 2:
+                continue
+            for line in section[1].splitlines():
+                if line.startswith("["):
+                    break
+                if line.startswith("font="):
+                    parts = line.split("=", 1)[1].split(",")
+                    try:
+                        return max(1.0, min(2.25, float(parts[1]) / 10)) if len(parts) > 1 else 1.0
+                    except ValueError:
+                        return 1.0
+        return 1.0
 
     @staticmethod
     def read_dark_mode():
@@ -639,23 +707,39 @@ class Backend(QObject):
         self.jobs.submit(work, done)
 
 
-def main(argv=None):
-    argv = sys.argv if argv is None else argv
-    if "--filemanager1" in argv[1:]:
-        from . import filemanager1
-        return filemanager1.serve(argv)
+def prepare_application(argv, name, title_key="app_title"):
+    """The QGuiApplication every File Explorer window uses (also the file
+    dialog and the "open with" window)."""
     app = QGuiApplication(argv)
     # Text drawn like KDE programs (FreeType, hinted) instead of Qt Quick's
     # distance-field glyphs, which looked uneven at fractional display
     # scales ("kal dır", "program lar" at 105 %, VM 2026-10-20).
     QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
-    app.setApplicationName("veltos-explorer")
-    app.setApplicationDisplayName(strings.text(strings.language(), "app_title"))
+    app.setApplicationName(name)
+    app.setApplicationDisplayName(strings.text(strings.language(), title_key))
     app.setDesktopFileName("veltos-explorer")
     if not QIcon.themeName() or QIcon.themeName() == "hicolor":
         # Started outside Plasma (no platform theme): use the system's icons.
         QIcon.setThemeName(icon_theme())
     app.setWindowIcon(QIcon.fromTheme("veltos-explorer"))
+    return app
+
+
+def main(argv=None):
+    argv = sys.argv if argv is None else argv
+    if "--filemanager1" in argv[1:]:
+        from . import filemanager1
+        return filemanager1.serve(argv)
+    if "--portal" in argv[1:]:
+        from . import portal
+        return portal.serve(argv)
+    if "--pick" in argv[1:]:
+        from . import picker
+        return picker.run(picker.read_request(), [a for a in argv if a != "--pick"])
+    if "--open-with" in argv[1:]:
+        from . import openwith
+        return openwith.run(argv)
+    app = prepare_application(argv, "veltos-explorer")
     backend = Backend(open_paths=argv[1:])
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)

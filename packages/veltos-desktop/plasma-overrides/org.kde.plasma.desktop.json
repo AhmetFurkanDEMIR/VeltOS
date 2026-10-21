@@ -19,7 +19,7 @@
       "file": "contents/applet/CompactApplet.qml",
       "why": "the Start menu uses the centred item as its popup's visual parent",
       "old": "        visualParent: root.compactRepresentation\n",
-      "new": "        visualParent: Plasmoid.pluginName === \"org.veltos.startmenu\" && startCentre.parent\n                      ? startCentre : root.compactRepresentation\n"
+      "new": "        visualParent: [\"org.veltos.startmenu\", \"org.veltos.search\"].includes(Plasmoid.pluginName) && startCentre.parent\n                      ? startCentre : root.compactRepresentation\n"
     },
     {
       "file": "contents/applet/CompactApplet.qml",

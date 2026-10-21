@@ -62,7 +62,9 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
 | `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus), master logo |
 | `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy); diverts `systemsettings`/`kcmshell6`/`kinfocenter` to itself so KDE's settings window never opens |
-| `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders |
+| `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`) |
+| `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
+| `packages/veltos-clock/` | VeltOS Clock: Windows 11 Clock (Focus sessions, Timer, Alarm, Stopwatch, World clock); `veltos-clock-agent` rings alarms and timers while the app is closed |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
 | `packages/veltos-calculator/` | VeltOS Calculator: Windows 11 Calculator (Standard and Scientific modes, memory, history, keep on top, app theme); decimal engine in `engine.py` |
 | `packages/veltos-notepad/` | VeltOS Notepad: Windows 11 Notepad layout (tabs in the title bar, File/Edit/View, find and replace, status bar with encoding and line ending), keeps encodings/line endings, restores unsaved tabs; default for text files |
@@ -385,6 +387,62 @@ owner sets priorities; agents act as the engineering team.
 - A modal Popup's `Overlay.modal` covers the whole QQuickWindow, including
   the transparent shadow margin of VeltOS' self-drawn windows; use
   `Scrim.qml` (dims the window only).
+- Qt Quick `TapHandler`s take only a passive grab by default
+  (`gesturePolicy: DragThreshold`): a handler on a row *and* one on the
+  button inside it both fire for one tap (Settings' "Change" password
+  button toggled its panel open and shut). Give buttons
+  `ReleaseWithinBounds` or make the row ignore taps on its control.
+- A QML singleton (`Theme.qml`) can read root context properties
+  (`backend.textScale`); every object given to an engine that loads such
+  QML must have the properties the singleton reads, or "Unable to assign
+  [undefined] to double" follows (the Snipping Tool's second backend).
+- polkit flows cannot be tested with `vm exec-user` (runuser from the
+  guest agent is in no login session, so no agent is found): run the
+  command inside the user's systemd manager, `systemd-run
+  --machine=velt@.host --user --collect sh -c '...'`. The live system's
+  `sudo_on_live.rules` grants everything without a prompt; move it out of
+  `/usr/share/polkit-1/rules.d/` (polkitd reloads at once) to see the
+  prompt.
+- `polkit-agent-helper-1` (setuid): argv[1] = user, first stdin line =
+  cookie, then `PAM_PROMPT_ECHO_OFF <text>` lines answered with a plain
+  line, `SUCCESS`/`FAILURE` at the end; on success the helper itself tells
+  polkitd. One agent per session: KDE's `plasma-polkit-agent.service`
+  (static, pulled by plasma-core.target) must be masked
+  (`/etc/systemd/user/... -> /dev/null`).
+- Qt's portal platform theme (`QT_QPA_PLATFORMTHEME=xdgdesktopportal`,
+  package qt6-xdgdesktopportal-platformtheme) wraps the platform's own
+  theme (KDE's) and only takes file dialogs (and the colour scheme) from
+  the portal. xdg-desktop-portal reads `kde-portals.conf` from
+  `/etc/xdg/xdg-desktop-portal/` first and must be restarted after the file
+  changes (`systemctl --user restart xdg-desktop-portal`).
+- LibreOffice's Qt file picker sends two portal OpenFile requests per
+  Ctrl+O; `portal.py` merges identical requests of one window
+  (`DUPLICATE_SECONDS`). A portal backend that fails to start makes
+  xdg-desktop-portal drop the interface ("No such interface
+  org.freedesktop.portal.FileChooser") and Qt silently falls back to
+  KDE's dialog: check `busctl --user list | grep portal` and the user
+  journal (`journalctl -b _UID=1000`, not `journalctl --user -M`, which
+  showed nothing in the VM).
+- `/usr/share/applications/mimeinfo.cache` exists only with
+  `desktop-file-utils`; GTK programs and Settings' Default apps read it.
+  Baloo's tools (`balooctl6`) are in `baloo6`.
+- Calamares' slideshow `Slide` has no "current" property: `Presentation`
+  toggles each slide's `visible`; start a slide's animations from
+  `onVisibleChanged`. Test the QML in the VM with PySide6 and
+  `engine.addImportPath('/usr/share/calamares/qml')`.
+- deb.debian.org (a CDN) was down to 20 KB/s from the developer host on
+  2026-10-21 while ftp.de.debian.org gave 7 MB/s; every package build
+  installs its build dependencies with apt, so a slow mirror stalls the
+  whole run. `VELTOS_DEBIAN_MIRROR=http://ftp.de.debian.org/debian
+  VELTOS_SECURITY_MIRROR=http://ftp.de.debian.org/debian-security
+  build/run.sh packages` switches the builder's apt sources (and the ISO
+  build's mirrors) for that run. Check with
+  `curl -o /dev/null -w '%{speed_download}' URL` before a long build.
+- `build-packages.sh` deletes the named packages' old `.deb` files first
+  and copies the new ones only when every named package built: one failing
+  test leaves `out/packages` without those packages. A full build builds
+  every directory under `packages/`; one without `debian/rules` (a draft)
+  is skipped since 2026-10-21 (before that it stopped the whole build).
 - LibreOffice configuration: VeltOS adds `share/registry/veltos-office.xcd`
   (all `.xcd` files there are read; users' changes win). A toolbar mode is
   selected by its `CommandArg` (`notebookbar.ui` = Tabbed), not by its

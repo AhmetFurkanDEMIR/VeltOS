@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: org.veltos.search\n"
-"PO-Revision-Date: 2026-10-19 12:00+0000\n"
+"PO-Revision-Date: 2026-10-21 12:00+0000\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -12,3 +12,24 @@ msgstr ""
 
 msgid "Search"
 msgstr "Ara"
+
+msgid "Search for apps, settings and documents"
+msgstr "Uygulama, ayar ve belge arayın"
+
+msgid "Top apps"
+msgstr "En çok kullanılan uygulamalar"
+
+msgid "Best match"
+msgstr "En iyi eşleşme"
+
+msgid "No results for “%1”"
+msgstr "“%1” için sonuç yok"
+
+msgid "App"
+msgstr "Uygulama"
+
+msgid "Open"
+msgstr "Aç"
+
+msgid "Start typing to search for apps, settings and documents."
+msgstr "Uygulama, ayar ve belge aramak için yazmaya başlayın."

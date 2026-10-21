@@ -1,0 +1,39 @@
+Source: veltos-clock
+Section: utils
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               tzdata
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-clock
+Architecture: all
+Depends: ${python3:Depends},
+         python3-gi,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         tzdata,
+         ${misc:Depends}
+Recommends: pipewire-bin,
+            veltos-desktop
+Description: VeltOS Clock, in the layout of Windows 11's Clock app
+ Alarms (time, name, repeat days, snooze), timers with a progress ring,
+ a stopwatch with laps, a world clock with the time in other cities and
+ focus sessions that quiet notifications, in English and Turkish.
+ .
+ A small background agent (veltos-clock-agent, started with the session)
+ rings alarms and finished timers while the app is closed: a notification
+ with Snooze and Dismiss and the VeltOS alarm sound.

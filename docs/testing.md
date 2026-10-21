@@ -46,6 +46,29 @@ Numbers from the boot test describe **a live session in a VM**:
   from QEMU start and including the deliberate boot-menu delay).
 - llvmpipe rendering inflates CPU use and plasmashell/kwin memory.
 
+## Manual checks in the long-running VM (`build/run.sh vm`)
+
+Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):
+
+- Install rebuilt packages: `build/run.sh vm upload /tmp /out/packages/X.deb`
+  then `build/run.sh vm exec "dpkg -i /tmp/X.deb"`; after Plasma packages
+  delete `~/.cache/plasmashell/qmlcache` and restart
+  `plasma-plasmashell.service` (`systemctl --user -M velt@.host restart ...`).
+- Programs that need the *login session* (polkit prompts, PackageKit):
+  `systemd-run --machine=velt@.host --user --collect --unit=NAME sh -c '...'`;
+  `vm exec-user` runs outside any session and polkit finds no agent there.
+  The live `sudo_on_live.rules` grants everything without a prompt: move
+  it out of `/usr/share/polkit-1/rules.d/` to see the prompt, and put it back.
+- Session environment for a test (e.g. `QT_QPA_PLATFORMTHEME`):
+  `systemctl --user -M velt@.host set-environment NAME=value`, then start
+  the program with `systemd-run ... --user`.
+- The sign-in screen: move `/etc/sddm.conf` (live-config's autologin,
+  which overrides every `sddm.conf.d` file) aside, `systemctl restart
+  sddm`, screenshot, type the password (`echo velt:pw | chpasswd` first),
+  then put the file back. The session restarts; redo any set-environment.
+- Keys for `vm do`: QEMU qcodes (`esc`, `ret`, `ctrl+o`, `meta_l`); `type:`
+  for text.
+
 ## Result records
 
 - Raw results: `out/test-results/<UTC stamp>-<firmware>/` (not committed).

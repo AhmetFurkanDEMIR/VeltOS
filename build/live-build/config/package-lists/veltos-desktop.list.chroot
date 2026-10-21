@@ -6,6 +6,9 @@
 # Explorer (Debian 13: kde-plasma-desktop 5:162).
 veltos-desktop
 veltos-settings
+# Administrator password prompt in the layout of Windows 11's User Account
+# Control (polkit agent); KDE's agent service is masked by it.
+veltos-auth
 
 plasma-desktop
 plasma-workspace
@@ -28,10 +31,24 @@ kinfocenter
 systemsettings
 plasma-systemmonitor
 xdg-desktop-portal-kde
+# File dialogs in the Windows 11 layout for every program: Qt programs reach
+# the portal through this platform theme (QT_QPA_PLATFORMTHEME in
+# veltos-session.sh); veltos-explorer is the portal's file chooser backend.
+# Verified: qt6-xdgdesktopportal-platformtheme 6.8.2+dfsg-9+deb13u2.
+qt6-xdgdesktopportal-platformtheme
+# mimeinfo.cache next to the applications (update-desktop-database): GTK
+# programs and VeltOS Settings' Default apps read it; without it the page
+# showed no defaults (live VM, 2026-10-21). Verified: desktop-file-utils 0.28.
+desktop-file-utils
+# File search index (Settings > Searching files; balooctl6). Off by default
+# (veltos-desktop's /etc/xdg/baloofilerc). Verified: baloo6 6.13.0-1.
+baloo6
 
 veltos-explorer
 veltos-taskmanager
 veltos-store
+# Clock (Windows 11 layout): alarms, timers, stopwatch, world clock.
+veltos-clock
 veltos-snip
 veltos-calculator
 veltos-camera

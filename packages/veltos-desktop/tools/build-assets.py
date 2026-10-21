@@ -198,6 +198,9 @@ def build_kdeglobals(scheme_groups, root):
         "DefaultDarkLookAndFeel": "org.veltos.dark",
         "widgetStyle": lnf["widget_style"],
         "contrast": scheme_groups.get("[KDE]", {}).get("contrast", "4"),
+        # Buttons without icons (OK, Cancel), as Windows draws them; KDE's
+        # remaining dialogs (new folder on the desktop) look plainer.
+        "ShowIconsOnPushButtons": "false",
     }
     groups["[KDE Control Module Restrictions]"] = {kcm: "false" for kcm in HIDDEN_SETTINGS_PAGES}
     # The taskbar is locked (session-fixups): its items then offer no
@@ -477,14 +480,31 @@ def build_static_config(root):
         # Vendor defaults; /etc/sddm.conf.d/ and /etc/sddm.conf override them.
         # SDDM's default input method is its on-screen keyboard, which
         # covered the sign-in screen while typing the password.
+        # The sign-in screen runs in KWin on Wayland, like the session: the
+        # X11 greeter SDDM starts by default came up at a different
+        # resolution than the desktop in VirtualBox and QEMU (small, then a
+        # mode switch at sign-in and again at shut-down; product owner,
+        # 2026-10-21). KWin picks the same screen mode for the greeter and
+        # the session. The command line is the one Plasma's own SDDM settings
+        # module writes (plasma-workspace 6.3).
         "usr/lib/sddm/sddm.conf.d/10-veltos.conf": (
             "[General]\n"
             "InputMethod=\n"
+            "DisplayServer=wayland\n"
+            "GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell\n"
+            "\n[Wayland]\n"
+            "CompositorCommand=kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1\n"
             "\n[Theme]\n"
             "Current=veltos\n"
             f"CursorTheme={CURSOR_THEME}\n"
             # Accounts without a picture: the VeltOS default picture.
             f"FacesDir=/{FACES_DIR}\n"),
+        # File indexing (Searching files in Settings) is off until a user
+        # turns it on: the indexer reads every file of the home folder and
+        # is the kind of background work VeltOS keeps off by default.
+        "etc/xdg/baloofilerc": (
+            "[Basic Settings]\n"
+            "Indexing-Enabled=false\n"),
         # VeltOS sign-in screen (sddm/veltos, Windows 11 layout).
         "usr/share/sddm/themes/veltos/theme.conf": (
             "[General]\n"

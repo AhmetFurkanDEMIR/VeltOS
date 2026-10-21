@@ -97,6 +97,29 @@ installed ark && fail "Ark must not be installed (VeltOS Archive replaces it)"
 # Text files open in VeltOS Notepad (KWrite and Kate are not installed).
 installed veltos-notepad || fail "VeltOS Notepad missing"
 installed kwrite && fail "KWrite must not be installed (VeltOS Notepad replaces it)"
+# File dialogs in the Windows 11 layout: the portal backend of File
+# Explorer, chosen for Plasma sessions, and Qt's portal platform theme.
+grep -q '^org.freedesktop.impl.portal.FileChooser=veltos$' /etc/xdg/xdg-desktop-portal/kde-portals.conf \
+    || fail "VeltOS file dialog is not the portal's file chooser"
+[ -f /usr/share/xdg-desktop-portal/portals/veltos.portal ] || fail "veltos.portal missing"
+[ -f /usr/lib/x86_64-linux-gnu/qt6/plugins/platformthemes/libqxdgdesktopportal.so ] \
+    || fail "Qt's portal platform theme (qt6-xdgdesktopportal-platformtheme) missing"
+grep -q '^export QT_QPA_PLATFORMTHEME=xdgdesktopportal$' /etc/xdg/plasma-workspace/env/veltos-session.sh \
+    || fail "the session does not use the portal file dialogs"
+# Administrator password prompt: VeltOS' agent runs with the session, KDE's does not.
+installed veltos-auth || fail "veltos-auth (authentication prompt) missing"
+[ -L /usr/lib/systemd/user/plasma-core.target.wants/veltos-auth-agent.service ] \
+    || fail "veltos-auth-agent.service is not started with the session"
+[ "$(readlink /etc/systemd/user/plasma-polkit-agent.service)" = /dev/null ] \
+    || fail "KDE's polkit agent service is not masked"
+# Default apps: the applications cache GTK programs and Settings read.
+[ -f /usr/share/applications/mimeinfo.cache ] || fail "/usr/share/applications/mimeinfo.cache missing (desktop-file-utils)"
+command -v balooctl6 >/dev/null || fail "balooctl6 missing (Settings > Searching files)"
+grep -q '^Indexing-Enabled=false$' /etc/xdg/baloofilerc || fail "file indexing is not off by default"
+grep -q '^DisplayServer=wayland$' /usr/lib/sddm/sddm.conf.d/10-veltos.conf || fail "sign-in screen does not run on Wayland"
+installed veltos-clock || fail "VeltOS Clock missing"
+[ -f /etc/xdg/autostart/veltos-clock-agent.desktop ] || fail "Clock's alarm agent is not started with the session"
+[ -f /usr/share/sounds/veltos/stereo/alarm-clock-elapsed.wav ] || fail "VeltOS alarm sound missing"
 installed veltos-photos || fail "VeltOS Photos missing"
 installed gwenview && fail "Gwenview must not be installed (VeltOS Photos replaces it)"
 installed veltos-media || fail "VeltOS Media Player missing"

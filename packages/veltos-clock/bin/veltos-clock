@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""VeltOS Clock (Windows 11 Clock layout)."""
+import sys
+
+from veltos_clock.app import main
+
+sys.exit(main(sys.argv))

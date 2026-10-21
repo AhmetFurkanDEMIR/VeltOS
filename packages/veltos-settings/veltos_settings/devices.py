@@ -570,10 +570,27 @@ class Personalization:
         return self.set_accent(accent) and ok
 
     def pick_image(self, start, title):
-        """Ask for a picture with the standard file dialog; "" if cancelled."""
-        code, out = self.run(["kdialog", "--title", title, "--getopenfilename", str(start),
-                              "image/png image/jpeg image/webp image/avif image/jxl"], timeout=3600)
-        return out.strip() if code == 0 else ""
+        """Ask for a picture with the VeltOS file dialog (File Explorer's
+        Windows 11 style "Open"); "" if cancelled."""
+        return pick_file(start, title, [{"name": PICTURES_FILTER[0], "patterns": PICTURES_FILTER[1]}])
+
+
+PICTURES_FILTER = ("Pictures", ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.avif", "*.jxl", "*.bmp", "*.gif"])
+
+
+def pick_file(start, title, filters, mode="open", run_dialog=None):
+    """One file from `veltos-explorer --pick` (picker.py of File Explorer),
+    which reads its request as JSON and answers with JSON; "" if cancelled."""
+    request = {"mode": mode, "title": title, "current_folder": str(start), "filters": filters}
+    run_dialog = run_dialog or (lambda command, text: subprocess.run(
+        command, input=text, capture_output=True, text=True, timeout=3600).stdout)
+    try:
+        out = run_dialog(["veltos-explorer", "--pick"], json.dumps(request))
+        answer = json.loads(out.strip().splitlines()[-1]) if out.strip() else {}
+    except (OSError, subprocess.SubprocessError, ValueError, IndexError):
+        return ""
+    paths = answer.get("paths") if isinstance(answer, dict) else None
+    return paths[0] if paths and isinstance(paths[0], str) else ""
 
 
 # --- Time ------------------------------------------------------------------------------------------

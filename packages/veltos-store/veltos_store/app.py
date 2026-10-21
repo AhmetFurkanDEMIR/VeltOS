@@ -34,6 +34,17 @@ def kde_value(group, key):
     return ""
 
 
+
+def text_scale():
+    """Text size chosen in Settings > Accessibility (the KDE font size over
+    its default of 10 pt): the VeltOS apps scale their text with it, as
+    Windows apps follow Windows' text size."""
+    parts = kde_value("General", "font").split(",")
+    try:
+        return max(1.0, min(2.25, float(parts[1]) / 10)) if len(parts) > 1 else 1.0
+    except ValueError:
+        return 1.0
+
 def accent():
     parts = [p for p in kde_value("General", "AccentColor").split(",") if p.strip().isdigit()]
     return "#%02x%02x%02x" % tuple(int(p) for p in parts[:3]) if len(parts) >= 3 else ""
@@ -78,6 +89,7 @@ class Backend(QObject):
         self.jobs.changed.connect(self._jobs_changed)
         self.jobs.finished.connect(self._job_finished)
         self._failed = set()
+        self._failure_texts = {}
         self.loaded.connect(self._set_catalog)
         self.updatesFound.connect(self._set_updates)
         self.removalChecked.connect(self._removal_checked)
@@ -137,6 +149,11 @@ class Backend(QObject):
     @Property(str, constant=True)
     def startPage(self):
         return self._start_page
+
+    @Property(float, constant=True)
+    def textScale(self):
+        """Settings > Accessibility > Text size (text_scale())."""
+        return text_scale()
 
     @Property(bool, constant=True)
     def darkMode(self):
@@ -325,9 +342,24 @@ class Backend(QObject):
         if action == "update":
             self._updates = 0 if ok else self._updates
             self.updatesChanged.emit()
+        elif action == "refresh":
+            pass                        # a failed refresh is reported by the install that follows
         elif (action == "install") != (pkg in self._installed):
             self._failed.add(pkg)       # nothing changed: refused, failed or cancelled
+            self._failure_texts[pkg] = self.jobs.error
         self._bump()
+
+    @Slot(str, int, result=str)
+    def failureText(self, pkg, _revision=0):
+        """What went wrong with the last job of this app, in plain words
+        (PackageKit's message where VeltOS has no better wording)."""
+        error = self._failure_texts.get(pkg, "")
+        key = packages.failure_key(error)
+        if key:
+            return self._texts[key]
+        if error and error != "pkcon":
+            return self._texts["failed_detail"].replace("{detail}", error)
+        return self._texts["failed"]
 
 
 def instance_name():

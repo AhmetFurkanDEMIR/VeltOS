@@ -1,0 +1,33 @@
+[Desktop Entry]
+Type=Application
+Name=Clock
+Name[tr]=Saat
+GenericName=Alarms, timers and world clock
+GenericName[tr]=Alarmlar, zamanlayıcılar ve dünya saati
+Comment=Alarms, timers, stopwatch, world clock and focus sessions
+Comment[tr]=Alarmlar, zamanlayıcılar, kronometre, dünya saati ve odaklanma oturumları
+Keywords=alarm;timer;stopwatch;world clock;focus;time;
+Keywords[tr]=alarm;zamanlayıcı;kronometre;dünya saati;odaklanma;saat;
+Exec=veltos-clock
+Icon=veltos-clock
+Terminal=false
+Categories=Utility;Clock;
+StartupNotify=true
+X-KDE-StartupNotify=false
+
+Actions=alarm;timer;stopwatch;
+
+[Desktop Action alarm]
+Name=Alarm
+Name[tr]=Alarm
+Exec=veltos-clock alarm
+
+[Desktop Action timer]
+Name=Timer
+Name[tr]=Zamanlayıcı
+Exec=veltos-clock timer
+
+[Desktop Action stopwatch]
+Name=Stopwatch
+Name[tr]=Kronometre
+Exec=veltos-clock stopwatch
