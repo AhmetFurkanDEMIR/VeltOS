@@ -98,12 +98,17 @@ checks that passed.
 
 ## Next steps
 
-1. Build an ISO with the GRUB picture fix and run the boot tests (ISO
-   20261020-083729 failed UEFI: black boot menu, see the development log);
-   check the power key, the quiet start-up and shutdown on screen.
-2. Control Panel pages inside Settings ("Change a password", taskbar
-   settings, default apps, ...), "Taskbar settings" and "Personalize"
-   menu entries.
+1. Current ISO: `veltos-0.1.0-dev-20261021-011259` (SHA-256
+   1f9bf0f2a8898d2b370ace3945f0158aaa3ccadc063a2e148f938d36fe28fb97):
+   boot tests PASS on UEFI and BIOS (`out/test-results/20261021-012725-uefi`,
+   `20261021-012927-bios`). Its packages were checked in VMs one by one
+   (see the development log of 2026-10-21); the image as a whole has only
+   had the automatic boot test. Still to check: the power key and
+   shutdown on screen, Camera with a real webcam, Mail with a real account.
+2. Windows 11 UAC-style password dialog instead of KDE's polkit window
+   (adding users, time zone, computer name). Remaining apps from the
+   product owner's list: Notepad, Photos/Media player, document viewer
+   and archive manager in the Windows layout, Office.
 4. Listen to the VeltOS sounds on real hardware; measure animation CPU
    cost with software rendering.
 5. Plain and BIOS installations; the product owner reinstalls in
