@@ -285,60 +285,64 @@ def disk_management():
                  'stroke-linejoin="round"/>\n')
 
 
-# Office (LibreOffice, veltos-office): a page, a sheet and a slide in the
-# family's colours. No letters on them: Microsoft's Office icons are marked
-# with letters, VeltOS' are not copies.
-PAGE_D = "M 60 24 H 156 L 204 72 V 220 Q 204 232 192 232 H 60 Q 48 232 48 220 V 36 Q 48 24 60 24 Z"
+# Office (LibreOffice, veltos-office): the composition of Microsoft 365's
+# Windows 11 icons (a coloured tile with the app's initial in front of a
+# page, sheet or slide), drawn here with VeltOS' own letters and colours:
+# W, S and P are the initials of VeltOS' app names Word Processor,
+# Spreadsheet and Presentation; the colours are Word blue, Excel green and
+# PowerPoint orange so the apps read as the ones Windows users know.
+# Microsoft's own icon files are not used. The same three drawings stand
+# for the file types (MIME icons below).
+OFFICE_PAGE_D = "M 108 20 H 196 L 236 60 V 224 Q 236 236 224 236 H 108 Q 96 236 96 224 V 32 Q 96 20 108 20 Z"
+OFFICE_TILE_D = rrect(16, 72, 124, 124, 22)
+OFFICE_LETTERS = {
+    # Thick strokes with round caps, centred in the tile (16..140 x 72..196).
+    "W": "M 44 110 L 60 160 L 78 122 L 96 160 L 112 110",
+    "S": "M 104 116 Q 92 104 76 106 Q 56 110 58 126 Q 60 140 80 142 Q 100 144 102 160 Q 100 176 78 176 Q 60 174 52 162",
+    "P": "M 58 166 V 106 H 86 Q 108 106 108 128 Q 108 150 86 150 H 58",
+}
+
+
+def office_icon(what, letter, dark, mid, light, ink, content):
+    """Tile (three shades of the app colour, light from the top left), the
+    letter, and the page behind with the app's content lines."""
+    return svg(what, grad("page", "#FFFFFF", "#EEF1F6") + grad("tile", light, dark, x2="1", y2="1")
+               + grad("edge", mid, dark),
+               shadow(OFFICE_PAGE_D)
+               + f'  <path d="{OFFICE_PAGE_D}" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>\n'
+               + '  <path d="M 196 20 V 50 Q 196 60 206 60 H 236 Z" fill="#D8DFE8"/>\n'
+               + content
+               + shadow(OFFICE_TILE_D)
+               + f'  <path d="{OFFICE_TILE_D}" fill="url(#tile)"/>\n'
+               + f'  <path d="M 16 134 V 174 Q 16 196 38 196 H 118 Q 140 196 140 174 V 134 Z" fill="url(#edge)" opacity="0.55"/>\n'
+               + f'  <path d="{OFFICE_LETTERS[letter]}" fill="none" stroke="#FFFFFF" stroke-width="15" '
+                 'stroke-linecap="round" stroke-linejoin="round"/>\n')
 
 
 def word_processor():
-    pencil = ('  <g transform="rotate(-45 186 186)">\n'
-              '    <rect x="150" y="172" width="78" height="28" rx="6" fill="url(#pencil)"/>\n'
-              '    <rect x="214" y="172" width="14" height="28" rx="4" fill="#F4A9B8"/>\n'
-              '    <path d="M 150 172 L 126 186 L 150 200 Z" fill="#F6D7A7"/>\n'
-              '    <path d="M 134 181 L 126 186 L 134 191 Z" fill="#26313D"/>\n'
-              '  </g>\n')
-    return svg("Word Processor", grad("page", "#FFFFFF", "#EDF1F6") + grad("ink", "#4F8BFF", "#1F4FD6")
-               + grad("pencil", "#3D7BFF", "#1E4FD0"),
-               shadow(PAGE_D)
-               + f'  <path d="{PAGE_D}" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>\n'
-               + '  <path d="M 156 24 V 60 Q 156 72 168 72 H 204 Z" fill="#D8DFE8"/>\n'
-               + '  <path d="M 76 72 H 132" stroke="url(#ink)" stroke-width="12" stroke-linecap="round"/>\n'
-               + '  <path d="M 76 104 H 176 M 76 128 H 176 M 76 152 H 176 M 76 176 H 128" stroke="#5B8DEF" '
-                 'stroke-width="8" stroke-linecap="round"/>\n'
-               + pencil)
+    lines = ('  <path d="M 152 92 H 212" stroke="#185ABD" stroke-width="10" stroke-linecap="round"/>\n'
+             '  <path d="M 152 120 H 216 M 152 144 H 216 M 152 168 H 216 M 152 192 H 192" stroke="#8FB4EC" '
+             'stroke-width="7" stroke-linecap="round"/>\n')
+    return office_icon("Word Processor", "W", "#103F8F", "#185ABD", "#3E86E8", "#185ABD", lines)
 
 
 def spreadsheet():
-    sheet_d = rrect(28, 36, 200, 184, 18)
-    cells = "".join(f'  <path d="M {x} 80 V 220" stroke="#C5CED9" stroke-width="3"/>\n' for x in (92, 160))
-    cells += "".join(f'  <path d="M 28 {y} H 228" stroke="#C5CED9" stroke-width="3"/>\n' for y in (116, 152, 188))
-    return svg("Spreadsheet", grad("sheet", "#FFFFFF", "#EDF1F6") + grad("green", "#3CC47C", "#13894A"),
-               shadow(sheet_d)
-               + f'  <path d="{sheet_d}" fill="url(#sheet)" stroke="#D3DAE4" stroke-width="2"/>\n'
-               + '  <path d="M 46 36 H 210 Q 228 36 228 54 V 80 H 28 V 54 Q 28 36 46 36 Z" fill="url(#green)"/>\n'
-               + '  <path d="M 46 39 H 210" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>\n'
-               + cells
-               + '  <rect x="92" y="116" width="68" height="36" fill="#D6F5E3" stroke="#1FA35C" stroke-width="5"/>\n'
-               + '  <rect x="155" y="147" width="10" height="10" fill="#1FA35C"/>\n')
+    grid = ('  <path d="M 150 84 H 222 V 204 H 150 Z" fill="#E4F4EA" stroke="#107C41" stroke-width="3"/>\n'
+            '  <path d="M 150 84 H 222 V 108 H 150 Z" fill="#107C41"/>\n'
+            '  <path d="M 150 132 H 222 M 150 156 H 222 M 150 180 H 222 M 174 108 V 204 M 198 108 V 204" '
+            'stroke="#7CC79A" stroke-width="3"/>\n')
+    return office_icon("Spreadsheet", "S", "#0B5A2F", "#107C41", "#2DA860", "#107C41", grid)
 
 
 def presentation():
-    frame_d = rrect(24, 32, 208, 148, 18)
-    return svg("Presentation", grad("frame", "#FF8A3D", "#E8501E") + grad("slide", "#FFFFFF", "#F1F3F6")
-               + grad("legs", "#7B8594", "#525C6A"),
-               '  <path d="M 128 176 V 206 M 128 196 L 96 232 M 128 196 L 160 232" stroke="url(#legs)" '
-               'stroke-width="9" stroke-linecap="round" fill="none"/>\n'
-               + shadow(frame_d)
-               + f'  <path d="{frame_d}" fill="url(#frame)"/>\n'
-               + '  <path d="M 42 35 H 214" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>\n'
-               + '  <rect x="38" y="46" width="180" height="120" rx="8" fill="url(#slide)"/>\n'
-               + '  <circle cx="96" cy="106" r="36" fill="#FFD3B8"/>\n'
-               + '  <path d="M 96 106 V 70 A 36 36 0 0 1 130 118 Z" fill="url(#frame)"/>\n'
-               + '  <rect x="146" y="112" width="14" height="30" rx="3" fill="#FBB48A"/>\n'
-               + '  <rect x="166" y="94" width="14" height="48" rx="3" fill="#F57A3F"/>\n'
-               + '  <rect x="186" y="78" width="14" height="64" rx="3" fill="#E8501E"/>\n')
-
+    chart = ('  <rect x="150" y="80" width="76" height="52" rx="6" fill="#FFE1D4"/>\n'
+             '  <circle cx="176" cy="106" r="16" fill="#F7B99C"/>\n'
+             '  <path d="M 176 106 V 90 A 16 16 0 0 1 191 112 Z" fill="#C43E1C"/>\n'
+             '  <rect x="200" y="96" width="8" height="26" rx="2" fill="#E8744F"/>\n'
+             '  <rect x="212" y="88" width="8" height="34" rx="2" fill="#C43E1C"/>\n'
+             '  <path d="M 152 152 H 216 M 152 176 H 216 M 152 200 H 192" stroke="#F4B59E" '
+             'stroke-width="7" stroke-linecap="round"/>\n')
+    return office_icon("Presentation", "P", "#8F2A10", "#C43E1C", "#EB6A45", "#C43E1C", chart)
 
 # drawing -> icon names it is installed under
 NAMES = {

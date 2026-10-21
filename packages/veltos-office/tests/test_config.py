@@ -119,7 +119,7 @@ class SchemaTests(unittest.TestCase):
                 if kind == "xs:boolean":
                     self.assertIn(value, ("true", "false"), path)
                 count += 1
-        self.assertGreaterEqual(count, 21)
+        self.assertGreaterEqual(count, 22)
 
     def entry_exists(self, package, component, path):
         """Whether LibreOffice's data has the set entry at path."""
@@ -157,15 +157,25 @@ class SchemaTests(unittest.TestCase):
         self.assertEqual(set(active), {"Writer", "Calc", "Impress"})
         for app, value in active.items():
             self.assertTrue(self.modes(app).get(value), f"{app}: {value} is not a mode with the notebook bar")
-        filters = {}
+        filters, ui_names, product = {}, {}, {}
         for data in self.layer.iter(f"{OOR}component-data"):
             if data.get(f"{OOR}name") == "Setup":
                 for path, value in settings(data):
-                    filters[path[2]] = value
+                    if path[-1] == "ooSetupFactoryDefaultFilter":
+                        filters[path[2]] = value
+                    elif path[-1] == "ooSetupFactoryUIName":
+                        ui_names[path[2]] = value
+                    elif path[0] == "Product":
+                        product[path[-1]] = value
         self.assertEqual(len(filters), 3)
         for factory, name in filters.items():
             self.assertTrue(self.entry_exists("org.openoffice", "Setup", ("Office", "Factories", factory)), factory)
             self.assertTrue(self.entry_exists("org.openoffice.TypeDetection", "Filter", ("Filters", name)), name)
+        # "Untitled 1 — VeltOS Office Writer": the product name. The module
+        # name stays (its ooSetupFactoryUIName is localized; an unlocalized
+        # empty value did not replace it, VM 2026-10-21).
+        self.assertEqual(product, {"ooName": "VeltOS Office"})
+        self.assertEqual(ui_names, {})
 
     def test_icon_set_is_installed(self):
         self.assertTrue((Path("/usr/share/libreoffice/share/config") / "images_colibre.zip").exists()
@@ -176,7 +186,16 @@ class LayerTests(unittest.TestCase):
     def test_layer_is_well_formed(self):
         root = ET.parse(LAYER).getroot()
         self.assertEqual(root.tag, f"{OOR}data")
-        self.assertEqual(root.find("dependency").get("file"), "main")
+        # Parsed after main.xcd and after the files that set the document
+        # factories (later files win; writer.xcd sorts after this file).
+        self.assertEqual([d.get("file") for d in root.findall("dependency")], ["main", "writer", "calc", "impress"])
+
+    @unittest.skipUnless(registry_files(), "needs LibreOffice's registry")
+    def test_dependencies_are_installed(self):
+        # A missing dependency would keep LibreOffice from reading the layer at all.
+        names = {path.stem for path in registry_files()}
+        for dependency in ET.parse(LAYER).getroot().findall("dependency"):
+            self.assertIn(dependency.get("file"), names)
 
 
 if __name__ == "__main__":

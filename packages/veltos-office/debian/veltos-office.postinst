@@ -1,0 +1,13 @@
+#!/bin/sh
+# veltos-desktop's update-app-names points the Word Processor /
+# Spreadsheet / Presentation entries at the VeltOS Office start screen
+# when /usr/bin/veltos-office exists: refresh them now.
+set -e
+
+if [ "$1" = "configure" ] && [ -x /usr/libexec/veltos/update-app-names ]; then
+    /usr/libexec/veltos/update-app-names || true
+fi
+
+#DEBHELPER#
+
+exit 0

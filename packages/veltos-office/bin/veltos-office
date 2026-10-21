@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+"""VeltOS Office start screen (Microsoft 365 Home / New / Open layout) in
+front of LibreOffice Writer, Calc and Impress."""
+import sys
+
+from veltos_office.app import main
+
+sys.exit(main(sys.argv))

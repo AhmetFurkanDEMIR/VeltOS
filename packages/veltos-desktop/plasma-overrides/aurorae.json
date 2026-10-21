@@ -1,25 +1,61 @@
 {
   "plugin": "aurorae",
   "type": "kwin",
-  "about": "KWin's Aurorae engine draws the VeltOS window frames from SVG files and has no button pictures for maximised windows. The close button's red hover rounds the window's top right corner like Windows 11; on a maximised window the corner is square, so the hover must be too. With these changes a button SVG may carry hover-maximized / pressed-maximized pictures (VeltOS' close button does, tools/fluent.py) that are used while the window is maximised; themes without them look as before.",
+  "about": "KWin's Aurorae engine draws the VeltOS window frames from SVG files and has no button pictures for maximised windows. The close button's red hover rounds the window's top right corner like Windows 11; on a maximised window the corner is square, so the hover must be too. With these changes a button SVG may carry hover-maximized / pressed-maximized pictures (VeltOS' close button does, tools/fluent.py) that are used while the window is maximised; themes without them look as before. The windows of the Office apps (LibreOffice behind VeltOS Office) get their title bar in the app's colour, as Microsoft 365's Word, Excel and PowerPoint have on Windows 11: a tint over the light frame's title bar, white caption text, and the buttons' \"-ondark\" pictures (white glyphs); the dark frame stays dark, like Office's Black theme. The windows are told by their caption (\"… — VeltOS Office Writer\", the product name veltos-office gives LibreOffice): KDecoration3 exposes no window class to the QML.",
   "replacements": [
     {
       "file": "AuroraeButton.qml",
-      "why": "pick the maximised variants when the theme has them",
+      "why": "pick the maximised variants and the white-glyph variants for coloured title bars when the theme has them",
       "old": "        property bool supportsInactiveDeactivated: hasElementPrefix(\"deactivated-inactive\")\n",
-      "new": "        property bool supportsInactiveDeactivated: hasElementPrefix(\"deactivated-inactive\")\n        // VeltOS: square hover/pressed pictures for maximised windows, if the theme has them\n        readonly property string maximizedSuffix: decoration.client.maximized && hasElementPrefix(\"hover-maximized\") ? \"-maximized\" : \"\"\n"
+      "new": "        property bool supportsInactiveDeactivated: hasElementPrefix(\"deactivated-inactive\")\n        // VeltOS: square hover/pressed pictures for maximised windows, if the theme has them\n        readonly property string maximizedSuffix: decoration.client.maximized && hasElementPrefix(\"hover-maximized\") ? \"-maximized\" : \"\"\n        // VeltOS: white glyphs on the Office apps' coloured title bars (see veltosTint in aurorae.qml), if the theme has them\n        readonly property bool veltosTinted: String(auroraeTheme.decorationPath).indexOf(\"Dark\") < 0 && [\"VeltOS Office Writer\", \"VeltOS Office Calc\", \"VeltOS Office Impress\"].some(name => String(decoration.client.caption).endsWith(name))\n        readonly property string tintSuffix: veltosTinted && hasElementPrefix(\"active-ondark\") ? \"-ondark\" : \"\"\n"
     },
     {
       "file": "AuroraeButton.qml",
       "why": "hover picture of maximised windows",
       "old": "        prefix: \"hover\"\n",
-      "new": "        prefix: \"hover\" + buttonSvg.maximizedSuffix // VeltOS\n"
+      "new": "        prefix: \"hover\" + buttonSvg.maximizedSuffix + buttonSvg.tintSuffix // VeltOS\n"
     },
     {
       "file": "AuroraeButton.qml",
       "why": "pressed picture of maximised windows",
       "old": "        prefix: \"pressed\"\n",
-      "new": "        prefix: \"pressed\" + buttonSvg.maximizedSuffix // VeltOS\n"
+      "new": "        prefix: \"pressed\" + buttonSvg.maximizedSuffix + buttonSvg.tintSuffix // VeltOS\n"
+    },
+    {
+      "file": "AuroraeButton.qml",
+      "why": "white glyph of coloured title bars",
+      "old": "        prefix: \"active\"\n",
+      "new": "        prefix: \"active\" + buttonSvg.tintSuffix // VeltOS\n"
+    },
+    {
+      "file": "AuroraeButton.qml",
+      "why": "white glyph of coloured title bars (inactive window)",
+      "old": "        prefix: \"inactive\"\n",
+      "new": "        prefix: \"inactive\" + buttonSvg.tintSuffix // VeltOS\n"
+    },
+    {
+      "file": "AuroraeButton.qml",
+      "why": "white glyph of coloured title bars (button off)",
+      "old": "        prefix: \"deactivated\"\n",
+      "new": "        prefix: \"deactivated\" + buttonSvg.tintSuffix // VeltOS\n"
+    },
+    {
+      "file": "aurorae.qml",
+      "why": "which windows get an app-coloured title bar (by caption: KDecoration3 gives the QML no window class)",
+      "old": "    property alias supportsMask: backgroundSvg.supportsMask\n",
+      "new": "    property alias supportsMask: backgroundSvg.supportsMask\n    // VeltOS: the Office apps' windows carry their app's colour in the title bar (Word blue, Excel green,\n    // PowerPoint orange), as Microsoft 365's do on Windows 11; on the light frame only (the dark frame stays\n    // dark, like Office's Black theme). The windows are told by their caption, \"... — VeltOS Office Writer\"\n    // (the product name veltos-office gives LibreOffice); KDecoration3 exposes no window class to QML.\n    readonly property color veltosTint: {\n        if (String(auroraeTheme.decorationPath).indexOf(\"Dark\") >= 0)\n            return \"transparent\";\n        const caption = String(decoration.client.caption);\n        if (caption.endsWith(\"VeltOS Office Writer\"))\n            return \"#185ABD\";\n        if (caption.endsWith(\"VeltOS Office Calc\"))\n            return \"#107C41\";\n        if (caption.endsWith(\"VeltOS Office Impress\"))\n            return \"#C43E1C\";\n        return \"transparent\";\n    }\n    readonly property bool veltosTinted: veltosTint.a > 0\n"
+    },
+    {
+      "file": "aurorae.qml",
+      "why": "the tint over the title bar, under the buttons and the caption",
+      "old": "    AuroraeButtonGroup {\n        id: leftButtonGroup\n",
+      "new": "    Rectangle {\n        // VeltOS: app-coloured title bar (veltosTint); inactive windows a lighter shade\n        visible: root.veltosTinted\n        x: decoration.client.maximized ? 0 : root.padding.left\n        y: decoration.client.maximized ? 0 : root.padding.top\n        width: root.width - (decoration.client.maximized ? 0 : root.padding.left + root.padding.right)\n        height: decoration.client.maximized ? root.maximizedBorders.top : root.borders.top\n        color: root.veltosTint\n        opacity: decoration.client.active ? 1 : 0.72\n        topLeftRadius: decoration.client.maximized ? 0 : 8\n        topRightRadius: decoration.client.maximized ? 0 : 8\n        Behavior on opacity {\n            enabled: root.animate\n            NumberAnimation {\n                duration: auroraeTheme.animationTime\n            }\n        }\n    }\n    AuroraeButtonGroup {\n        id: leftButtonGroup\n"
+    },
+    {
+      "file": "aurorae.qml",
+      "why": "white caption on the coloured title bar",
+      "old": "        color: decoration.client.active ? auroraeTheme.activeTextColor : auroraeTheme.inactiveTextColor\n",
+      "new": "        color: root.veltosTinted ? (decoration.client.active ? \"#FFFFFF\" : \"#F4F4F4\")\n               : (decoration.client.active ? auroraeTheme.activeTextColor : auroraeTheme.inactiveTextColor) // VeltOS\n"
     }
   ]
 }

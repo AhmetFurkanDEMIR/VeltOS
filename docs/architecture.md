@@ -513,6 +513,43 @@ Snapshot-based rollback (e.g. Btrfs + snapper) is a candidate to evaluate.
   kdeglobals fonts) and every VeltOS app derives a `textScale` from it,
   so KDE programs, Plasma and VeltOS apps follow one setting.
 
+### 2.13 VeltOS Office: Microsoft 365's start screen in front of LibreOffice (2026-10-22)
+
+- The product owner wants Word, Excel and PowerPoint "exactly like
+  Microsoft's: content, theme, animations". Rule 5 (no rewrite, no fork)
+  and the licence rule out copying Office or patching LibreOffice, so
+  VeltOS puts what Office users see first in front of LibreOffice: a
+  VeltOS start screen (PySide6/QML, `veltos-office`) in the layout of
+  Microsoft 365's Home / New / Open / Account / Options pages, in the
+  app's colour, with Windows 11's entrance animations, templates with
+  thumbnails and the recent list; LibreOffice opens the chosen document
+  with the Tabbed interface and Colibre icons (the nearest thing to the
+  ribbon), named "VeltOS Office" in its titles. The document window
+  itself stays LibreOffice's: its tab strip is not in the app's colour
+  and it has no animations (that would need LibreOffice changes), and
+  closing the last document shows LibreOffice's Start Center.
+  Alternatives: OnlyOffice Desktop Editors (closest to Office's look) is
+  not in Debian 13 (rule 8: signed archives only); LibreOffice's gtk3
+  plugin with per-app GTK CSS could colour the tab strip but would make
+  the Office apps the only GTK-styled programs on VeltOS and lose the
+  Qt/portal integration.
+- The title bar of LibreOffice's windows does get the app's colour, as
+  Office's has: the Aurorae frame (VeltOS' changed copy of KWin's QML,
+  `plasma-overrides/aurorae.json`) tints the title bar by the window's
+  caption ("… — VeltOS Office Writer"; KDecoration3 gives the QML no
+  window class) and switches to white caption text
+  and white-glyph buttons ("-ondark" states in the button SVGs). On the
+  dark frame nothing is tinted, like Office's Black theme. This is a
+  frame-side rule, not a KWin window rule, so users' own rules are
+  untouched.
+- Recent files are read from LibreOffice's own list (PickList in the
+  user profile), not kept twice; the start screen adds only what it
+  opened itself until LibreOffice records it. Templates are real
+  LibreOffice templates (VeltOS' own built at package build time from
+  flat ODF by LibreOffice itself, with thumbnails), so "New from
+  template" is LibreOffice's `-n`, and users' templates in LibreOffice's
+  folder appear too.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

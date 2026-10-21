@@ -71,7 +71,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-photos/` | VeltOS Photos: Windows 11 Photos (gallery by month, favorites, folders, viewer with filmstrip and file information, Edit image with crop/rotate/adjust via Pillow, slideshow); default for pictures |
 | `packages/veltos-media/` | VeltOS Media Player: Windows 11 Media Player (music library with tags/covers via mutagen, video library, play queue with shuffle/repeat, playlists, player bar, now playing) on Qt Multimedia; default for audio and video |
 | `packages/veltos-pdf/` | VeltOS PDF Reader: modern PDF reader layout (Home with recent files, tabs, search, thumbnails, bookmarks, zoom/fit, read mode, properties, passwords, printing) on QtQuick Pdf; replaces Okular, default for PDF |
-| `packages/veltos-office/` | VeltOS Office: LibreOffice Writer/Calc/Impress (Debian) with a configuration layer for Windows users (Tabbed interface, Colibre icons, MS formats by default, Carlito font, no bars); app names, icons and defaults live in veltos-desktop/veltos-fluent-icons |
+| `packages/veltos-office/` | VeltOS Office: Microsoft 365's start screen (Home / New / Open / Account / Options, the app's colour, Windows 11 animations; PySide6/QML, `veltos-office word|sheet|slides`) in front of LibreOffice Writer/Calc/Impress (Debian), VeltOS' own templates (built from flat ODF by LibreOffice at package build time) and a configuration layer for Windows users (Tabbed interface, Colibre icons, MS formats by default, Carlito font, "VeltOS Office" in titles, no bars); app names, icons and defaults live in veltos-desktop/veltos-fluent-icons, the coloured title bars in veltos-desktop's Aurorae change |
 | `packages/veltos-archive/` | VeltOS Archive: WinRAR's layout (toolbar, archive list, Extract To, Add, Test, passwords) on 7-Zip (+ 7zip-rar) and bsdtar; File Explorer's extract/compress |
 | `packages/veltos-camera/` | VeltOS Camera: Windows 11 Camera layout (photo, video, timer, framing grid, Camera Roll) on Qt Multimedia (FFmpeg backend, V4L2) |
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
@@ -443,6 +443,57 @@ owner sets priorities; agents act as the engineering team.
   test leaves `out/packages` without those packages. A full build builds
   every directory under `packages/`; one without `debian/rules` (a draft)
   is skipped since 2026-10-21 (before that it stopped the whole build).
+- LibreOffice's recent documents are the `PickList` history in the user
+  profile's `registrymodifications.xcu` (ItemList with Title/Filter per
+  URL, OrderList with 0 = most recent); its `item`/`node`/`prop`
+  elements carry no namespace prefix, only the attributes do
+  (`oor:path`, `oor:name`). Templates: `libreoffice -n FILE` makes a
+  new document from a template; LibreOffice writes
+  `Thumbnails/thumbnail.png` into templates it saves, also from
+  `soffice --headless --convert-to ott:writer8_template` (flat .fodt
+  written by hand converts fine; `-env:UserInstallation=file:///tmp/x`
+  for a throw-away profile). The window title is "<doc> — <ooName>
+  <ooSetupFactoryUIName>" (framework TitleHelper); `ooName` is a plain
+  string in `Setup/Product`, but the module names are localized
+  properties: an unlocalized empty `<value/>` in an .xcd layer does not
+  replace them (the title kept "Writer", VM 2026-10-21).
+- Testing a program that starts others from `systemd-run --user`
+  (`--machine=velt@.host`): the unit's cgroup is killed when the main
+  process exits (`KillMode=control-group`), so LibreOffice started by
+  the Office start screen died with it. Use `-p KillMode=process` for
+  such checks, or start the program from Start (Plasma gives it a scope
+  of its own). And `pkill -f '[v]eltos-office'` in a `vm exec` whose
+  text also contains `veltos-office ...` elsewhere (a `systemd-run ...
+  sh -c 'veltos-office word'` in the same call) kills that shell first:
+  keep the pkill in a call of its own, and match the launcher, not the
+  product (`[/]usr/bin/veltos-office`; LibreOffice's command line
+  contains `/usr/share/veltos-office/templates/...`).
+- KDecoration3 exposes no window class to Aurorae's QML
+  (`windowClass()` is C++ only; `decoration.client` has caption, icon,
+  active, maximized, modal, palette...). VeltOS' Aurorae copy tells the
+  Office windows by their caption ("… — VeltOS Office Writer"). KWin
+  reads Aurorae's QML at start (sign out and in). In the live VM
+  `loginctl terminate-user velt` left SDDM's relogin crashed and the
+  console autologin on tty3; `systemctl restart sddm` started a new
+  Plasma session (about two minutes).
+- LibreOffice's GTK plug-in (`SAL_USE_VCLPLUGIN=gtk3`, package
+  libreoffice-gtk3) renders the Tabbed ribbon as a GtkNotebook that GTK
+  CSS reaches with type selectors only (`notebook > header tab`;
+  GtkBuilder ids are not CSS names, so `#ContextContainer` matches
+  nothing); the quick toolbar and menu button beside the tabs are
+  VCL-painted, and `window { background }` also paints the document
+  canvas and status bar. A per-process theme goes through `GTK_THEME`.
+  Tried and dropped for the Office look (2026-10-22).
+- LibreOffice's sidebar default visibility is NOT a window-state
+  docking window (docking window 10243 does nothing; the toggle records
+  no `private:resource` Visible=false), so an .xcd layer cannot hide it
+  by default. The Start Center's thumbnail pane colours are
+  `Common/Help/StartCenter/StartCenterThumbnails{Background,Text}Color`
+  (integers). An .xcd layer overrides writer/calc/impress.xcd only when
+  it names them as dependencies (later files win; the default-filter
+  override was silently lost before).
+- Qt 6.8 `Rectangle` has `topLeftRadius` & co. (per-corner radii); the
+  Office start screen's page area uses it against the coloured rail.
 - LibreOffice configuration: VeltOS adds `share/registry/veltos-office.xcd`
   (all `.xcd` files there are read; users' changes win). A toolbar mode is
   selected by its `CommandArg` (`notebookbar.ui` = Tabbed), not by its

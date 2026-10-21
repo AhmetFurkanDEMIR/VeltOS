@@ -283,27 +283,36 @@ def caption_svg(kind, variant):
     46 x 32 button (an invisible rectangle keeps the size). The close
     button also has square hover/pressed pictures for maximised windows
     (hover-maximized, pressed-maximized: read by VeltOS' change to KWin's
-    AuroraeButton.qml, plasma-overrides/aurorae.json)."""
-    c = CAPTION_COLOURS[variant]
+    AuroraeButton.qml, plasma-overrides/aurorae.json), and every state has
+    an "-ondark" twin with white glyphs for the Office apps' coloured
+    title bars (same change)."""
     red = kind == "close"
-    states = [
-        ("active", c["glyph"], 1.0, None),
-        ("inactive", c["inactive"], 1.0, None),
-        ("hover", "#ffffff" if red else c["glyph"], 1.0, (CLOSE_RED, 1.0) if red else c["hover"]),
-        ("pressed", "#ffffff" if red else c["glyph"], 0.7 if red else 0.8,
-         (CLOSE_RED, 0.85) if red else c["pressed"]),
-        ("deactivated", c["glyph"], 0.3, None),
-    ]
-    if red:
-        states += [(f"{state}-maximized", colour, opacity, background)
-                   for state, colour, opacity, background in states if state in ("hover", "pressed")]
+
+    def states_for(c, suffix):
+        base = [
+            ("active", c["glyph"], 1.0, None),
+            ("inactive", c["inactive"], 1.0, None),
+            ("hover", "#ffffff" if red else c["glyph"], 1.0, (CLOSE_RED, 1.0) if red else c["hover"]),
+            ("pressed", "#ffffff" if red else c["glyph"], 0.7 if red else 0.8,
+             (CLOSE_RED, 0.85) if red else c["pressed"]),
+            ("deactivated", c["glyph"], 0.3, None),
+        ]
+        result = [(f"{state}{suffix}", colour, opacity, background) for state, colour, opacity, background in base]
+        if red:
+            result += [(f"{state}-maximized{suffix}", colour, opacity, background)
+                       for state, colour, opacity, background in base if state in ("hover", "pressed")]
+        return result
+
+    # The "-ondark" states (white glyphs, light hover) are used on the
+    # app-coloured title bars of the Office apps (plasma-overrides/aurorae.json).
+    states = states_for(CAPTION_COLOURS[variant], "") + states_for(CAPTION_COLOURS["dark"], "-ondark")
     parts = []
     for i, (state, colour, opacity, background) in enumerate(states):
         x = i * (CAPTION_W + 2)
         group = [f'<g id="{state}-center">',
                  f'<rect x="{x}" y="0" width="{CAPTION_W}" height="{CAPTION_H}" fill="#000000" opacity="0.001"/>']
         if background:
-            group.append(caption_background(kind, x, *background, maximized=state.endswith("-maximized")))
+            group.append(caption_background(kind, x, *background, maximized="-maximized" in state))
         group.append(caption_glyph(kind, x, colour, opacity))
         group.append("</g>")
         parts.append("".join(group))

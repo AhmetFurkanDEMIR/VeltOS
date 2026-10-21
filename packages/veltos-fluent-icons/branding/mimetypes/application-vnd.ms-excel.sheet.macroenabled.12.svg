@@ -2,24 +2,27 @@
   <!-- Spreadsheet: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
        SPDX-License-Identifier: CC-BY-SA-4.0 -->
   <defs>
-    <linearGradient id="sheet" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#EDF1F6"/>
+      <stop offset="1" stop-color="#EEF1F6"/>
     </linearGradient>
-    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#3CC47C"/>
-      <stop offset="1" stop-color="#13894A"/>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2DA860"/>
+      <stop offset="1" stop-color="#0B5A2F"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#107C41"/>
+      <stop offset="1" stop-color="#0B5A2F"/>
     </linearGradient>
   </defs>
-  <path d="M 46 36 H 210 Q 228 36 228 54 V 202 Q 228 220 210 220 H 46 Q 28 220 28 202 V 54 Q 28 36 46 36 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
-  <path d="M 46 36 H 210 Q 228 36 228 54 V 202 Q 228 220 210 220 H 46 Q 28 220 28 202 V 54 Q 28 36 46 36 Z" fill="url(#sheet)" stroke="#D3DAE4" stroke-width="2"/>
-  <path d="M 46 36 H 210 Q 228 36 228 54 V 80 H 28 V 54 Q 28 36 46 36 Z" fill="url(#green)"/>
-  <path d="M 46 39 H 210" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>
-  <path d="M 92 80 V 220" stroke="#C5CED9" stroke-width="3"/>
-  <path d="M 160 80 V 220" stroke="#C5CED9" stroke-width="3"/>
-  <path d="M 28 116 H 228" stroke="#C5CED9" stroke-width="3"/>
-  <path d="M 28 152 H 228" stroke="#C5CED9" stroke-width="3"/>
-  <path d="M 28 188 H 228" stroke="#C5CED9" stroke-width="3"/>
-  <rect x="92" y="116" width="68" height="36" fill="#D6F5E3" stroke="#1FA35C" stroke-width="5"/>
-  <rect x="155" y="147" width="10" height="10" fill="#1FA35C"/>
+  <path d="M 108 20 H 196 L 236 60 V 224 Q 236 236 224 236 H 108 Q 96 236 96 224 V 32 Q 96 20 108 20 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 108 20 H 196 L 236 60 V 224 Q 236 236 224 236 H 108 Q 96 236 96 224 V 32 Q 96 20 108 20 Z" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>
+  <path d="M 196 20 V 50 Q 196 60 206 60 H 236 Z" fill="#D8DFE8"/>
+  <path d="M 150 84 H 222 V 204 H 150 Z" fill="#E4F4EA" stroke="#107C41" stroke-width="3"/>
+  <path d="M 150 84 H 222 V 108 H 150 Z" fill="#107C41"/>
+  <path d="M 150 132 H 222 M 150 156 H 222 M 150 180 H 222 M 174 108 V 204 M 198 108 V 204" stroke="#7CC79A" stroke-width="3"/>
+  <path d="M 38 72 H 118 Q 140 72 140 94 V 174 Q 140 196 118 196 H 38 Q 16 196 16 174 V 94 Q 16 72 38 72 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 38 72 H 118 Q 140 72 140 94 V 174 Q 140 196 118 196 H 38 Q 16 196 16 174 V 94 Q 16 72 38 72 Z" fill="url(#tile)"/>
+  <path d="M 16 134 V 174 Q 16 196 38 196 H 118 Q 140 196 140 174 V 134 Z" fill="url(#edge)" opacity="0.55"/>
+  <path d="M 104 116 Q 92 104 76 106 Q 56 110 58 126 Q 60 140 80 142 Q 100 144 102 160 Q 100 176 78 176 Q 60 174 52 162" fill="none" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

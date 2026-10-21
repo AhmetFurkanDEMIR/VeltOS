@@ -90,6 +90,19 @@ class AppNameTests(unittest.TestCase):
         self.assertIn("\nExec=konsole --notransparency\n", text)
         self.assertIn("\nExec=konsole --notransparency --new-tab\n", text)
 
+    def test_office_entries_start_the_veltos_office_screen(self):
+        writer = ("[Desktop Entry]\nName=LibreOffice Writer\nExec=libreoffice --writer %U\n\n"
+                  "[Desktop Action NewDocument]\nName=New Document\nExec=libreoffice --writer\n")
+        text = app_names.rewrite(writer, "writer", ("Word Processor", "Kelime İşlemci", "Word;"),
+                                 exec_options="--nologo", exec_replace=app_names.EXEC_REPLACE["libreoffice-writer.desktop"])
+        self.assertIn("\nExec=veltos-office word %U\n", text)
+        self.assertIn("\nExec=veltos-office word --blank\n", text)
+        self.assertNotIn("--nologo", text)
+        # Without the start screen installed the old line keeps its option.
+        text = app_names.rewrite(writer, "writer", exec_options="--nologo")
+        self.assertIn("\nExec=libreoffice --nologo --writer %U\n", text)
+        self.assertIn("\nExec=libreoffice --nologo --writer\n", text)
+
     def test_spectacle_loses_its_shortcuts(self):
         spectacle = ("[Desktop Entry]\nName=Spectacle\nExec=/usr/bin/spectacle\nX-KDE-Shortcuts=Print,Meta+Shift+S\n"
                      "\n[Desktop Action FullScreenScreenShot]\nExec=/usr/bin/spectacle -f\nX-KDE-Shortcuts=Shift+Print\n")

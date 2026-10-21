@@ -95,6 +95,24 @@ class PhotosTests(unittest.TestCase):
         self.settle()
         self.assertEqual(self.problems(), [])
 
+    def test_search_ignores_folders_above_the_library(self):
+        # A query term that occurs in the path *above* the library folder (a
+        # user name, or mkdtemp's random name) must not make every picture
+        # match: the search looks inside the library, not at the absolute
+        # path. (This failed at random in CI when the temp dir name held the
+        # query term "p1".)
+        root = Path(tempfile.mkdtemp(prefix="p1zone"))
+        (root / "Trip").mkdir()
+        Image.new("RGB", (20, 20), (10, 10, 10)).save(root / "Trip" / "sea.jpg")
+        self.backend.addFolder(str(root))
+        self.settle()
+        self.backend.scan_now()
+        self.backend.setQuery("sea")              # found by its name within the library
+        self.assertIn("sea.jpg", [Path(p).name for p in self.paths()])
+        self.backend.setQuery("p1zone")           # only in the temp dir above the library
+        self.assertEqual(self.paths(), [])
+        self.backend.setQuery("")
+
     def test_favorites_page(self):
         first = self.paths()[0]
         self.backend.toggleFavorite(first)

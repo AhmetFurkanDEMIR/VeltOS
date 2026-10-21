@@ -4,26 +4,24 @@
   <defs>
     <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#EDF1F6"/>
+      <stop offset="1" stop-color="#EEF1F6"/>
     </linearGradient>
-    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#4F8BFF"/>
-      <stop offset="1" stop-color="#1F4FD6"/>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3E86E8"/>
+      <stop offset="1" stop-color="#103F8F"/>
     </linearGradient>
-    <linearGradient id="pencil" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#3D7BFF"/>
-      <stop offset="1" stop-color="#1E4FD0"/>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#185ABD"/>
+      <stop offset="1" stop-color="#103F8F"/>
     </linearGradient>
   </defs>
-  <path d="M 60 24 H 156 L 204 72 V 220 Q 204 232 192 232 H 60 Q 48 232 48 220 V 36 Q 48 24 60 24 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
-  <path d="M 60 24 H 156 L 204 72 V 220 Q 204 232 192 232 H 60 Q 48 232 48 220 V 36 Q 48 24 60 24 Z" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>
-  <path d="M 156 24 V 60 Q 156 72 168 72 H 204 Z" fill="#D8DFE8"/>
-  <path d="M 76 72 H 132" stroke="url(#ink)" stroke-width="12" stroke-linecap="round"/>
-  <path d="M 76 104 H 176 M 76 128 H 176 M 76 152 H 176 M 76 176 H 128" stroke="#5B8DEF" stroke-width="8" stroke-linecap="round"/>
-  <g transform="rotate(-45 186 186)">
-    <rect x="150" y="172" width="78" height="28" rx="6" fill="url(#pencil)"/>
-    <rect x="214" y="172" width="14" height="28" rx="4" fill="#F4A9B8"/>
-    <path d="M 150 172 L 126 186 L 150 200 Z" fill="#F6D7A7"/>
-    <path d="M 134 181 L 126 186 L 134 191 Z" fill="#26313D"/>
-  </g>
+  <path d="M 108 20 H 196 L 236 60 V 224 Q 236 236 224 236 H 108 Q 96 236 96 224 V 32 Q 96 20 108 20 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 108 20 H 196 L 236 60 V 224 Q 236 236 224 236 H 108 Q 96 236 96 224 V 32 Q 96 20 108 20 Z" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>
+  <path d="M 196 20 V 50 Q 196 60 206 60 H 236 Z" fill="#D8DFE8"/>
+  <path d="M 152 92 H 212" stroke="#185ABD" stroke-width="10" stroke-linecap="round"/>
+  <path d="M 152 120 H 216 M 152 144 H 216 M 152 168 H 216 M 152 192 H 192" stroke="#8FB4EC" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 38 72 H 118 Q 140 72 140 94 V 174 Q 140 196 118 196 H 38 Q 16 196 16 174 V 94 Q 16 72 38 72 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 38 72 H 118 Q 140 72 140 94 V 174 Q 140 196 118 196 H 38 Q 16 196 16 174 V 94 Q 16 72 38 72 Z" fill="url(#tile)"/>
+  <path d="M 16 134 V 174 Q 16 196 38 196 H 118 Q 140 196 140 174 V 134 Z" fill="url(#edge)" opacity="0.55"/>
+  <path d="M 44 110 L 60 160 L 78 122 L 96 160 L 112 110" fill="none" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

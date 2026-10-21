@@ -3,6 +3,121 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-22 (00:30) — VeltOS Office: Microsoft 365's start screen in front of LibreOffice
+
+Product owner: "Redo the Office apps (Word, Excel, PowerPoint) completely
+with the Windows 11 theme; exactly like Microsoft's: content, theme,
+animations." Rule 5 and the licence leave LibreOffice as the engine; what
+VeltOS can make its own is everything the user sees first and around the
+document (architecture 2.13).
+
+- **Start screen** (`veltos-office word|sheet|slides`, PySide6/QML in
+  `packages/veltos-office/veltos_office/`): the layout of Microsoft 365's
+  start screen on Windows 11, the title bar and navigation rail in the
+  app's colour (Word blue, Excel green, PowerPoint orange; black chrome in
+  dark mode like Office's Black theme). Home: "Good morning / afternoon /
+  evening", New with the blank tile and the first templates, "More
+  templates →", Recent / Pinned with search, "Name" / "Date modified",
+  rows grouped by Pinned / Today / Yesterday / This week / Last week /
+  Older, a pin on hover, a right-click menu. New: every template as a
+  grid with search. Open: Recent, This PC (Documents, Desktop, Downloads)
+  and Browse through the VeltOS Open dialog. Account: picture, name,
+  "Manage account", the theme, product information. Options: the start
+  screen switch, clearing the recent list. Windows 11 animations: sections
+  glide in one after the other, tiles lift with a shadow, the rail's
+  indicator and the tabs' underline slide, the toggle; all off with
+  Accessibility's animation switch. Text sizes follow the text size
+  setting. English and Turkish.
+- **Data**: recent files come from LibreOffice's own PickList history in
+  `registrymodifications.xcu` (URL, title, the filter each file was opened
+  with; filtered to the app's file types), plus what the start screen
+  opened itself; pins and options in `~/.config/veltos-office/<kind>.json`.
+  Templates: VeltOS' own (`tools/make-templates.py` writes flat ODF, the
+  package build converts it with LibreOffice into .ott/.ots with
+  thumbnails: meeting notes, report, to-do list; monthly budget with
+  formulas, invoice, expense tracker with SUMIF, weekly schedule),
+  LibreOffice's (business letters, business card, CV, résumé, the 23
+  presentation designs) and the user's; thumbnails are the pictures inside
+  the template files. Opening runs `libreoffice --nologo --writer`, `-n
+  TEMPLATE` or the file; the screen leaves 2.5 s later.
+- **Desktop entries** (veltos-desktop `update-app-names`): the Office
+  entries run `veltos-office word|sheet|slides %U` when the start screen
+  is installed (files open at once, no files: the start screen; the "New
+  Document" actions pass `--blank`); without it the old lines stay.
+- **LibreOffice** (`veltos-office.xcd`): product name "VeltOS Office", so
+  titles read "Untitled 1 — VeltOS Office Writer" (like "Document1 -
+  Word") and %PRODUCTNAME in dialogs says VeltOS Office; it is LibreOffice
+  underneath, which About's version still says. An attempt to drop the
+  module name from the title (empty `ooSetupFactoryUIName`) did nothing:
+  the property is localized and an unlocalized empty value does not
+  replace it.
+- **Coloured title bars**: the Aurorae frame (VeltOS' changed copy of
+  KWin's QML, `plasma-overrides/aurorae.json`) tints the title bar of
+  LibreOffice's windows in the app's colour with white caption and
+  white-glyph buttons (new "-ondark" states in every caption button SVG,
+  `tools/fluent.py`); the dark frame stays dark. The first version told
+  the windows by `decoration.client.windowClass`, which KDecoration3 does
+  not expose to QML (the title bar stayed light): they are told by their
+  caption ("… — VeltOS Office Writer"). Verified after a sign-out:
+  Writer's title bar in Word blue with white caption and buttons.
+- **Document window** (product owner: the editing windows too must look
+  like Microsoft's): LibreOffice's Start Center gets light colours. The
+  sidebar strip at the right of documents (Office has none) stays: it is
+  not a window-state docking window, so an .xcd layer cannot turn it off
+  by default; View > Sidebar (Ctrl+F5) toggles it. The ribbon's tab row in the app's colour was tried
+  with LibreOffice's GTK plug-in and GTK CSS (`SAL_USE_VCLPLUGIN=gtk3`,
+  a per-app `GTK_THEME`): `notebook > header` coloured the tabs only,
+  the quick toolbar and the menu button at the ends of the row are not
+  GTK nodes, builder ids are not CSS names, and the window background
+  also paints the document canvas and status bar. The result (a blue
+  segment behind the tabs, GTK-styled dialogs) looked less like Office
+  than the Qt plug-in with the Windows 11 widget style, so LibreOffice
+  stays on `libreoffice-kf6`; the experiment is removed.
+- **Icons** (product owner: like Microsoft Office's on Windows 11 and
+  consistent): the three Office icons are redrawn in the composition of
+  Microsoft 365's icons, a coloured tile with the app's initial in front
+  of a page / sheet / slide, with VeltOS' own letters (W, S, P for Word
+  Processor, Spreadsheet, Presentation) and the Word blue / Excel green /
+  PowerPoint orange; the same drawings stand for the file types.
+  Microsoft's files are not used.
+- Verified in the live VM (`tests/results/2026-10-22-office-start-screen/`):
+  the three start screens in their colours with VeltOS' and LibreOffice's
+  templates and thumbnails, all five pages, Turkish, the start screen
+  opened from Start's pinned "Word Processor" through the rewritten
+  entry, "Meeting notes" and "Blank document" opening Writer with the
+  Tabbed interface and the "VeltOS Office Writer" title, the start screen
+  leaving afterwards. Unit tests: 24 in veltos-office (texts, PickList,
+  pins, templates with thumbnails, command lines, the window for every app
+  in English and Turkish offscreen), the desktop entry rewrite and the
+  frame change in veltos-desktop.
+- Found: the .docx/.xlsx/.pptx defaults of 2026-10-21 never applied: the
+  Save dialog offered .odt. LibreOffice parses `share/registry/*.xcd` in
+  name order unless a file names dependencies, and later files win; the
+  document factories are set in writer.xcd / calc.xcd / impress.xcd,
+  which sort after veltos-office.xcd. The layer now depends on them (and
+  the test checks the dependencies are installed).
+- Learnt: a program started by a `systemd-run --user` service dies with
+  the service's cgroup when the main process exits (the first template
+  test showed no LibreOffice; `-p KillMode=process` or starting from
+  Start). `pkill -f` with a pattern that also appears in the same `vm
+  exec` text kills that shell. Terminating the live user's session
+  (`loginctl terminate-user`) left SDDM's relogin crashed and the live
+  console autologin on tty3; `systemctl restart sddm` brought Plasma back
+  (about two minutes).
+- Found while building the ISO: `veltos-photos`' gallery search matched
+  the query against each picture's **absolute** path, so a term that
+  occurred in the folders above Pictures (a user name, or `mkdtemp`'s
+  random name in the package test) matched every file. The Turkish UI
+  test failed at random for this reason and stopped the ISO build. The
+  search now matches the path **within** the library folder (the scan
+  folder prefix is stripped); a regression test adds a library under a
+  temp dir whose name holds the query term and checks it matches
+  nothing. Both photos test classes (EN and TR) pass.
+- Not done: LibreOffice's own tab strip is not in the app's colour and the
+  document window has no animations (LibreOffice changes); closing the
+  last document shows LibreOffice's Start Center; dark mode of the start
+  screen and the templates' look in Calc/Impress on screen not checked.
+
 ## 2026-10-21 (23:30) — Windows 11 dialogs everywhere: file dialogs, the password prompt, Clock, search, fixes
 
 Product owner's list of 2026-10-21 (evening), item by item:

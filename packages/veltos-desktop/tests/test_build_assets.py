@@ -282,7 +282,11 @@ class CaptionButtonTests(unittest.TestCase):
                           "pressed-center", "deactivated-center"}
                 if kind == "close":
                     states |= {"hover-maximized-center", "pressed-maximized-center"}
+                # White-glyph twins for the Office apps' coloured title bars.
+                states |= {state[:-len("-center")] + "-ondark-center" for state in states}
                 self.assertEqual(ids, states, kind)
+                ondark = svg.split('id="active-ondark-center"', 1)[1].split("</g>", 1)[0]
+                self.assertIn(fluent.CAPTION_COLOURS["dark"]["glyph"], ondark)
                 hover = svg.split('id="hover-center"', 1)[1].split("</g>", 1)[0]
                 self.assertEqual(fluent.CLOSE_RED in hover, kind == "close", kind)
                 if kind == "close":
