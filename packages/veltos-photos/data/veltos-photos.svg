@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Photos: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5FC2FF"/>
+      <stop offset="1" stop-color="#1E7BE0"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D7ECFF"/>
+    </linearGradient>
+    <linearGradient id="hill2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B6E0FF"/>
+      <stop offset="1" stop-color="#7CC3FA"/>
+    </linearGradient>
+  </defs>
+  <path d="M 46 40 H 210 Q 232 40 232 62 V 194 Q 232 216 210 216 H 46 Q 24 216 24 194 V 62 Q 24 40 46 40 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 46 40 H 210 Q 232 40 232 62 V 194 Q 232 216 210 216 H 46 Q 24 216 24 194 V 62 Q 24 40 46 40 Z" fill="url(#sky)"/>
+  <circle cx="172" cy="90" r="18" fill="#FFE27A"/>
+  <path d="M 24 186 L 92 116 L 140 166 L 166 140 L 232 196 V 194 Q 232 216 210 216 H 46 Q 24 216 24 194 Z" fill="url(#hill2)"/>
+  <path d="M 24 196 L 92 128 L 164 200 L 178 216 H 46 Q 24 216 24 194 Z" fill="url(#hill)"/>
+</svg>
