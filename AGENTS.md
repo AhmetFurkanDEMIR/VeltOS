@@ -69,6 +69,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-photos/` | VeltOS Photos: Windows 11 Photos (gallery by month, favorites, folders, viewer with filmstrip and file information, Edit image with crop/rotate/adjust via Pillow, slideshow); default for pictures |
 | `packages/veltos-media/` | VeltOS Media Player: Windows 11 Media Player (music library with tags/covers via mutagen, video library, play queue with shuffle/repeat, playlists, player bar, now playing) on Qt Multimedia; default for audio and video |
 | `packages/veltos-pdf/` | VeltOS PDF Reader: modern PDF reader layout (Home with recent files, tabs, search, thumbnails, bookmarks, zoom/fit, read mode, properties, passwords, printing) on QtQuick Pdf; replaces Okular, default for PDF |
+| `packages/veltos-office/` | VeltOS Office: LibreOffice Writer/Calc/Impress (Debian) with a configuration layer for Windows users (Tabbed interface, Colibre icons, MS formats by default, Carlito font, no bars); app names, icons and defaults live in veltos-desktop/veltos-fluent-icons |
 | `packages/veltos-archive/` | VeltOS Archive: WinRAR's layout (toolbar, archive list, Extract To, Add, Test, passwords) on 7-Zip (+ 7zip-rar) and bsdtar; File Explorer's extract/compress |
 | `packages/veltos-camera/` | VeltOS Camera: Windows 11 Camera layout (photo, video, timer, framing grid, Camera Roll) on Qt Multimedia (FFmpeg backend, V4L2) |
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
@@ -384,3 +385,12 @@ owner sets priorities; agents act as the engineering team.
 - A modal Popup's `Overlay.modal` covers the whole QQuickWindow, including
   the transparent shadow margin of VeltOS' self-drawn windows; use
   `Scrim.qml` (dims the window only).
+- LibreOffice configuration: VeltOS adds `share/registry/veltos-office.xcd`
+  (all `.xcd` files there are read; users' changes win). A toolbar mode is
+  selected by its `CommandArg` (`notebookbar.ui` = Tabbed), not by its
+  node name; properties of extensible groups (VCL `DefaultFonts`) need
+  `oor:type` or LibreOffice ends at start. Test a layer quickly with
+  `soffice -env:UserInstallation=file:///tmp/p --headless
+  --terminate_after_init`. LibreOffice is single-instance: kill
+  `soffice.bin` (`pkill -9 -x soffice.bin`) and delete the profile before
+  checking first-start defaults.

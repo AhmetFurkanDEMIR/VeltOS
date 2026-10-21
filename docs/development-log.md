@@ -3,7 +3,40 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
-## 2026-10-21 (23:30) — VeltOS PDF Reader replaces Okular
+## 2026-10-21 (19:40) — VeltOS Office (LibreOffice for Windows users)
+
+- Product owner: Word, Excel and PowerPoint like Windows 11's Office.
+  VeltOS does not write an office suite: new package `veltos-office`
+  depends on Debian's LibreOffice 25.2.3 (Writer, Calc, Impress, the KF6
+  integration, Colibre icons, Carlito/Caladea/Liberation fonts; names and
+  versions checked with `apt-cache` in the builder) and adds one
+  configuration layer, `share/registry/veltos-office.xcd`: Tabbed
+  (ribbon-like) interface, Colibre icons, Microsoft formats by default
+  without the "Keep current format?" question, Carlito as default font
+  (11 pt in Writer), no tip of the day / donation / get-involved /
+  what's-new bars, crash reports off. Debian's "DebianTalk" presentation
+  template is diverted out of the template folders.
+- Names: "Word Processor", "Spreadsheet", "Presentation" (Turkish "Kelime
+  İşlemci", "Hesap Tablosu", "Sunu"); Microsoft's product names are only
+  search words, the icons are original drawings without letters. Window
+  titles and About still say LibreOffice (honest: it is LibreOffice).
+- Found while testing: (1) a toolbar mode is chosen by its `CommandArg`
+  ("notebookbar.ui"), not by its node name ("Tabbed"): with the name,
+  LibreOffice kept menus and toolbars. (2) Properties of an extensible
+  group (VCL `DefaultFonts`) need `oor:type`; without it LibreOffice ended
+  at start with an uncaught RuntimeException. Both are now covered by the
+  package tests, which check the layer against the schema and data of the
+  LibreOffice it is built with.
+- Verified in a live VM: Start search "word" finds Word Processor; Writer,
+  Calc and Impress open with the Tabbed interface, Colibre icons and
+  Carlito; Impress's template list has no DebianTalk. Not checked: dark
+  mode icons, Turkish interface on screen, opening real .docx/.xlsx/.pptx
+  files, printing.
+- ISO build started in the background at the product owner's request
+  (from 25d7dae; its veltos-office package was built after the fix in
+  ef172e2).
+
+## 2026-10-21 (19:16) — VeltOS PDF Reader replaces Okular
 
 - Product owner: the document viewer must become a modern PDF app like
   the one on Windows 11. New package `veltos-pdf` (PySide6/QML on QtQuick
@@ -37,7 +70,7 @@ went wrong, so the next person can trust the state of the repository.
   Home with the recent file. Not checked: printing, password-protected
   files on screen (only the unit-level status), very large PDFs.
 
-## 2026-10-21 (21:30) — VeltOS Media Player (Windows 11 Media Player)
+## 2026-10-21 (18:46) — VeltOS Media Player (Windows 11 Media Player)
 
 - New package `veltos-media` (PySide6/QML, Qt Multimedia FFmpeg backend)
   in Windows 11 Media Player's layout: navigation pane with search, Home
@@ -58,7 +91,7 @@ went wrong, so the next person can trust the state of the repository.
   advancing, video thumbnails, a video played to its end. Not checked:
   hearing the sound (the VM has no audio), long files, subtitles.
 
-## 2026-10-21 (19:40) — VeltOS Photos (Windows 11 Photos)
+## 2026-10-21 (18:29) — VeltOS Photos (Windows 11 Photos)
 
 - Product owner: photo and video apps exactly like Windows 11's. New
   package `veltos-photos` (PySide6/QML) in Windows 11 Photos' layout:
@@ -80,7 +113,7 @@ went wrong, so the next person can trust the state of the repository.
   "VeltOS-Ember - Copy.png" and showed it. Not checked: lock-screen picture
   on screen, libraries of thousands of pictures, HEIC.
 
-## 2026-10-21 (17:00) — VeltOS Notepad (Windows 11 Notepad)
+## 2026-10-21 (15:17) — VeltOS Notepad (Windows 11 Notepad)
 
 - Product owner: the text editor must be exactly Windows 11's Notepad.
   New package `veltos-notepad` (PySide6/QML, same frame technique as File
@@ -107,7 +140,7 @@ went wrong, so the next person can trust the state of the repository.
   tab), find, Ctrl+S kept CRLF (od -c), Settings page. Not tested: printing
   to a real printer, very large files.
 
-## 2026-10-21 (15:40) — Settings Home and Themes like Windows 11
+## 2026-10-21 (14:49) — Settings Home and Themes like Windows 11
 
 - Product owner's screenshots: Windows 11 Settings Home (device card with
   the wallpaper, network and Windows Update status, Recommended settings,
