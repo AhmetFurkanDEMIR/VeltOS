@@ -124,6 +124,21 @@ class SysinfoTests(unittest.TestCase):
             with mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": config}):
                 self.assertFalse(sysinfo.dark_mode())
 
+    def test_last_update_check_and_its_text(self):
+        import os
+        with tempfile.TemporaryDirectory() as lists:
+            self.assertEqual(sysinfo.last_update_check(Path(lists)), 0)
+            release = Path(lists, "deb.debian.org_debian_dists_trixie_InRelease")
+            release.write_text("x")
+            os.utime(release, (1000, 1000))
+            Path(lists, "partial").mkdir()
+            self.assertEqual(sysinfo.last_update_check(Path(lists)), 1000)
+        self.assertEqual(sysinfo.ago(0, "en"), "not yet")
+        self.assertEqual(sysinfo.ago(1000, "en", now=1030), "just now")
+        self.assertEqual(sysinfo.ago(1000, "en", now=1000 + 3600), "1 hour ago")
+        self.assertEqual(sysinfo.ago(1000, "tr", now=1000 + 3 * 86400), "3 gün önce")
+        self.assertEqual(sysinfo.ago(1000, "en", now=1000 + 5 * 60), "5 minutes ago")
+
 
 if __name__ == "__main__":
     unittest.main()

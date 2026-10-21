@@ -41,6 +41,8 @@ ApplicationWindow {
         search.text = "";
         pageId = id;
         subPage = sub || "";
+        if (subPage !== "")
+            backend.recordVisit(id, subPage);    // Home > Recommended settings
         content.contentItem.contentY = 0;
     }
 
@@ -72,7 +74,8 @@ ApplicationWindow {
         "lockscreen": lockScreenComponent, "defaultapps": defaultAppsComponent,
         "startup": startupComponent, "yourinfo": yourInfoComponent, "signin": signInComponent,
         "otherusers": otherUsersComponent, "region": regionComponent,
-        "accessibility": accessibilityComponent, "searching": searchingComponent
+        "accessibility": accessibilityComponent, "searching": searchingComponent,
+        "themes": themesComponent
     })
 
     // `veltos-settings PAGE`: a navigation page or a built-in page.
@@ -407,6 +410,13 @@ ApplicationWindow {
         id: accessibilityComponent
         AccessibilityPage {
             onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: themesComponent
+        ThemesPage {
+            onItemActivated: item => window.activate(item)
+            onOpenSubPage: (pageId, sub) => window.showPage(pageId, sub)
         }
     }
     Component {

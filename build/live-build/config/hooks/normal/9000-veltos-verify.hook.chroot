@@ -113,7 +113,7 @@ for h in context-menus display-scale session-fixups; do
     [ -x "/usr/libexec/veltos/$h" ] || fail "VeltOS session helper $h missing"
 done
 # Default wallpaper and the alternatives, light and dark.
-for w in VeltOS VeltOS-Flow VeltOS-Glow VeltOS-Lake; do
+for w in VeltOS VeltOS-Flow VeltOS-Glow VeltOS-Lake VeltOS-Nebula VeltOS-Ember VeltOS-Tide VeltOS-Dawn; do
     [ -f "/usr/share/wallpapers/$w/contents/images/1920x1080.png" ] \
         && [ -f "/usr/share/wallpapers/$w/contents/images_dark/1920x1080.png" ] \
         || fail "wallpaper $w incomplete"

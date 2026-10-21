@@ -3,6 +3,35 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (15:40) — Settings Home and Themes like Windows 11
+
+- Product owner's screenshots: Windows 11 Settings Home (device card with
+  the wallpaper, network and Windows Update status, Recommended settings,
+  Bluetooth devices, Personalize your device) and Personalization >
+  Themes (a theme grid of wallpapers with accent colours).
+- Home rebuilt in that layout (two columns from 640 px): this PC's
+  wallpaper, name, model and Rename; network ("Wired connection 1 —
+  Connected", Wi-Fi "Connected, secured"); "VeltOS Update — Last checked:
+  4 hours ago" (newest `/var/lib/apt/lists/*Release`); a VeltOS apps card
+  in place of Windows' Microsoft account card; Recommended settings from a
+  visit count; Bluetooth devices; six theme tiles, colour mode, Themes.
+- Themes: eight themes (wallpaper + mode + accent). New wallpaper colour
+  variants generated like the others: Nebula (purple glow), Ember (crimson
+  bloom), Tide (teal flow), Dawn (silver flow), plus a dark preview
+  (`screenshot-dark.png`) for every wallpaper. Applying runs the global
+  theme first, then the wallpaper, then the accent. Found in the VM:
+  `plasma-apply-colorscheme --accent-color` writes the colours but no
+  `AccentColor`, so Settings could not read the choice back ("Blue" after
+  a restart); Settings now records it with kwriteconfig6 like KDE's colours
+  module.
+- Bluetooth's "Add device" started KDE's Bluetooth wizard; it is now a
+  VeltOS dialog (scan, list unpaired named devices, pair/trust/connect).
+  Untested with real Bluetooth hardware (the VM has none).
+- VM (live): Home in light and dark, Ember theme applied from Home (dark
+  mode, red wallpaper and accent), Themes page shows "Ember / Red", back
+  to VeltOS (light). Unit tests: veltos-settings 90 (themes, Add a device,
+  recent settings, update time text), veltos-desktop 82.
+
 ## 2026-10-21 (14:30) — Disk Management and Firefox icons
 
 - Disk Management showed Fluent's dull grey platter (product owner: "the

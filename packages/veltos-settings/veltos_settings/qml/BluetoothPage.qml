@@ -56,7 +56,7 @@ ColumnLayout {
         VButton {
             text: backend.text("add_device")
             enabledState: page.bt.powered
-            onClicked: backend.addBluetoothDevice()
+            onClicked: addDialog.open()
         }
     }
 
@@ -70,6 +70,10 @@ ColumnLayout {
         text: backend.text("no_devices")
         color: Theme.subtext
         font.pixelSize: Theme.bodySize + 1
+    }
+
+    AddDeviceDialog {
+        id: addDialog
     }
 
     Repeater {

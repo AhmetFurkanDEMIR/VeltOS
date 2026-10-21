@@ -3,10 +3,12 @@
     veltos-settings [PAGE]      (PAGE: home, system, about, storage, ...)
 """
 
+import json
 import re
 import subprocess
 import sys
 import threading
+import time
 import traceback
 from pathlib import Path
 from types import SimpleNamespace
@@ -78,6 +80,24 @@ def system_tools(runner=devices.run, lang="en"):
                            prefs=prefs.Preferences(runner), inputs=inputs.Inputs(runner),
                            accounts=accounts.Accounts(runner), defaults=apps.DefaultApps(runner, lang=lang),
                            startup=apps.StartupApps(lang=lang))
+
+
+# Recently used settings (Home > Recommended settings), most used first.
+RECENT_FILE = "veltos/settings-recent.json"
+DEFAULT_RECENT = [["time", "datetime"], ["apps", "defaultapps"], ["personalization", "lockscreen"]]
+
+
+def recent_settings(visits, count=3):
+    """[page id, item id] of the most visited settings, filled up with
+    Windows' usual three."""
+    ranked = sorted(visits.items(), key=lambda kv: (-kv[1].get("count", 0), -kv[1].get("last", 0)))
+    result = [key.split("/", 1) for key, _ in ranked if "/" in key][:count]
+    for default in DEFAULT_RECENT:
+        if len(result) >= count:
+            break
+        if default not in result:
+            result.append(default)
+    return result
 
 
 def duration_label(lang, minutes):
@@ -159,7 +179,7 @@ class Backend(QObject):
         self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
                          "loaded": False, "scanning": False, "connecting": "", "failed": ""}
         self._bluetooth = {"available": False, "powered": False, "devices": [], "loaded": False,
-                           "busy": ""}
+                           "busy": "", "found": [], "scanning": False, "pairing": "", "pairFailed": ""}
         self._sound = {"outputs": [], "inputs": [], "loaded": False}
         self._display = {"outputs": [], "loaded": False}
         self._personal = {"wallpapers": [], "wallpaper": "", "accent": "",
@@ -366,9 +386,27 @@ class Backend(QObject):
         self.jobs.submit(lambda: self.system.bluetooth.remove(mac),
                          lambda _ok: self.refreshBluetooth())
 
+    # Add a device: VeltOS' own dialog (BluetoothPage, HomePage), not
+    # KDE's Bluetooth wizard.
     @Slot()
-    def addBluetoothDevice(self):
-        self._start(["bluedevil-wizard"])
+    def discoverBluetooth(self):
+        if self._bluetooth.get("scanning"):
+            return
+        self._update("_bluetooth", self.bluetoothChanged, {"scanning": True, "found": [], "pairFailed": ""})
+        self.jobs.submit(lambda: self.system.bluetooth.discover(),
+                         lambda found: self._update("_bluetooth", self.bluetoothChanged,
+                                                    {"scanning": False, "found": found or []}))
+
+    @Slot(str)
+    def pairBluetooth(self, mac):
+        self._update("_bluetooth", self.bluetoothChanged, {"pairing": mac, "pairFailed": ""})
+
+        def done(ok):
+            found = [d for d in self._bluetooth.get("found", []) if not ok or d["mac"] != mac]
+            self._update("_bluetooth", self.bluetoothChanged,
+                         {"pairing": "", "pairFailed": "" if ok else mac, "found": found})
+            self.refreshBluetooth()
+        self.jobs.submit(lambda: self.system.bluetooth.pair(mac), done)
 
     # --- System > Sound ----------------------------------------------------------------
 
@@ -452,6 +490,81 @@ class Backend(QObject):
     def setAccent(self, color):
         self._update("_personal", self.personalChanged, {"accent": color})
         self.jobs.submit(lambda: self.system.personal.set_accent(color))
+
+    # --- Personalization > Themes ------------------------------------------------------------
+
+    @Property("QVariantList", constant=True)
+    def themes(self):
+        i = 0 if self.lang == "en" else 1
+        result = []
+        for theme in devices.THEMES:
+            contents = Path("/usr/share/wallpapers") / theme["wallpaper"] / "contents"
+            preview = contents / ("screenshot-dark.png" if theme["dark"] else "screenshot.png")
+            result.append({"id": theme["id"], "title": theme["title"][i], "colour": theme["colour"][i],
+                           "dark": theme["dark"], "accent": theme["accent"], "wallpaper": theme["wallpaper"],
+                           "preview": QUrl.fromLocalFile(str(preview)).toString() if preview.exists() else ""})
+        return result
+
+    @Property(str, notify=personalChanged)
+    def currentTheme(self):
+        return devices.current_theme(self._personal.get("wallpaper", ""), self._dark,
+                                     self._personal.get("accent", ""))
+
+    @Slot(str)
+    def applyTheme(self, theme_id):
+        theme = next((t for t in devices.THEMES if t["id"] == theme_id), None)
+        if theme is None:
+            return
+        path = next((w["path"] for w in self._personal.get("wallpapers", []) if w["name"] == theme["wallpaper"]),
+                    str(Path("/usr/share/wallpapers") / theme["wallpaper"]))
+        dark = theme["dark"]
+        mode = None
+        if dark != self._dark:
+            mode = ["sh", "-c", APPLY_THEME, "sh", LOOK_AND_FEEL[dark], DESKTOP_THEME[dark],
+                    "dark" if dark else "light"]
+            self._dark = dark
+            self.changed.emit()
+        self._update("_personal", self.personalChanged, {"wallpaper": path, "accent": theme["accent"]})
+        self.jobs.submit(lambda: self.system.personal.apply_theme(path, theme["accent"], mode))
+
+    # --- Home ---------------------------------------------------------------------------------
+
+    @Property(str, notify=changed)
+    def updateChecked(self):
+        return strings.text(self.lang, "last_checked").replace(
+            "{when}", sysinfo.ago(sysinfo.last_update_check(), self.lang))
+
+    def _recent_path(self):
+        return devices.config_home() / RECENT_FILE
+
+    def _visits(self):
+        try:
+            data = json.loads(self._recent_path().read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    @Property("QVariantList", notify=changed)
+    def recentSettings(self):
+        return recent_settings(self._visits())
+
+    @Slot(str, str)
+    def recordVisit(self, page_id, page):
+        """Count a visit to a built-in page (for Recommended settings)."""
+        item_id = next((item["id"] for p in catalog.PAGES if p["id"] == page_id
+                        for item in p["items"] if item.get("page") == page), "")
+        if not item_id:
+            return
+        visits = self._visits()
+        entry = visits.setdefault(f"{page_id}/{item_id}", {})
+        entry["count"] = entry.get("count", 0) + 1
+        entry["last"] = int(time.time())
+        path = self._recent_path()
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(visits), encoding="utf-8")
+        except OSError:
+            pass
 
     # --- Time & language > Date & time -----------------------------------------------------
 

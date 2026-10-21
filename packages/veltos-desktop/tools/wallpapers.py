@@ -13,6 +13,10 @@ contents/images_dark/ while the colour scheme is dark):
     glow    large soft lights blending into each other
     lake    the first VeltOS wallpaper (tools/bloom.py): a ribbon bloom
             over a lake at sunrise
+    nebula  glow in purple and magenta    (the themes of Settings >
+    ember   bloom in crimson and coral     Personalisation > Themes give
+    tide    flow in teal and aqua          each one its own accent colour,
+    dawn    flow in silver and soft peach  like Windows 11's themes)
 
 Every shape is computed here, so builds are reproducible. The generated
 artwork is CC-BY-SA-4.0; this code is GPL-3.0-or-later.
@@ -30,6 +34,10 @@ DESIGNS = {
     "flow": ("VeltOS-Flow", "VeltOS Flow"),
     "glow": ("VeltOS-Glow", "VeltOS Glow"),
     "lake": ("VeltOS-Lake", "VeltOS Lake"),
+    "nebula": ("VeltOS-Nebula", "VeltOS Nebula"),
+    "ember": ("VeltOS-Ember", "VeltOS Ember"),
+    "tide": ("VeltOS-Tide", "VeltOS Tide"),
+    "dawn": ("VeltOS-Dawn", "VeltOS Dawn"),
 }
 
 
@@ -98,8 +106,8 @@ def petal_path(length, width):
             f"C {0.34 * w:.1f} {-0.94 * L:.1f} {0.58 * w:.1f} {-0.34 * L:.1f} 0 0 Z")
 
 
-def bloom_svg(variant):
-    p = BLOOM[variant]
+def bloom_svg(variant, palette=BLOOM):
+    p = palette[variant]
     defs, body = _backdrop(p["bg"], p["lights"])
     defs = [defs,
             '<filter id="petal-shadow" x="-40%" y="-40%" width="180%" height="180%">'
@@ -186,8 +194,8 @@ def _smooth(points):
     return " ".join(d)
 
 
-def flow_svg(variant):
-    p = FLOW[variant]
+def flow_svg(variant, palette=FLOW):
+    p = palette[variant]
     defs, body = _backdrop(p["bg"], p["lights"])
     defs = [defs, '<filter id="soften" x="-5%" y="-30%" width="110%" height="160%">'
                   '<feGaussianBlur stdDeviation="10"/></filter>']
@@ -226,10 +234,91 @@ GLOW = {
 }
 
 
-def glow_svg(variant):
-    p = GLOW[variant]
+def glow_svg(variant, palette=GLOW):
+    p = palette[variant]
     defs, body = _backdrop(p["bg"], p["lights"])
     return _document(defs, body)
+
+
+# --- Colour variants (Settings > Personalisation > Themes) ------------------------
+
+EMBER = {   # bloom in crimson and coral
+    "light": {
+        "bg": [(0, "#FBF2F2"), (0.5, "#F6DADD"), (1, "#EDB6BC")],
+        "lights": [(1960, 1240, 1800, "#FFFFFF", 0.75), (300, 200, 1500, "#FFFFFF", 0.5)],
+        "rings": [("#C8102E", "#FFC2C8"), ("#D21F3C", "#FFB0B9"),
+                  ("#B80F2A", "#FF9FAB"), ("#A80D26", "#FFD3D8")],
+        "edge": ("#FFFFFF", 0.35),
+        "shadow": ("#5A0712", 0.16),
+        "heart": ("#FFFFFF", 0.85),
+    },
+    "dark": {
+        "bg": [(0, "#12060A"), (0.55, "#220912"), (1, "#36101A")],
+        "lights": [(1960, 1240, 1700, "#FF3D5A", 0.40), (3500, 2000, 1500, "#FF7A3D", 0.22)],
+        "rings": [("#7A0618", "#FF4D6A"), ("#8C0A20", "#FF6680"),
+                  ("#A30F28", "#FF8095"), ("#BD1632", "#FFA3B2")],
+        "edge": ("#FFD0D8", 0.30),
+        "shadow": ("#050002", 0.45),
+        "heart": ("#FF9FB0", 0.6),
+    },
+}
+
+NEBULA = {  # glow in purple and magenta
+    "light": {
+        "bg": [(0, "#F7F3FD"), (1, "#E6DCF8")],
+        "lights": [(2400, 900, 1500, "#B48CFF", 0.8), (1100, 1500, 1300, "#E39BFF", 0.6),
+                   (3300, 1800, 1200, "#8FA8FF", 0.55), (600, 300, 1100, "#FFD3E8", 0.5),
+                   (1900, 2100, 900, "#8A5CF0", 0.45)],
+    },
+    "dark": {
+        "bg": [(0, "#0B0518"), (1, "#1A0B33")],
+        "lights": [(2400, 900, 1500, "#7B3FE4", 0.85), (1100, 1500, 1300, "#C03FD0", 0.65),
+                   (3300, 1800, 1200, "#4F5CF0", 0.55), (600, 300, 1100, "#E0408A", 0.35),
+                   (1900, 2100, 900, "#9A5CFF", 0.5)],
+    },
+}
+
+TIDE = {    # flow in teal and aqua
+    "light": {
+        "bg": [(0, "#F1FAF9"), (0.55, "#DCF1EF"), (1, "#BFE4E3")],
+        "lights": [(3000, 600, 1600, "#FFFFFF", 0.6)],
+        "bands": [("#18B6B0", "#1E8FA8", "#4FD1C5"), ("#1E8FA8", "#127A8C", "#18B6B0"),
+                  ("#6FD8D0", "#1E9FB0", "#0F6E80"), ("#A6E9E3", "#6CC9D2", "#9FD8F0"),
+                  ("#1E9FB0", "#18B6B0", "#8FE0D8")],
+        "opacity": [0.55, 0.5, 0.45, 0.6, 0.35],
+        "line": ("#FFFFFF", 0.7),
+    },
+    "dark": {
+        "bg": [(0, "#04121A"), (0.6, "#06202A"), (1, "#0A2E3A")],
+        "lights": [(2600, 1300, 1700, "#18B6B0", 0.28)],
+        "bands": [("#18B6B0", "#1E8FA8", "#4FD1C5"), ("#14A3A0", "#0F7A8C", "#1EB0C0"),
+                  ("#0F8A90", "#18B6B0", "#2FC4D0"), ("#3FC9C0", "#147E8C", "#6FD8E8"),
+                  ("#0E6E80", "#12949B", "#1E9FB0")],
+        "opacity": [0.65, 0.55, 0.5, 0.45, 0.4],
+        "line": ("#BFF0EA", 0.5),
+    },
+}
+
+DAWN = {    # flow in silver and soft peach
+    "light": {
+        "bg": [(0, "#F7F7F9"), (0.55, "#ECEDF1"), (1, "#D9DCE3")],
+        "lights": [(3000, 600, 1600, "#FFFFFF", 0.7), (600, 1900, 1400, "#FFE8D6", 0.45)],
+        "bands": [("#C9CED8", "#9AA3B5", "#E6E1DA"), ("#AEB6C6", "#8790A3", "#C9CED8"),
+                  ("#DDE1E8", "#B4BBC9", "#9AA3B5"), ("#EEF0F4", "#CDD2DC", "#E8DCCF"),
+                  ("#9AA3B5", "#C9CED8", "#F1E6D8")],
+        "opacity": [0.55, 0.5, 0.45, 0.6, 0.35],
+        "line": ("#FFFFFF", 0.8),
+    },
+    "dark": {
+        "bg": [(0, "#0E1014"), (0.6, "#171A21"), (1, "#22262F")],
+        "lights": [(2600, 1300, 1700, "#8A93A8", 0.22)],
+        "bands": [("#5A6275", "#7D869A", "#3F4656"), ("#6B7387", "#4A5263", "#8A93A8"),
+                  ("#3F4656", "#6B7387", "#A3ABBD"), ("#8A93A8", "#5A6275", "#B8A99A"),
+                  ("#4A5263", "#7D869A", "#9E9182")],
+        "opacity": [0.6, 0.5, 0.45, 0.45, 0.4],
+        "line": ("#E2E6EE", 0.4),
+    },
+}
 
 
 def svg(design, variant):
@@ -241,4 +330,12 @@ def svg(design, variant):
         return glow_svg(variant)
     if design == "lake":
         return lake_bloom.wallpaper_svg(variant)
+    if design == "nebula":
+        return glow_svg(variant, NEBULA)
+    if design == "ember":
+        return bloom_svg(variant, EMBER)
+    if design == "tide":
+        return flow_svg(variant, TIDE)
+    if design == "dawn":
+        return flow_svg(variant, DAWN)
     raise ValueError(design)

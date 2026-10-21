@@ -74,7 +74,7 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   tray for new users. The home folder has no
   "Templates" and "Public" folders (switched off in xdg-user-dirs).
 - Fluent icons and cursors (`veltos-fluent-icons`), Inter UI font.
-- **Wallpapers**: "VeltOS Bloom" (default, soft translucent petals), "VeltOS Flow", "VeltOS Glow" and "VeltOS Lake" (the first design), each light and dark (`tools/wallpapers.py`); branded login
+- **Wallpapers**: "VeltOS Bloom" (default, soft translucent petals), "VeltOS Flow", "VeltOS Glow", "VeltOS Lake" (the first design) and the colour variants used by Settings' themes, "VeltOS Nebula" (purple glow), "VeltOS Ember" (crimson bloom), "VeltOS Tide" (teal flow) and "VeltOS Dawn" (silver flow), each light and dark with a preview of each (`tools/wallpapers.py`); branded login
   splash, lock screen and SDDM login background.
 
 Existing users are not modified: Plasma runs the layout script only for
@@ -116,7 +116,7 @@ files that do not exist yet.
 | `artwork/veltos-logo.svg` | **Master logo**: a "V" of two blue blades. Other packages keep checked copies. |
 | `upstream.json` | Pinned Fluent-kde release (commit 44794f29c89d, SHA-256 checked) |
 | `tools/fluent.py` | Derives the Kvantum, Aurorae and Plasma themes and colour schemes from Fluent-kde |
-| `tools/wallpapers.py` | Procedural generator of the wallpapers (Bloom, Flow, Glow; reproducible, original artwork) |
+| `tools/wallpapers.py` | Procedural generator of the wallpapers (Bloom, Flow, Glow and their colour variants; reproducible, original artwork) |
 | `tools/bloom.py` | The first wallpaper design, kept as "VeltOS Lake" |
 | `tools/build-assets.py` | Generates the whole installed tree into `build-assets/root/` |
 | `plasma/layout.js` | Plasma 6 layout script (panel, widgets, wallpaper) |

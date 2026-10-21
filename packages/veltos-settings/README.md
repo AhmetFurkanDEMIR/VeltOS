@@ -15,11 +15,24 @@ built in, and `systemsettings` / `kcmshell6` / `kinfocenter` open VeltOS Setting
   the text colour, one size, like Windows 11). A chevron means a page
   inside Settings; a "new window" mark means an app opens (Store).
 - Built into Settings:
-  - **Home**: this PC (name, model, VeltOS version, Rename), Light/Dark
-    theme, recommended settings;
-  - **Personalization**: Light/Dark theme with previews (applies the VeltOS
-    Light/Dark global theme with `plasma-apply-lookandfeel`); Background
+  - **Home** (Windows 11 24H2 layout): this PC (its wallpaper, name,
+    model, Rename), the network and "VeltOS Update — Last checked" (time of
+    the newest APT list) at the top; cards: VeltOS apps with "Open VeltOS
+    Store", Recommended settings (the three most used built-in pages,
+    counted in `~/.config/veltos/settings-recent.json`, Windows' three
+    until then), Bluetooth devices (switch, paired devices, View all, Add
+    device), Personalize your device (six themes, colour mode, Themes);
+  - **Personalization**: the themes to apply at the top; **Themes**
+    (`devices.THEMES`): eight themes, each a VeltOS wallpaper, light or
+    dark mode and an accent colour (VeltOS light/dark, Lake, Nebula, Ember,
+    Tide, Dawn, Flow), applied in order (global theme, wallpaper, accent,
+    which is also recorded as `AccentColor` because
+    `plasma-apply-colorscheme` does not), with the current theme's
+    background/colour/sounds/cursor and "Custom" for own mixes; Background
     lists the installed wallpapers (VeltOS's first, KDE's "Next" left out);
+  - **Bluetooth > Add a device**: VeltOS' own dialog (scan with
+    `bluetoothctl`, pair, trust, connect; Plasma's Bluetooth agent asks for
+    PINs), instead of KDE's Bluetooth wizard;
   - **System > About**: device name (rename through `hostnamectl`, which
     asks for the administrator password), model, processor, RAM, graphics,
     system type, VeltOS version and kernel, with "Copy" buttons;
