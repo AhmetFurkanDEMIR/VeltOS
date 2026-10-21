@@ -63,6 +63,14 @@ override_dh_auto_install:
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/drive-harddisk-windows.svg
 	install -D -m 644 branding/small/drive-harddisk-windows.svg \
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/devices/drive-harddisk-windows.svg
+	# File Explorer's Home: an orange house like Windows 11 (a VeltOS name,
+	# next to every user-home icon of the Fluent themes).
+	for f in $$(find $(ICONS) -path '*/places/user-home.svg' \( -type f -o -type l \)); do \
+		d=$$(dirname $$f); \
+		case "$$d" in */16/*|*/16@*|*/22/*|*/22@*|*/24/*|*/24@*) src=branding/small/veltos-home.svg;; \
+			*) src=branding/veltos-home.svg;; esac; \
+		cp $$src $$d/veltos-home.svg; \
+	done
 	# Yellow folders like Windows 11 (Fluent's are blue), coloured at all sizes.
 	python3 tools/recolour-folders.py $(ICONS)
 	# Drop dangling symlinks (a few from upstream, plus links to removed files).
@@ -90,4 +98,7 @@ execute_after_dh_auto_install:
 	cmp -s $(ICONS)/.Fluent-base/scalable/devices/drive-harddisk-windows.svg branding/drive-harddisk-windows.svg
 	cmp -s $(ICONS)/.Fluent-base/16/devices/drive-harddisk-windows.svg branding/small/drive-harddisk-windows.svg
 	! grep -qi '198ee6' $(ICONS)/.Fluent-base/scalable/places/default-folder.svg
+	cmp -s $(ICONS)/.Fluent-base/scalable/places/veltos-home.svg branding/veltos-home.svg
+	cmp -s $(ICONS)/.Fluent-base/16/places/veltos-home.svg branding/small/veltos-home.svg
+	cmp -s $(ICONS)/.Fluent-base/16/places/folder-download.svg branding/small/folder-download.svg
 	grep -q 'FFC83D' $(ICONS)/.Fluent-base/scalable/apps/file-manager.svg

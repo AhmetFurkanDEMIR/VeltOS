@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- File Explorer Home: VeltOS artwork in the look of Windows 11 (tools/draw-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#FFB45A"/>
+      <stop offset="1" stop-color="#F57C1F"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E8661A"/>
+      <stop offset="1" stop-color="#C94E10"/>
+    </linearGradient>
+  </defs>
+  <path d="M 54 116 L 128 56 L 202 116 V 212 Q 202 224 190 224 H 66 Q 54 224 54 212 Z" fill="url(#wall)"/>
+  <path d="M 26 122 L 128 38 L 230 122" fill="none" stroke="url(#roof)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 106 224 V 172 Q 106 160 118 160 H 138 Q 150 160 150 172 V 224 Z" fill="#FFFFFF" opacity="0.92"/>
+</svg>

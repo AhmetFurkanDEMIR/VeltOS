@@ -1,5 +1,5 @@
 // Thin line glyphs drawn like Windows 11's caption and tab buttons:
-// "minimize", "maximize", "restore", "close", "more" (three dots), "pin".
+// "minimize", "maximize", "restore", "close", "more" (three dots).
 import QtQuick
 import "."
 
@@ -14,6 +14,10 @@ Canvas {
     height: 10
     onKindChanged: requestPaint()
     onColorChanged: requestPaint()
+    // A layout may resize the glyph after its first paint (the navigation
+    // pane's pins were drawn at 10 px and stretched).
+    onWidthChanged: requestPaint()
+    onHeightChanged: requestPaint()
     onPaint: {
         const ctx = getContext("2d");
         ctx.reset();
@@ -41,35 +45,6 @@ Canvas {
             ctx.lineTo(0, h);
         }
         ctx.stroke();
-        if (kind === "pin") {
-            // Push pin tilted to the right, as next to pinned folders in
-            // Windows 11 (VeltOS drawing on a 16 px grid, any size).
-            const s = Math.min(w, h) / 16;
-            ctx.save();
-            ctx.scale(s, s);
-            ctx.translate(8, 8);
-            ctx.rotate(Math.PI / 4);
-            ctx.translate(-8, -8);
-            ctx.lineWidth = lineWidth / s;
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            ctx.moveTo(5.5, 1.5);           // cap
-            ctx.lineTo(10.5, 1.5);
-            ctx.lineTo(10.5, 3.5);
-            ctx.lineTo(5.5, 3.5);
-            ctx.closePath();
-            ctx.moveTo(6.5, 3.5);           // body
-            ctx.lineTo(6, 8.5);
-            ctx.moveTo(9.5, 3.5);
-            ctx.lineTo(10, 8.5);
-            ctx.moveTo(3.5, 8.5);           // collar
-            ctx.lineTo(12.5, 8.5);
-            ctx.moveTo(8, 8.5);             // needle
-            ctx.lineTo(8, 14.5);
-            ctx.stroke();
-            ctx.restore();
-        }
         if (kind === "more") {
             for (let i = 0; i < 3; ++i) {
                 ctx.beginPath();

@@ -124,7 +124,7 @@ class Backend(QObject):
         return path.name or location
 
     def location_icon(self, location):
-        return {HOME: "go-home", THIS_PC: "computer", TRASH: "user-trash"}.get(
+        return {HOME: "veltos-home", THIS_PC: "computer", TRASH: "user-trash"}.get(
             location, places.folder_icon(location))
 
     @Property("QVariantList", notify=placesChanged)

@@ -3,6 +3,28 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (08:10) — File Explorer: Windows 11 folder colours, whole pins
+
+- The product owner sent Windows 11's File Explorer for reference: the
+  special folders are coloured (Desktop blue, Downloads teal, Documents
+  slate, Pictures blue, Music orange to pink, Videos purple, each with a
+  white mark), plain folders yellow, Home an orange house; and the pins
+  next to the pinned folders in VeltOS were cut in half.
+- veltos-fluent-icons draws the special folders that way
+  (`tools/draw-icons.py`, VeltOS drawings) with separate 16 px drawings
+  for the navigation pane; `recolour-folders.py` keeps VeltOS's small
+  drawings instead of dropping all small place icons. New icon
+  `veltos-home` (orange house) next to every `user-home` of the Fluent
+  themes; File Explorer's Home uses it (tab, address bar, navigation).
+- Pins: the navigation pane's column was as wide as the pane while the
+  scroll view shows only its `availableWidth`, so the right end of each
+  row (the pin) was clipped. The column now takes `availableWidth`. The
+  pin itself is an SVG (`qml/pin.svg`, a closed head and needle like
+  Windows 11's) instead of open Canvas strokes that read as an "x".
+- Package builds: veltos-fluent-icons (install checks), veltos-explorer
+  38 tests. VM (installed system): coloured folders in Quick access and
+  the navigation pane, orange Home, whole pins.
+
 ## 2026-10-21 (04:15) — New ISO checked screen by screen; Start centred
 
 - ISO `veltos-0.1.0-dev-20261021-001546` (all work up to Mail; Camera

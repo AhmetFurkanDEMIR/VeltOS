@@ -204,72 +204,133 @@ def recycle_bin(full):
 
 # --- Folders and the local disk -----------------------------------------------------
 
-FOLDER_DEFS = """  <defs>
-    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F7B52C"/>
-      <stop offset="1" stop-color="#E8960C"/>
-    </linearGradient>
-    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFE07A"/>
-      <stop offset="1" stop-color="#FFC53A"/>
-    </linearGradient>
-    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#4FB0F5"/>
-      <stop offset="1" stop-color="#1A6DD6"/>
-    </linearGradient>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#6CC4FA"/>
-      <stop offset="1" stop-color="#2C86E0"/>
-    </linearGradient>
-    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FF8A3D"/>
-      <stop offset="1" stop-color="#E35A0C"/>
-    </linearGradient>
-    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#A487E0"/>
-      <stop offset="1" stop-color="#6E4DB8"/>
-    </linearGradient>
-  </defs>
-"""
+# The special folders are coloured like Windows 11's (the product owner's
+# reference: Desktop blue, Downloads teal, Documents slate, Pictures blue,
+# Music orange to pink, Videos purple; plain folders stay yellow), each
+# with a white mark on the front. VeltOS drawings, not Microsoft's files.
+# name -> (back top, back bottom, front top, front bottom)
+FOLDER_COLOURS = {
+    "folder": ("#F7B52C", "#E8960C", "#FFE07A", "#FFC53A"),
+    "user-desktop": ("#1A73D9", "#1458B4", "#53BDF7", "#1F8BEA"),
+    "folder-download": ("#0B8C78", "#086E5F", "#38D2B3", "#0FA88D"),
+    "folder-documents": ("#5A7590", "#465E77", "#A9BED2", "#7896B2"),
+    "folder-pictures": ("#1E66C8", "#174FA0", "#5CB6FA", "#2382E6"),
+    "folder-music": ("#E0484F", "#BC3341", "#FFA14F", "#F2557C"),
+    "folder-videos": ("#6640C2", "#50309E", "#A889F5", "#7A55DE"),
+}
 
-FOLDER_BODY = """  <path d="M 18 58 Q 18 44 32 44 H 94 Q 103 44 109 51 L 119 62 H 224 Q 238 62 238 76 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z" fill="url(#back)"/>
-  <path d="M 18 96 Q 18 84 30 84 H 226 Q 238 84 238 96 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z" fill="url(#front)"/>
-  <path d="M 30 86 H 226" stroke="#FFFFFF" stroke-opacity="0.65" stroke-width="3" stroke-linecap="round"/>
-"""
-
-# Coloured marks on the front of the special folders (centre about 128, 152).
+# White marks on the front (centre about 128, 152).
 FOLDER_MARKS = {
     "folder": "",
-    "user-desktop": """  <rect x="82" y="116" width="92" height="64" rx="7" fill="url(#blue)"/>
-  <rect x="88" y="122" width="80" height="44" rx="3" fill="#FFFFFF" opacity="0.25"/>
-  <rect x="112" y="180" width="32" height="8" rx="2" fill="#1A5DB8"/>
+    "user-desktop": """  <rect x="86" y="118" width="84" height="56" rx="7" fill="none" stroke="#FFFFFF" stroke-width="9"/>
+  <path d="M 112 190 H 144" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"/>
 """,
-    "folder-download": """  <path d="M 116 108 H 140 V 146 H 160 L 128 182 L 96 146 H 116 Z" fill="url(#blue)"/>
-  <rect x="90" y="188" width="76" height="9" rx="4.5" fill="#1A6DD6"/>
+    "folder-download": """  <path d="M 128 110 V 168 M 102 144 L 128 170 L 154 144" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 98 192 H 158" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
 """,
-    "folder-documents": """  <path d="M 96 106 H 146 L 166 126 V 196 Q 166 202 160 202 H 96 Q 90 202 90 196 V 112 Q 90 106 96 106 Z" fill="#FFFFFF"/>
-  <path d="M 146 106 V 126 H 166 Z" fill="#D9E2EC"/>
-  <path d="M 102 140 H 154 M 102 156 H 154 M 102 172 H 140" stroke="#3A8EE6" stroke-width="7" stroke-linecap="round"/>
+    "folder-documents": """  <path d="M 100 112 H 142 L 160 130 V 192 Q 160 198 154 198 H 100 Q 94 198 94 192 V 118 Q 94 112 100 112 Z" fill="#FFFFFF"/>
+  <path d="M 106 144 H 148 M 106 160 H 148 M 106 176 H 134" stroke="#7896B2" stroke-width="7" stroke-linecap="round"/>
 """,
-    "folder-pictures": """  <rect x="80" y="112" width="96" height="76" rx="8" fill="#FFFFFF"/>
-  <rect x="87" y="119" width="82" height="62" rx="4" fill="url(#sky)"/>
-  <path d="M 87 172 L 112 146 L 130 164 L 146 150 L 169 172 V 177 Q 169 181 165 181 H 91 Q 87 181 87 177 Z" fill="#41B86B"/>
-  <circle cx="150" cy="134" r="8" fill="#FFD54A"/>
+    "folder-pictures": """  <circle cx="150" cy="128" r="11" fill="#FFFFFF"/>
+  <path d="M 84 190 L 116 150 L 136 172 L 152 156 L 176 190 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
 """,
-    "folder-music": """  <path d="M 112 120 L 162 108 V 172" fill="none" stroke="url(#orange)" stroke-width="10" stroke-linejoin="round"/>
-  <path d="M 112 120 V 184" fill="none" stroke="url(#orange)" stroke-width="10"/>
-  <ellipse cx="100" cy="186" rx="16" ry="12" fill="url(#orange)"/>
-  <ellipse cx="150" cy="174" rx="16" ry="12" fill="url(#orange)"/>
+    "folder-music": """  <path d="M 118 180 V 118 L 162 110 V 168" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/>
+  <ellipse cx="106" cy="182" rx="16" ry="12.5" fill="#FFFFFF"/>
+  <ellipse cx="150" cy="170" rx="16" ry="12.5" fill="#FFFFFF"/>
 """,
-    "folder-videos": """  <rect x="80" y="114" width="96" height="72" rx="10" fill="url(#purple)"/>
-  <path d="M 118 132 L 146 150 L 118 168 Z" fill="#FFFFFF"/>
+    "folder-videos": """  <rect x="86" y="118" width="84" height="66" rx="12" fill="#FFFFFF"/>
+  <path d="M 118 136 L 144 151 L 118 166 Z" fill="#7A55DE"/>
 """,
 }
+
+FOLDER_SHAPE_BACK = ("M 18 58 Q 18 44 32 44 H 94 Q 103 44 109 51 L 119 62 H 224 Q 238 62 238 76 "
+                     "V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z")
+FOLDER_SHAPE_FRONT = "M 18 96 Q 18 84 30 84 H 226 Q 238 84 238 96 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z"
 
 
 def folder(name):
     what = "Folder" if name == "folder" else f"Folder ({name})"
-    return HEADER.format(what=what) + FOLDER_DEFS + FOLDER_BODY + FOLDER_MARKS[name] + "</svg>\n"
+    back_top, back_bottom, front_top, front_bottom = FOLDER_COLOURS[name]
+    defs = f"""  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="{back_top}"/>
+      <stop offset="1" stop-color="{back_bottom}"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="{front_top}"/>
+      <stop offset="1" stop-color="{front_bottom}"/>
+    </linearGradient>
+  </defs>
+"""
+    body = (f'  <path d="{FOLDER_SHAPE_BACK}" fill="url(#back)"/>\n'
+            f'  <path d="{FOLDER_SHAPE_FRONT}" fill="url(#front)"/>\n'
+            '  <path d="M 30 86 H 226" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>\n')
+    return HEADER.format(what=what) + defs + body + FOLDER_MARKS[name] + "</svg>\n"
+
+
+# 16 px drawings of the coloured folders (navigation pane, lists): the same
+# colours on a 16 px grid with bolder marks.
+SMALL_HEADER = ('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">\n'
+                '  <!-- {what}, 16 px: VeltOS artwork in the look of Windows 11 (tools/draw-icons.py).\n'
+                '       SPDX-License-Identifier: CC-BY-SA-4.0 -->\n')
+SMALL_MARKS = {
+    "user-desktop": '  <rect x="5" y="7.6" width="6" height="3.6" rx="0.6" fill="none" stroke="#FFFFFF" stroke-width="1.1"/>\n',
+    "folder-download": ('  <path d="M 8 6.8 V 10.4 M 6.4 8.9 L 8 10.5 L 9.6 8.9" fill="none" stroke="#FFFFFF" '
+                        'stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>\n'
+                        '  <path d="M 6 12 H 10" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>\n'),
+    "folder-documents": '  <path d="M 5.6 8 H 10.4 M 5.6 9.8 H 10.4 M 5.6 11.6 H 8.8" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/>\n',
+    "folder-pictures": ('  <path d="M 4.8 12.2 L 7 9.4 L 8.4 10.9 L 9.4 9.9 L 11.2 12.2 Z" fill="#FFFFFF"/>\n'
+                        '  <circle cx="9.9" cy="7.9" r="0.9" fill="#FFFFFF"/>\n'),
+    "folder-music": ('  <path d="M 7.2 11.6 V 7.6 L 10 7.1 V 10.8" fill="none" stroke="#FFFFFF" stroke-width="1"/>\n'
+                     '  <circle cx="6.5" cy="11.7" r="1.1" fill="#FFFFFF"/><circle cx="9.3" cy="10.9" r="1.1" fill="#FFFFFF"/>\n'),
+    "folder-videos": ('  <rect x="5" y="7.4" width="6" height="4.6" rx="1" fill="#FFFFFF"/>\n'
+                      '  <path d="M 7.3 8.6 L 9.1 9.7 L 7.3 10.8 Z" fill="#7A55DE"/>\n'),
+}
+
+
+def small_folder(name):
+    back_top, back_bottom, front_top, front_bottom = FOLDER_COLOURS[name]
+    return (SMALL_HEADER.format(what=f"Folder ({name})")
+            + f"""  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="{back_top}"/><stop offset="1" stop-color="{back_bottom}"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="{front_top}"/><stop offset="1" stop-color="{front_bottom}"/>
+    </linearGradient>
+  </defs>
+  <path d="M 1.5 3.6 Q 1.5 2.5 2.6 2.5 H 5.9 Q 6.4 2.5 6.8 2.9 L 7.5 3.6 H 13.4 Q 14.5 3.6 14.5 4.7 V 12.4 Q 14.5 13.5 13.4 13.5 H 2.6 Q 1.5 13.5 1.5 12.4 Z" fill="url(#back)"/>
+  <path d="M 1.5 6.1 Q 1.5 5.2 2.4 5.2 H 13.6 Q 14.5 5.2 14.5 6.1 V 12.4 Q 14.5 13.5 13.4 13.5 H 2.6 Q 1.5 13.5 1.5 12.4 Z" fill="url(#front)"/>
+"""
+            + SMALL_MARKS[name] + "</svg>\n")
+
+
+# File Explorer's "Home": an orange house like Windows 11's (VeltOS name
+# "veltos-home", so other programs keep their own home icons).
+def home():
+    return HEADER.format(what="File Explorer Home") + """  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#FFB45A"/>
+      <stop offset="1" stop-color="#F57C1F"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E8661A"/>
+      <stop offset="1" stop-color="#C94E10"/>
+    </linearGradient>
+  </defs>
+  <path d="M 54 116 L 128 56 L 202 116 V 212 Q 202 224 190 224 H 66 Q 54 224 54 212 Z" fill="url(#wall)"/>
+  <path d="M 26 122 L 128 38 L 230 122" fill="none" stroke="url(#roof)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 106 224 V 172 Q 106 160 118 160 H 138 Q 150 160 150 172 V 224 Z" fill="#FFFFFF" opacity="0.92"/>
+</svg>
+"""
+
+
+def small_home():
+    return SMALL_HEADER.format(what="File Explorer Home") + """  <path d="M 3.5 7.4 L 8 3.6 L 12.5 7.4 V 13 Q 12.5 13.8 11.7 13.8 H 4.3 Q 3.5 13.8 3.5 13 Z" fill="#FB9A3C"/>
+  <path d="M 1.8 7.6 L 8 2.4 L 14.2 7.6" fill="none" stroke="#D9581A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 6.7 13.8 V 10.6 Q 6.7 10 7.3 10 H 8.7 Q 9.3 10 9.3 10.6 V 13.8 Z" fill="#FFFFFF"/>
+</svg>
+"""
 
 
 def local_disk():
@@ -417,6 +478,7 @@ def main():
     (OUT / "user-trash-full.svg").write_text(recycle_bin(True), encoding="utf-8", newline="\n")
     for name in FOLDER_MARKS:
         (OUT / f"{name}.svg").write_text(folder(name), encoding="utf-8", newline="\n")
+    (OUT / "veltos-home.svg").write_text(home(), encoding="utf-8", newline="\n")
     (OUT / "drive-harddisk.svg").write_text(local_disk(), encoding="utf-8", newline="\n")
     (OUT / "drive-harddisk-windows.svg").write_text(windows_disk(), encoding="utf-8", newline="\n")
     # The icon of folders as a file type.
@@ -430,6 +492,9 @@ def main():
     (small / "drive-harddisk.svg").write_text(small_disk(), encoding="utf-8", newline="\n")
     (small / "drive-harddisk-windows.svg").write_text(small_windows_disk(), encoding="utf-8", newline="\n")
     (small / "user-trash.svg").write_text(small_bin(False), encoding="utf-8", newline="\n")
+    for name in SMALL_MARKS:
+        (small / f"{name}.svg").write_text(small_folder(name), encoding="utf-8", newline="\n")
+    (small / "veltos-home.svg").write_text(small_home(), encoding="utf-8", newline="\n")
     (small / "user-trash-full.svg").write_text(small_bin(True), encoding="utf-8", newline="\n")
     for name in TERMINAL_NAMES:
         (small / f"{name}.svg").write_text(small_terminal(), encoding="utf-8", newline="\n")

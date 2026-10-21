@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- File Explorer Home, small sizes: VeltOS artwork in the look of Windows 11
+       (tools/draw-icons.py). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <path d="M 3.5 7.4 L 8 3.6 L 12.5 7.4 V 13 Q 12.5 13.8 11.7 13.8 H 4.3 Q 3.5 13.8 3.5 13 Z" fill="#FB9A3C"/>
+  <path d="M 1.8 7.6 L 8 2.4 L 14.2 7.6" fill="none" stroke="#D9581A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 6.7 13.8 V 10.6 Q 6.7 10 7.3 10 H 8.7 Q 9.3 10 9.3 10.6 V 13.8 Z" fill="#FFFFFF"/>
+</svg>

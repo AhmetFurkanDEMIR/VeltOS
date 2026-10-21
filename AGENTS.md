@@ -335,8 +335,10 @@ owner sets priorities; agents act as the engineering team.
   KDE's settings window; add a VeltOS Settings page instead.
 - `xdg-mime query default text/plain` failed in the Plasma session
   ("Illegal number", xdg-utils 1.2): read mimeapps.list directly.
-- Fluent's 12 px `window-pin` icon draws as a cut "x"; File Explorer draws
-  its pin (Glyph "pin").
+- Fluent's 12 px `window-pin` icon draws as a cut "x"; File Explorer uses
+  its own `qml/pin.svg`. Its navigation pane's pins were also cut in half
+  because the scroll view's content was as wide as the pane, not as its
+  `availableWidth`: size ScrollView content to `availableWidth`.
 - Plasma's clipboard (Klipper) ignores images by default; VeltOS turns
   that off so screenshots stay on the clipboard after the program ends.
 - KWin keeps the QML of a scene effect (Task View) after

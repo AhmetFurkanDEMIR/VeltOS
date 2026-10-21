@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Folder (folder-download), small sizes: VeltOS artwork in the look of Windows 11
+       (tools/draw-icons.py). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B8C78"/><stop offset="1" stop-color="#086E5F"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#38D2B3"/><stop offset="1" stop-color="#0FA88D"/>
+    </linearGradient>
+  </defs>
+  <path d="M 1.5 3.6 Q 1.5 2.5 2.6 2.5 H 5.9 Q 6.4 2.5 6.8 2.9 L 7.5 3.6 H 13.4 Q 14.5 3.6 14.5 4.7 V 12.4 Q 14.5 13.5 13.4 13.5 H 2.6 Q 1.5 13.5 1.5 12.4 Z" fill="url(#back)"/>
+  <path d="M 1.5 6.1 Q 1.5 5.2 2.4 5.2 H 13.6 Q 14.5 5.2 14.5 6.1 V 12.4 Q 14.5 13.5 13.4 13.5 H 2.6 Q 1.5 13.5 1.5 12.4 Z" fill="url(#front)"/>
+  <path d="M 8 6.8 V 10.4 M 6.4 8.9 L 8 10.5 L 9.6 8.9" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 6 12 H 10" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+</svg>
