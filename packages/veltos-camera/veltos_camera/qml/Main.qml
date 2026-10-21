@@ -104,6 +104,13 @@ ApplicationWindow {
         }
         recorder: MediaRecorder {
             id: recorder
+            // H.264 + AAC in MP4, as Windows' Camera saves videos: Qt chose
+            // H.265 by default, which many players cannot open (VM, 2026-10-21).
+            mediaFormat {
+                fileFormat: MediaFormat.MPEG4
+                videoCodec: MediaFormat.VideoCodec.H264
+                audioCodec: MediaFormat.AudioCodec.AAC
+            }
             onRecorderStateChanged: {
                 if (recorderState === MediaRecorder.StoppedState && actualLocation.toString() !== "") {
                     backend.captured(actualLocation.toString());

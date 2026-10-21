@@ -100,6 +100,13 @@ THUNDERBIRD_PREFS = AUTOCONFIG_PREFS.replace("/usr/lib/firefox-esr/", "/usr/lib/
 pref("mail.shell.checkDefaultClient", false);
 pref("mailnews.start_page.enabled", false);
 pref("app.donation.eoy.version.viewed", 999);
+// No usage data is sent (VeltOS sends none), so no privacy notice tab and
+// no "Know your rights" bar at the first start (VM, 2026-10-21).
+pref("datareporting.policy.dataSubmissionEnabled", false);
+pref("datareporting.policy.dataSubmissionPolicyBypassNotification", true);
+pref("datareporting.policy.firstRunURL", "");
+pref("toolkit.telemetry.reportingpolicy.firstRun", false);
+pref("mail.rights.override", true);
 """
 
 

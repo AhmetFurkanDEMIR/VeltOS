@@ -235,3 +235,20 @@ QToolTip {
     border: 1px solid #D5DAE5;
     padding: 4px 8px;
 }
+
+/* While installing, Windows Setup shows progress, not commands: the job
+   status line ("Running command ...") and the "Toggle log" button of
+   Calamares' installation page are hidden (Calamares 3.3: the label is
+   "exec-message", the button sits in the page's only QToolBar). A failed
+   installation still shows its error and details. */
+QLabel#exec-message {
+    max-height: 0px;
+    margin: 0px;
+    padding: 0px;
+    color: transparent;
+}
+QToolBar {
+    max-width: 0px;
+    max-height: 0px;
+    border: none;
+}

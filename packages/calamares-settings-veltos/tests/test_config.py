@@ -51,6 +51,15 @@ class ConfigTests(unittest.TestCase):
                     self.assertTrue(module in BUILTIN_MODULES or module in self.custom,
                                     f"unknown module {module}")
 
+    def test_no_commands_or_logs_on_screen(self):
+        # The product owner: never show code or logs while installing.
+        shown = [m for step in self.settings["sequence"] for m in step.get("show", [])]
+        self.assertNotIn("summary", shown)          # it listed partition commands
+        self.assertTrue(self.settings["prompt-install"])   # still asks before changing the disk
+        qss = (CALAMARES / "branding/veltos/stylesheet.qss").read_text(encoding="utf-8")
+        self.assertRegex(qss, r"QLabel#exec-message \{[^}]*max-height: 0px")
+        self.assertRegex(qss, r"QToolBar \{[^}]*max-height: 0px")
+
     def test_branding(self):
         self.assertEqual(self.settings["branding"], "veltos")
         branding = load(CALAMARES / "branding/veltos/branding.desc")
