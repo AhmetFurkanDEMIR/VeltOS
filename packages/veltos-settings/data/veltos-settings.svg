@@ -1,12 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-<!-- VeltOS Settings icon. VeltOS original artwork in the style of Windows 11 app icons.
-     SPDX-License-Identifier: CC-BY-SA-4.0 -->
-<defs>
-<linearGradient id="body" x1="32" y1="4" x2="32" y2="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B4C2D8"/><stop offset="0.55" stop-color="#8293B2"/><stop offset="1" stop-color="#55658A"/></linearGradient>
-<linearGradient id="hole" x1="32" y1="22" x2="32" y2="42" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#232E46"/><stop offset="1" stop-color="#3D4C6E"/></linearGradient>
-</defs>
-<path d="M 29.00 4.50 L 35.00 4.50 A 3.5 3.5 0 0 1 38.50 8.00 L 38.50 13.00 A 3.5 3.5 0 0 1 35.00 16.50 L 29.00 16.50 A 3.5 3.5 0 0 1 25.50 13.00 L 25.50 8.00 A 3.5 3.5 0 0 1 29.00 4.50 Z M 49.32 10.43 L 53.57 14.68 A 3.5 3.5 0 0 1 53.57 19.63 L 50.03 23.16 A 3.5 3.5 0 0 1 45.08 23.16 L 40.84 18.92 A 3.5 3.5 0 0 1 40.84 13.97 L 44.37 10.43 A 3.5 3.5 0 0 1 49.32 10.43 Z M 59.50 29.00 L 59.50 35.00 A 3.5 3.5 0 0 1 56.00 38.50 L 51.00 38.50 A 3.5 3.5 0 0 1 47.50 35.00 L 47.50 29.00 A 3.5 3.5 0 0 1 51.00 25.50 L 56.00 25.50 A 3.5 3.5 0 0 1 59.50 29.00 Z M 53.57 49.32 L 49.32 53.57 A 3.5 3.5 0 0 1 44.37 53.57 L 40.84 50.03 A 3.5 3.5 0 0 1 40.84 45.08 L 45.08 40.84 A 3.5 3.5 0 0 1 50.03 40.84 L 53.57 44.37 A 3.5 3.5 0 0 1 53.57 49.32 Z M 35.00 59.50 L 29.00 59.50 A 3.5 3.5 0 0 1 25.50 56.00 L 25.50 51.00 A 3.5 3.5 0 0 1 29.00 47.50 L 35.00 47.50 A 3.5 3.5 0 0 1 38.50 51.00 L 38.50 56.00 A 3.5 3.5 0 0 1 35.00 59.50 Z M 14.68 53.57 L 10.43 49.32 A 3.5 3.5 0 0 1 10.43 44.37 L 13.97 40.84 A 3.5 3.5 0 0 1 18.92 40.84 L 23.16 45.08 A 3.5 3.5 0 0 1 23.16 50.03 L 19.63 53.57 A 3.5 3.5 0 0 1 14.68 53.57 Z M 4.50 35.00 L 4.50 29.00 A 3.5 3.5 0 0 1 8.00 25.50 L 13.00 25.50 A 3.5 3.5 0 0 1 16.50 29.00 L 16.50 35.00 A 3.5 3.5 0 0 1 13.00 38.50 L 8.00 38.50 A 3.5 3.5 0 0 1 4.50 35.00 Z M 10.43 14.68 L 14.68 10.43 A 3.5 3.5 0 0 1 19.63 10.43 L 23.16 13.97 A 3.5 3.5 0 0 1 23.16 18.92 L 18.92 23.16 A 3.5 3.5 0 0 1 13.97 23.16 L 10.43 19.63 A 3.5 3.5 0 0 1 10.43 14.68 Z" fill="url(#body)"/>
-<circle cx="32" cy="32" r="22" fill="url(#body)"/>
-<circle cx="32" cy="32" r="9.5" fill="url(#hole)"/>
-<circle cx="32" cy="32" r="9.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Settings: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="gear" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8A94A3"/>
+      <stop offset="1" stop-color="#5B6573"/>
+    </linearGradient>
+    <linearGradient id="hub" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A7BEA"/>
+      <stop offset="1" stop-color="#1C4FB5"/>
+    </linearGradient>
+  </defs>
+  <path d="M 111.2 47.7 L 110.9 25.4 L 145.1 25.4 L 144.8 47.7 L 172.9 59.4 L 188.5 43.4 L 212.6 67.5 L 196.6 83.1 L 208.3 111.2 L 230.6 110.9 L 230.6 145.1 L 208.3 144.8 L 196.6 172.9 L 212.6 188.5 L 188.5 212.6 L 172.9 196.6 L 144.8 208.3 L 145.1 230.6 L 110.9 230.6 L 111.2 208.3 L 83.1 196.6 L 67.5 212.6 L 43.4 188.5 L 59.4 172.9 L 47.7 144.8 L 25.4 145.1 L 25.4 110.9 L 47.7 111.2 L 59.4 83.1 L 43.4 67.5 L 67.5 43.4 L 83.1 59.4 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 111.2 47.7 L 110.9 25.4 L 145.1 25.4 L 144.8 47.7 L 172.9 59.4 L 188.5 43.4 L 212.6 67.5 L 196.6 83.1 L 208.3 111.2 L 230.6 110.9 L 230.6 145.1 L 208.3 144.8 L 196.6 172.9 L 212.6 188.5 L 188.5 212.6 L 172.9 196.6 L 144.8 208.3 L 145.1 230.6 L 110.9 230.6 L 111.2 208.3 L 83.1 196.6 L 67.5 212.6 L 43.4 188.5 L 59.4 172.9 L 47.7 144.8 L 25.4 145.1 L 25.4 110.9 L 47.7 111.2 L 59.4 83.1 L 43.4 67.5 L 67.5 43.4 L 83.1 59.4 Z" fill="url(#gear)" stroke-linejoin="round"/>
+  <circle cx="128" cy="128" r="50" fill="#F4F6F9"/>
+  <circle cx="128" cy="128" r="32" fill="url(#hub)"/>
 </svg>

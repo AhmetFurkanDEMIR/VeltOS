@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Calculator: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6B7686"/>
+      <stop offset="1" stop-color="#465160"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7BE6FF"/>
+      <stop offset="1" stop-color="#38B6F2"/>
+    </linearGradient>
+    <linearGradient id="key" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2F4F7"/>
+      <stop offset="1" stop-color="#D3D9E1"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4F7CFF"/>
+      <stop offset="1" stop-color="#2B45C8"/>
+    </linearGradient>
+  </defs>
+  <path d="M 70 20 H 186 Q 204 20 204 38 V 218 Q 204 236 186 236 H 70 Q 52 236 52 218 V 38 Q 52 20 70 20 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 70 20 H 186 Q 204 20 204 38 V 218 Q 204 236 186 236 H 70 Q 52 236 52 218 V 38 Q 52 20 70 20 Z" fill="url(#body)"/>
+  <path d="M 70 22 H 186" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="3" stroke-linecap="round"/>
+  <rect x="70" y="40" width="116" height="48" rx="8" fill="url(#screen)"/>
+  <rect x="70" y="104" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="104" y="104" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="138" y="104" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="70" y="136" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="104" y="136" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="138" y="136" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="70" y="168" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="104" y="168" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="138" y="168" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="70" y="200" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="104" y="200" width="26" height="24" rx="5" fill="url(#key)"/>
+  <rect x="138" y="168" width="26" height="56" rx="5" fill="url(#accent)"/>
+</svg>

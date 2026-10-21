@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Settings: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="gear" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8A94A3"/>
+      <stop offset="1" stop-color="#5B6573"/>
+    </linearGradient>
+    <linearGradient id="hub" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A7BEA"/>
+      <stop offset="1" stop-color="#1C4FB5"/>
+    </linearGradient>
+  </defs>
+  <path d="M 111.2 47.7 L 110.9 25.4 L 145.1 25.4 L 144.8 47.7 L 172.9 59.4 L 188.5 43.4 L 212.6 67.5 L 196.6 83.1 L 208.3 111.2 L 230.6 110.9 L 230.6 145.1 L 208.3 144.8 L 196.6 172.9 L 212.6 188.5 L 188.5 212.6 L 172.9 196.6 L 144.8 208.3 L 145.1 230.6 L 110.9 230.6 L 111.2 208.3 L 83.1 196.6 L 67.5 212.6 L 43.4 188.5 L 59.4 172.9 L 47.7 144.8 L 25.4 145.1 L 25.4 110.9 L 47.7 111.2 L 59.4 83.1 L 43.4 67.5 L 67.5 43.4 L 83.1 59.4 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 111.2 47.7 L 110.9 25.4 L 145.1 25.4 L 144.8 47.7 L 172.9 59.4 L 188.5 43.4 L 212.6 67.5 L 196.6 83.1 L 208.3 111.2 L 230.6 110.9 L 230.6 145.1 L 208.3 144.8 L 196.6 172.9 L 212.6 188.5 L 188.5 212.6 L 172.9 196.6 L 144.8 208.3 L 145.1 230.6 L 110.9 230.6 L 111.2 208.3 L 83.1 196.6 L 67.5 212.6 L 43.4 188.5 L 59.4 172.9 L 47.7 144.8 L 25.4 145.1 L 25.4 110.9 L 47.7 111.2 L 59.4 83.1 L 43.4 67.5 L 67.5 43.4 L 83.1 59.4 Z" fill="url(#gear)" stroke-linejoin="round"/>
+  <circle cx="128" cy="128" r="50" fill="#F4F6F9"/>
+  <circle cx="128" cy="128" r="32" fill="url(#hub)"/>
+</svg>

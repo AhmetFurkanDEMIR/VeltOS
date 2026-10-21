@@ -21,6 +21,15 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   `distributor-logo*` are replaced by the VeltOS logo (these icons mean
   "this operating system"); the Wine/Windows icons are removed so Breeze's
   neutral icons are used.
+- **App icons as one family** (`branding/apps/`, drawn by
+  `tools/app-icons.py`): Calculator, Camera, Mail, Snipping Tool, Store,
+  Settings, Task Manager, File Explorer, Notepad, Photos, Document Viewer,
+  Archive and Media Player in the look of Windows 11's app icons (VeltOS
+  drawings, no Microsoft files or logos), installed under the VeltOS apps'
+  names and the KDE/Debian apps they stand for.
+- **Special folders** coloured like Windows 11's (Desktop, Downloads,
+  Documents, Pictures, Music, Videos) with 16 px drawings, and File
+  Explorer's orange Home (`veltos-home`).
 - **"This PC" and Recycle Bin** (`branding/computer.svg`, `user-trash.svg`,
   `user-trash-full.svg`, drawn by `tools/draw-icons.py`): VeltOS artwork in
   the look of Windows 11's icons (a monitor with a cyan-to-blue screen on a
