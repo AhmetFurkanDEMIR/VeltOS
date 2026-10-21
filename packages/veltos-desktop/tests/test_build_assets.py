@@ -431,6 +431,11 @@ class FullBuildTest(unittest.TestCase):
         self.assertNotIn("mail.css", (root / "usr/lib/firefox-esr/veltos.cfg").read_text())
         css = (root / "usr/share/veltos/mail/mail.css").read_text()
         self.assertIn('@-moz-document url-prefix("chrome://messenger/content/")', css)   # never inside mails
+        # The add-account page is about:accountsetup (Thunderbird 140), not a
+        # chrome:// URL: without it the page kept Thunderbird's look (VM).
+        self.assertIn('url("about:accountsetup")', css)
+        self.assertIn('content: "Add your account";', css)
+        self.assertIn('content: "Hesabınızı ekleyin";', css)
         restrictions = kdeglobals["[KDE Control Module Restrictions]"]
         self.assertEqual(restrictions["kcm_kdeconnect"], "false")
         self.assertIn("ToolButtonStyle=IconOnly", (root / "etc/xdg/dolphinrc").read_text())
