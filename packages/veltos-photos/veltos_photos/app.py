@@ -405,8 +405,21 @@ class Backend(QObject):
         if self.filter != "all":
             items = [i for i in items if i["kind"] == self.filter]
         if self._query:
+            # Match the query against each picture's path *within* its library
+            # folder, not its absolute path: otherwise a search term that
+            # happens to occur in the folders above Pictures (a user name, a
+            # temp dir) would match every file.
             words = self._query.lower().split()
-            items = [i for i in items if all(w in i["path"].lower() for w in words)]
+            roots = sorted((f.rstrip("/") + "/" for f in self.folders), key=len, reverse=True)
+
+            def under_root(path):
+                low = path.lower()
+                for root in roots:
+                    if low.startswith(root.lower()):
+                        return low[len(root):]
+                return low
+
+            items = [i for i in items if all(w in under_root(i["path"]) for w in words)]
         if self.sort == "oldest":
             items = list(reversed(items))
         return items

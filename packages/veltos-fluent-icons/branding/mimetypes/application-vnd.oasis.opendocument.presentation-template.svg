@@ -2,27 +2,30 @@
   <!-- Presentation: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
        SPDX-License-Identifier: CC-BY-SA-4.0 -->
   <defs>
-    <linearGradient id="frame" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FF8A3D"/>
-      <stop offset="1" stop-color="#E8501E"/>
-    </linearGradient>
-    <linearGradient id="slide" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#F1F3F6"/>
+      <stop offset="1" stop-color="#EEF1F6"/>
     </linearGradient>
-    <linearGradient id="legs" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7B8594"/>
-      <stop offset="1" stop-color="#525C6A"/>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#EB6A45"/>
+      <stop offset="1" stop-color="#8F2A10"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C43E1C"/>
+      <stop offset="1" stop-color="#8F2A10"/>
     </linearGradient>
   </defs>
-  <path d="M 128 176 V 206 M 128 196 L 96 232 M 128 196 L 160 232" stroke="url(#legs)" stroke-width="9" stroke-linecap="round" fill="none"/>
-  <path d="M 42 32 H 214 Q 232 32 232 50 V 162 Q 232 180 214 180 H 42 Q 24 180 24 162 V 50 Q 24 32 42 32 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
-  <path d="M 42 32 H 214 Q 232 32 232 50 V 162 Q 232 180 214 180 H 42 Q 24 180 24 162 V 50 Q 24 32 42 32 Z" fill="url(#frame)"/>
-  <path d="M 42 35 H 214" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>
-  <rect x="38" y="46" width="180" height="120" rx="8" fill="url(#slide)"/>
-  <circle cx="96" cy="106" r="36" fill="#FFD3B8"/>
-  <path d="M 96 106 V 70 A 36 36 0 0 1 130 118 Z" fill="url(#frame)"/>
-  <rect x="146" y="112" width="14" height="30" rx="3" fill="#FBB48A"/>
-  <rect x="166" y="94" width="14" height="48" rx="3" fill="#F57A3F"/>
-  <rect x="186" y="78" width="14" height="64" rx="3" fill="#E8501E"/>
+  <path d="M 108 20 H 196 L 236 60 V 224 Q 236 236 224 236 H 108 Q 96 236 96 224 V 32 Q 96 20 108 20 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 108 20 H 196 L 236 60 V 224 Q 236 236 224 236 H 108 Q 96 236 96 224 V 32 Q 96 20 108 20 Z" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>
+  <path d="M 196 20 V 50 Q 196 60 206 60 H 236 Z" fill="#D8DFE8"/>
+  <rect x="150" y="80" width="76" height="52" rx="6" fill="#FFE1D4"/>
+  <circle cx="176" cy="106" r="16" fill="#F7B99C"/>
+  <path d="M 176 106 V 90 A 16 16 0 0 1 191 112 Z" fill="#C43E1C"/>
+  <rect x="200" y="96" width="8" height="26" rx="2" fill="#E8744F"/>
+  <rect x="212" y="88" width="8" height="34" rx="2" fill="#C43E1C"/>
+  <path d="M 152 152 H 216 M 152 176 H 216 M 152 200 H 192" stroke="#F4B59E" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 38 72 H 118 Q 140 72 140 94 V 174 Q 140 196 118 196 H 38 Q 16 196 16 174 V 94 Q 16 72 38 72 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 38 72 H 118 Q 140 72 140 94 V 174 Q 140 196 118 196 H 38 Q 16 196 16 174 V 94 Q 16 72 38 72 Z" fill="url(#tile)"/>
+  <path d="M 16 134 V 174 Q 16 196 38 196 H 118 Q 140 196 140 174 V 134 Z" fill="url(#edge)" opacity="0.55"/>
+  <path d="M 58 166 V 106 H 86 Q 108 106 108 128 Q 108 150 86 150 H 58" fill="none" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

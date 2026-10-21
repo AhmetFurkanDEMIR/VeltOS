@@ -120,6 +120,21 @@ class OverrideTests(unittest.TestCase):
         self.assertIn('prefix: "pressed" + buttonSvg.maximizedSuffix', button)
         self.assertIn('hasElementPrefix("hover-maximized")', button)
 
+    def test_office_windows_get_their_colour(self):
+        # Microsoft 365's Word/Excel/PowerPoint have the app's colour in
+        # the title bar; LibreOffice's windows behind VeltOS Office get it
+        # from the frame (aurorae.json), with white caption and glyphs.
+        self.assertEqual(self.run_tool(), 0)
+        frame = (self.out / "kwin/aurorae/aurorae.qml").read_text(encoding="utf-8")
+        self.assertIn("readonly property color veltosTint", frame)
+        self.assertIn('caption.endsWith("VeltOS Office Calc")', frame)
+        self.assertIn("color: root.veltosTint", frame)
+        self.assertIn('root.veltosTinted ? (decoration.client.active ? "#FFFFFF"', frame)
+        button = (self.out / "kwin/aurorae/AuroraeButton.qml").read_text(encoding="utf-8")
+        self.assertIn('prefix: "active" + buttonSvg.tintSuffix', button)
+        self.assertIn('prefix: "hover" + buttonSvg.maximizedSuffix + buttonSvg.tintSuffix', button)
+        self.assertIn('hasElementPrefix("active-ondark")', button)
+
     def test_specs_are_complete(self):
         for path in sorted((PKG / "plasma-overrides").glob("*.json")):
             data = json.loads(path.read_text(encoding="utf-8"))

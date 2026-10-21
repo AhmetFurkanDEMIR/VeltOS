@@ -1,12 +1,32 @@
 #!/usr/bin/make -f
 
+export PYBUILD_NAME = veltos-office
+PKG = debian/veltos-office
+
 %:
-	dh $@
+	dh $@ --with python3
 
 override_dh_auto_build:
+	# VeltOS' templates: flat ODF written by the tool, converted by
+	# LibreOffice (Build-Depends) into .ott/.ots with thumbnails.
+	rm -rf build-assets/templates
+	python3 tools/make-templates.py build-assets/templates
 
 override_dh_auto_install:
-	install -D -m 644 registry/veltos-office.xcd 		debian/veltos-office/usr/lib/libreoffice/share/registry/veltos-office.xcd
+	install -d $(PKG)/usr/lib/python3/dist-packages
+	cp -r veltos_office $(PKG)/usr/lib/python3/dist-packages/
+	find $(PKG) -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-office $(PKG)/usr/bin/veltos-office
+	install -D -m 644 registry/veltos-office.xcd $(PKG)/usr/lib/libreoffice/share/registry/veltos-office.xcd
+	install -d $(PKG)/usr/share/veltos-office/templates/word $(PKG)/usr/share/veltos-office/templates/sheet
+	install -m 644 build-assets/templates/word/*.ott $(PKG)/usr/share/veltos-office/templates/word/
+	install -m 644 build-assets/templates/sheet/*.ots $(PKG)/usr/share/veltos-office/templates/sheet/
+
+execute_after_dh_install:
+	# Every template must carry its thumbnail (the start page shows it).
+	set -e; for f in $(PKG)/usr/share/veltos-office/templates/*/*; do \
+	    unzip -l "$$f" | grep -q "Thumbnails/thumbnail.png" || { echo "$$f: no thumbnail" >&2; exit 1; }; \
+	done
 
 override_dh_auto_test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

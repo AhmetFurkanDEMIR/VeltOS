@@ -62,6 +62,18 @@ EXEC_OPTIONS = {
     "libreoffice-impress.desktop": "--nologo",
 }
 
+# Programs replaced in every Exec line, when the replacement is installed:
+# the Office apps start on the VeltOS Office start screen (veltos-office),
+# which opens LibreOffice itself. "libreoffice --writer %U" becomes
+# "veltos-office word %U"; the "New Document" action opens a blank
+# document straight away (--blank).
+EXEC_REPLACE = {
+    "libreoffice-writer.desktop": ("libreoffice --writer", "veltos-office word"),
+    "libreoffice-calc.desktop": ("libreoffice --calc", "veltos-office sheet"),
+    "libreoffice-impress.desktop": ("libreoffice --impress", "veltos-office slides"),
+}
+REPLACE_PROGRAM = "/usr/bin/veltos-office"
+
 # Keys removed from the copies. Print Screen and Windows + Shift + S belong
 # to VeltOS Snipping Tool (veltos-snip), not to Spectacle.
 DROP_KEYS = {
@@ -113,11 +125,13 @@ HIDE = [
 ]
 
 
-def rewrite(text, source_name, names=None, hide=False, exec_options="", drop_keys=()):
+def rewrite(text, source_name, names=None, hide=False, exec_options="", drop_keys=(), exec_replace=None):
     """Return the .desktop text with the main group's names replaced and/or
     NoDisplay set. Other groups ([Desktop Action ...]) are left alone,
-    except that exec_options are added after the program in every Exec line
-    and drop_keys are removed from every group.
+    except that exec_options are added after the program in every Exec line,
+    drop_keys are removed from every group, and exec_replace = (old
+    program, new program) replaces the program in every Exec line (an
+    action's line without arguments gets --blank: it opens a document).
 
     The new keys go right after the [Desktop Entry] header; every Name,
     GenericName and their translations of the main group are dropped, and
@@ -161,7 +175,15 @@ def rewrite(text, source_name, names=None, hide=False, exec_options="", drop_key
                 line = f"{key}={value}{separator}{extra}"
         if drop_keys and "=" in stripped and stripped.split("=", 1)[0].strip().split("[", 1)[0] in drop_keys:
             continue
-        if exec_options and "=" in stripped and stripped.split("=", 1)[0].strip() == "Exec":
+        if exec_replace and "=" in stripped and stripped.split("=", 1)[0].strip() == "Exec":
+            command = stripped.split("=", 1)[1].strip()
+            old, new = exec_replace
+            if command == old or command.startswith(old + " "):
+                rest = command[len(old):].strip()
+                if not rest and group != "[Desktop Entry]":
+                    rest = "--blank"
+                line = f"Exec={new}" + (f" {rest}" if rest else "")
+        elif exec_options and "=" in stripped and stripped.split("=", 1)[0].strip() == "Exec":
             program, _, rest = stripped.split("=", 1)[1].strip().partition(" ")
             line = f"Exec={program} {exec_options}" + (f" {rest}" if rest else "")
         out.append(line)
@@ -190,9 +212,10 @@ def update(source_dir, out_dir):
         if not source.is_file():
             target.unlink(missing_ok=True)
             continue
+        replace = EXEC_REPLACE.get(name) if Path(REPLACE_PROGRAM).exists() else None
         try:
             text = rewrite(source.read_text(encoding="utf-8"), str(source), names, hide,
-                           EXEC_OPTIONS.get(name, ""), DROP_KEYS.get(name, ()))
+                           EXEC_OPTIONS.get(name, ""), DROP_KEYS.get(name, ()), replace)
         except (OSError, UnicodeDecodeError, ValueError) as error:
             # One odd file must not break package installation.
             print(f"update-app-names: skipping {source}: {error}", file=sys.stderr)

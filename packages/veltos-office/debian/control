@@ -3,17 +3,35 @@ Section: editors
 Priority: optional
 Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
 Build-Depends: debhelper-compat (= 13),
+               dh-python,
                python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qt5compat-graphicaleffects,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
                libreoffice-writer,
                libreoffice-calc,
                libreoffice-impress,
-               libreoffice-style-colibre
+               libreoffice-style-colibre,
+               fonts-crosextra-carlito,
+               unzip
 Standards-Version: 4.7.2
 Rules-Requires-Root: no
 
 Package: veltos-office
 Architecture: all
-Depends: libreoffice-writer,
+Depends: ${python3:Depends},
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qt5compat-graphicaleffects,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         libreoffice-writer,
          libreoffice-calc,
          libreoffice-impress,
          libreoffice-kf6,
@@ -22,11 +40,24 @@ Depends: libreoffice-writer,
          fonts-crosextra-caladea,
          fonts-liberation,
          ${misc:Depends}
-Description: VeltOS Office: LibreOffice set up for Windows users
- Installs LibreOffice's word processor, spreadsheet and presentation
- programs with the Plasma (Qt) integration and sets them up the way
- people who come from Windows expect: the ribbon-like "Tabbed" interface,
- the Colibre icons, .docx/.xlsx/.pptx as the default file formats without
- a question on every save, fonts with the same metrics as the common
- Windows fonts, and no donation or release-notes bars. Users' own
- settings in LibreOffice take precedence.
+Recommends: veltos-explorer,
+            veltos-settings,
+            veltos-desktop
+Description: VeltOS Office: LibreOffice with Microsoft 365's start screen
+ The word processor, spreadsheet and presentation programs of LibreOffice
+ (Debian) set up for people who come from Microsoft Office: each starts on
+ a Windows 11 start screen like Microsoft 365's (Home with a greeting,
+ blank document and templates, recent and pinned files with search; New;
+ Open; Account; Options) in the app's colour, with the entrance
+ animations of Windows 11. VeltOS' own templates (meeting notes, report,
+ to-do list, monthly budget, invoice, expense tracker, weekly schedule)
+ come with LibreOffice's.
+ .
+ The window frame gives LibreOffice's windows the app's colour in the
+ title bar (Word blue, Excel green, PowerPoint orange).
+ The configuration layer gives LibreOffice the ribbon-like "Tabbed"
+ interface, the Colibre icons, .docx/.xlsx/.pptx as the default file
+ formats without a question on every save, fonts with the metrics of the
+ common Windows fonts, the name "VeltOS Office" in window titles, and no
+ donation or release-notes bars. Users' own settings in LibreOffice take
+ precedence. It is LibreOffice underneath.

@@ -1,6 +1,6 @@
 # VeltOS Status
 
-Last updated: 2026-10-21. Every "Implemented" item names the
+Last updated: 2026-10-22. Every "Implemented" item names the
 evidence that shows it working. "Untested" means nobody has observed it
 working yet. All observations so far are from QEMU/KVM virtual machines (no
 3D acceleration) and one VirtualBox VM of the product owner; **VeltOS has
@@ -18,8 +18,8 @@ not been run on real hardware yet.**
 | `veltos-taskmanager` (new): Task Manager in the Windows 11 layout — Processes (Apps / Background / System, summed per app, busy cells tinted, search, End task), Performance (60-second CPU/memory/disk/network graphs and figures), Startup apps (enable/disable); Ctrl+Shift+Esc, one instance; KDE System Monitor kept as "Resource Monitor" | 19 unit tests (fake psutil; window offscreen EN/TR, Turkish locale); VM: opened with Ctrl+Shift+Esc, Firefox grouped with its 11 processes, second Ctrl+Shift+Esc does not open a second window, all three pages |
 | `veltos-media` (new): Media Player in the Windows 11 layout — Home with recent media, music library (songs, albums with covers, artists, shuffle and play), video library with frames, play queue (shuffle, repeat, play next), playlists, search, player bar, now playing (video or album picture), full screen; Qt Multimedia (FFmpeg); default for audio and video | 11 unit tests (queue logic, tags of real WAV files, window offscreen EN/TR); VM (live, 2026-10-21): albums with embedded covers, an album played (position advancing), video library thumbnails, an MJPEG AVI played to its end. No MPRIS yet; sound output itself not heard (VM) |
 | `veltos-pdf` (new): PDF Reader in a modern reader layout (own name and artwork, no Adobe marks) — Home with recent files, one tab per document, continuous pages with selectable text, search with results and highlights, page thumbnails, bookmarks (outline), zoom, fit width/page that stays fitted, rotate, read mode, full screen, document properties, passwords, printing; Qt PDF (PDFium); replaces Okular, default for PDF files | 6 unit tests (real PDFs written with QPdfWriter, window offscreen EN/TR, damaged file refused); VM (live, 2026-10-21): a 19-page PDF opened as the default app (`xdg-open`), thumbnails, bookmarks, search (160 results), zoom out/in, properties, app menu, Home with the recent file. Printing untested |
-| `veltos-office` (new): LibreOffice 25.2 (Debian) Writer/Calc/Impress set up for Windows users — ribbon-like Tabbed interface, Colibre icons, .docx/.xlsx/.pptx by default without the format question, Carlito (Calibri metrics) as default font, no tip/donation/what's-new bars, crash reports off, Debian's presentation template diverted; Start names "Word Processor"/"Spreadsheet"/"Presentation" (Kelime İşlemci/Hesap Tablosu/Sunu) with Word/Excel/PowerPoint as search words, original page/sheet/slide icons for apps and file types, no splash, default for Office documents, pinned in Start | 5 tests check every setting against the schema/data of the LibreOffice it is built with; VM (live, 2026-10-21): search "word" finds Word Processor; Writer, Calc and Impress open with the Tabbed interface, Colibre icons and Carlito; Impress templates without DebianTalk. Not checked: dark mode, Turkish interface on screen, real Office documents |
-| `veltos-photos` (new): Photos in the Windows 11 layout — search in the title bar, Gallery/Favorites/folders, gallery by month (EXIF date) with filter, sort, tile size and slideshow, viewer (zoom, rotate, delete, heart, file information, copy, set as background/lock screen, filmstrip), Edit image (crop, aspect ratios, rotate, flip, brightness, contrast, saturation, warmth; save or save as copy); video thumbnails (ffmpegthumbnailer); default for pictures; replaces Gwenview | 15 unit tests (scan, EXIF, edits with Pillow; window offscreen EN/TR); VM (live, 2026-10-21): gallery of sample pictures, viewer, edit with live preview, save as copy. Not yet checked: lock-screen picture, very large libraries |
+| `veltos-office`: Microsoft 365's start screen in front of LibreOffice 25.2 (Debian) Writer/Calc/Impress — Home (greeting, blank tile, templates with thumbnails, Recent/Pinned with search, grouped by date, pin, right-click menu), New (template grid with search), Open (Recent, This PC, Browse via the VeltOS dialog), Account, Options; title bar and rail in the app's colour (Word blue / Excel green / PowerPoint orange), Windows 11 entrance and hover animations, text size, English/Turkish; VeltOS' own templates (meeting notes, report, to-do list, monthly budget, invoice, expense tracker, weekly schedule) built from flat ODF by LibreOffice at package build time, LibreOffice's and the user's templates; LibreOffice set up for Windows users — Tabbed interface, Colibre icons, .docx/.xlsx/.pptx by default, Carlito, "VeltOS Office" in titles, no bars; Start entries run the start screen; coloured title bars on LibreOffice's windows (veltos-desktop Aurorae change); light Start Center; Office icons in the composition of Microsoft 365's (W/S/P tiles in front of a page, sheet, slide) | 24 unit tests (texts, PickList, pins, templates, command lines, the window for each app in EN/TR offscreen) + 7 configuration tests against LibreOffice's schema; VM (live, 2026-10-22, `tests/results/2026-10-22-office-start-screen/`): all pages in the three colours and in Turkish, opened from Start's pinned entry, templates and blank documents opening Writer with the Tabbed interface, Writer's title bar in Word blue after a sign-out, the Save dialog offering .docx. Not checked: dark mode, the Calc/Impress templates on screen, real Office documents |
+| `veltos-photos` (new): Photos in the Windows 11 layout — search in the title bar, Gallery/Favorites/folders, gallery by month (EXIF date) with filter, sort, tile size and slideshow, viewer (zoom, rotate, delete, heart, file information, copy, set as background/lock screen, filmstrip), Edit image (crop, aspect ratios, rotate, flip, brightness, contrast, saturation, warmth; save or save as copy); video thumbnails (ffmpegthumbnailer); default for pictures; replaces Gwenview | 17 unit tests (scan, EXIF, edits with Pillow; window offscreen EN/TR; search matches within the library, not the absolute path); VM (live, 2026-10-21): gallery of sample pictures, viewer, edit with live preview, save as copy. Not yet checked: lock-screen picture, very large libraries |
 | `veltos-notepad` (new): Notepad in the Windows 11 layout — tabs in the title bar, File/Edit/View menus, find and replace panel, go to line, time/date, zoom, word wrap, status bar (line/column, characters, zoom, line ending, encoding), Settings page (theme, font, word wrap, opening, session); keeps UTF-8/UTF-8 BOM/UTF-16/ANSI and CRLF/LF/CR; unsaved tabs come back (Windows 11 session); default for text files; replaces KWrite | 19 unit tests (encodings, line endings, the real window offscreen EN/TR); VM (live, 2026-10-21): opened a CRLF file from xdg-open, File menu, typing, find panel, Ctrl+S kept CRLF, Settings page. Printing untested |
 | `veltos-archive` (new): archive manager in WinRAR's layout with Windows 11 controls — open ZIP/RAR (all versions, 7zip-rar)/7Z/TAR/GZ/ISO/CAB…, folders inside, Extract To, Add (ZIP/7Z/TAR.*; RAR creation not possible without RARLAB's program), Test, View, Delete, Find, Info, passwords; File Explorer's Extract All/Extract here/Compress/Add to archive; replaces Ark | 21 unit tests (real 7-Zip and bsdtar; window offscreen EN/TR); VM (installed, 2026-10-21): RAR5 and password RAR, extract, add, Explorer commands. File dialog is Qt's own |
 | `veltos-camera` (new): Camera in the Windows 11 layout — picture over the whole window, Photo/Video switch, shutter, last capture, change camera, photo timer, framing grid, sound with videos, Pictures > Camera Roll; "We can't find your camera" without one | 10 unit tests (files, texts; window offscreen EN/TR without a camera); VM (installed, 2026-10-21) with a virtual webcam (v4l2loopback + ffmpeg test picture): preview, photo (JPEG), video (H.264 MP4). Not yet tested with a real camera or microphone |
@@ -43,6 +43,9 @@ checks that passed.
 
 ## Not yet tested
 
+- VeltOS Office (2026-10-22): the start screen in dark mode, the
+  spreadsheet templates opened in Calc, the entrance animations by eye
+  (screenshots show the end state), Browse from the Open page.
 - From the 2026-10-21 evening work: the installer slideshow during a
   real installation, the Windows-program runner's choice page (needs
   Bottles or Lutris installed), the softer sounds by ear, the Turkish
@@ -87,6 +90,11 @@ checks that passed.
   details, proxy, firewall, fonts, pointer style, per-app volume, display
   arrangement and refresh rate, game controllers, tablets, on-screen
   keyboard, spelling.
+- Office (2026-10-22): LibreOffice's document window keeps its own tab
+  strip colour and has no animations (that needs LibreOffice changes;
+  the gtk3 plugin with CSS could colour the strip but would make the
+  Office apps GTK-styled); closing the last document shows
+  LibreOffice's Start Center instead of the VeltOS start screen.
 - Product owner's requests not done yet: Control Panel pages in the
   Settings design; Windows 11 modern Wine dialogs; installer pages; a full check that no old KDE/Qt window is left (KDE's
   own dialogs still open from some places, e.g. "Change a password" opens
@@ -123,31 +131,25 @@ checks that passed.
 
 ## Next steps
 
-1. Current ISO: `veltos-0.1.0-dev-20261021-163819`: boot tests PASS on
-   UEFI and BIOS (`out/test-results/20261021-165735-uefi`,
-   `20261021-165951-bios`). It contains everything up to commit ef172e2
-   (Notepad, Photos, Media Player, PDF Reader, Office); the Mail account
-   page (d4c99b9) and the 2026-10-21 evening work are not in it. Its
-   packages were checked in VMs one by one (development log of
-   2026-10-21); the image as a whole has only had the automatic boot
-   test. Still to check: the power key and shutdown on screen, Camera with
-   a real webcam, Mail with a real account and in dark mode, the acrylic
-   Start on a PC with a GPU.
-2. Build an ISO with the 2026-10-21 evening work (veltos-auth,
-   veltos-clock, the file dialogs, the search window, the Wayland
-   greeter, the icons) and run the boot tests on it (the new check
-   expects veltos-auth, veltos-clock and the portal files in the
-   image). Then check what is still marked untested: the sign-in
+1. Current ISO: `veltos-0.1.0-dev-20261021-231629`: boot tests PASS on
+   UEFI and BIOS (`out/test-results/20261021-233325-uefi` 18/18,
+   `20261022-032138-bios` 17/17, no crashes). It contains everything
+   through the VeltOS Office start screen, the 2026-10-21 evening work
+   (veltos-auth, veltos-clock, file dialogs, search window, Wayland
+   greeter, icons) and the Mail account page. Its packages were checked in
+   VMs one by one (development log); the image as a whole has had the
+   automatic boot tests only. Still to check on this ISO: the sign-in
    screen's size in VirtualBox, the installer slideshow during an
-   installation, the sounds by ear, the new windows in Turkish and in
+   installation, the sounds by ear, the power key and shutdown on screen,
+   Camera with a real webcam, Mail with a real account, and everything in
    dark mode.
-3. Disk Management in the Windows layout (`packages/veltos-disks`, a
+2. Disk Management in the Windows layout (`packages/veltos-disks`, a
    UDisks2 reader exists, no window yet).
-4. Listen to the VeltOS sounds on real hardware; measure animation CPU
+3. Listen to the VeltOS sounds on real hardware; measure animation CPU
    cost with software rendering.
-5. Plain and BIOS installations; the product owner reinstalls in
+4. Plain and BIOS installations; the product owner reinstalls in
    VirtualBox.
-6. Installer pages (partitions, users) in Windows 11 style.
-7. The open requests listed under "Known gaps", in the product owner's
+5. Installer pages (partitions, users) in Windows 11 style.
+6. The open requests listed under "Known gaps", in the product owner's
    order.
-8. First run on real hardware.
+7. First run on real hardware.
