@@ -376,6 +376,17 @@ class FullBuildTest(unittest.TestCase):
         self.assertFalse((root / "etc/skel").exists())     # Debian policy: no package files in skel
         self.assertIn("FacesDir=/usr/share/veltos/faces\n",
                       (root / "usr/lib/sddm/sddm.conf.d/10-veltos.conf").read_text())
+        # Firefox and Mail (Thunderbird): autoconfig loads the caption buttons.
+        css = "file:///usr/share/veltos/firefox/caption-buttons.css"
+        self.assertTrue((root / "usr/share/veltos/firefox/caption-buttons.css").is_file())
+        for prefs, cfg in (("usr/lib/firefox-esr/defaults/pref/veltos.js", "usr/lib/firefox-esr/veltos.cfg"),
+                           ("usr/share/thunderbird/defaults/pref/veltos.js", "usr/lib/thunderbird/veltos.cfg")):
+            self.assertIn('pref("general.config.filename", "veltos.cfg");', (root / prefs).read_text())
+            text = (root / cfg).read_text()
+            self.assertTrue(text.startswith("//"), cfg)       # autoconfig skips the first line
+            self.assertIn(css, text)
+        mail = (root / "usr/share/thunderbird/defaults/pref/veltos.js").read_text()
+        self.assertIn('pref("mail.shell.checkDefaultClient", false);', mail)
         restrictions = kdeglobals["[KDE Control Module Restrictions]"]
         self.assertEqual(restrictions["kcm_kdeconnect"], "false")
         self.assertIn("ToolButtonStyle=IconOnly", (root / "etc/xdg/dolphinrc").read_text())

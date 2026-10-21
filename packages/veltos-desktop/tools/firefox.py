@@ -1,4 +1,5 @@
-"""VeltOS look for Firefox: Windows 11 caption buttons in the tab strip.
+"""VeltOS look for Firefox and Mail (Thunderbird): Windows 11 caption
+buttons in the tab strip.
 
 On Linux Firefox draws its own title bar buttons (round, libadwaita style)
 instead of using the GTK theme, so the VeltOS GTK theme does not reach
@@ -10,6 +11,13 @@ buttons the size, glyphs and hover colours of the VeltOS window frames
     usr/lib/firefox-esr/defaults/pref/veltos.js   general.config.* prefs
     usr/lib/firefox-esr/veltos.cfg                registers the style sheet
     usr/share/veltos/firefox/caption-buttons.css  the style sheet
+
+Thunderbird ("Mail" in VeltOS) is built on the same toolkit and draws the
+same buttons; it gets the same style sheet through its own autoconfig
+(defaults in /usr/share/thunderbird/defaults/pref, the script beside the
+program in /usr/lib/thunderbird), plus default preferences that keep it
+quiet like Windows' Mail: no "make Thunderbird the default" question and
+no start page or donation tab (users can change all of them).
 """
 
 import base64
@@ -88,6 +96,13 @@ try {
 """
 
 
+THUNDERBIRD_PREFS = AUTOCONFIG_PREFS.replace("/usr/lib/firefox-esr/", "/usr/lib/thunderbird/") + """// VeltOS: Mail opens like Windows' Mail, without questions or web pages.
+pref("mail.shell.checkDefaultClient", false);
+pref("mailnews.start_page.enabled", false);
+pref("app.donation.eoy.version.viewed", 999);
+"""
+
+
 def build(root):
     css = root / CSS_PATH
     css.parent.mkdir(parents=True, exist_ok=True)
@@ -96,6 +111,13 @@ def build(root):
     prefs.parent.mkdir(parents=True, exist_ok=True)
     prefs.write_text(AUTOCONFIG_PREFS, encoding="utf-8", newline="\n")
     (root / "usr/lib/firefox-esr/veltos.cfg").write_text(AUTOCONFIG, encoding="utf-8", newline="\n")
+    prefs = root / "usr/share/thunderbird/defaults/pref/veltos.js"
+    prefs.parent.mkdir(parents=True, exist_ok=True)
+    prefs.write_text(THUNDERBIRD_PREFS, encoding="utf-8", newline="\n")
+    cfg = root / "usr/lib/thunderbird/veltos.cfg"
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text(AUTOCONFIG.replace("VeltOS Firefox set-up", "VeltOS Mail (Thunderbird) set-up"),
+                   encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

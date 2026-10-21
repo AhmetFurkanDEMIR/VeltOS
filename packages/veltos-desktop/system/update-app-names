@@ -38,6 +38,8 @@ APPS = {
                                          "Partition;Format;Bölüm;Biçimlendir;"),
     "org.kde.plasma.emojier.desktop": ("Emoji", "Emoji", "Smiley;Emoticon;"),
     "firefox-esr.desktop": ("Firefox", "Firefox", "Browser;Internet;Web;Tarayıcı;"),
+    # Windows' e-mail app is "Mail" ("Posta"); VeltOS uses Thunderbird.
+    "thunderbird.desktop": ("Mail", "Posta", "Email;E-mail;Outlook;E-posta;"),
 }
 
 # Options added to every Exec line of an application. Konsole draws its
