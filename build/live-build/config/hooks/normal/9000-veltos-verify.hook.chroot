@@ -102,6 +102,12 @@ installed gwenview && fail "Gwenview must not be installed (VeltOS Photos replac
 installed veltos-media || fail "VeltOS Media Player missing"
 installed veltos-pdf || fail "VeltOS PDF Reader missing"
 installed okular && fail "Okular must not be installed (VeltOS PDF Reader replaces it)"
+installed veltos-office || fail "VeltOS Office missing"
+installed libreoffice-l10n-tr || fail "LibreOffice's Turkish interface missing"
+test -f /usr/lib/libreoffice/share/registry/veltos-office.xcd || fail "VeltOS Office settings missing"
+test -e /usr/lib/libreoffice/share/template/en-US/presnt/debian-presentation.otp     && fail "Debian's presentation template is still offered"
+grep -q '^Name=Word Processor$' /var/lib/veltos/xdg/applications/libreoffice-writer.desktop     || fail "the word processor keeps LibreOffice's name in Start"
+grep -q '^application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=libreoffice-calc.desktop;$'     /var/lib/veltos/xdg/applications/kde-mimeapps.list || fail ".xlsx files do not open in the spreadsheet"
 grep -q '^application/pdf=veltos-pdf.desktop;$' /var/lib/veltos/xdg/applications/kde-mimeapps.list     || fail "PDF files do not open in PDF Reader"
 grep -q '^video/mp4=veltos-media.desktop;$' /var/lib/veltos/xdg/applications/kde-mimeapps.list \
     || fail "videos do not open in Media Player"

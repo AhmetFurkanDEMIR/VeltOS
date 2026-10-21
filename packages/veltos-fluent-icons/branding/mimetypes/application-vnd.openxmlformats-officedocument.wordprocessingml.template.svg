@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Word Processor: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EDF1F6"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4F8BFF"/>
+      <stop offset="1" stop-color="#1F4FD6"/>
+    </linearGradient>
+    <linearGradient id="pencil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3D7BFF"/>
+      <stop offset="1" stop-color="#1E4FD0"/>
+    </linearGradient>
+  </defs>
+  <path d="M 60 24 H 156 L 204 72 V 220 Q 204 232 192 232 H 60 Q 48 232 48 220 V 36 Q 48 24 60 24 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 60 24 H 156 L 204 72 V 220 Q 204 232 192 232 H 60 Q 48 232 48 220 V 36 Q 48 24 60 24 Z" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>
+  <path d="M 156 24 V 60 Q 156 72 168 72 H 204 Z" fill="#D8DFE8"/>
+  <path d="M 76 72 H 132" stroke="url(#ink)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M 76 104 H 176 M 76 128 H 176 M 76 152 H 176 M 76 176 H 128" stroke="#5B8DEF" stroke-width="8" stroke-linecap="round"/>
+  <g transform="rotate(-45 186 186)">
+    <rect x="150" y="172" width="78" height="28" rx="6" fill="url(#pencil)"/>
+    <rect x="214" y="172" width="14" height="28" rx="4" fill="#F4A9B8"/>
+    <path d="M 150 172 L 126 186 L 150 200 Z" fill="#F6D7A7"/>
+    <path d="M 134 181 L 126 186 L 134 191 Z" fill="#26313D"/>
+  </g>
+</svg>

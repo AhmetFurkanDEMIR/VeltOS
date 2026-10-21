@@ -1,0 +1,32 @@
+Source: veltos-office
+Section: editors
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               python3,
+               libreoffice-writer,
+               libreoffice-calc,
+               libreoffice-impress,
+               libreoffice-style-colibre
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-office
+Architecture: all
+Depends: libreoffice-writer,
+         libreoffice-calc,
+         libreoffice-impress,
+         libreoffice-kf6,
+         libreoffice-style-colibre,
+         fonts-crosextra-carlito,
+         fonts-crosextra-caladea,
+         fonts-liberation,
+         ${misc:Depends}
+Description: VeltOS Office: LibreOffice set up for Windows users
+ Installs LibreOffice's word processor, spreadsheet and presentation
+ programs with the Plasma (Qt) integration and sets them up the way
+ people who come from Windows expect: the ribbon-like "Tabbed" interface,
+ the Colibre icons, .docx/.xlsx/.pptx as the default file formats without
+ a question on every save, fonts with the same metrics as the common
+ Windows fonts, and no donation or release-notes bars. Users' own
+ settings in LibreOffice take precedence.

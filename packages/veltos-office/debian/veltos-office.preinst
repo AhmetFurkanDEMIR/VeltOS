@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# Debian's own presentation template ("DebianTalk") is moved out of
+# LibreOffice's template folders: VeltOS shows no Debian branding.
+TEMPLATE=/usr/lib/libreoffice/share/template/en-US/presnt/debian-presentation.otp
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+    mkdir -p /usr/share/veltos-office/diverted
+    dpkg-divert --package veltos-office --add --rename         --divert /usr/share/veltos-office/diverted/debian-presentation.otp "$TEMPLATE"
+fi
+
+#DEBHELPER#
