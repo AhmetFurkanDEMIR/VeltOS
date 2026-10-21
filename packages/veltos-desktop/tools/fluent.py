@@ -155,13 +155,37 @@ def set_ini_keys(text, section, values, what, add=()):
 
 # --- Kvantum -------------------------------------------------------------------
 
+# Menus: Fluent draws them 75 % opaque for blur behind them; without blur
+# (software rendering, VMs, KWin's blur off) the text of the window behind
+# showed through and made menus hard to read (Start's quick link menu, VM
+# 2026-10-21). Windows 11's menus are nearly opaque acrylic.
+MENU_OPACITY = 0.94
+
+
+def set_menu_opacity(svg, opacity, name="svg"):
+    """Set the opacity of the menu background pieces (menu-normal and its
+    eight edges and corners) of a Kvantum SVG."""
+    pieces = list(re.finditer(r'<(path|g)\b[^>]*\bid="menu-normal(?:-[a-z]+)?"[^>]*>', svg))
+    if len(pieces) != 9:
+        raise SystemExit(f"{name}: expected 9 menu background pieces, found {len(pieces)}")
+    out, pos = [], 0
+    for match in pieces:
+        end = match.end() if match.group(1) == "path" else svg.index("</g>", match.end())
+        out.append(svg[pos:match.start()])
+        out.append(re.sub(r"(?<![-\w])opacity:[0-9.]+", f"opacity:{opacity}", svg[match.start():end]))
+        pos = end
+    out.append(svg[pos:])
+    return "".join(out)
+
+
 def build_kvantum(upstream, root):
     src = upstream / "Kvantum/Fluent-round"
     dest = root / "usr/share/Kvantum" / KVANTUM_DIR
     dest.mkdir(parents=True, exist_ok=True)
     for name, (fluent, variant) in KVANTUM.items():
         svg = (src / f"{fluent}.svg").read_text(encoding="utf-8")
-        (dest / f"{name}.svg").write_text(recolour(svg, variant, f"{fluent}.svg"), encoding="utf-8")
+        svg = set_menu_opacity(recolour(svg, variant, f"{fluent}.svg"), MENU_OPACITY, f"{fluent}.svg")
+        (dest / f"{name}.svg").write_text(svg, encoding="utf-8")
         config = (src / f"{fluent}.kvconfig").read_text(encoding="utf-8")
         config = recolour(config, variant, f"{fluent}.kvconfig")
         config = set_ini_keys(config, "[%General]", KVANTUM_GENERAL, f"{fluent}.kvconfig")

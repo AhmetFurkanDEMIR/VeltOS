@@ -128,6 +128,18 @@ class FluentTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             fluent.set_ini_keys(SAMPLE_KVCONFIG, "[%General]", {"nonexistent": "1"}, "t")
 
+    def test_menus_nearly_opaque(self):
+        edges = "".join(f'<g id="menu-normal-{e}"><path style="opacity:0.75;fill:#fff"/></g>'
+                        for e in ("left", "right", "top", "bottom", "topleft", "topright",
+                                  "bottomleft", "bottomright"))
+        svg = ('<path id="menu-normal" style="opacity:0.75;fill:#fff"/>' + edges
+               + '<path id="menuitem-normal" style="opacity:0.1"/>')
+        out = fluent.set_menu_opacity(svg, 0.94, "t")
+        self.assertEqual(out.count("opacity:0.94"), 9)
+        self.assertIn('id="menuitem-normal" style="opacity:0.1"', out)   # hover stays
+        with self.assertRaises(SystemExit):
+            fluent.set_menu_opacity('<path id="menu-normal"/>', 0.94, "t")
+
 
 class WallpaperTests(unittest.TestCase):
     def test_crop_keeps_target_aspect(self):

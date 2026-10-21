@@ -131,8 +131,19 @@ class AppNameTests(unittest.TestCase):
         self.assertIn("org.kde.dolphin.desktop", app_names.HIDE)
         self.assertIn("systemsettings.desktop", app_names.HIDE)
 
-    def test_lists_do_not_overlap(self):
-        self.assertFalse(set(app_names.APPS) & set(app_names.HIDE))
+    def test_hidden_apps_keep_their_windows_names(self):
+        # KDE Info Center is hidden like Windows' (Settings > About opens
+        # instead) but keeps its Windows name where it still shows.
+        self.assertIn("org.kde.kinfocenter.desktop", app_names.HIDE)
+        with tempfile.TemporaryDirectory() as tmp:
+            src, out = Path(tmp) / "src", Path(tmp) / "out"
+            src.mkdir()
+            (src / "org.kde.kinfocenter.desktop").write_text(
+                "[Desktop Entry]\nType=Application\nName=Info Center\nExec=kinfocenter\n", encoding="utf-8")
+            app_names.update(src, out)
+            text = (out / "org.kde.kinfocenter.desktop").read_text(encoding="utf-8")
+        self.assertIn("Name=System Information", text)
+        self.assertIn("NoDisplay=true", text)
 
 
 class SessionDefaultsTests(unittest.TestCase):

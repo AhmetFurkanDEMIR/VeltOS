@@ -3,7 +3,7 @@
 **Settings** ("Ayarlar"): the everyday settings app of VeltOS, laid out like
 Windows 11 Settings. Written from scratch in Python (PySide6) and QML. KDE's
 settings windows are never shown (product owner's rule): every page is
-built in, and `systemsettings` / `kcmshell6` open VeltOS Settings.
+built in, and `systemsettings` / `kcmshell6` / `kinfocenter` open VeltOS Settings.
 
 ## What the user sees
 
@@ -49,11 +49,12 @@ built in, and `systemsettings` / `kcmshell6` open VeltOS Settings.
   - **Accessibility**: Text size (KDE fonts), Animation effects;
   - **Privacy & security**: Screen lock, Searching files (balooctl6).
 - "Check for updates" and "Get apps" open VeltOS Store.
-- `bin/veltos-settings-redirect`, installed as `/usr/bin/systemsettings`
-  and `/usr/bin/kcmshell6` (KDE's programs are diverted to `*.kde` by the
-  preinst), maps KDE module names to pages (`catalog.KCM_PAGES`), so KDE
+- `bin/veltos-settings-redirect`, installed as `/usr/bin/systemsettings`,
+  `/usr/bin/kcmshell6` and `/usr/bin/kinfocenter` (KDE's programs are
+  diverted to `*.kde` by the preinst), maps KDE module names to pages
+  (`catalog.KCM_PAGES`, every module VeltOS' KDE packages install), so KDE
   programs' "Configure…" links, the Start menu and KRunner open VeltOS
-  Settings.
+  Settings; KDE Info Center opens About.
 - English and Turkish. Search folds case, Turkish letters and punctuation
   ("hoparlor" finds "Hoparlör", "wifi" finds "Wi-Fi") and knows Windows
   words ("control panel", "notepad" style keywords).

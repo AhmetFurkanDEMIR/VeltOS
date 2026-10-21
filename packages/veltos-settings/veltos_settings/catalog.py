@@ -195,6 +195,24 @@ KCM_PAGES = {
     "kcm_mouse": "mouse", "kcm_touchpad": "touchpad", "kcm_kwin_virtualdesktops": "multitasking",
     "kcm_kwinscreenedges": "multitasking", "kcm_about-distro": "about", "kcm_access": "accessibility",
     "kcm_fonts": "accessibility", "kcm_baloofile": "searching", "kcm_storage": "storage",
+    # KDE's look modules: Windows keeps all of it under Personalization.
+    "kcm_style": "colours", "kcm_icons": "colours", "kcm_desktoptheme": "colours",
+    "kcm_kwindecoration": "colours", "kcm_cursortheme": "mouse", "kcm_splashscreen": "colours",
+    "kcm_sddm": "lockscreen", "kcm_kwin_effects": "accessibility", "kcm_animations": "accessibility",
+    "kcm_kwinoptions": "multitasking", "kcm_kwintabbox": "multitasking", "kcm_activities": "multitasking",
+    "kcm_keys": "keyboard", "kcm_kded": "startup", "kcm_smserver": "power",
+    "kcm_powerdevilactivitiesconfig": "power", "kcm_disks": "storage", "kcm_plasma-disks": "storage",
+    "kcm_updates": "update", "kcm_bluedevil": "bluetooth", "kcm_wacomtablet": "mouse",
+    "kcm_gamecontroller": "mouse", "kcm_soundtheme": "sound", "kcm_device_automounter": "storage",
+    "kcm_solid_actions": "defaultapps", "kcm_webshortcuts": "searching", "kcm_plasmasearch": "searching",
+    "kcm_landingpage": "home", "kcm_workspace": "multitasking", "kcm_screenlocker_kde": "lockscreen",
+    # KDE Info Center's modules (kinfocenter opens VeltOS Settings too).
+    "kcm_energyinfo": "power", "kcm_about": "about", "kcm_memory": "about", "kcm_cpu": "about",
+    "kcm_pci": "about", "kcm_usb": "about", "kcm_opengl": "about", "kcm_vulkan": "about",
+    "kcm_wayland": "about", "kcm_xserver": "about", "kcm_egl": "about", "kcm_glx": "about",
+    "kcm_firmware_security": "about", "kcm_interrupts": "about", "kcm_kwinsupportinfo": "about",
+    "kcm_block_devices": "storage", "kcm_audio_information": "sound", "kcm_network": "wifi",
+    "kcm_samba": "about", "kcm_nic": "wifi", "kcm_edid": "display",
 }
 
 

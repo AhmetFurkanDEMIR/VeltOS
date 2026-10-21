@@ -92,6 +92,10 @@ HIDE = [
     "vim.desktop",
     "winetricks.desktop",               # Windows programs install via double-click
     "org.kde.spectacle.desktop",        # VeltOS Snipping Tool (veltos-snip) replaces it
+    # KDE windows Windows 11 does not show in Start; renamed all the same.
+    "org.kde.kinfocenter.desktop",      # opens VeltOS Settings > About (veltos-settings)
+    "org.kde.plasma-systemmonitor.desktop",  # VeltOS Task Manager is the monitor
+    "org.kde.plasma.emojier.desktop",   # Windows + . opens it, like Windows' emoji panel
 ]
 
 
@@ -164,7 +168,7 @@ def update(source_dir, out_dir):
     for name, names in APPS.items():
         wanted[name] = (names, False)
     for name in HIDE:
-        wanted[name] = (None, True)
+        wanted[name] = (APPS.get(name), True)
     written = []
     for name, (names, hide) in sorted(wanted.items()):
         source = source_dir / name
