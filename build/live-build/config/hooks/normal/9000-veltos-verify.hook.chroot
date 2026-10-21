@@ -12,9 +12,12 @@ installed() {
     dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
 }
 
+# kde-plasma-desktop is spelled out in the package list (without Dolphin),
+# so its main parts are checked instead of the metapackage.
 for pkg in veltos-base veltos-desktop veltos-settings veltos-boot veltos-fluent-icons \
+           veltos-explorer veltos-taskmanager veltos-store veltos-snip veltos-calculator \
            calamares-settings-veltos veltos-winapps veltos-wine-addons wine32 \
-           kde-plasma-desktop sddm calamares plymouth \
+           plasma-desktop plasma-workspace kwin-wayland sddm calamares plymouth \
            live-boot live-config qemu-guest-agent; do
     installed "$pkg" || fail "required package $pkg is not installed"
 done
@@ -79,6 +82,11 @@ grep -q '^X-KDE-Shortcuts=Print,Meta+Shift+S$' /usr/share/applications/veltos-sn
     || fail "Snipping Tool shortcuts missing"
 grep -q '^NoDisplay=true$' /var/lib/veltos/xdg/kglobalaccel/org.kde.spectacle.desktop \
     || fail "Spectacle's global shortcuts are not switched off"
+# Windows' e-mail app is "Mail": Thunderbird under that name, with the
+# VeltOS caption buttons (autoconfig beside the program).
+installed thunderbird || fail "Mail (thunderbird) is not installed"
+grep -q '^Name=Mail$' /var/lib/veltos/xdg/applications/thunderbird.desktop || fail "Thunderbird is not named Mail"
+[ -f /usr/lib/thunderbird/veltos.cfg ] || fail "Mail autoconfig missing"
 # The calculator key opens VeltOS Calculator.
 grep -q '^X-KDE-Shortcuts=Calculator$' /usr/share/applications/veltos-calculator.desktop \
     || fail "Calculator key shortcut missing"

@@ -21,6 +21,9 @@ Actions (space separated):
   drag:X1,Y1,X2,Y2  drag with the left button
   sleep:SECONDS     wait
   shot:NAME         save screenshot NAME.png
+  frames:SECONDS,STEP,NAME
+                    a screenshot every STEP seconds for SECONDS
+                    (NAME-000.png, ...), e.g. to see every screen of a boot
 """
 
 import argparse
@@ -87,6 +90,17 @@ def play(actions, qmp, outdir):
             time.sleep(float(arg))
         elif kind == "shot":
             qmp.screenshot(outdir / f"{arg}.png")
+        elif kind == "frames":
+            seconds, step, name = arg.split(",")
+            end = time.monotonic() + float(seconds)
+            frame = 0
+            while time.monotonic() < end:
+                try:
+                    qmp.screenshot(outdir / f"{name}-{frame:03d}.png")
+                except (OSError, RuntimeError) as error:   # display switching modes
+                    print(f"  frame {frame}: {error}", flush=True)
+                frame += 1
+                time.sleep(float(step))
         else:
             raise SystemExit(f"unknown action {action!r}")
 
