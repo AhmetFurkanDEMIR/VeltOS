@@ -71,6 +71,14 @@ override_dh_auto_install:
 		dest=$(ICONS)/.Fluent-base/scalable/apps/$$(basename $$f); \
 		rm -f $$dest && cp $$f $$dest; \
 	done
+	# Archive file types: the zipped folder (branding/mimetypes/), at every
+	# size Fluent has them (Windows shows .zip files as compressed folders).
+	for f in branding/mimetypes/*.svg; do \
+		find $(ICONS)/.Fluent-base $(ICONS)/.Fluent-dark-base -path '*/mimetypes/*' \
+			-name $$(basename $$f) -exec sh -c 'rm -f "$$1" && cp "$$2" "$$1"' sh {} $$f \; ; \
+		dest=$(ICONS)/.Fluent-base/scalable/mimetypes/$$(basename $$f); \
+		rm -f $$dest && cp $$f $$dest; \
+	done
 	# File Explorer's Home: an orange house like Windows 11 (a VeltOS name,
 	# next to every user-home icon of the Fluent themes).
 	for f in $$(find $(ICONS) -path '*/places/user-home.svg' \( -type f -o -type l \)); do \
@@ -110,6 +118,7 @@ execute_after_dh_auto_install:
 	for f in branding/apps/*.svg; do \
 		cmp -s $(ICONS)/Fluent/scalable/apps/$$(basename $$f) $$f || exit 1; \
 	done
+	cmp -s $(ICONS)/Fluent/scalable/mimetypes/application-zip.svg branding/mimetypes/application-zip.svg
 	cmp -s $(ICONS)/.Fluent-base/16/places/veltos-home.svg branding/small/veltos-home.svg
 	cmp -s $(ICONS)/.Fluent-base/16/places/folder-download.svg branding/small/folder-download.svg
 	grep -q 'FFC83D' $(ICONS)/.Fluent-base/scalable/apps/file-manager.svg

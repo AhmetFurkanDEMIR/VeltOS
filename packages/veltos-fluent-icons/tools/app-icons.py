@@ -243,14 +243,32 @@ NAMES = {
 }
 
 
+# Archive file types (mimetypes/) show the zipped folder, like Windows'
+# .zip files; also .rar, .7z and the tar archives VeltOS Archive opens.
+ARCHIVE_MIMETYPES = ["application-zip", "application-x-zip", "application-x-zip-compressed",
+                     "application-x-rar", "application-vnd.rar", "application-x-rar-compressed",
+                     "application-x-7z-compressed", "application-x-7zip", "application-x-tar",
+                     "application-x-compressed-tar", "application-x-bzip-compressed-tar",
+                     "application-x-xz-compressed-tar", "application-x-zstd-compressed-tar",
+                     "application-x-7z-compressed-tar", "application-gzip", "application-x-gzip",
+                     "application-x-xz", "application-x-bzip", "application-x-bzip2", "application-zstd",
+                     "application-x-archive", "package-x-generic"]
+MIME_OUT = OUT.parent / "mimetypes"
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    for old in OUT.glob("*.svg"):
-        old.unlink()
+    MIME_OUT.mkdir(parents=True, exist_ok=True)
+    for folder in (OUT, MIME_OUT):
+        for old in folder.glob("*.svg"):
+            old.unlink()
     for draw, names in NAMES.items():
         text = draw()
         for name in names:
             (OUT / f"{name}.svg").write_text(text, encoding="utf-8", newline="\n")
+    zipped = archive()
+    for name in ARCHIVE_MIMETYPES:
+        (MIME_OUT / f"{name}.svg").write_text(zipped, encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

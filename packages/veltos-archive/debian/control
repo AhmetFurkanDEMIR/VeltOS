@@ -1,0 +1,48 @@
+Source: veltos-archive
+Section: utils
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               7zip,
+               libarchive-tools,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-dialogs,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qml6-module-qtqml-models,
+               qml6-module-org-kde-kirigami,
+               qt6-svg-plugins
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-archive
+Architecture: all
+Depends: ${python3:Depends},
+         7zip,
+         libarchive-tools,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-dialogs,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qml6-module-qtqml-models,
+         qml6-module-org-kde-kirigami,
+         qt6-svg-plugins,
+         ${misc:Depends}
+Recommends: 7zip-rar
+Description: VeltOS Archive, an archive manager in WinRAR's layout
+ Opens ZIP, RAR, 7Z, TAR, GZ, BZ2, XZ, ZST, ISO, CAB and other archives in
+ WinRAR's layout with Windows 11 controls: the toolbar of large pictures
+ (Add, Extract To, Test, View, Delete, Find, Info), folders inside the
+ archive, password-protected archives, and WinRAR's progress window for
+ File Explorer's "Extract all" and "Compress".
+ .
+ Archives are read and written with 7-Zip; RAR needs the 7zip-rar plugin
+ (non-free) for all RAR versions. ZIP, 7Z and TAR.GZ/TAR.XZ/TAR.ZST
+ archives can be created; creating RAR archives needs RARLAB's own
+ program.

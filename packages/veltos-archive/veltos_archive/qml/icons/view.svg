@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- VeltOS Archive toolbar: View. VeltOS artwork. SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs><radialGradient id="i" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="#7FD4FF"/><stop offset="1" stop-color="#1F6FD8"/></radialGradient></defs>
+  <path d="M 4 24 Q 24 6 44 24 Q 24 42 4 24 Z" fill="#FFFFFF" stroke="#8A94A3" stroke-width="1.6" stroke-linejoin="round"/>
+  <circle cx="24" cy="24" r="9" fill="url(#i)"/>
+  <circle cx="24" cy="24" r="4" fill="#1B2440"/>
+  <circle cx="21.5" cy="21.5" r="2" fill="#FFFFFF" opacity="0.8"/>
+</svg>

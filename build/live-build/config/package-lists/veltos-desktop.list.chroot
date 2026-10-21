@@ -37,7 +37,10 @@ veltos-calculator
 veltos-camera
 konsole
 kwrite
-ark
+# Archive (WinRAR's layout) replaces KDE's Ark. 7zip-rar (Debian non-free,
+# RARLAB's unRAR code) lets 7-Zip open every RAR version.
+veltos-archive
+7zip-rar
 gwenview
 okular
 kde-spectacle

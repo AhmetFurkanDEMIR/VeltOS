@@ -3,6 +3,42 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (09:00) — VeltOS Archive (WinRAR's layout)
+
+- The product owner: an archive app for ZIP and RAR, WinRAR's look.
+  Verified in the builder: Debian 13 has `7zip` 25.01 (main),
+  `7zip-rar` 25.00 (non-free: RARLAB's unRAR code, the 7-Zip RAR plugin),
+  `unrar` 7.1.8 and `rar` 7.11 (non-free); 7-Zip with 7zip-rar listed and
+  extracted RAR4/RAR5 archives made with Debian's `rar`, including
+  password-protected ones. 7-Zip shows a .tar.gz as one .tar inside a
+  stream (`-txz.tar` failed), so compressed tars go through bsdtar.
+- New package `veltos-archive` (PySide6 + QML): WinRAR's window (menu,
+  toolbar of large pictures — Add, Extract To, Test, View, Delete, Find,
+  Info — up button and archive path, Name/Size/Packed/Type/Modified/CRC32
+  list, status bar with lock), Windows 11 controls and dialogs
+  ("Extraction path and options", "Archive name and parameters",
+  passwords with "wrong password" retry), and WinRAR's small progress
+  window for File Explorer (`--extract-here`, `--extract-to-folder`,
+  `--add`, `--add-to`). Creates ZIP (AES-256 passwords), 7Z (encrypted
+  names), TAR.GZ/TAR.XZ/TAR.ZST; RAR creation needs RARLAB's proprietary
+  `rar` and is shown disabled with a note.
+- The image: `veltos-archive` and `7zip-rar` instead of KDE's Ark (verify
+  hook: Ark absent, 7-Zip has the Rar5 codec); Start's Ark pin is swapped
+  once (`archivePinned`); File Explorer's "Extract All…", new "Extract
+  here", "Compress to ZIP file" and new "Add to archive…" run it.
+- Archive files (.zip, .rar, .7z, tar archives) show the zipped folder
+  icon like Windows (veltos-fluent-icons `branding/mimetypes/`).
+- Package builds: veltos-archive 21 tests (real 7-Zip and bsdtar),
+  veltos-explorer 38, veltos-desktop 76. VM (installed system, Ark
+  removed): RAR5 opened from File Explorer in WinRAR's layout, Extract To
+  with the default folder, password RAR asked for its password and asked
+  again after a wrong one, "Add to archive…" made a .7z, "Extract here"
+  on a ZIP, zipped-folder icons in File Explorer. The correct password of
+  the test RAR was not typed in the VM (it has a Turkish letter the VM's
+  key sender cannot type); passwords are covered by the unit tests.
+- Known: the "Open archive" file dialog is Qt's own (QML) dialog, not
+  KDE's, because the app is a QGuiApplication.
+
 ## 2026-10-21 (08:40) — Start: slides in, acrylic tint
 
 - The product owner: Start should have Windows 11's quality (transparency,

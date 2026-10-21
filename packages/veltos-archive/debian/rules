@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-archive
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-archive/usr/lib/python3/dist-packages
+	cp -r veltos_archive debian/veltos-archive/usr/lib/python3/dist-packages/
+	find debian/veltos-archive -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-archive debian/veltos-archive/usr/bin/veltos-archive
+	install -D -m 644 data/veltos-archive.desktop \
+		debian/veltos-archive/usr/share/applications/veltos-archive.desktop
+	install -D -m 644 data/veltos-archive.svg \
+		debian/veltos-archive/usr/share/icons/hicolor/scalable/apps/veltos-archive.svg
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

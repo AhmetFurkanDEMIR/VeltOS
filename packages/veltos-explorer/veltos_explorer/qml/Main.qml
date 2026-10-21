@@ -251,10 +251,14 @@ ApplicationWindow {
             items.push(backend.isPinned(one.path)
                        ? { text: backend.text("unpin_from_quick_access"), icon: "window-unpin", action: "unpin" }
                        : { text: backend.text("pin_to_quick_access"), icon: "window-pin", action: "pin" });
-        if (tab.kind === "folder")
+        if (tab.kind === "folder") {
             items.push({ text: backend.text("compress_zip"), icon: "archive-insert", action: "compress" });
-        if (one && !one.isDir && backend.isArchive(one.path))
+            items.push({ text: backend.text("add_to_archive"), icon: "veltos-archive", action: "add-archive" });
+        }
+        if (one && !one.isDir && backend.isArchive(one.path)) {
             items.push({ text: backend.text("extract_all"), icon: "archive-extract", action: "extract" });
+            items.push({ text: backend.text("extract_here"), icon: "archive-extract", action: "extract-here" });
+        }
         items.push({ text: backend.text("copy_as_path"), icon: "edit-copy-path", action: "copy-path",
                      shortcut: "Ctrl+Shift+C" });
         if (tab.kind === "search" && one)
@@ -369,6 +373,8 @@ ApplicationWindow {
         else if (action === "unpin") backend.unpin(context);
         else if (action === "compress") backend.compress();
         else if (action === "extract") backend.extract(context);
+        else if (action === "extract-here") backend.extractHere(context);
+        else if (action === "add-archive") backend.addToArchive();
         else if (action === "copy-path") backend.copyAsPath();
         else if (action === "open-location") backend.openLocation(context);
         else if (action === "properties") backend.properties();

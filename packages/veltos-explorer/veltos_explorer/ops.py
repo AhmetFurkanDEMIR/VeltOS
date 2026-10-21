@@ -77,17 +77,26 @@ class Operations:
         self.start(["konsole", "--notransparency", "--workdir", str(folder)], cwd=str(folder))
 
     def compress(self, sources, folder):
-        """Make a .zip of the items (Ark, in batch mode)."""
+        """Make a .zip of the items (VeltOS Archive's progress window)."""
         if not sources:
             return ""
         base = Path(sources[0]).stem if len(sources) == 1 else Path(folder).name or "Archive"
         name = files.unique_name(folder, base + ".zip")
-        self.start(["ark", "--batch", "--add-to", str(Path(folder) / name), *sources])
+        self.start(["veltos-archive", "--add-to", str(Path(folder) / name), *sources])
         return name
 
+    def add_to_archive(self, sources):
+        """WinRAR's "Add to archive...": name, format and password first."""
+        if sources:
+            self.start(["veltos-archive", "--add", *sources])
+
     def extract(self, archive, folder):
-        """Extract all into a folder named like the archive (Ark)."""
-        self.start(["ark", "--batch", "--autosubfolder", "--destination", str(folder), str(archive)])
+        """Extract all into a folder named like the archive (VeltOS Archive)."""
+        self.start(["veltos-archive", "--extract-to-folder", str(archive)])
+
+    def extract_here(self, archive):
+        """WinRAR's "Extract Here": next to the archive."""
+        self.start(["veltos-archive", "--extract-here", str(archive)])
 
     @staticmethod
     def new_folder(folder, name):

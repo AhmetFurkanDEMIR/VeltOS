@@ -35,6 +35,13 @@ def to_path(argument):
     return os.path.abspath(os.path.expanduser(argument))
 
 
+# Archives VeltOS Archive opens ("Extract All", "Extract here").
+ARCHIVE_TYPES = ("application/zip", "application/x-7z-compressed", "application/x-rar", "application/vnd.rar",
+                 "application/x-compressed-tar", "application/x-xz-compressed-tar",
+                 "application/x-bzip-compressed-tar", "application/x-bzip2-compressed-tar", "application/x-tar",
+                 "application/zstd", "application/x-zstd-compressed-tar", "application/gzip",
+                 "application/x-cd-image", "application/vnd.ms-cab-compressed")
+
 class Backend(QObject):
     tabsChanged = Signal()
     currentChanged = Signal()
@@ -566,13 +573,19 @@ class Backend(QObject):
     def extract(self, path):
         self.ops.extract(path, str(Path(path).parent))
 
+    @Slot(str)
+    def extractHere(self, path):
+        self.ops.extract_here(path)
+
+    @Slot()
+    def addToArchive(self):
+        paths = self._selected_paths()
+        if paths:
+            self.ops.add_to_archive(paths)
+
     @Slot(str, result=bool)
     def isArchive(self, path):
-        return self.mime(path, False)[0] in ("application/zip", "application/x-7z-compressed",
-                                             "application/x-rar", "application/vnd.rar",
-                                             "application/x-compressed-tar", "application/x-xz-compressed-tar",
-                                             "application/x-bzip-compressed-tar", "application/x-tar",
-                                             "application/zstd", "application/x-zstd-compressed-tar")
+        return self.mime(path, False)[0] in ARCHIVE_TYPES
 
     # --- Recycle Bin ---------------------------------------------------------------------
 

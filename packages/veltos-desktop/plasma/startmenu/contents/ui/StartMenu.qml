@@ -333,6 +333,7 @@ FocusScope {
         replacePinned("org.kde.dolphin.desktop", "veltos-explorer.desktop", "explorerPinned");
         replacePinned("org.kde.discover.desktop", "veltos-store.desktop", "storePinned");
         replacePinned("org.kde.spectacle.desktop", "veltos-snip.desktop", "snipPinned");
+        replacePinned("org.kde.ark.desktop", "veltos-archive.desktop", "archivePinned");
         pinOnce("veltos-calculator.desktop", "calculatorPinned");
     }
 
@@ -342,7 +343,8 @@ FocusScope {
         interval: 1000
         repeat: true
         running: !(Plasmoid.configuration.explorerPinned && Plasmoid.configuration.storePinned
-                   && Plasmoid.configuration.snipPinned && Plasmoid.configuration.calculatorPinned)
+                   && Plasmoid.configuration.snipPinned && Plasmoid.configuration.calculatorPinned
+                   && Plasmoid.configuration.archivePinned)
         onTriggered: menu.pinFileExplorer()
     }
 

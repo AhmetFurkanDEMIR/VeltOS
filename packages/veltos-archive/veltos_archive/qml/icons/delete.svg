@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- VeltOS Archive toolbar: Delete. VeltOS artwork. SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs><linearGradient id="bin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E9EDF2"/><stop offset="1" stop-color="#C3CBD6"/></linearGradient></defs>
+  <path d="M 10 14 H 38 L 35.5 41 Q 35.3 43 33 43 H 15 Q 12.7 43 12.5 41 Z" fill="url(#bin)" stroke="#9AA6B5" stroke-width="1.2"/>
+  <rect x="7" y="9" width="34" height="5" rx="2" fill="#AEB9C7"/>
+  <rect x="19" y="5.5" width="10" height="4" rx="1.5" fill="#AEB9C7"/>
+  <path d="M 18 22 L 30 34 M 30 22 L 18 34" stroke="#E5383B" stroke-width="3.4" stroke-linecap="round"/>
+</svg>
