@@ -3,6 +3,23 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (08:40) — Start: slides in, acrylic tint
+
+- The product owner: Start should have Windows 11's quality (transparency,
+  animation, icons). Frames taken while Start opened showed no animation
+  (Plasma's popups have an `animated` property, off in CompactApplet.qml)
+  and an almost opaque surface: VeltOS' Start painted a 94 % tint over
+  Plasma's popup background, hiding the blur.
+- `CompactApplet.qml` override: `animated: true` for the taskbar's
+  flyouts, so KWin's sliding popups effect slides Start (and the other
+  flyouts) in from the taskbar like Windows 11. VM: frames show the slide.
+- Start's tint is now 35 %: with the blur effect Plasma's popup background
+  is see-through ("acrylic"); without it (software rendering) Plasma uses
+  the solid background, so text stays readable. The test VM has no blur
+  (KWin reports `blur` not loaded with llvmpipe), so the acrylic look is
+  **not yet seen**; it needs a PC with a GPU.
+- The new icon family shows in Start (previous entry).
+
 ## 2026-10-21 (08:30) — One Windows 11 style family of app icons
 
 - The product owner: Camera, Mail, the archive app, Calculator, Settings
