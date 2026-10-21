@@ -594,13 +594,16 @@ FocusScope {
 
     // --- Layout ------------------------------------------------------------
 
-    // Near-opaque surface: with blur (real GPUs) it reads like Windows'
-    // acrylic; without blur (VMs, software rendering) text stays readable.
+    // A light tint over Plasma's popup background, which is see-through
+    // with blur ("acrylic", like Windows 11's Start) and solid without the
+    // blur effect (software rendering), so the text stays readable. The
+    // tint used to be 94 % opaque and hid the acrylic (product owner,
+    // 2026-10-21).
     Rectangle {
         anchors.fill: parent
         radius: Kirigami.Units.cornerRadius !== undefined ? Kirigami.Units.cornerRadius * 2 : 12
         color: Kirigami.Theme.backgroundColor
-        opacity: 0.94
+        opacity: 0.35
     }
 
     ColumnLayout {
