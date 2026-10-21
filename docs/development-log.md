@@ -3,6 +3,29 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (09:10) — Mail in the look of Windows 11's Outlook
+
+- The product owner wants Mail to look exactly like Windows'. Windows 11's
+  mail app is now "Outlook for Windows" (app bar, folder pane, card list,
+  reading pane; Wikipedia's screenshot used for reference). Writing a mail
+  client is out of proportion (IMAP/SMTP/OAuth); Thunderbird 140's layout
+  already has those parts, so VeltOS restyles it:
+  `veltos-desktop/mail/mail.css`, registered by Thunderbird's autoconfig
+  as a user style sheet, scoped with `@-moz-document` to Thunderbird's own
+  windows (never the mails it shows). Selectors and variables were read
+  from Thunderbird 140.17's omni.ja (about3Pane.css, threadCard.css,
+  tree-listbox.css, messageHeader.css, spacesToolbar.css).
+- Look: window background (light Mica-like) behind the app bar, folder
+  pane and toolbar; the message list and reading pane as white cards with
+  rounded corners; rounded rows with an accent bar for the selected folder
+  and message; unread subjects in the accent colour; "New message" filled
+  with the accent; flat Reply/Forward buttons; light and dark.
+  Defaults: folders, list and reading pane side by side
+  (`mail.pane_config.dynamic` 2), mails in the normal font
+  (`mail.fixed_width_messages` false).
+- VM (installed system, local Inbox with sample mails): layout as above.
+  Not checked: dark mode, a real account.
+
 ## 2026-10-21 (09:00) — VeltOS Archive (WinRAR's layout)
 
 - The product owner: an archive app for ZIP and RAR, WinRAR's look.

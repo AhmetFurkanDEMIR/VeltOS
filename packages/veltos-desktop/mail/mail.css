@@ -1,0 +1,160 @@
+/* VeltOS Mail: Thunderbird in the look of Windows 11's mail app (Outlook):
+   the app bar (Thunderbird's spaces toolbar) and the folder pane on the
+   window's light "Mica" background, the message list and the reading pane
+   as white cards with rounded corners, selections as a light accent fill
+   with an accent bar, the "New message" button filled with the accent.
+   Registered as a user style sheet by /usr/lib/thunderbird/veltos.cfg
+   (VeltOS autoconfig); only Thunderbird's own windows are matched, never
+   the mails it shows. Selectors checked against Thunderbird 140.17 ESR
+   (Debian 13). SPDX-License-Identifier: GPL-3.0-or-later */
+
+@-moz-document url-prefix("chrome://messenger/content/"), url("about:3pane"), url("about:message"),
+               url("about:addressbook") {
+
+  :root {
+    --veltos-window: #F3F5FA;
+    --veltos-card: #FFFFFF;
+    --veltos-border: #E3E6EE;
+    --veltos-text: #1B1D24;
+    --veltos-subtext: #5D6475;
+    --veltos-accent: #2F5EE6;
+    --veltos-accent-text: #FFFFFF;
+    --veltos-hover: rgba(0, 0, 0, 0.045);
+
+    --selected-item-color: var(--veltos-accent) !important;
+    --selected-item-text-color: var(--veltos-accent-text) !important;
+    --layout-background-1: var(--veltos-window) !important;
+    --toolbar-bgcolor: var(--veltos-window) !important;
+    --foldertree-background: var(--veltos-window) !important;
+    --sidebar-background-color: var(--veltos-window) !important;
+    --spaces-bg-color: var(--veltos-window) !important;
+    --spaces-button-active-bg-color: color-mix(in srgb, var(--veltos-accent) 14%, var(--veltos-card)) !important;
+    --spaces-button-active-text-color: var(--veltos-accent) !important;
+    --treeitem-background-active: color-mix(in srgb, var(--veltos-accent) 14%, transparent) !important;
+    --treeitem-text-active: var(--veltos-text) !important;
+    --listbox-selected-bg: color-mix(in srgb, var(--veltos-accent) 10%, var(--veltos-card)) !important;
+    --listbox-focused-selected-bg: color-mix(in srgb, var(--veltos-accent) 16%, var(--veltos-card)) !important;
+    --listbox-selected-color: var(--veltos-text) !important;
+    --listbox-hover: var(--veltos-hover) !important;
+    --tree-view-bg: var(--veltos-card) !important;
+    --toolbar-field-background-color: var(--veltos-card) !important;
+    --toolbar-field-border-color: var(--veltos-border) !important;
+    /* Message list: white like Outlook's, rows without frames. */
+    --tree-pane-background: var(--veltos-card) !important;
+    --tree-card-background: var(--veltos-card) !important;
+    --tree-card-border: transparent !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --veltos-window: #1C1D26;
+      --veltos-card: #272833;
+      --veltos-border: #363949;
+      --veltos-text: #F2F3F7;
+      --veltos-subtext: #AEB3C5;
+      --veltos-accent: #6E95FF;
+      --veltos-accent-text: #0B1020;
+      --veltos-hover: rgba(255, 255, 255, 0.06);
+    }
+  }
+
+  /* Window background: the unified toolbar, the app bar and the folder
+     pane sit on it, like Outlook's. */
+  #messengerBody, #paneLayout, #unifiedToolbar, unified-toolbar, #spacesToolbar, #folderPane,
+  #folderPaneHeaderBar, #folderTree {
+    background-color: var(--veltos-window) !important;
+  }
+  #spacesToolbar {
+    border-inline-end: none !important;
+  }
+  #folderPane {
+    border-inline-end: none !important;
+  }
+
+  /* App bar buttons: rounded, the current one with an accent bar. */
+  .spaces-toolbar-button {
+    border-radius: 6px !important;
+  }
+  .spaces-toolbar-button.current {
+    box-shadow: inset 3px 0 0 var(--veltos-accent) !important;
+  }
+
+  /* Search: a rounded white field like Windows 11's. */
+  #unifiedToolbar .search-bar, global-search-bar {
+    --search-bar-border-radius: 6px;
+    border-radius: 6px !important;
+  }
+
+  /* "New message": Outlook's filled accent button. */
+  #folderPaneWriteMessage {
+    background-color: var(--veltos-accent) !important;
+    color: var(--veltos-accent-text) !important;
+    border-color: transparent !important;
+    border-radius: 6px !important;
+    fill: var(--veltos-accent-text) !important;
+    stroke: var(--veltos-accent-text) !important;
+    font-weight: 600 !important;
+  }
+  #folderPaneWriteMessage:hover {
+    background-color: color-mix(in srgb, var(--veltos-accent) 88%, white) !important;
+  }
+
+  /* Folders: rounded rows, the selected one with an accent bar. */
+  #folderTree li > .container {
+    border-radius: 4px !important;
+    margin-inline: 6px !important;
+  }
+  #folderTree li.selected > .container {
+    box-shadow: inset 3px 0 0 var(--veltos-accent) !important;
+  }
+
+  /* The message list and the reading pane are white cards. */
+  #threadPane, #messagePane, #accountCentralBrowser {
+    background-color: var(--veltos-card) !important;
+    border: 1px solid var(--veltos-border) !important;
+    border-radius: 8px !important;
+    margin-block-end: 6px !important;
+    overflow: clip !important;
+  }
+  #threadPane {
+    margin-inline-end: 3px !important;
+  }
+  #messagePane {
+    margin-inline: 3px 6px !important;
+  }
+  #folderPaneSplitter, #messagePaneSplitter {
+    --splitter-color: transparent !important;
+    background-color: var(--veltos-window) !important;
+    border: none !important;
+  }
+
+  /* Message rows: a line between them instead of frames (Outlook). */
+  #threadTree[rows="thread-card"] tr.card-layout {
+    border-block-end: 1px solid var(--veltos-border) !important;
+  }
+  #threadTree[rows="thread-card"] .card-container {
+    border: none !important;
+    box-shadow: none;
+    border-radius: 4px !important;
+  }
+
+  /* Reply, Forward, ...: flat buttons like Outlook's reading pane. */
+  .message-header-view-button,
+  .message-header-view-button > .toolbarbutton-menubutton-button,
+  .message-header-view-button > .toolbarbutton-menubutton-dropmarker {
+    border-color: transparent !important;
+    background-color: transparent !important;
+    border-radius: 4px !important;
+  }
+  .message-header-view-button:not([disabled]):hover {
+    background-color: var(--veltos-hover) !important;
+  }
+
+  /* Message cards: the selected one with an accent bar. */
+  tr.card-layout.selected .card-container {
+    box-shadow: inset 3px 0 0 var(--veltos-accent) !important;
+  }
+  tr.card-layout[data-properties~="unread"] .subject {
+    color: var(--veltos-accent) !important;
+  }
+}
