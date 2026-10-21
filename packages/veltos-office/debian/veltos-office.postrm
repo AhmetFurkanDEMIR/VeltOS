@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+TEMPLATE=/usr/lib/libreoffice/share/template/en-US/presnt/debian-presentation.otp
+if [ "$1" = remove ] || [ "$1" = abort-install ] || [ "$1" = disappear ]; then
+    dpkg-divert --package veltos-office --remove --rename         --divert /usr/share/veltos-office/diverted/debian-presentation.otp "$TEMPLATE"
+    rmdir --ignore-fail-on-non-empty /usr/share/veltos-office/diverted /usr/share/veltos-office 2>/dev/null || true
+fi

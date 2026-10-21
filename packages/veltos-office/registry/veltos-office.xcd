@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- VeltOS Office defaults for LibreOffice (veltos-office). A shared
+     configuration layer: LibreOffice reads every .xcd file in
+     share/registry, the user's own changes (Tools > Options, View > User
+     Interface) are stored on top of it and win. Every path and value here
+     is checked against LibreOffice's schema by tests/test_config.py. -->
+<oor:data xmlns:xs="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:oor="http://openoffice.org/2001/registry">
+  <dependency file="main"/>
+
+  <!-- The ribbon-like "Tabbed" interface (File, Home, Insert, Layout,
+       References, Review, View ... tabs) instead of menus and toolbars.
+       "Active" names a mode by its CommandArg (sfx2 SfxNotebookBar::
+       IsActive), not by its node name: "notebookbar.ui" is "Tabbed". -->
+  <oor:component-data oor:name="ToolbarMode" oor:package="org.openoffice.Office.UI">
+    <node oor:name="Applications">
+      <node oor:name="Writer">
+        <prop oor:name="Active"><value>notebookbar.ui</value></prop>
+      </node>
+      <node oor:name="Calc">
+        <prop oor:name="Active"><value>notebookbar.ui</value></prop>
+      </node>
+      <node oor:name="Impress">
+        <prop oor:name="Active"><value>notebookbar.ui</value></prop>
+      </node>
+    </node>
+  </oor:component-data>
+
+  <!-- No calls for donations, "get involved" or release notes bars over
+       the documents (Windows' Office shows none). -->
+  <oor:component-data oor:name="Infobar" oor:package="org.openoffice.Office.UI">
+    <node oor:name="Enabled">
+      <prop oor:name="Donate"><value>false</value></prop>
+      <prop oor:name="GetInvolved"><value>false</value></prop>
+      <prop oor:name="WhatsNew"><value>false</value></prop>
+    </node>
+  </oor:component-data>
+
+  <oor:component-data oor:name="Common" oor:package="org.openoffice.Office">
+    <node oor:name="Misc">
+      <!-- Colibre: LibreOffice's icon set in the style of Microsoft Office. -->
+      <prop oor:name="SymbolStyle"><value>colibre</value></prop>
+      <prop oor:name="ShowTipOfTheDay"><value>false</value></prop>
+      <!-- Crash reports would go to The Document Foundation: off by default. -->
+      <prop oor:name="CrashReport"><value>false</value></prop>
+    </node>
+    <node oor:name="Save">
+      <node oor:name="Document">
+        <!-- Saving in Word/Excel/PowerPoint formats is the default: no
+             "Keep current format?" question each time. -->
+        <prop oor:name="WarnAlienFormat"><value>false</value></prop>
+      </node>
+    </node>
+  </oor:component-data>
+
+  <!-- Text in new documents is Carlito 11 pt (the metrics of Calibri, the
+       font of Word documents) instead of Liberation Serif 12 pt. Heights
+       are in 1/100 mm (sw SwStdFontConfig): 11 pt = 388, 14 pt = 494. -->
+  <oor:component-data oor:name="Writer" oor:package="org.openoffice.Office">
+    <node oor:name="DefaultFont">
+      <prop oor:name="Standard"><value>Carlito</value></prop>
+      <prop oor:name="StandardHeight"><value>388</value></prop>
+      <prop oor:name="Heading"><value>Carlito</value></prop>
+      <prop oor:name="HeadingHeight"><value>494</value></prop>
+      <prop oor:name="List"><value>Carlito</value></prop>
+      <prop oor:name="Caption"><value>Carlito</value></prop>
+      <prop oor:name="Index"><value>Carlito</value></prop>
+    </node>
+  </oor:component-data>
+
+  <!-- New spreadsheets and presentations start with Carlito too, as
+       Excel's and PowerPoint's documents start with Calibri; the fonts
+       LibreOffice lists after it stay as fall-backs. Languages without a
+       list of their own (Turkish too) use the "en" list. -->
+  <oor:component-data oor:name="VCL" oor:package="org.openoffice">
+    <node oor:name="DefaultFonts">
+      <node oor:name="en">
+        <prop oor:name="LATIN_SPREADSHEET"><value>Carlito;Liberation Sans;Albany AMT;Albany;Arial;Arimo;Nimbus Sans L;DejaVu Sans;Helvetica;Lucida;Geneva;Helmet;Arial Unicode MS;Lucida Sans Unicode;Tahoma;SansSerif</value></prop>
+        <prop oor:name="LATIN_PRESENTATION"><value>Carlito;Liberation Sans;Albany AMT;Albany;Arial;Arimo;Nimbus Sans L;DejaVu Sans;Helvetica;Lucida;Geneva;Helmet;Arial Unicode MS;Lucida Sans Unicode;Tahoma;SansSerif</value></prop>
+      </node>
+    </node>
+  </oor:component-data>
+
+  <!-- New documents are saved as .docx, .xlsx and .pptx, as on Windows. -->
+  <oor:component-data oor:name="Setup" oor:package="org.openoffice">
+    <node oor:name="Office">
+      <node oor:name="Factories">
+        <node oor:name="com.sun.star.text.TextDocument">
+          <prop oor:name="ooSetupFactoryDefaultFilter"><value>MS Word 2007 XML</value></prop>
+        </node>
+        <node oor:name="com.sun.star.sheet.SpreadsheetDocument">
+          <prop oor:name="ooSetupFactoryDefaultFilter"><value>Calc MS Excel 2007 XML</value></prop>
+        </node>
+        <node oor:name="com.sun.star.presentation.PresentationDocument">
+          <prop oor:name="ooSetupFactoryDefaultFilter"><value>Impress MS PowerPoint 2007 XML</value></prop>
+        </node>
+      </node>
+    </node>
+  </oor:component-data>
+</oor:data>

@@ -48,6 +48,10 @@ veltos-photos
 veltos-media
 # PDF Reader (modern reader layout) replaces Okular.
 veltos-pdf
+# Office: LibreOffice word processor, spreadsheet and presentation set up
+# for Windows users (veltos-office), with its Turkish interface.
+veltos-office
+libreoffice-l10n-tr
 kde-spectacle
 firefox-esr
 firefox-esr-l10n-tr

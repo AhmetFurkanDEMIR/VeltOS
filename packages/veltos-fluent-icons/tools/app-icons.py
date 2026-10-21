@@ -243,6 +243,61 @@ def disk_management():
                  'stroke-linejoin="round"/>\n')
 
 
+# Office (LibreOffice, veltos-office): a page, a sheet and a slide in the
+# family's colours. No letters on them: Microsoft's Office icons are marked
+# with letters, VeltOS' are not copies.
+PAGE_D = "M 60 24 H 156 L 204 72 V 220 Q 204 232 192 232 H 60 Q 48 232 48 220 V 36 Q 48 24 60 24 Z"
+
+
+def word_processor():
+    pencil = ('  <g transform="rotate(-45 186 186)">\n'
+              '    <rect x="150" y="172" width="78" height="28" rx="6" fill="url(#pencil)"/>\n'
+              '    <rect x="214" y="172" width="14" height="28" rx="4" fill="#F4A9B8"/>\n'
+              '    <path d="M 150 172 L 126 186 L 150 200 Z" fill="#F6D7A7"/>\n'
+              '    <path d="M 134 181 L 126 186 L 134 191 Z" fill="#26313D"/>\n'
+              '  </g>\n')
+    return svg("Word Processor", grad("page", "#FFFFFF", "#EDF1F6") + grad("ink", "#4F8BFF", "#1F4FD6")
+               + grad("pencil", "#3D7BFF", "#1E4FD0"),
+               shadow(PAGE_D)
+               + f'  <path d="{PAGE_D}" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>\n'
+               + '  <path d="M 156 24 V 60 Q 156 72 168 72 H 204 Z" fill="#D8DFE8"/>\n'
+               + '  <path d="M 76 72 H 132" stroke="url(#ink)" stroke-width="12" stroke-linecap="round"/>\n'
+               + '  <path d="M 76 104 H 176 M 76 128 H 176 M 76 152 H 176 M 76 176 H 128" stroke="#5B8DEF" '
+                 'stroke-width="8" stroke-linecap="round"/>\n'
+               + pencil)
+
+
+def spreadsheet():
+    sheet_d = rrect(28, 36, 200, 184, 18)
+    cells = "".join(f'  <path d="M {x} 80 V 220" stroke="#C5CED9" stroke-width="3"/>\n' for x in (92, 160))
+    cells += "".join(f'  <path d="M 28 {y} H 228" stroke="#C5CED9" stroke-width="3"/>\n' for y in (116, 152, 188))
+    return svg("Spreadsheet", grad("sheet", "#FFFFFF", "#EDF1F6") + grad("green", "#3CC47C", "#13894A"),
+               shadow(sheet_d)
+               + f'  <path d="{sheet_d}" fill="url(#sheet)" stroke="#D3DAE4" stroke-width="2"/>\n'
+               + '  <path d="M 46 36 H 210 Q 228 36 228 54 V 80 H 28 V 54 Q 28 36 46 36 Z" fill="url(#green)"/>\n'
+               + '  <path d="M 46 39 H 210" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>\n'
+               + cells
+               + '  <rect x="92" y="116" width="68" height="36" fill="#D6F5E3" stroke="#1FA35C" stroke-width="5"/>\n'
+               + '  <rect x="155" y="147" width="10" height="10" fill="#1FA35C"/>\n')
+
+
+def presentation():
+    frame_d = rrect(24, 32, 208, 148, 18)
+    return svg("Presentation", grad("frame", "#FF8A3D", "#E8501E") + grad("slide", "#FFFFFF", "#F1F3F6")
+               + grad("legs", "#7B8594", "#525C6A"),
+               '  <path d="M 128 176 V 206 M 128 196 L 96 232 M 128 196 L 160 232" stroke="url(#legs)" '
+               'stroke-width="9" stroke-linecap="round" fill="none"/>\n'
+               + shadow(frame_d)
+               + f'  <path d="{frame_d}" fill="url(#frame)"/>\n'
+               + '  <path d="M 42 35 H 214" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>\n'
+               + '  <rect x="38" y="46" width="180" height="120" rx="8" fill="url(#slide)"/>\n'
+               + '  <circle cx="96" cy="106" r="36" fill="#FFD3B8"/>\n'
+               + '  <path d="M 96 106 V 70 A 36 36 0 0 1 130 118 Z" fill="url(#frame)"/>\n'
+               + '  <rect x="146" y="112" width="14" height="30" rx="3" fill="#FBB48A"/>\n'
+               + '  <rect x="166" y="94" width="14" height="48" rx="3" fill="#F57A3F"/>\n'
+               + '  <rect x="186" y="78" width="14" height="64" rx="3" fill="#E8501E"/>\n')
+
+
 # drawing -> icon names it is installed under
 NAMES = {
     calculator: ["veltos-calculator", "accessories-calculator", "org.kde.kcalc", "calc"],
@@ -260,6 +315,33 @@ NAMES = {
     media_player: ["veltos-media", "org.kde.haruna", "multimedia-video-player", "vlc"],
     disk_management: ["veltos-disks", "partitionmanager", "org.kde.partitionmanager", "gnome-disks",
                       "org.gnome.DiskUtility"],
+    word_processor: ["libreoffice-writer", "libreoffice3-writer", "libreoffice34-writer"],
+    spreadsheet: ["libreoffice-calc", "libreoffice3-calc", "libreoffice34-calc"],
+    presentation: ["libreoffice-impress", "libreoffice3-impress", "libreoffice34-impress"],
+}
+
+# Office and PDF file types (mimetypes/) show the same drawings, as
+# Windows shows documents with their app's picture.
+DOCUMENT_MIMETYPES = {
+    word_processor: ["x-office-document", "application-msword", "application-rtf", "text-rtf",
+                     "application-vnd.openxmlformats-officedocument.wordprocessingml.document",
+                     "application-vnd.openxmlformats-officedocument.wordprocessingml.template",
+                     "application-vnd.ms-word.document.macroenabled.12",
+                     "application-vnd.oasis.opendocument.text", "application-vnd.oasis.opendocument.text-template"],
+    spreadsheet: ["x-office-spreadsheet", "application-vnd.ms-excel", "text-csv",
+                  "application-vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  "application-vnd.openxmlformats-officedocument.spreadsheetml.template",
+                  "application-vnd.ms-excel.sheet.macroenabled.12",
+                  "application-vnd.oasis.opendocument.spreadsheet",
+                  "application-vnd.oasis.opendocument.spreadsheet-template"],
+    presentation: ["x-office-presentation", "application-vnd.ms-powerpoint",
+                   "application-vnd.openxmlformats-officedocument.presentationml.presentation",
+                   "application-vnd.openxmlformats-officedocument.presentationml.slideshow",
+                   "application-vnd.openxmlformats-officedocument.presentationml.template",
+                   "application-vnd.ms-powerpoint.presentation.macroenabled.12",
+                   "application-vnd.oasis.opendocument.presentation",
+                   "application-vnd.oasis.opendocument.presentation-template"],
+    document_viewer: ["application-pdf", "application-x-pdf"],
 }
 
 
@@ -289,6 +371,10 @@ def main():
     zipped = archive()
     for name in ARCHIVE_MIMETYPES:
         (MIME_OUT / f"{name}.svg").write_text(zipped, encoding="utf-8", newline="\n")
+    for draw, names in DOCUMENT_MIMETYPES.items():
+        text = draw()
+        for name in names:
+            (MIME_OUT / f"{name}.svg").write_text(text, encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

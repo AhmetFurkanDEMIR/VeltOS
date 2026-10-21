@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Document Viewer: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EDF1F6"/>
+    </linearGradient>
+    <linearGradient id="band" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0533F"/>
+      <stop offset="1" stop-color="#C8301F"/>
+    </linearGradient>
+  </defs>
+  <path d="M 60 24 H 156 L 204 72 V 220 Q 204 232 192 232 H 60 Q 48 232 48 220 V 36 Q 48 24 60 24 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 60 24 H 156 L 204 72 V 220 Q 204 232 192 232 H 60 Q 48 232 48 220 V 36 Q 48 24 60 24 Z" fill="url(#page)" stroke="#D3DAE4" stroke-width="2"/>
+  <path d="M 156 24 V 60 Q 156 72 168 72 H 204 Z" fill="#D8DFE8"/>
+  <path d="M 76 104 H 176 M 76 128 H 176 M 76 152 H 140" stroke="#AEB9C7" stroke-width="9" stroke-linecap="round"/>
+  <rect x="36" y="168" width="120" height="48" rx="10" fill="url(#band)"/>
+  <path d="M 58 204 V 180 H 66 Q 76 180 76 189 Q 76 198 66 198 H 58 M 86 204 V 180 H 94 Q 106 180 106 192 Q 106 204 94 204 Z M 116 204 V 180 H 132 M 116 192 H 128" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
