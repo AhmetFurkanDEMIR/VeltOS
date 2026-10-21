@@ -5,6 +5,7 @@ import os
 import stat
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -157,7 +158,7 @@ class JobTests(unittest.TestCase):
                         "sleep 0.2\n"
                         "printf 'Percentage:\\t100\\n'\n")
         fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
-        jobs = packages.Jobs(program=str(fake))
+        jobs = packages.Jobs(program=str(fake), needs_refresh=lambda: False)
         done = []
         jobs.finished.connect(lambda action, package, ok: done.append((action, package, ok)))
         jobs.add("install", "gimp")
@@ -169,6 +170,35 @@ class JobTests(unittest.TestCase):
         self.assertEqual(done, [("install", "gimp", True), ("remove", "vlc", True)])
         self.assertEqual((tmp / "calls").read_text().splitlines(),
                          ["-p -y install gimp", "-p -y remove vlc"])
+
+    def test_old_lists_are_refreshed_before_an_install(self):
+        tmp = Path(tempfile.mkdtemp())
+        fake = tmp / "pkcon"
+        fake.write_text("#!/bin/sh\necho \"$*\" >> \"$(dirname \"$0\")/calls\"\n")
+        fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
+        jobs = packages.Jobs(program=str(fake), needs_refresh=lambda: True)
+        done = []
+        jobs.finished.connect(lambda action, package, ok: done.append(action))
+        jobs.add("install", "gimp")
+        jobs.add("install", "vlc")          # one refresh for both
+        self.assertEqual(jobs.state("gimp"), "refreshing")
+        self.assertTrue(wait(lambda: len(done) == 3))
+        self.assertEqual(done, ["refresh", "install", "install"])
+        self.assertEqual((tmp / "calls").read_text().splitlines(),
+                         ["-p refresh", "-p -y install gimp", "-p -y install vlc"])
+        lists = tmp / "lists"
+        lists.mkdir()
+        self.assertTrue(packages.lists_need_refresh(str(lists)))                      # no lists at all
+        (lists / "deb.debian.org_debian_dists_trixie_main_binary-amd64_Packages").write_text("")
+        self.assertFalse(packages.lists_need_refresh(str(lists)))
+        self.assertTrue(packages.lists_need_refresh(str(lists), now=time.time() + 10 * 86400))
+
+    def test_failure_texts(self):
+        self.assertEqual(packages.failure_key("Failed to obtain authentication."), "failed_auth")
+        self.assertEqual(packages.failure_key("could not find vlc"), "failed_not_found")
+        self.assertEqual(packages.failure_key("Failed to fetch http://deb.debian.org/..."), "failed_network")
+        self.assertEqual(packages.failure_key("Could not get lock /var/lib/dpkg/lock"), "failed_busy")
+        self.assertEqual(packages.failure_key("something odd"), "")
 
     def test_missing_pkcon(self):
         jobs = packages.Jobs(program="/nonexistent/pkcon")

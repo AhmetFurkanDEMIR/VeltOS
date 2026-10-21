@@ -25,6 +25,12 @@ override_dh_auto_install:
 	# "Show in folder" requests of other programs (D-Bus activation).
 	install -D -m 644 data/org.freedesktop.FileManager1.service \
 		debian/veltos-explorer/usr/share/dbus-1/services/org.freedesktop.FileManager1.service
+	# File dialogs of other programs: the file chooser portal backend
+	# (portal.py), chosen for Plasma sessions by kde-portals.conf.
+	install -D -m 644 data/org.freedesktop.impl.portal.desktop.veltos.service \
+		debian/veltos-explorer/usr/share/dbus-1/services/org.freedesktop.impl.portal.desktop.veltos.service
+	install -D -m 644 data/veltos.portal debian/veltos-explorer/usr/share/xdg-desktop-portal/portals/veltos.portal
+	install -D -m 644 data/kde-portals.conf debian/veltos-explorer/etc/xdg/xdg-desktop-portal/kde-portals.conf
 
 override_dh_auto_test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

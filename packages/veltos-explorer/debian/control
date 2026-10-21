@@ -35,7 +35,8 @@ Depends: ${python3:Depends},
          ${misc:Depends}
 Recommends: veltos-archive,
             konsole,
-            udisks2
+            udisks2,
+            xdg-desktop-portal
 Description: VeltOS File Explorer, a Windows 11 style file manager
  Browse files and folders in the layout of Windows 11 File Explorer: tabs
  in the title bar, a command bar (New, cut, copy, paste, rename, delete,

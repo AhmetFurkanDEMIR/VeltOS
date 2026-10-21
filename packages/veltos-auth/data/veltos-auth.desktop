@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=User Account Control
+Name[tr]=Kullanıcı Hesabı Denetimi
+Comment=Asks for an administrator's permission
+Comment[tr]=Bir yöneticinin iznini ister
+Exec=/usr/bin/true
+Icon=veltos-auth
+Terminal=false
+NoDisplay=true
+Categories=System;

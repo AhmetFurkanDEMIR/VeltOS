@@ -1,0 +1,11 @@
+[Unit]
+Description=VeltOS authentication prompt (polkit agent)
+# Replaces KDE's agent (plasma-polkit-agent.service, masked by veltos-auth).
+PartOf=graphical-session.target
+After=plasma-core.target
+
+[Service]
+ExecStart=/usr/bin/veltos-auth-agent
+Slice=background.slice
+TimeoutStopSec=5sec
+Restart=on-failure

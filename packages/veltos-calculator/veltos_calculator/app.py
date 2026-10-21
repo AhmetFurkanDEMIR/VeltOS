@@ -43,6 +43,17 @@ def kde_value(group, key):
     return ""
 
 
+
+def text_scale():
+    """Text size chosen in Settings > Accessibility (the KDE font size over
+    its default of 10 pt): the VeltOS apps scale their text with it, as
+    Windows apps follow Windows' text size."""
+    parts = kde_value("General", "font").split(",")
+    try:
+        return max(1.0, min(2.25, float(parts[1]) / 10)) if len(parts) > 1 else 1.0
+    except ValueError:
+        return 1.0
+
 def system_dark():
     return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
 
@@ -188,6 +199,11 @@ class Backend(QObject):
     @Property(str, notify=themeChanged)
     def theme(self):
         return self._theme
+
+    @Property(float, notify=themeChanged)
+    def textScale(self):
+        """Settings > Accessibility > Text size (text_scale())."""
+        return text_scale()
 
     @Property(bool, notify=themeChanged)
     def darkMode(self):

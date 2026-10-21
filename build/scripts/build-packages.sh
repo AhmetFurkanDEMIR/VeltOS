@@ -26,9 +26,26 @@ fi
 echo "==> Repository consistency tests"
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s /src/tests/repo -v
 
+# Build dependencies come from the mirrors named for the ISO build
+# (VELTOS_DEBIAN_MIRROR / VELTOS_SECURITY_MIRROR), when set: deb.debian.org
+# crawled at 20 KB/s from the developer host on 2026-10-21 while
+# ftp.de.debian.org gave 7 MB/s.
+if [ -n "${VELTOS_DEBIAN_MIRROR:-}" ]; then
+    sed -i "s|^URIs: http://deb.debian.org/debian$|URIs: ${VELTOS_DEBIAN_MIRROR%/}|" /etc/apt/sources.list.d/debian.sources
+fi
+if [ -n "${VELTOS_SECURITY_MIRROR:-}" ]; then
+    sed -i "s|^URIs: http://deb.debian.org/debian-security$|URIs: ${VELTOS_SECURITY_MIRROR%/}|" /etc/apt/sources.list.d/debian.sources
+fi
+
 apt_updated=false
 for src in "${sources[@]}"; do
     name="$(basename "$src")"
+    if [ ! -f "$src/debian/rules" ]; then
+        # A draft without Debian packaging yet (packages/veltos-disks on
+        # 2026-10-21): not a package to build.
+        echo "==> Skipping $name (no debian/rules)"
+        continue
+    fi
     echo "==> Building package source $name"
     # Copy without generated artefacts; the repo mount is read-only.
     mkdir -p "$WORK/$name"

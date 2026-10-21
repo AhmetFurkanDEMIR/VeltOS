@@ -422,6 +422,8 @@ class FullBuildTest(unittest.TestCase):
         for prefs, cfg in (("usr/lib/firefox-esr/defaults/pref/veltos.js", "usr/lib/firefox-esr/veltos.cfg"),
                            ("usr/share/thunderbird/defaults/pref/veltos.js", "usr/lib/thunderbird/veltos.cfg")):
             self.assertIn('pref("general.config.filename", "veltos.cfg");', (root / prefs).read_text())
+            # File dialogs through the portal (VeltOS File Explorer's dialog).
+            self.assertIn('pref("widget.use-xdg-desktop-portal.file-picker", 1);', (root / prefs).read_text())
             text = (root / cfg).read_text()
             self.assertTrue(text.startswith("//"), cfg)       # autoconfig skips the first line
             self.assertIn(css, text)
@@ -429,6 +431,9 @@ class FullBuildTest(unittest.TestCase):
         self.assertIn('pref("mail.shell.checkDefaultClient", false);', mail)
         self.assertIn("file:///usr/share/veltos/mail/mail.css", (root / "usr/lib/thunderbird/veltos.cfg").read_text())
         self.assertNotIn("mail.css", (root / "usr/lib/firefox-esr/veltos.cfg").read_text())
+        # Firefox's downloads panel in the Windows 11 look.
+        self.assertIn("file:///usr/share/veltos/firefox/downloads.css", (root / "usr/lib/firefox-esr/veltos.cfg").read_text())
+        self.assertIn("#downloadsPanel", (root / "usr/share/veltos/firefox/downloads.css").read_text())
         css = (root / "usr/share/veltos/mail/mail.css").read_text()
         self.assertIn('@-moz-document url-prefix("chrome://messenger/content/")', css)   # never inside mails
         # The add-account page is about:accountsetup (Thunderbird 140), not a
@@ -448,6 +453,7 @@ class FullBuildTest(unittest.TestCase):
             self.assertIn("translucent_windows=false", config)
             self.assertIn("no_inactiveness=true", config)
         self.assertEqual(kdeglobals["[KDE]"]["widgetStyle"], "kvantum")
+        self.assertEqual(kdeglobals["[KDE]"]["ShowIconsOnPushButtons"], "false")
         self.assertEqual(kdeglobals["[KDE]"]["DefaultDarkLookAndFeel"], "org.veltos.dark")
         self.check_session_files(root, kdeglobals)
         self.check_title_catalogs(root)

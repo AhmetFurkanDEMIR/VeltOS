@@ -338,6 +338,7 @@ FocusScope {
         replacePinned("org.kde.gwenview.desktop", "veltos-photos.desktop", "photosPinned");
         replacePinned("org.kde.okular.desktop", "veltos-pdf.desktop", "pdfPinned");
         pinOnce("veltos-calculator.desktop", "calculatorPinned");
+        pinOnce("veltos-clock.desktop", "clockPinned");
     }
 
     // The pinned apps model may not be ready when Start first opens; try

@@ -1,7 +1,13 @@
 {
   "plugin": "org.kde.plasma.taskmanager",
-  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph; no spinning circle over a starting app. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13); several windows of one app show as a stacked button, without Plasma's plus sign, like Windows 11.",
+  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph; no spinning circle over a starting app. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13); several windows of one app show as a stacked button, without Plasma's plus sign, like Windows 11. A program's progress (downloads, copies) is a thin bar under the icon, as on Windows 11, not Plasma's filled area behind it.",
   "replacements": [
+    {
+      "file": "contents/ui/TaskProgressOverlay.qml",
+      "why": "progress as a thin bar under the icon, like Windows 11 (product owner, 2026-10-21: Plasma's fill behind the icon looked wrong during a Firefox download)",
+      "replace_with": "taskmanager/TaskProgressOverlay.qml",
+      "upstream_sha256": "d6ee04f527fe64094f7485a91604f5e14f949601be392c17738bbdf6823d0259"
+    },
     {
       "file": "contents/ui/ContextMenu.qml",
       "why": "Windows' wording for pinning",

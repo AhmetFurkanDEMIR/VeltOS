@@ -121,7 +121,7 @@ Item {
                     Text {
                         visible: page.appState === "failed"
                         Layout.fillWidth: true
-                        text: backend.texts.failed
+                        text: backend.failureText(page.app.pkg || "", backend.revision)
                         color: Theme.danger
                         font.pixelSize: Theme.captionSize
                         wrapMode: Text.Wrap

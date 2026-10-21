@@ -166,6 +166,31 @@ from the same changelog entry carry the same file times, so after installing a
 rebuilt `veltos-desktop` in a running VM delete that directory and restart
 `plasma-plasmashell` (`systemctl --user restart plasma-plasmashell`).
 
+## Added 2026-10-21 (evening)
+
+- **Search window** (`plasma/search`): the taskbar's search box opens
+  Windows 11's search window (centred like Start, through the
+  `org.kde.plasma.desktop` override): a search field, "Top apps" (Start's
+  pinned apps) while empty, results on the left with the best match and
+  "Open" on the right while typing (Plasma's runners).
+- **Progress on the taskbar** as a thin accent bar under the icon
+  (`plasma-overrides/files/taskmanager/TaskProgressOverlay.qml` replaces
+  Plasma's fill behind the icon).
+- **Sign-in screen in KWin on Wayland** (`10-veltos.conf`:
+  `DisplayServer=wayland`, Plasma's `CompositorCommand`), so the greeter
+  and the session pick the same screen mode (the X11 greeter came up
+  small in VirtualBox/QEMU).
+- **Session environment** for the portal file dialogs
+  (`veltos-session.sh`: `QT_QPA_PLATFORMTHEME=xdgdesktopportal`,
+  `GTK_USE_PORTAL=1`; see veltos-explorer), Firefox/Mail preference
+  `widget.use-xdg-desktop-portal.file-picker=1`, Firefox's downloads
+  panel in the Windows 11 look (`firefox/downloads.css`).
+- **Sounds** (`tools/sounds.py`) synthesised softer (slow attack, fewer
+  partials, detuned second voice, low-pass, small reverb, -6 dBFS) and a
+  new `alarm-clock-elapsed` for VeltOS Clock.
+- File indexing off until a user turns it on (`/etc/xdg/baloofilerc`);
+  KDE buttons without icons (`ShowIconsOnPushButtons=false`).
+
 ## Known limitations
 
 - Notification pop-ups (toasts) and the taskbar's window tooltip are still

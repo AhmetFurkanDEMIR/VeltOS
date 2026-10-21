@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=VeltOS Clock alarms
+Name[tr]=VeltOS Saat alarmları
+Comment=Rings alarms and timers while the Clock app is closed
+Comment[tr]=Saat uygulaması kapalıyken alarmları ve zamanlayıcıları çaldırır
+Exec=veltos-clock-agent
+Icon=veltos-clock
+Terminal=false
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2

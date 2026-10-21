@@ -25,7 +25,7 @@ from PySide6.QtQuick import QQuickWindow
 
 from . import exeinfo, shortcuts
 from .strings import Texts
-from .winenv import Environment, has_hardware_vulkan, live_session
+from .winenv import Environment, alternative_runners, has_hardware_vulkan, live_session
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 # A portable program that is still running after this long is considered
@@ -47,6 +47,17 @@ def kde_value(group, key):
     return ""
 
 
+
+def text_scale():
+    """Text size chosen in Settings > Accessibility (the KDE font size over
+    its default of 10 pt): the VeltOS apps scale their text with it, as
+    Windows apps follow Windows' text size."""
+    parts = kde_value("General", "font").split(",")
+    try:
+        return max(1.0, min(2.25, float(parts[1]) / 10)) if len(parts) > 1 else 1.0
+    except ValueError:
+        return 1.0
+
 def accent_colour():
     parts = [p for p in kde_value("General", "AccentColor").split(",") if p.strip().isdigit()]
     return "#%02x%02x%02x" % tuple(int(p) for p in parts[:3]) if len(parts) >= 3 else ""
@@ -67,7 +78,10 @@ class Runner(QObject):
         self._setup = False
         self._before = {}
         self._new_apps = []
-        self._page = "running" if self.info.valid else "invalid"
+        # Bottles / Lutris / PlayOnLinux installed: ask which to use first.
+        self._alternatives = alternative_runners() if self.info.valid else []
+        self._chosen = "wine"
+        self._page = ("choose" if self._alternatives else "running") if self.info.valid else "invalid"
         self._title = self._body = ""
         self._exit_code = 0
         self._needed_mb = 0
@@ -123,6 +137,11 @@ class Runner(QObject):
     def isInstaller(self):
         return self.info.is_installer
 
+    @Property(float, constant=True)
+    def textScale(self):
+        """Settings > Accessibility > Text size (text_scale())."""
+        return text_scale()
+
     @Property(bool, constant=True)
     def darkMode(self):
         return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
@@ -134,6 +153,44 @@ class Runner(QObject):
     @Property("QVariantList", notify=changed)
     def newApps(self):
         return [{"name": a["name"], "path": a["path"]} for a in self._new_apps]
+
+    @Property("QVariantList", constant=True)
+    def alternatives(self):
+        """The ways to open the file: VeltOS' own Wine environment first,
+        then the installed alternatives (choose page)."""
+        options = [{"id": "wine", "name": self.t.get("runner_wine"), "icon": "veltos-run",
+                    "description": self.t.get("runner_wine_desc")}]
+        for alternative in self._alternatives:
+            options.append({"id": alternative["id"], "name": alternative["name"], "icon": alternative["icon"],
+                            "description": self.t.get("runner_" + alternative["id"] + "_desc")})
+        return options
+
+    def _get_chosen(self):
+        return self._chosen
+
+    def _set_chosen(self, value):
+        if value != self._chosen:
+            self._chosen = value
+            self.changed.emit()
+
+    chosenRunner = Property(str, _get_chosen, _set_chosen, notify=changed)
+
+    @Slot(str)
+    def chooseRunner(self, runner_id):
+        """The choice on the choose page: VeltOS runs the file itself; an
+        alternative gets the file the way a double-click would give it."""
+        self._chosen = runner_id
+        if runner_id == "wine":
+            self._page = "running"
+            self._set_texts()
+            self.changed.emit()
+            self.start()
+            return
+        for alternative in self._alternatives:
+            if alternative["id"] == runner_id:
+                QProcess.startDetached("kioclient", ["exec", alternative["desktop"], str(self.info.path)])
+                QGuiApplication.instance().quit()
+                return
 
     @Slot(str, result=str)
     def tr(self, key):
@@ -150,6 +207,7 @@ class Runner(QObject):
         name = self.info.name
         texts = {
             "invalid": ("not_windows", None),
+            "choose": ("choose_runner", "choose_runner_body"),
             "preparing": ("preparing", "preparing_body"),
             "running": ("installing", "installing_body") if self.info.is_installer else ("running", None),
             "waiting": ("waiting", None),
@@ -163,8 +221,9 @@ class Runner(QObject):
 
     @Slot()
     def start(self):
-        """Opening the file starts it at once, as in Windows."""
-        if not self.info.valid:
+        """Opening the file starts it at once, as in Windows (after the
+        choice, when other runners are installed)."""
+        if not self.info.valid or self._page == "choose":
             return
         self.env = Environment()
         ok, needed = self.env.enough_space()
@@ -227,6 +286,12 @@ class Runner(QObject):
 
     def _launch(self):
         self._go("running")
+        # Windows programs follow the light/dark mode chosen in Settings
+        # (the registry value Windows keeps for it), set at every start.
+        self._queue = [self.env.theme_command(self.darkMode)]
+        self._run_next(on_done=self._run_program)
+
+    def _run_program(self):
         self._started_at = time.monotonic()
         self._start_process(self.env.run_command(self.info.path, self.info.kind), self._program_finished)
         if not self.info.is_installer:

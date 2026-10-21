@@ -3,6 +3,183 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (23:30) — Windows 11 dialogs everywhere: file dialogs, the password prompt, Clock, search, fixes
+
+Product owner's list of 2026-10-21 (evening), item by item:
+
+- **File dialogs** ("every open/save/folder window must be the current
+  Windows 11 one"): File Explorer gained a dialog mode (`veltos-explorer
+  --pick`, `picker.py` + `qml/Picker.qml`): Windows 11's Open / Save As /
+  Select Folder built from Explorer's own address bar, navigation pane
+  and views, with the file name box, the file type drop-down, New folder,
+  "already exists, replace?" and the last folder remembered. Other
+  programs reach it through the desktop portal: `veltos-explorer
+  --portal` (`portal.py`, GLib/GDBus) is the
+  `org.freedesktop.impl.portal.FileChooser` backend, chosen for Plasma
+  sessions by `/etc/xdg/xdg-desktop-portal/kde-portals.conf`; the session
+  sets `QT_QPA_PLATFORMTHEME=xdgdesktopportal` (Qt's portal theme, which
+  wraps the KDE theme for everything but file dialogs; package
+  `qt6-xdgdesktopportal-platformtheme`) and `GTK_USE_PORTAL=1`, Firefox and
+  Mail get `widget.use-xdg-desktop-portal.file-picker=1`. VeltOS Settings
+  picks account pictures and wallpapers with it instead of `kdialog`.
+  Verified in the live VM: the dialog alone (Open, filters, Esc ->
+  `{"paths": []}`), Firefox's Ctrl+O arriving in the VeltOS dialog
+  through the portal ("Open File - Mozilla Firefox", "All Files"), and
+  with `QT_QPA_PLATFORMTHEME=xdgdesktopportal` set for the session:
+  Konsole's "Save Output" (Save As with "Plain text document") and
+  LibreOffice Writer's Open, which then opened the chosen file.
+  LibreOffice's Qt file picker sends **two** OpenFile requests for one
+  Ctrl+O (same window and title, two request tokens; seen with a log in
+  the backend): two VeltOS dialogs appeared. The backend now lets an
+  identical request from the same window within three seconds join the
+  first dialog and answers both with the same result (unit-tested with
+  stand-ins; LibreOffice then showed one dialog and opened the file once).
+  Also learnt: a backend that exits at start makes xdg-desktop-portal drop
+  the whole FileChooser interface ("No such interface"), and Qt programs
+  then fall back to KDE's dialog without any message.
+- **"Open with" / "choose an app"**: Windows 11's "Select an app to open
+  this .txt file" window (`openwith.py` + `qml/OpenWith.qml`, `veltos-explorer
+  --open-with FILE`): the apps that claim the type, "More apps", Always /
+  Just once (Always records the default in mimeapps.list). File Explorer's
+  "Open with" menu ends with "Choose another app", and a file no app
+  claims opens this window instead of KDE's. Offscreen tests only.
+- **Password prompt** ("authentication required" is still KDE's): new
+  package `veltos-auth`, a polkit authentication agent (GLib) with a
+  prompt in the layout of Windows 11's User Account Control window
+  (PySide6/QML: blue band with the new VeltOS shield-and-padlock icon
+  (`veltos-auth.svg`: the VeltOS V centred on a shield, a padlock
+  badge; the product owner asked for the V and a password icon in one
+  logo, and for the V to be centred; seen in the prompt, its title bar
+  and the taskbar),
+  the question, program, details, the administrator's picture, password,
+  Yes/No). The password is checked by polkit's own setuid helper
+  (`polkit-agent-helper-1`, line protocol in `helper.py`). KDE's
+  `plasma-polkit-agent.service` is masked. Verified in the live VM (with
+  the live "sudo without password" rule moved aside): `pkexec /bin/true`
+  from the session showed the prompt, a wrong password kept it open with
+  "The password is incorrect. Try again.", the right one made polkit log
+  "successfully authenticated as unix-user:velt"; the agent registered
+  for unix-session:1 after KDE's agent was stopped.
+- **Accounts**: the "Change" password button did nothing because
+  `SettingRow`'s and `VButton`'s TapHandlers both saw the tap (passive
+  grabs) and toggled the panel twice; rows now ignore taps on their
+  control, buttons take an exclusive grab (VM: the panel opens). The
+  change itself then failed ("The password could not be changed"): the
+  pseudo-terminal conversation with `passwd` took the newline after an
+  answer for a new prompt and sent the next answer too early, so the last
+  prompt was never answered (traced with a transcript in the VM). It now
+  looks only at output after the last answer; the package test's fake
+  `passwd` behaves like the real one (echo off, newline, pause). Verified
+  in the VM: the fixed function changed the live user's password with
+  the real `passwd` (shadow hash changed), and the Settings page shows
+  the Change panel on the first click. "Add account" could not be
+  reproduced: in the live VM session `Accounts.add_user` created the user
+  with its password at once (the live rule needs no prompt); on an
+  installed system the prompt is now VeltOS'.
+- **Accessibility > Text size** did nothing visible: the KDE fonts were
+  written but VeltOS' own apps use fixed pixel sizes. Every VeltOS app now
+  reads the size (`textScale`, the KDE font size over 10 pt) and scales
+  its text (`Theme.qml`); Settings follows the slider at once, the others
+  at their next start (Explorer while open). Settings also sends KDE's
+  `notifyChange(FontChanged)` signal so KDE programs re-read fonts.
+  Seen at 150 % in the live VM (Settings, File Explorer); Explorer's
+  Home tiles and the Recent list's date column had fixed widths and
+  overlapped at that size, they scale now.
+- **Lock screen**: "Never" in the lock-after list (turns Autolock off).
+- **Default apps page empty**: `/usr/share/applications/mimeinfo.cache`
+  did not exist in the image (`desktop-file-utils` was missing; GTK
+  programs need it too), and the page never looked at VeltOS' own
+  `kde-mimeapps.list` next to the applications. Both fixed; with nothing
+  recorded the first app that opens the type is shown.
+- **Searching files switch fell back to off**: `balooctl6` was not in the
+  image (`baloo6` added) and the state was read from the indexer's status
+  instead of its setting. Off by default (`/etc/xdg/baloofilerc`).
+- **Store "something went wrong"**: the real reason is now shown
+  (permission not given / not in the catalogue / download failed /
+  another installation running / PackageKit's text), and old or missing
+  package lists are refreshed before an install (an installed system
+  keeps the image's lists until something refreshes them). In the live VM
+  `pkcon install` itself worked without a prompt.
+- **Taskbar search**: the search box opens Windows 11's search window
+  (a VeltOS plasmoid popup, centred like Start): a search field, "Top
+  apps" (Start's pinned apps) while empty, results on the left with the
+  best match and "Open" on the right while typing. Seen in the live VM:
+  the empty window with its hint (the live user has no usage history,
+  so "Top apps" is empty), and "calc" listing Calculator as the best
+  match with its Open card. The first build put the card in the middle
+  of the window: the left column now takes 56 % of the width.
+- **Taskbar progress**: a thin accent bar under the icon
+  (TaskProgressOverlay.qml replaced through update-plasma-overrides)
+  instead of Plasma's fill behind it. Seen in the live VM during a
+  Firefox download from a slow local HTTP server: the thin bar under
+  the Firefox icon, next to Plasma's download count badge.
+- **Firefox downloads panel**: a VeltOS style sheet (`firefox/downloads.css`,
+  rounded card, accent progress line, quiet "Show all downloads").
+  Seen in the live VM while the same file downloaded.
+- **Sign-in screen size** ("small, then the resolution changes"): SDDM
+  started an X11 greeter; it now runs the greeter in KWin on Wayland with
+  Plasma's command line (`DisplayServer=wayland`, `CompositorCommand`),
+  so the greeter and the session pick the same mode. Verified in the live
+  VM with the autologin file moved aside: the greeter filled the whole
+  1920×1080 screen (lock view, then the sign-in view), and signing in with
+  the password started the session (`tests/results/2026-10-21-windows-dialogs/`).
+  Note: `/etc/sddm.conf` (live-config's autologin) overrides every
+  `sddm.conf.d` file.
+- **Sounds**: all VeltOS sounds synthesised again, softer: a slow
+  attack, fewer upper partials, a detuned second voice, a low-pass and a
+  small room reverb, at -6 dBFS; new `alarm-clock-elapsed` for Clock.
+  Listened to by nobody yet (no audio in the VM).
+- **Clock**: new package `veltos-clock` (Windows 11 Clock layout: Focus
+  sessions, Timer, Alarm, Stopwatch, World clock) with `veltos-clock-agent`,
+  which rings alarms and timers while the app is closed (notification with
+  Snooze/Dismiss, the alarm sound). Unit tests (when alarms ring, timers,
+  the window in English and Turkish). On screen in the live VM: all five
+  pages (the navigation column first filled the whole window; it is now
+  220 px), an alarm set from the app rang through the agent with the
+  app closed (notification "VeltOS Clock · Alarm · Tea time" with
+  Snooze and Dismiss, the alarm sound through pw-play), Clock pinned in
+  Start with its own icon.
+- **Installer slideshow**: seven animated slides (words fade in, a picture
+  of the system glides in) with screenshots of Start, Settings, File
+  Explorer and the Store taken in the VM, texts in the installer's
+  language. The QML loads with Calamares' slideshow module in the VM
+  (19 items); not yet watched during an installation.
+- **Windows programs**: when Bottles, Lutris or PlayOnLinux are installed
+  the runner first asks which to use (none of the three is in Debian 13,
+  so VeltOS cannot preinstall them from a signed archive; the product
+  owner decides about Flatpak); the Done page scrolls its list of new
+  programs instead of pushing the buttons up; the runner has its own App
+  Installer icon; Windows programs get `AppsUseLightTheme` from the
+  VeltOS light/dark mode at every start (Wine 10's Light theme has no
+  dark variant, so Wine's own controls stay light). Verified in the live
+  VM with 7-Zip 26.04's installer: the runner's page while Wine set
+  itself up, the installer's own window, then "7-Zip is installed"
+  with the two new Start entries and Open buttons, Done in its place at
+  the bottom right; 7-Zip then appeared in Start's All list. The runner
+  has its own flat App Installer icon in the taskbar.
+- **Icons**: This PC with a thinner bezel; "logo and name" of This PC /
+  Recycle Bin kept (they are Windows' names already; Microsoft's own
+  icon files cannot be copied).
+- **File Explorer**: typing `cmd`, `terminal` or `powershell` into the
+  address box opens the Terminal at the folder, as Windows does.
+- KDE buttons without icons (`ShowIconsOnPushButtons=false`) make KDE's
+  remaining dialogs (new folder on the desktop) plainer.
+- **Old Store**: Discover is not in the image (verify hook); nothing of
+  VeltOS opens it. A system installed from an older ISO may still have it.
+- Not done: the desktop's "Create New > Folder" still uses KDE's name
+  dialog (KNewFileMenu is C++ in the folder view; VeltOS cannot replace
+  it from QML); Bottles/Lutris/PlayOnLinux are not preinstalled.
+- Build: a full `build/run.sh packages` stopped at `packages/veltos-disks`
+  (the Disk Management draft has no `debian/`); the script now skips
+  directories without `debian/rules`. `deb.debian.org` delivered about
+  20 KB/s to the builder this evening; `VELTOS_DEBIAN_MIRROR` and
+  `VELTOS_SECURITY_MIRROR` now also rewrite the builder's own apt
+  sources (with ftp.de.debian.org a full package build took about
+  12 minutes). The repository test's tree walk stat-ed a LibreOffice
+  symlink extracted under `out/` before skipping the folder (Windows
+  cannot stat it); it now prunes `.git`, `out` and `__pycache__`.
+- Screenshots of the checks: `tests/results/2026-10-21-windows-dialogs/`.
+
 ## 2026-10-21 (20:00) — Mail: Outlook-like "Add your account"
 
 - Product owner: Mail still opened on an old-looking sign-in page. It was

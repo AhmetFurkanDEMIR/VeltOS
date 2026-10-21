@@ -10,6 +10,14 @@ case ":${XDG_DATA_DIRS:-}:" in
     *) export XDG_DATA_DIRS="/var/lib/veltos/xdg:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" ;;
 esac
 
+# File dialogs of every program in the Windows 11 layout (VeltOS File
+# Explorer's dialog, through the desktop portal): Qt and KDE programs ask
+# the portal through Qt's portal platform theme, which takes everything
+# else (colours, fonts, icons) from the KDE theme; GTK programs (Firefox,
+# Mail) with GTK_USE_PORTAL. veltos-explorer answers the portal's requests.
+export QT_QPA_PLATFORMTHEME=xdgdesktopportal
+export GTK_USE_PORTAL=1
+
 # Window animations like Windows 11 also without 3D acceleration: KWin
 # turns its animations off when it renders in software (llvmpipe, most
 # virtual machines), so windows popped up and vanished without any

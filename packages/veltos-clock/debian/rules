@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-clock
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-clock/usr/lib/python3/dist-packages
+	cp -r veltos_clock debian/veltos-clock/usr/lib/python3/dist-packages/
+	find debian/veltos-clock -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-clock debian/veltos-clock/usr/bin/veltos-clock
+	install -D -m 755 bin/veltos-clock-agent debian/veltos-clock/usr/bin/veltos-clock-agent
+	install -D -m 644 data/veltos-clock.desktop debian/veltos-clock/usr/share/applications/veltos-clock.desktop
+	# The alarm agent starts with the session (Plasma's autostart).
+	install -D -m 644 data/veltos-clock-agent.desktop debian/veltos-clock/etc/xdg/autostart/veltos-clock-agent.desktop
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

@@ -82,5 +82,18 @@ Rectangle {
     }
 
     HoverHandler { id: hover; enabled: row.clickable; cursorShape: Qt.PointingHandCursor }
-    TapHandler { id: tap; enabled: row.clickable; onTapped: row.clicked() }
+    TapHandler {
+        id: tap
+        enabled: row.clickable
+        // A tap on the control (button, toggle, drop-down) is the control's
+        // alone: TapHandlers do not take an exclusive grab, so the row's
+        // handler saw those taps too and undid what the control did (the
+        // "Change" password button toggled its panel open and shut again).
+        onTapped: eventPoint => {
+            const p = slot.mapFromItem(row, eventPoint.position.x, eventPoint.position.y);
+            if (p.x >= 0 && p.y >= 0 && p.x <= slot.width && p.y <= slot.height)
+                return;
+            row.clicked();
+        }
+    }
 }

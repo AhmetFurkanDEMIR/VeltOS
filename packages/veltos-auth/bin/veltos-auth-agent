@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""VeltOS authentication agent (polkit): the Windows 11 style prompt."""
+import sys
+
+from veltos_auth.agent import serve
+
+sys.exit(serve(sys.argv))

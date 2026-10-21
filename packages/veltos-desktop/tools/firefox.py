@@ -78,6 +78,10 @@ AUTOCONFIG_PREFS = """// VeltOS: run /usr/lib/firefox-esr/veltos.cfg at start-up
 pref("general.config.filename", "veltos.cfg");
 pref("general.config.obscure_value", 0);
 pref("general.config.sandbox_enabled", false);
+// VeltOS: file dialogs through the desktop portal, i.e. VeltOS File
+// Explorer's Windows 11 style dialog (1 = always; 2, the default, only in
+// a sandbox or with GTK_USE_PORTAL).
+pref("widget.use-xdg-desktop-portal.file-picker", 1);
 """
 
 def autoconfig(what, sheets):
@@ -104,9 +108,11 @@ try {{
 
 
 CAPTION_CSS = "/" + str(CSS_PATH)
+# Firefox's downloads panel in the Windows 11 look (firefox/downloads.css).
+DOWNLOADS_CSS = "/usr/share/veltos/firefox/downloads.css"
 # Mail's look (Outlook-like panes and cards), a file of veltos-desktop.
 MAIL_CSS = "/usr/share/veltos/mail/mail.css"
-AUTOCONFIG = autoconfig("Firefox", [CAPTION_CSS])
+AUTOCONFIG = autoconfig("Firefox", [CAPTION_CSS, DOWNLOADS_CSS])
 MAIL_AUTOCONFIG = autoconfig("Mail (Thunderbird)", [CAPTION_CSS, MAIL_CSS])
 
 
@@ -145,6 +151,8 @@ def build(root):
     mail_css = root / MAIL_CSS.lstrip("/")
     mail_css.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(Path(__file__).resolve().parent.parent / "mail/mail.css", mail_css)
+    downloads_css = root / DOWNLOADS_CSS.lstrip("/")
+    shutil.copy(Path(__file__).resolve().parent.parent / "firefox/downloads.css", downloads_css)
 
 
 if __name__ == "__main__":

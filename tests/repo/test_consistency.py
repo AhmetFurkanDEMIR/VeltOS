@@ -1,10 +1,22 @@
 """Repository-wide consistency checks (run by build/scripts/build-packages.sh)."""
 
+import os
 import re
 import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+PRUNED = {".git", "out", "__pycache__"}
+
+
+def repo_files():
+    """Every file of the repository, without descending into .git, out or
+    __pycache__ (out holds builds and extracted upstream packages, whose
+    symlinks a Windows host cannot even stat)."""
+    for directory, names, files in os.walk(REPO):
+        names[:] = sorted(name for name in names if name not in PRUNED)
+        for name in sorted(files):
+            yield Path(directory) / name
 
 
 class ArtworkTests(unittest.TestCase):
@@ -33,9 +45,7 @@ class ArtworkTests(unittest.TestCase):
 class LineEndingTests(unittest.TestCase):
     def test_no_crlf_in_text_files(self):
         offenders = []
-        for path in REPO.rglob("*"):
-            if not path.is_file() or ".git" in path.parts or "out" in path.parts:
-                continue
+        for path in repo_files():
             if path.suffix in {".png", ".jpg", ".iso", ".deb", ".gz", ".mo"}:
                 continue
             if b"\r\n" in path.read_bytes():
@@ -46,9 +56,7 @@ class LineEndingTests(unittest.TestCase):
         # Shell quoting accidents turn "\b" or "\1" into control characters.
         bad = re.compile(rb"[\x00-\x08\x0b\x0e-\x1f]")
         offenders = []
-        for path in REPO.rglob("*"):
-            if not path.is_file() or ".git" in path.parts or "out" in path.parts:
-                continue
+        for path in repo_files():
             if path.suffix not in {".py", ".qml", ".js", ".sh", ".svg", ".json", ".md", ".po",
                                    ".conf", ".cfg", ".txt", ".rc", ".desktop"}:
                 continue

@@ -455,6 +455,64 @@ Snapshot-based rollback (e.g. Btrfs + snapper) is a candidate to evaluate.
 - Wine is not a security sandbox; untrusted `.exe` files are never run with
   elevated privileges.
 
+### 2.10 File dialogs: one Windows 11 dialog for every program (2026-10-21)
+
+- The product owner wants every open/save/folder window to be Windows
+  11's. VeltOS writes one dialog (File Explorer's `--pick` mode, reusing
+  Explorer's address bar, navigation pane and views) and makes every
+  program use it through the desktop portal: `veltos-explorer --portal`
+  is the `org.freedesktop.impl.portal.FileChooser` backend, named in
+  `/etc/xdg/xdg-desktop-portal/kde-portals.conf` (everything else stays
+  with KDE's backend).
+- Reaching it: GTK programs with `GTK_USE_PORTAL=1`; Firefox and Mail with
+  `widget.use-xdg-desktop-portal.file-picker=1`; Qt, KDE and LibreOffice
+  (kf6 plugin uses QFileDialog) with `QT_QPA_PLATFORMTHEME=xdgdesktopportal`,
+  Qt's portal platform theme, which wraps the KDE theme (`themeNames()`)
+  and takes only file dialogs and the colour scheme from the portal
+  (checked in Qt 6.8's `qxdgdesktopportaltheme.cpp`). VeltOS' own apps call
+  the dialog directly (JSON over a pipe; Settings) or use QML
+  `FileDialog`, which goes through the same theme.
+- Alternatives: replacing KDE's `KFileWidget` (impossible without
+  patching plasma-integration/KIO); a Qt platform theme plugin of our own
+  (C++, must follow Qt releases); per-app dialogs (every Qt/GTK program
+  would keep its own). The portal is the one hook every toolkit honours.
+- Trade-offs: the dialog is a separate window (the portal gives a
+  `parent_window` handle VeltOS cannot attach to from PySide6); dialogs
+  opened in the first milliseconds of a Qt program, before the portal's
+  version is known, fall back to KDE's; file dialogs inside Flatpak apps
+  would go through the same backend (good).
+
+### 2.11 Administrator password: VeltOS' own polkit agent (2026-10-21)
+
+- polkit asks the *session's* authentication agent, so the only way to
+  show a Windows 11 "User Account Control" window for every program
+  (Store, Settings, pkexec, KDE tools) is to be that agent: `veltos-auth`
+  registers `org.freedesktop.PolicyKit1.AuthenticationAgent` for the login
+  session (GLib/GDBus, no Qt in the resident process) and opens the
+  prompt (PySide6/QML) per request. The password is checked by polkit's
+  own setuid helper, exactly as KDE's and GNOME's agents do, so VeltOS
+  handles no PAM and no privileges itself.
+- KDE's agent (`plasma-polkit-agent.service`) is masked; the package does
+  not remove polkit-kde-agent-1 (plasma-desktop depends on it).
+- Alternatives: restyling KDE's agent (its window is C++/QML inside the
+  binary; no override hook); patching polkit-kde-agent-1 (a fork to keep
+  up with Plasma). Rejected per rule 5.
+- Known limit: KWin on Wayland does not keep the prompt above everything
+  (no secure desktop); the window is activated and centred.
+
+### 2.12 Small resident helpers: alarms and the portal backend (2026-10-21)
+
+- Rule 7 asks for a reason for every daemon. VeltOS Clock's alarms must
+  ring with the app closed (Windows does the same with a background
+  task), so `veltos-clock-agent` runs with the session: GLib only, a check
+  every 15 s plus a file monitor, about 15 MB. The portal backend
+  (`veltos-explorer --portal`) is D-Bus activated and ends after five
+  idle minutes; the authentication agent is required by polkit's design.
+- Text size: VeltOS apps draw text at fixed pixel sizes (Windows 11
+  proportions). Accessibility's text size is kept where KDE keeps it (the
+  kdeglobals fonts) and every VeltOS app derives a `textScale` from it,
+  so KDE programs, Plasma and VeltOS apps follow one setting.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

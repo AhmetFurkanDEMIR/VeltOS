@@ -1,5 +1,10 @@
 # veltos-store
 
+Added 2026-10-21: a failed install says why (permission not given, not in
+the catalogue, download failed, another installation running, or
+PackageKit's own message; `packages.failure_key`), and old or missing
+package lists are refreshed (`pkcon refresh`) before an install.
+
 VeltOS Store: apps and games for VeltOS in the layout of the Windows 11
 Microsoft Store (PySide6 + QML). It replaces KDE's Discover in Start, the
 taskbar and Settings; Discover stays installed but hidden.

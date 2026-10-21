@@ -1,0 +1,7 @@
+veltos-clock (0.1.0~dev1) trixie; urgency=medium
+
+  * Initial package: Clock in the layout of Windows 11's Clock app
+    (alarms, timers, stopwatch, world clock, focus sessions) with the
+    alarm agent that rings while the app is closed.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Wed, 21 Oct 2026 22:00:00 +0300

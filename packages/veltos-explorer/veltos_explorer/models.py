@@ -496,14 +496,16 @@ class Tab(QObject):
         show_hidden = self.backend.show_hidden
         mime = self.backend.mime
 
+        item_filter = self.backend.item_filter
+
         def work():
             if location == TRASH:
-                return self.backend.trash_entries()
+                return item_filter(self.backend.trash_entries())
             if query:
                 base = str(Path.home()) if location in (HOME, THIS_PC) else location
-                return files.search(base, query, show_hidden, mime,
-                                    cancelled=lambda: generation != self._generation)
-            return files.list_folder(location, show_hidden, mime)
+                return item_filter(files.search(base, query, show_hidden, mime,
+                                                cancelled=lambda: generation != self._generation))
+            return item_filter(files.list_folder(location, show_hidden, mime))
 
         def done(result):
             if generation != self._generation:

@@ -5,6 +5,8 @@ import QtQuick
 
 QtObject {
     readonly property bool dark: backend.darkMode
+    // Settings > Accessibility > Text size: every text size below scales with it.
+    readonly property real textScale: backend.textScale
 
     readonly property color window: dark ? "#1C1D25" : "#F1F3F8"       // Mica: title bar and pane
     readonly property color content: dark ? "#23242D" : "#F9FAFC"      // gallery and viewer
@@ -32,6 +34,6 @@ QtObject {
     readonly property color closeHover: "#C42B1C"
 
     readonly property int radius: 6
-    readonly property int fontSize: 13
-    readonly property int smallFont: 12
+    readonly property int fontSize: Math.round(13 * textScale)
+    readonly property int smallFont: Math.round(12 * textScale)
 }

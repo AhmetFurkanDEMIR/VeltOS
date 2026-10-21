@@ -35,5 +35,7 @@ Rectangle {
     }
 
     HoverHandler { id: hover; enabled: button.enabledState; cursorShape: Qt.PointingHandCursor }
-    TapHandler { id: tap; enabled: button.enabledState; onTapped: button.clicked() }
+    // ReleaseWithinBounds: the button takes the tap for itself (a parent's
+    // handler does not see it as well).
+    TapHandler { id: tap; enabled: button.enabledState; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: button.clicked() }
 }

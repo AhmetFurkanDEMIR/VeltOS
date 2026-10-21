@@ -245,6 +245,15 @@ class Backend(QObject):
     def darkMode(self):
         return self._dark
 
+    @Property(float, notify=prefsChanged)
+    def textScale(self):
+        """Accessibility > Text size as a factor for Settings' own texts;
+        follows the slider at once (the optimistic prefs value)."""
+        percent = self._prefs.get("textSize") if isinstance(self._prefs, dict) else None
+        if not isinstance(percent, (int, float)):
+            percent = self.system.prefs.text_size()
+        return max(1.0, min(2.25, float(percent) / 100))
+
     @Slot()
     def refresh(self):
         self._about = self._storage = self._windows_apps = None

@@ -119,6 +119,48 @@ def store():
                  'stroke-linecap="round" stroke-linejoin="round"/>\n')
 
 
+def app_installer():
+    """Windows 11's App Installer look: a flat blue tile with a white open
+    box and an arrow going into it (the VeltOS Windows program runner)."""
+    tile_d = rrect(28, 28, 200, 200, 40)
+    return svg("App Installer (Windows program runner)",
+               grad("tile", "#4F8CFF", "#2B45C8") + grad("box", "#FFFFFF", "#DCE6FF"),
+               shadow(tile_d)
+               + f'  <path d="{tile_d}" fill="url(#tile)"/>\n'
+               # the open box
+               + '  <path d="M 70 132 H 186 V 190 Q 186 200 176 200 H 80 Q 70 200 70 190 Z" fill="url(#box)"/>\n'
+               + '  <path d="M 62 112 H 194 L 186 134 H 70 Z" fill="#FFFFFF" opacity="0.85"/>\n'
+               + '  <path d="M 110 150 H 146" stroke="#2B45C8" stroke-width="8" stroke-linecap="round" opacity="0.35"/>\n'
+               # the arrow coming down into it
+               + '  <path d="M 128 46 V 96 M 106 76 L 128 98 L 150 76" fill="none" stroke="#FFFFFF" '
+                 'stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>\n')
+
+
+def clock():
+    """Windows 11's Clock look: a dark blue clock with a white face and
+    blue hands, light from the top left."""
+    import math
+    cx, cy, r = 128, 132, 100
+    ticks = []
+    for i in range(12):
+        angle = math.radians(i * 30)
+        inner = 84 if i % 3 == 0 else 90
+        ticks.append(f'  <path d="M {cx + inner * math.sin(angle):.1f} {cy - inner * math.cos(angle):.1f} '
+                     f'L {cx + 94 * math.sin(angle):.1f} {cy - 94 * math.cos(angle):.1f}" stroke="#3A4A6B" '
+                     f'stroke-width="{6 if i % 3 == 0 else 4}" stroke-linecap="round"/>\n')
+    return svg("Clock", grad("rim", "#2E62E8", "#15308F") + grad("face", "#FFFFFF", "#E6ECF7"),
+               shadow(f"M {cx} {cy - r} A {r} {r} 0 1 1 {cx - 0.01} {cy - r} Z")
+               + f'  <circle cx="{cx}" cy="{cy}" r="{r}" fill="url(#rim)"/>\n'
+               + f'  <circle cx="{cx}" cy="{cy}" r="{r - 14}" fill="url(#face)"/>\n'
+               + "".join(ticks)
+               # 10:08, as clocks are drawn
+               + f'  <path d="M {cx} {cy} L {cx - 36} {cy - 34}" stroke="#15308F" stroke-width="10" stroke-linecap="round"/>\n'
+               + f'  <path d="M {cx} {cy} L {cx + 52} {cy - 42}" stroke="#15308F" stroke-width="8" stroke-linecap="round"/>\n'
+               + f'  <path d="M {cx} {cy + 18} L {cx + 20} {cy + 56}" stroke="#2FA8F0" stroke-width="4" stroke-linecap="round"/>\n'
+               + f'  <circle cx="{cx}" cy="{cy}" r="8" fill="#15308F"/>\n'
+               + f'  <circle cx="{cx}" cy="{cy}" r="3" fill="#FFFFFF"/>\n')
+
+
 def gear_path(cx, cy, outer, inner, teeth, tooth_frac=0.42):
     import math
     pts = []
@@ -315,6 +357,8 @@ NAMES = {
     media_player: ["veltos-media", "org.kde.haruna", "multimedia-video-player", "vlc"],
     disk_management: ["veltos-disks", "partitionmanager", "org.kde.partitionmanager", "gnome-disks",
                       "org.gnome.DiskUtility"],
+    app_installer: ["veltos-run", "veltos-winapps"],
+    clock: ["veltos-clock", "org.kde.kclock", "kclock", "preferences-system-time", "clock"],
     word_processor: ["libreoffice-writer", "libreoffice3-writer", "libreoffice34-writer"],
     spreadsheet: ["libreoffice-calc", "libreoffice3-calc", "libreoffice34-calc"],
     presentation: ["libreoffice-impress", "libreoffice3-impress", "libreoffice34-impress"],

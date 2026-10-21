@@ -39,6 +39,49 @@ LOOK_REG = r'''REGEDIT4
 '''
 
 
+# Which look Windows programs ask for: Windows' own setting that programs
+# with a dark mode read (Wine 10's Light theme has no dark variant, so
+# Wine's own controls stay light).
+def theme_reg(dark):
+    value = "00000000" if dark else "00000001"
+    return ('REGEDIT4\n\n'
+            '[HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize]\n'
+            f'"AppsUseLightTheme"=dword:{value}\n'
+            f'"SystemUsesLightTheme"=dword:{value}\n')
+
+
+# Other ways to run Windows programs a user may have installed (Bottles,
+# Lutris, PlayOnLinux: none is in Debian 13, so they are found by their
+# desktop entries, Flatpak's included). The runner then asks which to use.
+ALTERNATIVES = [
+    ("bottles", "Bottles", ["com.usebottles.bottles.desktop"], "com.usebottles.bottles"),
+    ("lutris", "Lutris", ["net.lutris.Lutris.desktop", "lutris.desktop"], "lutris"),
+    ("playonlinux", "PlayOnLinux", ["PlayOnLinux.desktop", "playonlinux.desktop", "org.phoenicis.playonlinux.desktop"],
+     "playonlinux"),
+]
+
+
+def application_dirs():
+    dirs = [data_home() / "applications", data_home() / "flatpak/exports/share/applications",
+            Path("/var/lib/flatpak/exports/share/applications")]
+    for base in (os.environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share").split(":"):
+        if base:
+            dirs.append(Path(base) / "applications")
+    return dirs
+
+
+def alternative_runners(dirs=None):
+    """[{id, name, icon, desktop}] of the installed alternatives."""
+    found = []
+    for runner_id, name, desktops, icon in ALTERNATIVES:
+        for folder in dirs or application_dirs():
+            match = next((folder / d for d in desktops if (folder / d).is_file()), None)
+            if match is not None:
+                found.append({"id": runner_id, "name": name, "icon": icon, "desktop": str(match)})
+                break
+    return found
+
+
 def data_home():
     return Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
 
@@ -151,6 +194,16 @@ class Environment:
         reg = self.root / "veltos-look.reg"
         reg.write_text(LOOK_REG, encoding="utf-8")
         return reg
+
+    def write_theme_file(self, dark):
+        """The light/dark registry values for this start (theme_reg)."""
+        self.root.mkdir(parents=True, exist_ok=True)
+        reg = self.root / "veltos-theme.reg"
+        reg.write_text(theme_reg(dark), encoding="utf-8")
+        return reg
+
+    def theme_command(self, dark):
+        return [wine_tool("wine"), "regedit", "/S", str(self.write_theme_file(dark))]
 
     def setup_commands(self, vulkan):
         """Create or update the environment. Wine Mono/Gecko come from

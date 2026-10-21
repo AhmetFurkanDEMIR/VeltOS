@@ -1,7 +1,31 @@
 # veltos-explorer
 
 VeltOS File Explorer: a file manager in the layout of Windows 11 File
-Explorer, written for VeltOS in Python (PySide6) and QML.
+Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
+**file dialog of every program** and the **"open with" window**:
+
+- `veltos-explorer --pick` (`picker.py`, `qml/Picker.qml`): Windows 11's
+  Open / Save As / Select Folder dialog built from Explorer's own address
+  bar, navigation pane and views, with the file name box, the file type
+  drop-down, New folder, "already exists, replace?", and the last folder
+  remembered. The request is JSON on standard input, the answer JSON on
+  standard output (see the module's docstring). VeltOS Settings calls it
+  directly (pictures, wallpapers).
+- `veltos-explorer --portal` (`portal.py`, GLib/GDBus, no Qt): the
+  `org.freedesktop.impl.portal.FileChooser` backend of xdg-desktop-portal
+  (D-Bus activated), chosen for Plasma sessions by
+  `/etc/xdg/xdg-desktop-portal/kde-portals.conf`. Firefox, Mail and GTK
+  programs (`GTK_USE_PORTAL=1`), Qt and KDE programs and LibreOffice
+  (through Qt's portal platform theme, `QT_QPA_PLATFORMTHEME=xdgdesktopportal`
+  in veltos-desktop's session script) therefore show the VeltOS dialog.
+- `veltos-explorer --open-with FILE` (`openwith.py`, `qml/OpenWith.qml`):
+  "Select an app to open this .txt file" as Windows 11 asks it, with the
+  apps that claim the type, "More apps", Always (records the default in
+  `~/.config/mimeapps.list`) and Just once. Explorer's "Open with" menu
+  ends with "Choose another app", and a file no app claims opens this
+  window instead of KDE's dialog.
+- Typing `cmd`, `terminal`, `powershell` or `wt` into the address box
+  opens the Terminal at the folder, as Windows 11 does.
 
 ## What it shows
 

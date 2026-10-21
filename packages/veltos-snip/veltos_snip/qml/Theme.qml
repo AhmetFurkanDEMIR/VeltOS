@@ -5,6 +5,8 @@ import QtQuick
 
 QtObject {
     readonly property bool dark: backend.darkMode
+    // Settings > Accessibility > Text size: every text size below scales with it.
+    readonly property real textScale: backend.textScale
 
     readonly property color window: dark ? "#1C1D26" : "#F3F5FA"
     readonly property color canvas: dark ? "#16171E" : "#E9ECF3"
@@ -27,6 +29,6 @@ QtObject {
 
     readonly property int radius: 8
     readonly property int smallRadius: 4
-    readonly property int bodySize: 13
-    readonly property int captionSize: 12
+    readonly property int bodySize: Math.round(13 * textScale)
+    readonly property int captionSize: Math.round(12 * textScale)
 }

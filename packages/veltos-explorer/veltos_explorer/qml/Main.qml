@@ -244,7 +244,10 @@ ApplicationWindow {
         if (one && !one.isDir) {
             const apps = backend.appsFor(one.path).map(a => ({ text: a.name, icon: a.icon, action: "with:" + a.path }));
             if (apps.length > 0)
-                items.push({ text: backend.text("open_with"), icon: "document-open", submenu: apps });
+                apps.push({ separator: true });
+            // Windows 11's "Select an app" window (VeltOS, not KDE's dialog).
+            apps.push({ text: backend.text("choose_another_app"), icon: "application-x-executable", action: "choose-app" });
+            items.push({ text: backend.text("open_with"), icon: "document-open", submenu: apps });
         }
         items.push({ separator: true });
         if (one && one.isDir)
@@ -369,6 +372,7 @@ ApplicationWindow {
         else if (action === "open") backend.openSelection();
         else if (action === "open-tab") backend.openInNewTab(context);
         else if (action.startsWith("with:")) backend.openWith(action.slice(5));
+        else if (action === "choose-app") backend.chooseApp(context);
         else if (action === "pin") backend.pin(context);
         else if (action === "unpin") backend.unpin(context);
         else if (action === "compress") backend.compress();

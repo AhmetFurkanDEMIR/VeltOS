@@ -7,7 +7,7 @@
             }
         ],
         "Category": "Application Launchers",
-        "Description": "Search box on the taskbar, like Windows 11: opens Start to search apps and settings",
+        "Description": "Search box on the taskbar, like Windows 11: opens the search window (top apps, best match) for apps, settings and documents",
         "Icon": "search",
         "Id": "org.veltos.search",
         "License": "GPL-3.0-or-later",

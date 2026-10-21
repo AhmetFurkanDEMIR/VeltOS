@@ -53,10 +53,15 @@ built in, and `systemsettings` / `kcmshell6` / `kinfocenter` open VeltOS Setting
     text; ~/.config/mimeapps.list, hidden helper entries such as Okular's
     PDF entry shown under the app's name), Startup (autostart entries,
     turned off with a Hidden=true copy);
-  - **Accounts**: Your info (picture and name through AccountsService),
-    Sign-in options (change the password through `passwd` in a pseudo
-    terminal), Other users (add, make administrator, remove; polkit asks
-    for the administrator password);
+  - **Accounts**: Your info (picture and name through AccountsService;
+    the picture is chosen in VeltOS File Explorer's Windows 11 style
+    dialog, `veltos-explorer --pick`), Sign-in options (change the
+    password through `passwd` in a pseudo terminal), Other users (add,
+    make administrator, remove; the administrator password is asked by
+    VeltOS' own prompt, package veltos-auth);
+  - **Accessibility > Text size** scales the KDE fonts and, through the
+    `textScale` every VeltOS app reads from them, the apps' own texts
+    (Settings at once, the others at their next start);
   - **Time & language**: Date & time (also setting it by hand), Language &
     region (plasma-localerc; applies after signing in again);
   - **Accessibility**: Text size (KDE fonts), Animation effects;

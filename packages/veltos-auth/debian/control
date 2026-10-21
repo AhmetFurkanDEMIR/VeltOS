@@ -1,0 +1,43 @@
+Source: veltos-auth
+Section: admin
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qt5compat-graphicaleffects,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-auth
+Architecture: all
+Depends: ${python3:Depends},
+         polkitd,
+         procps,
+         python3-gi,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qt5compat-graphicaleffects,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         ${misc:Depends}
+Recommends: veltos-desktop
+Description: VeltOS authentication prompt (Windows 11 style polkit agent)
+ When a program needs an administrator's permission (installing apps,
+ adding users, changing the time zone), the system's permission service
+ (polkit) asks the session's authentication agent. This package provides
+ that agent for VeltOS: a window in the layout of Windows 11's User
+ Account Control prompt (shield band, the question, the program, the
+ administrator's picture, the password box, Yes and No), in English and
+ Turkish. The password is checked by polkit's own helper through PAM.
+ .
+ KDE's agent (polkit-kde-agent-1) stays installed but its session
+ service is masked.

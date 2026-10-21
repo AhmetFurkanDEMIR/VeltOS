@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""VeltOS Clock alarm agent: rings alarms and timers while the app is closed."""
+import sys
+
+from veltos_clock.agent import serve
+
+sys.exit(serve(sys.argv))

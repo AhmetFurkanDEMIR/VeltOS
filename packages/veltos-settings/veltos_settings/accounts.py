@@ -195,6 +195,7 @@ def change_password(current, new, passwd_command=None, timeout=30):
             os._exit(127)
     answers = [current, new, new]
     output = b""
+    answered_at = 0                 # only output after the last answer is a new prompt
     status = None
     deadline = time.monotonic() + timeout
     try:
@@ -206,11 +207,18 @@ def change_password(current, new, passwd_command=None, timeout=30):
                 except OSError:          # the terminal closed: passwd ended
                     chunk = b""
                 output += chunk
-                if output.decode("utf-8", "replace").lower().rstrip().endswith("password:"):
+                # passwd prints a newline after each answer; with the whole
+                # output looked at, that newline made the old prompt look
+                # like a new one and the next answer went out too early
+                # (echoed as text, the last prompt never answered: "The
+                # password could not be changed", VM 2026-10-21).
+                tail = output[answered_at:].decode("utf-8", "replace").lower().rstrip()
+                if tail.endswith("password:"):
                     if not answers:      # asked again (new password refused)
                         break
                     os.write(fd, (answers.pop(0) + "\n").encode())
                     output += b"\n"
+                    answered_at = len(output)
             finished, code = os.waitpid(pid, os.WNOHANG)
             if finished:
                 status = code

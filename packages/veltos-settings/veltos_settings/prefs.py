@@ -103,7 +103,7 @@ POWER_ACTIONS = {"nothing": 0, "sleep": 1, "hibernate": 2, "shutdown": 8, "ask":
 # Choices offered for "turn off my screen" / "put my device to sleep", in
 # minutes as Windows offers them (0 = never).
 TIMEOUT_MINUTES = [1, 2, 3, 5, 10, 15, 20, 25, 30, 45, 60, 120, 180, 240, 300, 0]
-LOCK_MINUTES = [1, 2, 3, 5, 10, 15, 30, 60]
+LOCK_MINUTES = [1, 2, 3, 5, 10, 15, 30, 60, 0]     # 0 = never (Autolock off)
 NIGHT_TEMPERATURES = (6500, 1000)       # KWin's range: no change .. strongest
 
 # What has to happen after a change (programs reload their settings).
@@ -141,6 +141,12 @@ class Preferences:
             value = as_int(value)
         else:
             value = str(value)
+        if name == "lockAfter":
+            # "Never" is Windows' last choice in the list: the lock screen's
+            # automatic lock goes off (a timeout of 0 would not mean that).
+            ok = self.run(write_command(filename, groups, "Autolock", value > 0))[0] == 0
+            if value <= 0:
+                return ok
         ok = self.run(write_command(filename, groups, key, value))[0] == 0
         if name == "powerButton" or name == "lidAction":
             # One choice for every power state, as Windows asks it once.
@@ -204,11 +210,18 @@ class Preferences:
         return self.run(write_command("plasmanotifyrc", ["Applications", entry], "ShowPopups", bool(on)))[0] == 0
 
     def file_search(self):
-        code, out = self.run(["balooctl6", "status"])
-        return code == 0 and "disabled" not in out.lower() and "not running" not in out.lower()
+        """Whether the file indexer is on: its setting (baloofilerc), as
+        KDE's own page reads it. `balooctl6 status` said "not running" right
+        after enabling, so the switch fell back to off (2026-10-21)."""
+        return as_bool(read_value("baloofilerc", ["Basic Settings"], "Indexing-Enabled", None, self.dirs), True)
 
     def set_file_search(self, on):
-        return self.run(["balooctl6", "enable" if on else "disable"], timeout=60)[0] == 0
+        # balooctl6 writes the setting and starts or stops the indexer.
+        ok = self.run(["balooctl6", "enable" if on else "disable"], timeout=60)[0] == 0
+        if not ok:
+            # Without baloo's tools the setting is still recorded for them.
+            ok = self.run(write_command("baloofilerc", ["Basic Settings"], "Indexing-Enabled", bool(on)))[0] == 0
+        return ok
 
     # Text size: the scale of the KDE fonts (Accessibility > Text size).
     BASE_FONTS = {"font": 10, "menuFont": 10, "toolBarFont": 10, "smallestReadableFont": 8}
@@ -221,6 +234,9 @@ class Preferences:
         return 100
 
     def set_text_size(self, percent):
+        """Scale the KDE fonts (Plasma, KDE and Qt programs; GTK programs
+        follow through KDE's GTK settings service). VeltOS' own apps read
+        the same value (veltos_common.textscale) and scale their text."""
         percent = max(100, min(225, int(percent)))
         ok = True
         for key, base in self.BASE_FONTS.items():
@@ -229,6 +245,10 @@ class Preferences:
             size = round(base * percent / 100, 1)
             ok &= self.run(write_command("kdeglobals", ["General"], key,
                                          f"{family},{size:g},-1,5,400,0,0,0,0,0,0,0,0,0,0,1"))[0] == 0
+        # Running KDE and Qt programs re-read their fonts on this signal
+        # (KGlobalSettings::FontChanged = 1), as KDE's Fonts page sends it.
+        self.run(["dbus-send", "--session", "--type=signal", "/KGlobalSettings",
+                  "org.kde.KGlobalSettings.notifyChange", "int32:1", "int32:0"])
         return ok
 
     # Language and formats (Time & language > Language & region): Plasma
@@ -282,6 +302,8 @@ class Preferences:
 
     def state(self):
         values = {name: self.get(name) for name in SETTINGS}
+        if not values["autoLock"]:
+            values["lockAfter"] = 0             # shown as "Never"
         values.update({
             "animations": self.animations(),
             "doNotDisturb": self.do_not_disturb(),

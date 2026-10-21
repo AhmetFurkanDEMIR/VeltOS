@@ -1,5 +1,14 @@
 # veltos-winapps
 
+Added 2026-10-21: when Bottles, Lutris or PlayOnLinux are installed (none
+is in Debian 13; they are found by their desktop entries, Flatpak's
+included), the runner first asks "How do you want to open X?" with
+VeltOS' own environment recommended; the Done page scrolls its list of
+new programs; the runner has its own App Installer icon (`veltos-run`);
+Windows programs are told the VeltOS light/dark mode at every start
+(`AppsUseLightTheme`; Wine 10's Light theme has no dark variant, so
+Wine's own controls stay light).
+
 Opens Windows programs on VeltOS with a double click.
 
 ## User experience
