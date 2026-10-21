@@ -1,0 +1,6 @@
+veltos-notepad (0.1.0~dev1) unstable; urgency=medium
+
+  * Initial package: Windows 11 style Notepad (tabs, find and replace,
+    encodings and line endings, session, settings).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Wed, 21 Oct 2026 16:30:00 +0000

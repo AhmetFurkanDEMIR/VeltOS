@@ -253,7 +253,7 @@ NAMES = {
     settings: ["veltos-settings", "systemsettings", "preferences-system"],
     task_manager: ["veltos-taskmanager", "org.kde.plasma-systemmonitor", "utilities-system-monitor"],
     file_explorer: ["veltos-explorer", "system-file-manager", "file-manager", "org.kde.dolphin"],
-    notepad: ["org.kde.kwrite", "kwrite", "accessories-text-editor", "org.kde.kate", "kate"],
+    notepad: ["veltos-notepad", "org.kde.kwrite", "kwrite", "accessories-text-editor", "org.kde.kate", "kate"],
     photos: ["org.kde.gwenview", "gwenview", "image-viewer"],
     document_viewer: ["org.kde.okular", "okular"],
     archive: ["veltos-archive", "org.kde.ark", "ark", "file-roller", "utilities-file-archiver"],
