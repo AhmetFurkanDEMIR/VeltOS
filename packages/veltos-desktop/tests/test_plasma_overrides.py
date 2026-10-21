@@ -100,6 +100,14 @@ class OverrideTests(unittest.TestCase):
         self.assertEqual(self.run_tool(), 1)
         self.assertFalse(shell.exists())        # Plasma's own lock screen is used
 
+    def test_start_popup_is_centred_on_the_taskbar(self):
+        self.assertEqual(self.run_tool(), 0)
+        applet = (self.out / "plasma/shells/org.kde.plasma.desktop/contents/applet/CompactApplet.qml")
+        text = applet.read_text(encoding="utf-8")
+        self.assertIn("id: startCentre", text)
+        self.assertIn('Plasmoid.pluginName === "org.veltos.startmenu"', text)
+        self.assertNotIn("        visualParent: root.compactRepresentation\n", text)
+
     def test_window_frame_buttons_have_maximised_pictures(self):
         self.assertEqual(self.run_tool(), 0)
         button = (self.out / "kwin/aurorae/AuroraeButton.qml").read_text(encoding="utf-8")
