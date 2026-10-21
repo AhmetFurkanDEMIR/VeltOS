@@ -420,12 +420,31 @@ ApplicationWindow {
                             width: window.recording ? 26 : (shutterButton.down ? 50 : 56)
                             height: width
                             radius: window.recording ? 6 : width / 2
-                            color: window.videoMode ? "#E81123" : (shutterButton.hovered ? "#F1F3F8" : "#FFFFFF")
+                            color: window.recording ? "#E81123" : (shutterButton.hovered ? "#F1F3F8" : "#FFFFFF")
                             Behavior on width { NumberAnimation { duration: 120 } }
                             Behavior on radius { NumberAnimation { duration: 120 } }
                         }
                     }
-                    contentItem: Item {}
+                    // Windows 11 Camera: the mode's picture on the white disc
+                    // (a camera for photos, a red dot for videos).
+                    contentItem: Item {
+                        Glyph {
+                            visible: !window.videoMode
+                            anchors.centerIn: parent
+                            width: 28
+                            height: 28
+                            kind: "camera"
+                            color: "#1B1D24"
+                        }
+                        Rectangle {
+                            visible: window.videoMode && !window.recording
+                            anchors.centerIn: parent
+                            width: 22
+                            height: 22
+                            radius: 11
+                            color: "#E81123"
+                        }
+                    }
                 }
             }
 
