@@ -3,6 +3,45 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (10:40) — Clock flyout: Windows 11's two cards
+
+- The product owner sent Windows 11 screenshots of the clock flyout: a
+  notification centre card above a separate calendar card. Plasma gives
+  an applet one popup; VeltOS keeps the calendar as the applet's popup
+  and shows the notification centre as a second Plasma dialog
+  (`PlasmaCore.Dialog`) placed 12 px above it, at the popup window's
+  position. Read in libplasma 6.3.6 (`dialog.cpp`, `appletpopup.cpp`):
+  the applet popup closes when it loses the focus unless the focus goes
+  to a popup-type window, so the second card is of the *notification*
+  type with `Qt.WindowDoesNotAcceptFocus` (KWin then never activates it);
+  clicking it keeps the calendar open (VM). On Wayland a new position is
+  applied with the next frame only, so the card draws one after moving.
+- Notification centre: "Notifications", do-not-disturb button (accent
+  when on; the taskbar shows Windows' bell with "z"), "Clear all"; the
+  notifications grouped by app, newest app first (the model keeps the
+  order of arrival; sorted by time and id), app heading with settings and
+  clear buttons on hover, the newest notification as a card with time
+  (time today, weekday this week, date before) and a chevron that folds
+  its text, "+N notifications" unfolds the app's older ones, action
+  buttons on unfolded cards, scrolls up to the top of the screen.
+- Calendar card: long date without the year as heading ("21 Ekim
+  Çarşamba") with a chevron that folds the month away (kept in the
+  applet configuration), month with Windows' triangle arrows, Windows'
+  two-letter weekday names (Turkish "Pt Sa Ça Pe Cu Ct Pa" through the
+  translation), focus session row "– 30 min +" / "Focus" (5 to 240
+  minutes in Windows' steps); a running session shows the time left and
+  "Stop", turns on do-not-disturb until its end, survives a Plasma
+  restart and ends with a "Focus session complete" notification from
+  "Clock" (gdbus needed `--` before the arguments: it took the timeout
+  -1 for an option). Win+N opens the flyout (layout script).
+- VM (live, ISO 20261021-060905 with the new package): light and dark,
+  grouping and unfolding, do-not-disturb on/off, folding the month (the
+  upper card follows), focus start/stop, the end notification (session
+  end simulated with a near end time), Win+N. 80 veltos-desktop unit
+  tests (new: clock translations incl. plural strings, two-card set-up).
+  Not checked: Turkish texts on screen (translations compiled and
+  tested), the sound hint of the end notification.
+
 ## 2026-10-21 (09:15) — Camera: Windows 11 shutter
 
 - The shutter now carries the mode's picture like Windows 11's Camera: a

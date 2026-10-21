@@ -179,7 +179,7 @@ class StartMenuTests(unittest.TestCase):
     def test_every_ui_string_is_translated(self):
         strings = set()
         for qml in (self.STARTMENU / "contents/ui").glob("*.qml"):
-            strings |= set(re.findall(r'i18n\("((?:[^"\\]|\\.)*)"', qml.read_text(encoding="utf-8")))
+            strings |= set(re.findall(r'i18np?\("((?:[^"\\]|\\.)*)"', qml.read_text(encoding="utf-8")))
         self.assertTrue(strings)
         for po in (self.STARTMENU / "translations").glob("*.po"):
             msgids = set(re.findall(r'^msgid "(.+)"$', po.read_text(encoding="utf-8"), re.M))
@@ -231,6 +231,23 @@ class TaskViewTests(SearchTests):
     PLUGIN_ID = build_assets.TASKVIEW_ID
 
 
+class ClockTests(StartMenuTests):
+    STARTMENU = PKG / "plasma/clock"
+
+    def test_metadata(self):
+        meta = json.loads((self.STARTMENU / "metadata.json").read_text(encoding="utf-8"))
+        self.assertEqual(meta["KPlugin"]["Id"], build_assets.CLOCK_ID)
+
+    def test_two_cards_like_windows(self):
+        main = (self.STARTMENU / "contents/ui/main.qml").read_text(encoding="utf-8")
+        # The notification centre is its own card above the calendar and
+        # must not take the focus (the calendar popup closes without it).
+        self.assertIn("type: PlasmaCore.Dialog.Notification", main)
+        self.assertIn("flags: Qt.WindowDoesNotAcceptFocus", main)
+        self.assertIn("NotificationCenter {", main)
+        self.assertIn("startFocus()", main)
+
+
 class CaptionButtonTests(unittest.TestCase):
     def test_windows_11_buttons(self):
         import xml.etree.ElementTree as ET
@@ -268,6 +285,7 @@ class TaskbarTests(unittest.TestCase):
         self.assertEqual(meta["KPlugin"]["Id"], build_assets.CLOCK_ID)
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
         self.assertIn('panel.addWidget("org.veltos.clock")', js)
+        self.assertIn('clock.globalShortcut = "Meta+N"', js)     # Windows: Win+N
         self.assertNotIn("digitalclock", js)
 
     def test_show_desktop_at_the_right_end(self):
