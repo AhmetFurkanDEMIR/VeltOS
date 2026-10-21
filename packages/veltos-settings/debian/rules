@@ -16,6 +16,7 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-settings-redirect debian/veltos-settings/usr/libexec/veltos/settings-redirect
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/systemsettings
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kcmshell6
+	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kinfocenter
 	install -D -m 644 data/veltos-settings.desktop \
 		debian/veltos-settings/usr/share/applications/veltos-settings.desktop
 	# App icon (VeltOS artwork, Windows 11 style).

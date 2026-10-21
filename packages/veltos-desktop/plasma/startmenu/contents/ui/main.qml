@@ -12,6 +12,9 @@ import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.private.kicker as Kicker
+import org.kde.plasma.private.sessions as Sessions
+import org.kde.plasma.plasma5support as P5Support
+import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 
 PlasmoidItem {
@@ -95,8 +98,96 @@ PlasmoidItem {
         Accessible.name: Plasmoid.title
         Accessible.role: Accessible.Button
 
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         onPressed: wasExpanded = root.expanded
-        onClicked: root.expanded = !wasExpanded
+        onClicked: mouse => {
+            if (mouse.button === Qt.RightButton) {
+                root.expanded = false;
+                quickLinks.openRelative();
+            } else {
+                root.expanded = !wasExpanded;
+            }
+        }
+
+        // Right-clicking Start opens Windows 11's quick link menu (Windows +
+        // X) with the VeltOS equivalents; nothing in it opens a KDE settings
+        // window. The button opens it itself: the locked taskbar has no
+        // menu of its own, and Plasma shows applet menus only through it.
+        PlasmaExtras.Menu {
+            id: quickLinks
+            visualParent: button
+            placement: PlasmaExtras.Menu.TopPosedLeftAlignedPopup
+
+            PlasmaExtras.MenuItem {
+                text: i18n("Installed apps")
+                onClicked: root.run("veltos-settings apps")
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Power Options")
+                onClicked: root.run("veltos-settings power")
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("System")
+                onClicked: root.run("veltos-settings about")
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Network Connections")
+                onClicked: root.run("veltos-settings network")
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Disk Management")
+                onClicked: root.run("partitionmanager")
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Terminal")
+                onClicked: root.run("konsole --notransparency")
+            }
+            PlasmaExtras.MenuItem { separator: true }
+            PlasmaExtras.MenuItem {
+                text: i18n("Task Manager")
+                onClicked: root.run("veltos-taskmanager")
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Settings")
+                onClicked: root.run("veltos-settings")
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("File Explorer")
+                onClicked: root.run("veltos-explorer")
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Search")
+                onClicked: root.expanded = true
+            }
+            PlasmaExtras.MenuItem { separator: true }
+            PlasmaExtras.MenuItem {
+                text: i18n("Sign out")
+                visible: session.canLogout
+                onClicked: session.requestLogout()
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Sleep")
+                visible: session.canSuspend
+                onClicked: session.suspend()
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Shut down")
+                visible: session.canShutdown
+                onClicked: session.requestShutdown()
+            }
+            PlasmaExtras.MenuItem {
+                text: i18n("Restart")
+                visible: session.canReboot
+                onClicked: session.requestReboot()
+            }
+            PlasmaExtras.MenuItem { separator: true }
+            PlasmaExtras.MenuItem {
+                text: i18n("Desktop")
+                onClicked: root.run("dbus-send --session --type=method_call --dest=org.kde.kglobalaccel "
+                                      + "/component/kwin org.kde.kglobalaccel.Component.invokeShortcut "
+                                      + "'string:Show Desktop'")
+            }
+        }
 
         Rectangle {
             anchors.fill: parent
@@ -121,18 +212,19 @@ PlasmoidItem {
         }
     }
 
-    Kicker.ProcessRunner {
-        id: processRunner
+    P5Support.DataSource {
+        id: launcher
+        engine: "executable"
+        connectedSources: []
+        onNewData: source => disconnectSource(source)
+    }
+    function run(command) {
+        launcher.connectSource(command);
+    }
+    Sessions.SessionManagement {
+        id: session
     }
 
-    Plasmoid.contextualActions: [
-        PlasmaCore.Action {
-            text: i18n("Edit Applications…")
-            icon.name: "kmenuedit"
-            visible: Plasmoid.immutability !== PlasmaCore.Types.SystemImmutable
-            onTriggered: processRunner.runMenuEditor()
-        }
-    ]
 
     Component.onCompleted: {
         floatPopups();

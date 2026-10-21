@@ -3,6 +3,40 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (11:30) — Only VeltOS Settings opens; Start's quick link menu
+
+- Product owner: KDE/Debian's settings must never open, on purpose or by
+  accident. Audit in the live VM (visible menu entries, settings-like
+  programs, autostart files): KDE Info Center ("System Information") was
+  still in Start and opened KDE's settings window; Start's right-click
+  offered KDE's "Edit Applications" (kmenuedit); plasma-desktop's
+  Recommends brought Discover with its update notifier (autostart; "View
+  updates" opened Discover), Kup backups and KDE Connect (daemons at every
+  sign-in), KDE's handbook browser, menu editor and wallet manager.
+- veltos-settings: `/usr/bin/kinfocenter` is diverted like `systemsettings`
+  and `kcmshell6`; the redirect opens About for it. `KCM_PAGES` now maps
+  every module VeltOS' KDE packages install (look, input, power, disks,
+  Info Center modules ...) to a VeltOS page; a test checks that every
+  target page exists (`kcm_updates` first pointed at an action id).
+- Image: APT pins keep plasma-discover*, kup-backup, kdeconnect,
+  khelpcenter, kmenuedit and kwalletmanager out (all Recommends, checked
+  with `apt-cache show`/`rdepends` in the VM); the verify hook fails if one
+  comes back or a redirect is missing.
+- Start: hidden from Start (still renamed): System Information, Resource
+  Monitor, Emoji (Windows + . still opens it). Right-click on the Start
+  button opens Windows 11's quick link menu (Windows + X) with VeltOS
+  targets. Plasma shows applet menus only through the panel's context
+  menu plugin, and VeltOS' locked taskbar has none (libplasma 6.3.6
+  `ContainmentItem::mousePressEvent` returns when the plugin has no
+  actions), so the button opens a `PlasmaExtras.Menu` itself.
+- Menus were 75 % opaque (Fluent, meant for blur): without blur the text
+  behind showed through. VeltOS' Kvantum themes now draw menus 94 %
+  opaque (`fluent.set_menu_opacity`).
+- VM (live): kinfocenter opens Settings > About; Start right-click menu;
+  menu show-through measured (darkest pixel over text behind the menu
+  216 → 245). Unit tests: veltos-settings 80, veltos-desktop 81. The image
+  with the new pins is not built yet.
+
 ## 2026-10-21 (10:40) — Clock flyout: Windows 11's two cards
 
 - The product owner sent Windows 11 screenshots of the clock flyout: a

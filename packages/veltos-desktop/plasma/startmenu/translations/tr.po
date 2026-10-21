@@ -9,8 +9,47 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Edit Applications…"
-msgstr "Uygulamaları Düzenle…"
+msgid "Installed apps"
+msgstr "Yüklü uygulamalar"
+
+msgid "Power Options"
+msgstr "Güç Seçenekleri"
+
+msgid "System"
+msgstr "Sistem"
+
+msgid "Network Connections"
+msgstr "Ağ Bağlantıları"
+
+msgid "Disk Management"
+msgstr "Disk Yönetimi"
+
+msgid "Terminal"
+msgstr "Terminal"
+
+msgid "Task Manager"
+msgstr "Görev Yöneticisi"
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "File Explorer"
+msgstr "Dosya Gezgini"
+
+msgid "Search"
+msgstr "Ara"
+
+msgid "Sleep"
+msgstr "Uyku"
+
+msgid "Shut down"
+msgstr "Kapat"
+
+msgid "Restart"
+msgstr "Yeniden başlat"
+
+msgid "Desktop"
+msgstr "Masaüstü"
 
 msgid "Search for apps, settings and documents"
 msgstr "Uygulama, ayar ve belge ara"

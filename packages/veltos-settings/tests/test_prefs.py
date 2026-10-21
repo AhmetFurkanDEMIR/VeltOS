@@ -8,6 +8,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -263,6 +264,25 @@ class RedirectTests(unittest.TestCase):
         self.assertEqual(catalog.page_for_module("kcm_unknown"), "home")
         self.assertEqual(catalog.page_for_module("signin"), "signin")
         self.assertEqual(catalog.page_for_module(""), "home")
+
+    def test_every_module_opens_a_real_page(self):
+        pages = {entry["id"] for entry in catalog.PAGES} | set(catalog.BUILTIN_PAGES)
+        for module, page in catalog.KCM_PAGES.items():
+            self.assertIn(page, pages, module)
+
+    def test_info_center_opens_about(self):
+        loader = importlib.machinery.SourceFileLoader("redirect", str(PKG / "bin/veltos-settings-redirect"))
+        spec = importlib.util.spec_from_loader(loader.name, loader)
+        redirect = importlib.util.module_from_spec(spec)
+        loader.exec_module(redirect)
+        calls = []
+        with mock.patch.object(redirect.os, "execvp", lambda *args: calls.append(args)),                 mock.patch.object(redirect.sys, "argv", ["/usr/bin/kinfocenter"]):
+            redirect.main()
+        with mock.patch.object(redirect.os, "execvp", lambda *args: calls.append(args)),                 mock.patch.object(redirect.sys, "argv", ["/usr/bin/kinfocenter", "kcm_energyinfo"]):
+            redirect.main()
+        with mock.patch.object(redirect.os, "execvp", lambda *args: calls.append(args)),                 mock.patch.object(redirect.sys, "argv", ["/usr/bin/systemsettings"]):
+            redirect.main()
+        self.assertEqual([c[1][1] for c in calls], ["about", "power", "home"])
 
 
 if __name__ == "__main__":

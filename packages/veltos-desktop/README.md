@@ -23,8 +23,12 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   apps, the rest is "Other"; a card's first three icons start their apps,
   the card opens the category. Account button (settings, lock, sign out)
   and power button (sleep, restart, shut down) at the bottom.
-  Right-click: Pin/Unpin to Start, Add to Desktop, etc. English and
-  Turkish.
+  Right-click on an app: Pin/Unpin to Start, Add to Desktop, etc.
+  Right-click on the Start button: Windows 11's quick link menu (Windows +
+  X: Installed apps, Power Options, System, Network Connections, Disk
+  Management, Terminal, Task Manager, Settings, File Explorer, Search,
+  sign out/sleep/shut down/restart, Desktop) instead of KDE's "Edit
+  Applications". English and Turkish.
 - **Windows 11 inspired look** everywhere, all in VeltOS colours:
   - application style (buttons, menus, lists, scroll bars): Kvantum theme
     `VeltOS` / `VeltOSDark`;

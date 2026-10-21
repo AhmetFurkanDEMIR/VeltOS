@@ -27,6 +27,11 @@ for pkg in desktop-base calamares-settings-debian plasma-welcome xwaylandvideobr
     installed "$pkg" && fail "$pkg must not be installed (non-VeltOS branding)"
 done
 
+# KDE windows and services VeltOS replaces (only VeltOS Settings opens).
+for pkg in plasma-discover kup-backup kdeconnect khelpcenter kmenuedit kwalletmanager; do
+    installed "$pkg" && fail "$pkg must not be installed (KDE window or service VeltOS replaces)"
+done
+
 # Packages that download non-redistributable firmware while the image is built.
 for pkg in firmware-b43-installer firmware-b43legacy-installer; do
     installed "$pkg" && fail "$pkg must not be in the image (non-redistributable download)"
@@ -96,7 +101,7 @@ grep -q '^X-KDE-Shortcuts=Calculator$' /usr/share/applications/veltos-calculator
 grep -q '^IgnoreImages=false$' /etc/xdg/klipperrc || fail "clipboard does not keep pictures"
 # KDE's settings windows never open: systemsettings and kcmshell6 lead to
 # VeltOS Settings.
-for f in /usr/bin/systemsettings /usr/bin/kcmshell6; do
+for f in /usr/bin/systemsettings /usr/bin/kcmshell6 /usr/bin/kinfocenter; do
     [ "$(readlink -f "$f")" = /usr/libexec/veltos/settings-redirect ] \
         || fail "$f does not open VeltOS Settings"
 done

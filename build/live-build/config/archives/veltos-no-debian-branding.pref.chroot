@@ -35,3 +35,15 @@ Pin-Priority: -1
 Package: dolphin
 Pin: release a=*
 Pin-Priority: -1
+
+# KDE tools recommended by plasma-desktop, plasma-disks and others that
+# open KDE's own windows or run background services without a Windows
+# counterpart in VeltOS (product owner: only VeltOS Settings and VeltOS
+# apps): Discover and its update notifier (VeltOS Store and Settings >
+# Windows Update replace them), Kup backups (daemon at every sign-in), KDE
+# Connect (daemon at every sign-in), KDE's handbook browser, menu editor
+# and wallet manager (VeltOS turns KDE Wallet off). All are Recommends
+# (checked with apt-cache show/rdepends in the VM, 2026-10-21).
+Package: plasma-discover plasma-discover-* kup-backup kdeconnect khelpcenter kmenuedit kwalletmanager
+Pin: release a=*
+Pin-Priority: -1
