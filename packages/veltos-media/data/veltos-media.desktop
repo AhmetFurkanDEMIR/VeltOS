@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Media Player
+Name[tr]=Medya Oynatıcı
+GenericName=Music and Video Player
+GenericName[tr]=Müzik ve Video Oynatıcı
+Comment=Play music and videos
+Comment[tr]=Müzik ve video oynatın
+Exec=veltos-media %F
+Icon=veltos-media
+Categories=AudioVideo;Audio;Video;Player;
+Keywords=music;video;player;mp3;mp4;movie;song;müzik;video;oynatıcı;film;şarkı;
+MimeType=audio/mpeg;audio/mp3;audio/flac;audio/x-flac;audio/ogg;audio/x-vorbis+ogg;audio/opus;audio/x-opus+ogg;audio/mp4;audio/x-m4a;audio/aac;audio/x-wav;audio/wav;audio/x-ms-wma;audio/x-aiff;video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/x-ms-wmv;video/mpeg;video/ogg;video/3gpp;video/x-flv;video/mp2t;
+StartupNotify=true

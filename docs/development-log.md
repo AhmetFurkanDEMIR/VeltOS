@@ -3,6 +3,27 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (21:30) — VeltOS Media Player (Windows 11 Media Player)
+
+- New package `veltos-media` (PySide6/QML, Qt Multimedia FFmpeg backend)
+  in Windows 11 Media Player's layout: navigation pane with search, Home
+  (recent media, Open file(s)), music library (songs, albums, artists;
+  tags and covers through mutagen), video library (frames through
+  ffmpegthumbnailer), play queue (shuffle keeps the playing item first;
+  repeat off/all/one; previous restarts within 3 s), playlists, player bar
+  and "now playing" (video, or the album picture on its blurred copy).
+  Audio and video files open in it (`DEFAULT_APPS`). Before it the image
+  had no video player at all (KDE's list named Elisa, not installed).
+- Found while testing: a delegate's `required property int index` does
+  not reach a component's own `property int index` (every row was drawn as
+  row 0); SongRow takes `rowIndex`.
+- Verified: 11 unit tests (queue, WAV files tagged with mutagen, window
+  offscreen EN/TR); VM (live): sample songs and videos made by
+  `out/vm/media-samples.py` (WAV with ID3 tags and covers, MJPEG AVI from
+  Pillow frames): albums with covers, album playing with the position
+  advancing, video thumbnails, a video played to its end. Not checked:
+  hearing the sound (the VM has no audio), long files, subtitles.
+
 ## 2026-10-21 (19:40) — VeltOS Photos (Windows 11 Photos)
 
 - Product owner: photo and video apps exactly like Windows 11's. New

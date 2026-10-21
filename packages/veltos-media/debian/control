@@ -1,0 +1,45 @@
+Source: veltos-media
+Section: video
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-mutagen,
+               python3-pyside6.qtmultimedia,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-qtmultimedia,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-dialogs,
+               qml6-module-qtquick-effects,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qml6-module-qtqml-models
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-media
+Architecture: all
+Depends: ${python3:Depends},
+         ffmpegthumbnailer,
+         python3-mutagen,
+         python3-pyside6.qtmultimedia,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-qtmultimedia,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-dialogs,
+         qml6-module-qtquick-effects,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qml6-module-qtqml-models,
+         ${misc:Depends}
+Description: VeltOS Media Player, a Windows 11 style music and video player
+ The layout of Windows 11's Media Player: Home with recent media, the
+ music library (songs, albums, artists, shuffle and play) and the video
+ library from the Music and Videos folders, the play queue, playlists,
+ search, the player bar (shuffle, previous, play/pause, next, repeat,
+ seek, volume, full screen) and "now playing" with the video or the album
+ picture. Plays through Qt Multimedia (FFmpeg); tags and cover pictures
+ are read with mutagen.
