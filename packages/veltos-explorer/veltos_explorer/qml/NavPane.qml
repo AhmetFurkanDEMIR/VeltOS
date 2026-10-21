@@ -69,12 +69,20 @@ Rectangle {
                 font.pixelSize: Theme.fontSize
                 elide: Text.ElideRight
             }
-            Glyph {
+            // Push pin (pin.svg), like Windows 11's next to pinned folders.
+            Item {
                 visible: row.pinned
-                Layout.preferredWidth: 14
-                Layout.preferredHeight: 14
-                kind: "pin"
-                color: Theme.subtext
+                Layout.preferredWidth: 16
+                Layout.minimumWidth: 16
+                Layout.preferredHeight: 16
+                Kirigami.Icon {
+                    anchors.centerIn: parent
+                    width: 16
+                    height: 16
+                    source: Qt.resolvedUrl("pin.svg")
+                    isMask: true
+                    color: Theme.subtext
+                }
             }
         }
 
@@ -112,17 +120,21 @@ Rectangle {
     }
 
     ScrollView {
+        id: navScroll
         anchors.fill: parent
         anchors.topMargin: 6
         contentWidth: availableWidth
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
+        // As wide as the visible area: with the pane's width the right end
+        // of each row (the pins) was cut off by the scroll view (product
+        // owner, 2026-10-21).
         ColumnLayout {
-            width: pane.width
+            width: navScroll.availableWidth
             spacing: 1
 
             NavRow {
-                icon: "go-home"
+                icon: "veltos-home"
                 text: backend.text("home")
                 location: "home:"
             }

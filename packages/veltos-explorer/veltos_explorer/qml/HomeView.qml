@@ -115,11 +115,18 @@ ScrollView {
                                 font.pixelSize: Theme.smallFont
                                 elide: Text.ElideRight
                             }
-                            Glyph {
-                                Layout.preferredWidth: 12
-                                Layout.preferredHeight: 12
-                                kind: "pin"
-                                color: Theme.subtext
+                            Item {
+                                Layout.preferredWidth: 14
+                                Layout.minimumWidth: 14
+                                Layout.preferredHeight: 14
+                                Kirigami.Icon {
+                                    anchors.centerIn: parent
+                                    width: 14
+                                    height: 14
+                                    source: Qt.resolvedUrl("pin.svg")
+                                    isMask: true
+                                    color: Theme.subtext
+                                }
                             }
                         }
                     }

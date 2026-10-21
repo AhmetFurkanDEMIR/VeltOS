@@ -3,34 +3,17 @@
        SPDX-License-Identifier: CC-BY-SA-4.0 -->
   <defs>
     <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F7B52C"/>
-      <stop offset="1" stop-color="#E8960C"/>
+      <stop offset="0" stop-color="#5A7590"/>
+      <stop offset="1" stop-color="#465E77"/>
     </linearGradient>
-    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFE07A"/>
-      <stop offset="1" stop-color="#FFC53A"/>
-    </linearGradient>
-    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#4FB0F5"/>
-      <stop offset="1" stop-color="#1A6DD6"/>
-    </linearGradient>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#6CC4FA"/>
-      <stop offset="1" stop-color="#2C86E0"/>
-    </linearGradient>
-    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FF8A3D"/>
-      <stop offset="1" stop-color="#E35A0C"/>
-    </linearGradient>
-    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#A487E0"/>
-      <stop offset="1" stop-color="#6E4DB8"/>
+    <linearGradient id="front" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#A9BED2"/>
+      <stop offset="1" stop-color="#7896B2"/>
     </linearGradient>
   </defs>
   <path d="M 18 58 Q 18 44 32 44 H 94 Q 103 44 109 51 L 119 62 H 224 Q 238 62 238 76 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z" fill="url(#back)"/>
   <path d="M 18 96 Q 18 84 30 84 H 226 Q 238 84 238 96 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z" fill="url(#front)"/>
-  <path d="M 30 86 H 226" stroke="#FFFFFF" stroke-opacity="0.65" stroke-width="3" stroke-linecap="round"/>
-  <path d="M 96 106 H 146 L 166 126 V 196 Q 166 202 160 202 H 96 Q 90 202 90 196 V 112 Q 90 106 96 106 Z" fill="#FFFFFF"/>
-  <path d="M 146 106 V 126 H 166 Z" fill="#D9E2EC"/>
-  <path d="M 102 140 H 154 M 102 156 H 154 M 102 172 H 140" stroke="#3A8EE6" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 30 86 H 226" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 100 112 H 142 L 160 130 V 192 Q 160 198 154 198 H 100 Q 94 198 94 192 V 118 Q 94 112 100 112 Z" fill="#FFFFFF"/>
+  <path d="M 106 144 H 148 M 106 160 H 148 M 106 176 H 134" stroke="#7896B2" stroke-width="7" stroke-linecap="round"/>
 </svg>

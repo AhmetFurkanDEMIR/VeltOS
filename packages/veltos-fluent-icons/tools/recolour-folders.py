@@ -11,7 +11,8 @@ Symbolic links are skipped (their targets are recoloured once).
 
 Windows 11 also shows these coloured icons in small sizes (File Explorer's
 navigation pane), while Fluent has monochrome 16-24 px place icons; those
-are removed where a coloured one exists, so the coloured ones are used.
+are removed where a coloured one exists, so the coloured ones are used
+(VeltOS's own small drawings of the special folders are kept).
 """
 
 import re
@@ -34,12 +35,20 @@ def recolour(svg):
     return re.sub(re.escape(FLUENT_BLUE), OTHER, svg, flags=re.IGNORECASE)
 
 
+def veltos_drawing(path):
+    """True for VeltOS's own files (not symbolic links, which may dangle)."""
+    if path.is_symlink():
+        return False
+    return "VeltOS artwork" in path.read_text(encoding="utf-8")
+
+
 def drop_small_places(icons, names):
     dropped = 0
     for base in icons.glob(".Fluent*-base"):
         for size in ("16", "22", "24"):
             for path in (base / size / "places").glob("*.svg"):
-                if path.name in names:
+                # VeltOS's own small drawings (branding/small/) stay.
+                if path.name in names and not veltos_drawing(path):
                     path.unlink()
                     dropped += 1
     return dropped

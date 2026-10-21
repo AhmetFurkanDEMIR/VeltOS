@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Push pin, needle to the bottom left (Windows 11 navigation pane).
+       VeltOS drawing. SPDX-License-Identifier: GPL-3.0-or-later -->
+  <g transform="rotate(45 8 8) translate(0 -0.6)" fill="none" stroke="#000000" stroke-width="1.15"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 6 6.4 V 3 Q 6 2 7 2 H 9 Q 10 2 10 3 V 6.4 L 12 8.8 H 4 Z"/>
+    <path d="M 8 8.8 V 13.6"/>
+  </g>
+</svg>

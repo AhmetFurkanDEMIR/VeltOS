@@ -6,28 +6,12 @@
       <stop offset="0" stop-color="#F7B52C"/>
       <stop offset="1" stop-color="#E8960C"/>
     </linearGradient>
-    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="front" x1="0" y1="0" x2="0.35" y2="1">
       <stop offset="0" stop-color="#FFE07A"/>
       <stop offset="1" stop-color="#FFC53A"/>
-    </linearGradient>
-    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#4FB0F5"/>
-      <stop offset="1" stop-color="#1A6DD6"/>
-    </linearGradient>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#6CC4FA"/>
-      <stop offset="1" stop-color="#2C86E0"/>
-    </linearGradient>
-    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FF8A3D"/>
-      <stop offset="1" stop-color="#E35A0C"/>
-    </linearGradient>
-    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#A487E0"/>
-      <stop offset="1" stop-color="#6E4DB8"/>
     </linearGradient>
   </defs>
   <path d="M 18 58 Q 18 44 32 44 H 94 Q 103 44 109 51 L 119 62 H 224 Q 238 62 238 76 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z" fill="url(#back)"/>
   <path d="M 18 96 Q 18 84 30 84 H 226 Q 238 84 238 96 V 204 Q 238 218 224 218 H 32 Q 18 218 18 204 Z" fill="url(#front)"/>
-  <path d="M 30 86 H 226" stroke="#FFFFFF" stroke-opacity="0.65" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 30 86 H 226" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
 </svg>
