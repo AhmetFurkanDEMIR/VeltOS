@@ -3,6 +3,12 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (09:15) — Camera: Windows 11 shutter
+
+- The shutter now carries the mode's picture like Windows 11's Camera: a
+  camera on the white disc for photos, a red dot for videos, a red square
+  while recording. VM (virtual webcam): both modes.
+
 ## 2026-10-21 (09:10) — Mail in the look of Windows 11's Outlook
 
 - The product owner wants Mail to look exactly like Windows'. Windows 11's
