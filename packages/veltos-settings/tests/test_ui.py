@@ -90,7 +90,8 @@ class SettingsWindowTests(unittest.TestCase):
                           ("devices", "keyboard"), ("personalization", "lockscreen"),
                           ("apps", "defaultapps"), ("apps", "startup"), ("accounts", "yourinfo"),
                           ("accounts", "signin"), ("accounts", "otherusers"), ("time", "region"),
-                          ("accessibility", "accessibility"), ("privacy", "searching")):
+                          ("accessibility", "accessibility"), ("privacy", "searching"),
+                          ("personalization", "themes")):
             self.show(page, sub)
             self.assertEqual(self.window.property("subPage"), sub)
             self.assertEqual(self.problems(), [], sub)
@@ -191,7 +192,7 @@ class SettingsWindowTests(unittest.TestCase):
         self.backend.setAutomaticTime(False)
         self.backend.setTimezone("Europe/London")
         self.backend.setAccent("#0078D4")
-        self.backend.addBluetoothDevice()
+        self.backend.discoverBluetooth()
         self.app.processEvents()
         commands = [" ".join(c) for c in self.system.commands]
         for expected in ("nmcli radio wifi off", "bluetoothctl power off",
@@ -201,8 +202,66 @@ class SettingsWindowTests(unittest.TestCase):
             self.assertIn(expected, commands)
         self.assertNotIn("secret key", " ".join(commands))
         self.assertEqual(self.activated, [("New Net", "secret key", "wpa-psk")])
-        self.assertEqual(self.started[-1], ["bluedevil-wizard"])
+        # Add a device is VeltOS' own dialog: nothing of KDE's is started.
+        self.assertNotIn(["bluedevil-wizard"], self.started)
+        self.assertIn("bluetoothctl --timeout 10 scan on", commands)
         self.assertEqual(self.backend.accent, "#0078D4")
+        self.assertEqual(self.problems(), [])
+
+    def test_themes_apply_wallpaper_mode_and_accent(self):
+        self.show("personalization", "themes")
+        ids = [t["id"] for t in self.backend.themes]
+        self.assertEqual(ids[:2], ["veltos-light", "veltos-dark"])
+        was_dark = self.backend.darkMode
+        self.backend.applyTheme("ember")          # dark, red
+        self.app.processEvents()
+        commands = [" ".join(c) for c in self.system.commands]
+        self.assertIn("plasma-apply-wallpaperimage /usr/share/wallpapers/VeltOS-Ember", commands)
+        self.assertIn("plasma-apply-colorscheme --accent-color #D6243B", commands)
+        # Mode first, then wallpaper, then accent (the scheme sets the accent).
+        if not was_dark:
+            mode = next(i for i, c in enumerate(self.system.commands) if c[:2] == ["sh", "-c"])
+            wall = next(i for i, c in enumerate(self.system.commands) if c[0] == "plasma-apply-wallpaperimage")
+            self.assertLess(mode, wall)
+        self.assertTrue(self.backend.darkMode)
+        self.assertEqual(self.backend.currentTheme, "ember")
+        self.backend.setAccent("#0078D4")
+        self.assertEqual(self.backend.currentTheme, "")         # custom mix
+        self.assertEqual(self.problems(), [])
+
+    def test_add_device_finds_and_pairs(self):
+        self.system.outputs[("bluetoothctl", "devices")] = (
+            "Device AA:BB:CC:DD:EE:FF WH-1000XM4\nDevice 77:88:99:AA:BB:CC Keyboard K380\n"
+            "Device 12:34:56:78:9A:BC 12-34-56-78-9A-BC\n")
+        self.system.outputs[("bluetoothctl", "info", "77:88:99:AA:BB:CC")] = "\tIcon: input-keyboard\n"
+        self.show("devices", "bluetooth")
+        self.backend.discoverBluetooth()
+        self.app.processEvents()
+        found = self.backend.bluetooth["found"]
+        self.assertEqual([d["name"] for d in found], ["Keyboard K380"])   # not paired, named
+        self.assertEqual(found[0]["icon"], "input-keyboard")
+        self.backend.pairBluetooth("77:88:99:AA:BB:CC")
+        self.app.processEvents()
+        commands = [" ".join(c) for c in self.system.commands]
+        for expected in ("bluetoothctl pair 77:88:99:AA:BB:CC", "bluetoothctl trust 77:88:99:AA:BB:CC",
+                         "bluetoothctl connect 77:88:99:AA:BB:CC"):
+            self.assertIn(expected, commands)
+        self.assertEqual(self.backend.bluetooth["found"], [])
+        self.assertEqual(self.backend.bluetooth["pairFailed"], "")
+        self.assertEqual(self.problems(), [])
+
+    def test_home_recommends_recently_used_settings(self):
+        from veltos_settings import app as settings_app, devices
+        # Other tests of this class open pages too (same config folder).
+        (devices.config_home() / settings_app.RECENT_FILE).unlink(missing_ok=True)
+        self.assertEqual(self.backend.recentSettings[0], ["time", "datetime"])   # Windows' defaults
+        for _ in range(3):
+            self.show("system", "sound")
+        self.backend.changed.emit()
+        self.assertEqual(self.backend.recentSettings[0], ["system", "sound"])
+        self.assertEqual(len(self.backend.recentSettings), 3)
+        self.show("home")
+        self.assertIn(self.backend.text("last_checked").split("{")[0], self.backend.updateChecked)
         self.assertEqual(self.problems(), [])
 
     def test_start_page_argument(self):

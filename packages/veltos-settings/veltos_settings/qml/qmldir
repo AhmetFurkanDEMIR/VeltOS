@@ -3,7 +3,6 @@ NavItem 1.0 NavItem.qml
 SearchField 1.0 SearchField.qml
 Card 1.0 Card.qml
 SettingCard 1.0 SettingCard.qml
-ThemePicker 1.0 ThemePicker.qml
 VButton 1.0 VButton.qml
 ItemsPage 1.0 ItemsPage.qml
 SearchPage 1.0 SearchPage.qml
@@ -24,3 +23,6 @@ DisplayPage 1.0 DisplayPage.qml
 BackgroundPage 1.0 BackgroundPage.qml
 ColoursPage 1.0 ColoursPage.qml
 DateTimePage 1.0 DateTimePage.qml
+ThemeTile 1.0 ThemeTile.qml
+ThemesPage 1.0 ThemesPage.qml
+AddDeviceDialog 1.0 AddDeviceDialog.qml

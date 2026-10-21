@@ -238,7 +238,9 @@ class PersonalizationTests(unittest.TestCase):
         personal.set_accent("#0078D4")
         self.assertFalse(personal.set_accent("red; reboot"))
         self.assertEqual(system.commands, [["plasma-apply-wallpaperimage", "/usr/share/wallpapers/Next"],
-                                           ["plasma-apply-colorscheme", "--accent-color", "#0078D4"]])
+                                           ["plasma-apply-colorscheme", "--accent-color", "#0078D4"],
+                                           ["kwriteconfig6", "--file", "kdeglobals", "--group", "General",
+                                            "--key", "AccentColor", "0,120,212"]])
 
 
 class TimeTests(unittest.TestCase):
@@ -265,6 +267,33 @@ class TimeTests(unittest.TestCase):
         self.assertIn(["timedatectl", "set-timezone", "Europe/London"], system.commands)
         time.set_automatic(False)
         self.assertEqual(system.commands[-1], ["timedatectl", "set-ntp", "false"])
+
+
+class ThemeTests(unittest.TestCase):
+    def test_current_theme(self):
+        # Default desktop: no wallpaper or accent written yet.
+        self.assertEqual(devices.current_theme("", False, ""), "veltos-light")
+        self.assertEqual(devices.current_theme("VeltOS", True, ""), "veltos-dark")
+        self.assertEqual(devices.current_theme("/usr/share/wallpapers/VeltOS-Ember/", True, "#d6243b"), "ember")
+        self.assertEqual(devices.current_theme("/usr/share/wallpapers/VeltOS-Ember", False, "#D6243B"), "")
+        self.assertEqual(devices.current_theme("/home/u/Pictures/cat.jpg", False, "#2F5EE6"), "")
+
+    def test_themes_are_complete(self):
+        ids = [t["id"] for t in devices.THEMES]
+        self.assertEqual(len(ids), len(set(ids)))
+        for theme in devices.THEMES:
+            self.assertRegex(theme["accent"], r"^#[0-9A-F]{6}$")
+            self.assertEqual(len(theme["title"]), 2)
+            self.assertEqual(len(theme["colour"]), 2)
+            self.assertTrue(theme["wallpaper"].startswith("VeltOS"))
+
+    def test_apply_theme_order(self):
+        system = FakeSystem()
+        devices.Personalization(system).apply_theme("/usr/share/wallpapers/VeltOS-Tide", "#12949B",
+                                                     ["sh", "-c", "mode"])
+        self.assertEqual([c[0] for c in system.commands],
+                         ["sh", "plasma-apply-wallpaperimage", "plasma-apply-colorscheme", "kwriteconfig6"])
+        self.assertEqual(system.commands[-1][-2:], ["AccentColor", "18,148,155"])
 
 
 if __name__ == "__main__":

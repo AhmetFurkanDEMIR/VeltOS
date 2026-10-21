@@ -18,6 +18,7 @@ spec = importlib.util.spec_from_file_location(
 build_assets = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(build_assets)
 fluent = build_assets.fluent
+wallpapers = build_assets.wallpapers
 
 SAMPLE_SCHEME = """\
 # comment
@@ -155,6 +156,15 @@ class WallpaperTests(unittest.TestCase):
             self.assertEqual(first, build_assets.wallpaper_svg(variant))
             # Like Windows 11: no logo or name on the wallpaper.
             self.assertNotIn("<text", first)
+
+    def test_every_design_in_both_variants(self):
+        # Settings' themes use these package ids (veltos-settings devices.THEMES).
+        ids = {package for package, _name in wallpapers.DESIGNS.values()}
+        self.assertTrue({"VeltOS", "VeltOS-Nebula", "VeltOS-Ember", "VeltOS-Tide", "VeltOS-Dawn"} <= ids)
+        for design in wallpapers.DESIGNS:
+            light, dark = wallpapers.svg(design, "light"), wallpapers.svg(design, "dark")
+            self.assertNotEqual(light, dark, design)
+            self.assertNotIn("<text", light + dark)
 
     def test_viewbox_rewrite_keeps_namespaces(self):
         svg = build_assets.wallpaper_svg("images_dark")

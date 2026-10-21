@@ -278,6 +278,35 @@ class Bluetooth:
     def remove(self, mac):
         return self.run(["bluetoothctl", "remove", mac])[0] == 0
 
+    def discover(self, seconds=10):
+        """Devices in range that are not paired yet (Add a device):
+        scan for a while, then list what bluetoothd found."""
+        self.run(["bluetoothctl", "--timeout", str(seconds), "scan", "on"], timeout=seconds + 10)
+        code, out = self.run(["bluetoothctl", "devices"])
+        paired = {d["mac"] for d in self.devices()}
+        found = []
+        for line in out.splitlines() if code == 0 else []:
+            match = re.match(r"Device ([0-9A-Fa-f:]{17}) (.+)", line.strip())
+            if not match or match.group(1) in paired:
+                continue
+            mac, name = match.groups()
+            # Nameless devices show their address with dashes as a name.
+            if name.replace("-", ":").upper() == mac.upper():
+                continue
+            _, info = self.run(["bluetoothctl", "info", mac])
+            icon = re.search(r"^\s*Icon:\s*(\S+)", info, re.M)
+            found.append({"mac": mac, "name": name, "icon": icon.group(1) if icon else "bluetooth"})
+        return sorted(found, key=lambda d: d["name"].lower())
+
+    def pair(self, mac):
+        """Pair, trust and connect (Plasma's Bluetooth agent asks for PIN
+        confirmation where a device needs it)."""
+        if self.run(["bluetoothctl", "pair", mac], timeout=60)[0] != 0:
+            return False
+        self.run(["bluetoothctl", "trust", mac])
+        self.connect(mac, True)
+        return True
+
     def state(self):
         available = self.available()
         powered = available and self.powered()
@@ -403,9 +432,58 @@ ACCENTS = ["#2F5EE6", "#0078D4", "#0099BC", "#00B294", "#10893E", "#498205",
            "#C239B3", "#8764B8", "#E3008C", "#E74856", "#F7630C", "#CA5010",
            "#FFB900", "#7A7574", "#567C73", "#4C4A48"]
 
+# Themes (Personalization > Themes), like Windows 11's: a wallpaper (package
+# id in WALLPAPER_DIRS, from veltos-desktop), light or dark mode and an
+# accent colour with its name. The first two are the defaults.
+THEMES = [
+    {"id": "veltos-light", "title": ("VeltOS (light)", "VeltOS (açık)"), "wallpaper": "VeltOS",
+     "dark": False, "accent": "#2F5EE6", "colour": ("Blue", "Mavi")},
+    {"id": "veltos-dark", "title": ("VeltOS (dark)", "VeltOS (koyu)"), "wallpaper": "VeltOS",
+     "dark": True, "accent": "#2F5EE6", "colour": ("Blue", "Mavi")},
+    {"id": "lake", "title": ("Lake", "Göl"), "wallpaper": "VeltOS-Lake",
+     "dark": False, "accent": "#0F7AC8", "colour": ("Sky blue", "Gök mavisi")},
+    {"id": "nebula", "title": ("Nebula", "Bulutsu"), "wallpaper": "VeltOS-Nebula",
+     "dark": True, "accent": "#8E5BE8", "colour": ("Purple", "Mor")},
+    {"id": "ember", "title": ("Ember", "Kor"), "wallpaper": "VeltOS-Ember",
+     "dark": True, "accent": "#D6243B", "colour": ("Red", "Kırmızı")},
+    {"id": "tide", "title": ("Tide", "Gelgit"), "wallpaper": "VeltOS-Tide",
+     "dark": False, "accent": "#12949B", "colour": ("Teal", "Turkuaz")},
+    {"id": "dawn", "title": ("Dawn", "Şafak"), "wallpaper": "VeltOS-Dawn",
+     "dark": False, "accent": "#5A6B85", "colour": ("Slate", "Arduvaz")},
+    {"id": "flow", "title": ("Flow", "Akış"), "wallpaper": "VeltOS-Flow",
+     "dark": False, "accent": "#5B3FE0", "colour": ("Indigo", "Çivit")},
+]
+# The colour scheme's own accent (no AccentColor in kdeglobals).
+DEFAULT_ACCENT = "#2F5EE6"
+
+
+def wallpaper_id(path):
+    """The wallpaper package id of a path or id ("" for none)."""
+    return Path(str(path).rstrip("/")).name if path else ""
+
+
+def current_theme(wallpaper, dark, accent):
+    """The id of the theme the desktop matches, "" for a custom mix. An
+    unset wallpaper is VeltOS' default, an unset accent the scheme's."""
+    wallpaper = wallpaper_id(wallpaper) or "VeltOS"
+    accent = (accent or DEFAULT_ACCENT).upper()
+    for theme in THEMES:
+        if theme["wallpaper"] == wallpaper and theme["dark"] == dark and theme["accent"].upper() == accent:
+            return theme["id"]
+    return ""
+
 
 def config_home():
     return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+
+
+def package_title(package):
+    """A wallpaper package's display name (metadata.json), else its id."""
+    try:
+        meta = json.loads((package / "metadata.json").read_text(encoding="utf-8"))
+        return meta["KPlugin"]["Name"] or package.name
+    except (OSError, ValueError, KeyError, TypeError):
+        return package.name
 
 
 class Personalization:
@@ -431,7 +509,10 @@ class Personalization:
                         continue
                     # The largest picture is the sharpest preview.
                     preview = max(candidates, key=lambda p: p.stat().st_size)
-                result.append({"name": package.name, "preview": str(preview), "path": str(package)})
+                dark = package / "contents" / "screenshot-dark.png"
+                result.append({"name": package.name, "title": package_title(package),
+                               "preview": str(preview), "previewDark": str(dark if dark.exists() else preview),
+                               "path": str(package)})
         result.sort(key=lambda w: (w["name"] != "VeltOS", w["name"].lower()))
         return result
 
@@ -468,7 +549,25 @@ class Personalization:
     def set_accent(self, color):
         if not re.fullmatch(r"#[0-9A-Fa-f]{6}", color):
             return False
-        return self.run(["plasma-apply-colorscheme", "--accent-color", color])[0] == 0
+        if self.run(["plasma-apply-colorscheme", "--accent-color", color])[0] != 0:
+            return False
+        # plasma-apply-colorscheme writes the colours but not the choice
+        # (Plasma 6.3, VM 2026-10-21); KDE's colours module records it as
+        # AccentColor, which accent() reads and the global theme keeps when
+        # light and dark mode are switched.
+        rgb = ",".join(str(int(color[i:i + 2], 16)) for i in (1, 3, 5))
+        self.run(["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "AccentColor", rgb])
+        return True
+
+    def apply_theme(self, wallpaper, accent, mode_command=None):
+        """Apply a theme in order: light/dark first (the global theme sets
+        the colour scheme), then the wallpaper, then the accent colour on
+        the new scheme."""
+        ok = True
+        if mode_command:
+            ok = self.run(mode_command, timeout=120)[0] == 0
+        ok = self.set_wallpaper(wallpaper) and ok
+        return self.set_accent(accent) and ok
 
     def pick_image(self, start, title):
         """Ask for a picture with the standard file dialog; "" if cancelled."""

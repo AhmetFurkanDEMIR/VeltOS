@@ -1,4 +1,4 @@
-// A settings page from the catalogue: optional theme picker, then one card
+// A settings page from the catalogue: optional themes, then one card
 // per setting.
 import QtQuick
 import QtQuick.Controls
@@ -32,7 +32,20 @@ ColumnLayout {
                 font.pixelSize: Theme.bodySize
                 Layout.bottomMargin: 10
             }
-            ThemePicker {}
+            // Windows 11: "Select a theme to apply" with the themes.
+            Flow {
+                Layout.fillWidth: true
+                spacing: 10
+                Repeater {
+                    model: backend.themes.slice(0, 6)
+                    delegate: ThemeTile {
+                        required property var modelData
+                        theme: modelData
+                        width: 118
+                        height: 96
+                    }
+                }
+            }
         }
     }
 

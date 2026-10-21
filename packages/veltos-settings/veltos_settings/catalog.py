@@ -20,7 +20,7 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
                  "wifi", "background", "colours", "datetime", "notifications", "power",
                  "nightlight", "multitasking", "mouse", "touchpad", "keyboard", "lockscreen",
                  "defaultapps", "startup", "yourinfo", "signin", "otherusers", "region",
-                 "accessibility", "searching")
+                 "accessibility", "searching", "themes")
 # Actions the backend knows (app.Backend.runAction).
 ACTIONS = ("store", "updates", "uninstall-windows", "disk-management")
 
@@ -96,6 +96,10 @@ PAGES = [
          "title": ("Colours", "Renkler"),
          "desc": ("Light or dark mode, accent colour", "Açık veya koyu mod, vurgu rengi"),
          "keywords": "accent color colour dark light mode theme vurgu renk koyu açık tema"},
+        {"id": "themes", "icon": "preferences-desktop-theme-symbolic", "page": "themes",
+         "title": ("Themes", "Temalar"),
+         "desc": ("Wallpaper, colour and mode together", "Duvar kağıdı, renk ve mod bir arada"),
+         "keywords": "theme themes wallpaper colour look tema temalar duvar kağıdı görünüm"},
         {"id": "lockscreen", "icon": "system-lock-screen-symbolic", "page": "lockscreen",
          "title": ("Lock screen", "Kilit ekranı"),
          "desc": ("When to lock, password on wake", "Ne zaman kilitleneceği, uyanınca parola"),
@@ -186,7 +190,7 @@ PAGES = [
 KCM_PAGES = {
     "kcm_users": "yourinfo", "kcm_networkmanagement": "wifi", "kcm_wifi": "wifi",
     "kcm_bluetooth": "bluetooth", "kcm_pulseaudio": "sound", "kcm_kscreen": "display",
-    "kcm_wallpaper": "background", "kcm_colors": "colours", "kcm_lookandfeel": "colours",
+    "kcm_wallpaper": "background", "kcm_colors": "colours", "kcm_lookandfeel": "themes",
     "kcm_clock": "datetime", "kcm_powerdevilprofilesconfig": "power",
     "kcm_powerdevilglobalconfig": "power", "kcm_notifications": "notifications",
     "kcm_screenlocker": "lockscreen", "kcm_nightlight": "nightlight",
@@ -196,7 +200,7 @@ KCM_PAGES = {
     "kcm_kwinscreenedges": "multitasking", "kcm_about-distro": "about", "kcm_access": "accessibility",
     "kcm_fonts": "accessibility", "kcm_baloofile": "searching", "kcm_storage": "storage",
     # KDE's look modules: Windows keeps all of it under Personalization.
-    "kcm_style": "colours", "kcm_icons": "colours", "kcm_desktoptheme": "colours",
+    "kcm_style": "colours", "kcm_icons": "colours", "kcm_desktoptheme": "themes",
     "kcm_kwindecoration": "colours", "kcm_cursortheme": "mouse", "kcm_splashscreen": "colours",
     "kcm_sddm": "lockscreen", "kcm_kwin_effects": "accessibility", "kcm_animations": "accessibility",
     "kcm_kwinoptions": "multitasking", "kcm_kwintabbox": "multitasking", "kcm_activities": "multitasking",

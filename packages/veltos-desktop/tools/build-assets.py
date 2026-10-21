@@ -266,6 +266,10 @@ def build_wallpaper(root, tmp_dir):
                            base / "contents" / variant / f"{w}x{h}.png", tmp_dir)
         render_svg(svg_with_viewbox(wallpaper_svg("images", design), 400, 250), 400, 250,
                    base / "contents/screenshot.png", tmp_dir)
+        # The dark picture's preview, for Settings' theme tiles (VeltOS file,
+        # Plasma ignores it).
+        render_svg(svg_with_viewbox(wallpaper_svg("images_dark", design), 400, 250), 400, 250,
+                   base / "contents/screenshot-dark.png", tmp_dir)
         metadata = {
             "KPlugin": {
                 "Authors": [{"Name": "VeltOS Project"}],

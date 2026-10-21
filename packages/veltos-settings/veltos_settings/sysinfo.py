@@ -13,6 +13,7 @@ import shlex
 import shutil
 import socket
 import subprocess
+import time
 from pathlib import Path
 
 ROOT = Path("/")
@@ -183,6 +184,35 @@ def storage(mount_text=None, usage=shutil.disk_usage):
             "fraction": round(used / total, 4),
         })
     return drives
+
+
+APT_LISTS = Path("/var/lib/apt/lists")
+
+
+def last_update_check(lists=APT_LISTS):
+    """When the package lists were last refreshed (apt or PackageKit), as
+    seconds since 1970; 0 if never."""
+    try:
+        times = [p.stat().st_mtime for p in lists.iterdir() if p.name.endswith("Release")]
+    except OSError:
+        return 0
+    return int(max(times)) if times else 0
+
+
+def ago(seconds, lang, now=None):
+    """'1 hour ago' style text for Windows Update's "Last checked"."""
+    from . import strings
+    if not seconds:
+        return strings.text(lang, "never_checked")
+    elapsed = max(0, int((now if now is not None else time.time()) - seconds))
+    for limit, unit in ((60, None), (3600, "minute"), (86400, "hour"), (None, "day")):
+        if limit is not None and elapsed < limit:
+            break
+    if unit is None:
+        return strings.text(lang, "just_now")
+    count = elapsed // {"minute": 60, "hour": 3600, "day": 86400}[unit]
+    key = f"{unit}_ago" if count == 1 else f"{unit}s_ago"
+    return strings.text(lang, key).replace("{count}", str(count))
 
 
 def dark_mode():
