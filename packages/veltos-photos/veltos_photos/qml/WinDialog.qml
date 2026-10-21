@@ -27,7 +27,7 @@ Popup {
     modal: true
     padding: 0
     closePolicy: Popup.CloseOnEscape
-    Overlay.modal: Rectangle { color: "#40000000" }
+    Overlay.modal: Scrim {}
     onAboutToHide: if (!picked) dialog.chosen("cancel")
     onAboutToShow: picked = false
     property bool picked: false

@@ -1,0 +1,6 @@
+veltos-pdf (0.1.0~dev1) unstable; urgency=medium
+
+  * Initial package: PDF Reader (tabs, recent files, thumbnails,
+    bookmarks, search, zoom, rotate, print, properties).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Wed, 21 Oct 2026 23:00:00 +0000

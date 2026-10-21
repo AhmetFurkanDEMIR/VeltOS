@@ -11,7 +11,7 @@
     </entry>
     <entry name="favorites" type="StringList">
       <label>Apps pinned to Start for new users (desktop file names or preferred:// URLs).</label>
-      <default>preferred://browser,veltos-explorer.desktop,veltos-settings.desktop,veltos-store.desktop,veltos-photos.desktop,veltos-notepad.desktop,org.kde.okular.desktop,veltos-calculator.desktop,veltos-snip.desktop,veltos-taskmanager.desktop,veltos-archive.desktop,org.kde.konsole.desktop</default>
+      <default>preferred://browser,veltos-explorer.desktop,veltos-settings.desktop,veltos-store.desktop,veltos-photos.desktop,veltos-notepad.desktop,veltos-pdf.desktop,veltos-calculator.desktop,veltos-snip.desktop,veltos-taskmanager.desktop,veltos-archive.desktop,org.kde.konsole.desktop</default>
     </entry>
     <entry name="explorerPinned" type="Bool">
       <label>Whether Dolphin in the pinned apps was replaced by File Explorer (VeltOS 0.1, once).</label>
@@ -27,6 +27,10 @@
     </entry>
     <entry name="photosPinned" type="Bool">
       <label>Whether Gwenview in the pinned apps was replaced by VeltOS Photos (VeltOS 0.1, once).</label>
+      <default>false</default>
+    </entry>
+    <entry name="pdfPinned" type="Bool">
+      <label>Whether Okular in the pinned apps was replaced by VeltOS PDF Reader (VeltOS 0.1, once).</label>
       <default>false</default>
     </entry>
     <entry name="notepadPinned" type="Bool">

@@ -33,7 +33,7 @@ Popup {
     modal: true
     padding: 0
     closePolicy: Popup.CloseOnEscape
-    Overlay.modal: Rectangle { color: "#40000000" }
+    Overlay.modal: Scrim {}
 
     background: Rectangle {
         radius: 8

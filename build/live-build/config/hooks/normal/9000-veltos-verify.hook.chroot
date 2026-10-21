@@ -100,6 +100,9 @@ installed kwrite && fail "KWrite must not be installed (VeltOS Notepad replaces 
 installed veltos-photos || fail "VeltOS Photos missing"
 installed gwenview && fail "Gwenview must not be installed (VeltOS Photos replaces it)"
 installed veltos-media || fail "VeltOS Media Player missing"
+installed veltos-pdf || fail "VeltOS PDF Reader missing"
+installed okular && fail "Okular must not be installed (VeltOS PDF Reader replaces it)"
+grep -q '^application/pdf=veltos-pdf.desktop;$' /var/lib/veltos/xdg/applications/kde-mimeapps.list     || fail "PDF files do not open in PDF Reader"
 grep -q '^video/mp4=veltos-media.desktop;$' /var/lib/veltos/xdg/applications/kde-mimeapps.list \
     || fail "videos do not open in Media Player"
 grep -q '^image/jpeg=veltos-photos.desktop;$' /var/lib/veltos/xdg/applications/kde-mimeapps.list \

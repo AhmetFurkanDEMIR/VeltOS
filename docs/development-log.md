@@ -3,6 +3,40 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (23:30) — VeltOS PDF Reader replaces Okular
+
+- Product owner: the document viewer must become a modern PDF app like
+  the one on Windows 11. New package `veltos-pdf` (PySide6/QML on QtQuick
+  Pdf, i.e. PDFium): Home with recent files, tabs, continuous pages with
+  selectable text, quick tool rail (search, thumbnails, bookmarks, rotate,
+  fit width, print, properties), floating page/zoom bar, read mode, full
+  screen, passwords, printing through the system dialog. Original name
+  and artwork: no Adobe names or logos. Okular leaves the image; PDF files
+  open in PDF Reader (`DEFAULT_APPS`), Start's pinned Okular becomes it,
+  the icon family's document viewer icon is drawn for `veltos-pdf`.
+- Found while testing: Qt 6.8's `PdfMultiPageView` lays its pages out
+  again when the scale changes but before its column width follows the
+  new scale, so after zooming out (or opening the side panel) the pages
+  sat off-centre and partly outside the window; VeltOS lays them out once
+  more (`relayoutPages`). Fit width/page now keeps fitting when the room
+  changes. A tab that is not shown has no size: fitting it to zero width
+  made the view's rows empty (QML warning in the tests); it is fitted when
+  it gets a size. QtPdf marks line breaks in search context with a return
+  symbol; the results show spaces.
+- All VeltOS apps with their own frame (File Explorer, Notepad, Photos,
+  Media Player, PDF Reader) dimmed the transparent shadow margin around
+  the window behind dialogs as well; `Scrim.qml` dims only the window.
+- Media Player's search also looked at the folders of a file: with a
+  temporary folder name containing "2" every song matched "song 2" (the
+  test failed only sometimes). It now looks at the file name only.
+- Verified: 6 unit tests for PDF Reader (PDFs written with QPdfWriter,
+  window offscreen EN/TR, damaged file), all tests of the five apps;
+  VM (live, packages installed): a 19-page PDF opened by `xdg-open`,
+  thumbnails, bookmarks, search with 160 results and highlights, zoom out
+  centred, properties dialog (dimming inside the window only), app menu,
+  Home with the recent file. Not checked: printing, password-protected
+  files on screen (only the unit-level status), very large PDFs.
+
 ## 2026-10-21 (21:30) — VeltOS Media Player (Windows 11 Media Player)
 
 - New package `veltos-media` (PySide6/QML, Qt Multimedia FFmpeg backend)

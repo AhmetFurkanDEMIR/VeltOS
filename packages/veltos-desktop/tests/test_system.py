@@ -142,7 +142,13 @@ class AppNameTests(unittest.TestCase):
             text = (out / "kde-mimeapps.list").read_text(encoding="utf-8")
             self.assertIn("[Default Applications]", text)
             self.assertIn("text/plain=veltos-notepad.desktop;", text)
+            self.assertNotIn("application/pdf", text)
+            (src / "veltos-pdf.desktop").write_text("[Desktop Entry]\nName=PDF Reader\n", encoding="utf-8")
+            app_names.update(src, out)
+            text = (out / "kde-mimeapps.list").read_text(encoding="utf-8")
+            self.assertIn("application/pdf=veltos-pdf.desktop;", text)
             (src / "veltos-notepad.desktop").unlink()
+            (src / "veltos-pdf.desktop").unlink()
             app_names.update(src, out)
             self.assertFalse((out / "kde-mimeapps.list").exists())
 

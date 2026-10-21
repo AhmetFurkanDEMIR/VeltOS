@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=PDF Reader
+Name[tr]=PDF Okuyucu
+GenericName=PDF Reader
+GenericName[tr]=PDF Okuyucu
+Comment=Read, search and print PDF documents
+Comment[tr]=PDF belgelerini okuyun, arayın ve yazdırın
+Exec=veltos-pdf %F
+Icon=veltos-pdf
+Categories=Office;Viewer;
+Keywords=pdf;reader;acrobat;document;viewer;okuyucu;belge;görüntüleyici;
+MimeType=application/pdf;application/x-pdf;
+StartupNotify=true

@@ -120,7 +120,7 @@ Item {
         width: 380
         modal: true
         padding: 24
-        Overlay.modal: Rectangle { color: "#40000000" }
+        Overlay.modal: Scrim {}
         onOpened: {
             nameField.text = "";
             nameField.forceActiveFocus();
