@@ -21,6 +21,7 @@ no start page or donation tab (users can change all of them).
 """
 
 import base64
+import shutil
 from pathlib import Path
 
 import fluent
@@ -79,24 +80,41 @@ pref("general.config.obscure_value", 0);
 pref("general.config.sandbox_enabled", false);
 """
 
-AUTOCONFIG = """// VeltOS Firefox set-up (first line must be a comment).
-// Registers the Windows 11 caption button style for every window.
-try {
+def autoconfig(what, sheets):
+    """The autoconfig script: registers `sheets` (file paths) as user style
+    sheets for every window."""
+    names = ", ".join(f'"file://{sheet}"' for sheet in sheets)
+    return f"""// VeltOS {what} set-up (first line must be a comment).
+// Registers the VeltOS style sheets for every window.
+try {{
   let sss = Components.classes["@mozilla.org/content/style-sheet-service;1"]
       .getService(Components.interfaces.nsIStyleSheetService);
   let io = Components.classes["@mozilla.org/network/io-service;1"]
       .getService(Components.interfaces.nsIIOService);
-  let uri = io.newURI("file:///usr/share/veltos/firefox/caption-buttons.css");
-  if (!sss.sheetRegistered(uri, sss.USER_SHEET)) {
-    sss.loadAndRegisterSheet(uri, sss.USER_SHEET);
-  }
-} catch (e) {
+  for (let sheet of [{names}]) {{
+    let uri = io.newURI(sheet);
+    if (!sss.sheetRegistered(uri, sss.USER_SHEET)) {{
+      sss.loadAndRegisterSheet(uri, sss.USER_SHEET);
+    }}
+  }}
+}} catch (e) {{
   Components.utils.reportError("VeltOS: " + e);
-}
+}}
 """
 
 
-THUNDERBIRD_PREFS = AUTOCONFIG_PREFS.replace("/usr/lib/firefox-esr/", "/usr/lib/thunderbird/") + """// VeltOS: Mail opens like Windows' Mail, without questions or web pages.
+CAPTION_CSS = "/" + str(CSS_PATH)
+# Mail's look (Outlook-like panes and cards), a file of veltos-desktop.
+MAIL_CSS = "/usr/share/veltos/mail/mail.css"
+AUTOCONFIG = autoconfig("Firefox", [CAPTION_CSS])
+MAIL_AUTOCONFIG = autoconfig("Mail (Thunderbird)", [CAPTION_CSS, MAIL_CSS])
+
+
+THUNDERBIRD_PREFS = AUTOCONFIG_PREFS.replace("/usr/lib/firefox-esr/", "/usr/lib/thunderbird/") + """// VeltOS: folders, list and reading pane side by side, like Outlook.
+pref("mail.pane_config.dynamic", 2);
+// Mails in the normal font, not a typewriter font (Outlook shows them so).
+pref("mail.fixed_width_messages", false);
+// VeltOS: Mail opens like Windows' Mail, without questions or web pages.
 pref("mail.shell.checkDefaultClient", false);
 pref("mailnews.start_page.enabled", false);
 pref("app.donation.eoy.version.viewed", 999);
@@ -123,8 +141,10 @@ def build(root):
     prefs.write_text(THUNDERBIRD_PREFS, encoding="utf-8", newline="\n")
     cfg = root / "usr/lib/thunderbird/veltos.cfg"
     cfg.parent.mkdir(parents=True, exist_ok=True)
-    cfg.write_text(AUTOCONFIG.replace("VeltOS Firefox set-up", "VeltOS Mail (Thunderbird) set-up"),
-                   encoding="utf-8", newline="\n")
+    cfg.write_text(MAIL_AUTOCONFIG, encoding="utf-8", newline="\n")
+    mail_css = root / MAIL_CSS.lstrip("/")
+    mail_css.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(Path(__file__).resolve().parent.parent / "mail/mail.css", mail_css)
 
 
 if __name__ == "__main__":

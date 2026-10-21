@@ -387,6 +387,10 @@ class FullBuildTest(unittest.TestCase):
             self.assertIn(css, text)
         mail = (root / "usr/share/thunderbird/defaults/pref/veltos.js").read_text()
         self.assertIn('pref("mail.shell.checkDefaultClient", false);', mail)
+        self.assertIn("file:///usr/share/veltos/mail/mail.css", (root / "usr/lib/thunderbird/veltos.cfg").read_text())
+        self.assertNotIn("mail.css", (root / "usr/lib/firefox-esr/veltos.cfg").read_text())
+        css = (root / "usr/share/veltos/mail/mail.css").read_text()
+        self.assertIn('@-moz-document url-prefix("chrome://messenger/content/")', css)   # never inside mails
         restrictions = kdeglobals["[KDE Control Module Restrictions]"]
         self.assertEqual(restrictions["kcm_kdeconnect"], "false")
         self.assertIn("ToolButtonStyle=IconOnly", (root / "etc/xdg/dolphinrc").read_text())
