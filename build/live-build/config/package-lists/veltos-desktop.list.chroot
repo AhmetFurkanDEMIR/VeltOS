@@ -46,7 +46,8 @@ veltos-archive
 veltos-photos
 # Media Player (Windows 11 layout) for music and videos.
 veltos-media
-okular
+# PDF Reader (modern reader layout) replaces Okular.
+veltos-pdf
 kde-spectacle
 firefox-esr
 firefox-esr-l10n-tr

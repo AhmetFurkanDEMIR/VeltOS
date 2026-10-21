@@ -17,6 +17,7 @@ not been run on real hardware yet.**
 | `veltos-settings`: Windows 11 Settings, every page built in (no KDE settings window: `systemsettings`/`kcmshell6` redirect to it) — Wi-Fi, Bluetooth, Sound, Display, Night light, Notifications, Power, Multitasking, Mouse, Touchpad, Typing, Background, Colours, Lock screen, Default apps, Startup, Your info, Sign-in options, Other users, Date & time, Language & region, Accessibility, Searching files, About (OS build, developer), search, EN/TR, monochrome Windows 11 icons; Home in Windows 11 24H2's layout; Themes (eight wallpaper + mode + accent themes); own Add a device dialog | 78 unit tests (parsers with recorded tool output, KDE config files, accounts with a fake `passwd`, input devices, default/startup apps, redirect, offscreen window with every page, Turkish C locale); VM (2026-10-21): Start "Change account settings" and `systemsettings kcm_users` open Your info; VM: every page; dark mode switches the taskbar on the first switch; **Wi-Fi tested end to end on simulated hardware** (mac80211_hwsim + hostapd WPA2: wrong key refused without extra prompts, correct key connects and gets an address, disconnect, reconnect, forget) |
 | `veltos-taskmanager` (new): Task Manager in the Windows 11 layout — Processes (Apps / Background / System, summed per app, busy cells tinted, search, End task), Performance (60-second CPU/memory/disk/network graphs and figures), Startup apps (enable/disable); Ctrl+Shift+Esc, one instance; KDE System Monitor kept as "Resource Monitor" | 19 unit tests (fake psutil; window offscreen EN/TR, Turkish locale); VM: opened with Ctrl+Shift+Esc, Firefox grouped with its 11 processes, second Ctrl+Shift+Esc does not open a second window, all three pages |
 | `veltos-media` (new): Media Player in the Windows 11 layout — Home with recent media, music library (songs, albums with covers, artists, shuffle and play), video library with frames, play queue (shuffle, repeat, play next), playlists, search, player bar, now playing (video or album picture), full screen; Qt Multimedia (FFmpeg); default for audio and video | 11 unit tests (queue logic, tags of real WAV files, window offscreen EN/TR); VM (live, 2026-10-21): albums with embedded covers, an album played (position advancing), video library thumbnails, an MJPEG AVI played to its end. No MPRIS yet; sound output itself not heard (VM) |
+| `veltos-pdf` (new): PDF Reader in a modern reader layout (own name and artwork, no Adobe marks) — Home with recent files, one tab per document, continuous pages with selectable text, search with results and highlights, page thumbnails, bookmarks (outline), zoom, fit width/page that stays fitted, rotate, read mode, full screen, document properties, passwords, printing; Qt PDF (PDFium); replaces Okular, default for PDF files | 6 unit tests (real PDFs written with QPdfWriter, window offscreen EN/TR, damaged file refused); VM (live, 2026-10-21): a 19-page PDF opened as the default app (`xdg-open`), thumbnails, bookmarks, search (160 results), zoom out/in, properties, app menu, Home with the recent file. Printing untested |
 | `veltos-photos` (new): Photos in the Windows 11 layout — search in the title bar, Gallery/Favorites/folders, gallery by month (EXIF date) with filter, sort, tile size and slideshow, viewer (zoom, rotate, delete, heart, file information, copy, set as background/lock screen, filmstrip), Edit image (crop, aspect ratios, rotate, flip, brightness, contrast, saturation, warmth; save or save as copy); video thumbnails (ffmpegthumbnailer); default for pictures; replaces Gwenview | 15 unit tests (scan, EXIF, edits with Pillow; window offscreen EN/TR); VM (live, 2026-10-21): gallery of sample pictures, viewer, edit with live preview, save as copy. Not yet checked: lock-screen picture, very large libraries |
 | `veltos-notepad` (new): Notepad in the Windows 11 layout — tabs in the title bar, File/Edit/View menus, find and replace panel, go to line, time/date, zoom, word wrap, status bar (line/column, characters, zoom, line ending, encoding), Settings page (theme, font, word wrap, opening, session); keeps UTF-8/UTF-8 BOM/UTF-16/ANSI and CRLF/LF/CR; unsaved tabs come back (Windows 11 session); default for text files; replaces KWrite | 19 unit tests (encodings, line endings, the real window offscreen EN/TR); VM (live, 2026-10-21): opened a CRLF file from xdg-open, File menu, typing, find panel, Ctrl+S kept CRLF, Settings page. Printing untested |
 | `veltos-archive` (new): archive manager in WinRAR's layout with Windows 11 controls — open ZIP/RAR (all versions, 7zip-rar)/7Z/TAR/GZ/ISO/CAB…, folders inside, Extract To, Add (ZIP/7Z/TAR.*; RAR creation not possible without RARLAB's program), Test, View, Delete, Find, Info, passwords; File Explorer's Extract All/Extract here/Compress/Add to archive; replaces Ark | 21 unit tests (real 7-Zip and bsdtar; window offscreen EN/TR); VM (installed, 2026-10-21): RAR5 and password RAR, extract, add, Explorer commands. File dialog is Qt's own |
@@ -65,10 +66,7 @@ checks that passed.
   working captures); Windows 11 style for the grey KDE/Qt window
   backgrounds and for inputs, spin boxes and radio buttons in KDE
   programs; "Your info" / "Other users" pages; a busy pointer while apps
-  start; Notepad,
-  Office (LibreOffice with a Microsoft-like interface), Photos / Media
-  Player, document viewer and archive manager (WinRAR-like) in the
-  Windows 11 look; a Windows 11 style "Run/Install Windows program" for
+  start; Office (LibreOffice with a Microsoft-like interface); a Windows 11 style "Run/Install Windows program" for
   Bottles — **Bottles is not in Debian 13** (Flathub only), decision
   pending.
 - Settings left out until they have a VeltOS page: VPN and wired network
@@ -114,8 +112,10 @@ checks that passed.
    Start on a PC with a GPU.
 2. Windows 11 UAC-style password dialog instead of KDE's polkit window
    (adding users, time zone, computer name). Remaining apps from the
-   product owner's list: Notepad, Photos/Media player, document viewer
-   and archive manager in the Windows layout, Office.
+   product owner's list (2026-10-21): Office, Mail in Outlook's layout
+   (including the account setup screen), Disk Management in the Windows
+   layout; then a new ISO with Notepad, Photos, Media Player and PDF
+   Reader.
 4. Listen to the VeltOS sounds on real hardware; measure animation CPU
    cost with software rendering.
 5. Plain and BIOS installations; the product owner reinstalls in

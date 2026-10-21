@@ -255,7 +255,7 @@ NAMES = {
     file_explorer: ["veltos-explorer", "system-file-manager", "file-manager", "org.kde.dolphin"],
     notepad: ["veltos-notepad", "org.kde.kwrite", "kwrite", "accessories-text-editor", "org.kde.kate", "kate"],
     photos: ["veltos-photos", "org.kde.gwenview", "gwenview", "image-viewer"],
-    document_viewer: ["org.kde.okular", "okular"],
+    document_viewer: ["veltos-pdf", "org.kde.okular", "okular"],
     archive: ["veltos-archive", "org.kde.ark", "ark", "file-roller", "utilities-file-archiver"],
     media_player: ["veltos-media", "org.kde.haruna", "multimedia-video-player", "vlc"],
     disk_management: ["veltos-disks", "partitionmanager", "org.kde.partitionmanager", "gnome-disks",

@@ -68,6 +68,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-notepad/` | VeltOS Notepad: Windows 11 Notepad layout (tabs in the title bar, File/Edit/View, find and replace, status bar with encoding and line ending), keeps encodings/line endings, restores unsaved tabs; default for text files |
 | `packages/veltos-photos/` | VeltOS Photos: Windows 11 Photos (gallery by month, favorites, folders, viewer with filmstrip and file information, Edit image with crop/rotate/adjust via Pillow, slideshow); default for pictures |
 | `packages/veltos-media/` | VeltOS Media Player: Windows 11 Media Player (music library with tags/covers via mutagen, video library, play queue with shuffle/repeat, playlists, player bar, now playing) on Qt Multimedia; default for audio and video |
+| `packages/veltos-pdf/` | VeltOS PDF Reader: modern PDF reader layout (Home with recent files, tabs, search, thumbnails, bookmarks, zoom/fit, read mode, properties, passwords, printing) on QtQuick Pdf; replaces Okular, default for PDF |
 | `packages/veltos-archive/` | VeltOS Archive: WinRAR's layout (toolbar, archive list, Extract To, Add, Test, passwords) on 7-Zip (+ 7zip-rar) and bsdtar; File Explorer's extract/compress |
 | `packages/veltos-camera/` | VeltOS Camera: Windows 11 Camera layout (photo, video, timer, framing grid, Camera Roll) on Qt Multimedia (FFmpeg backend, V4L2) |
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
@@ -374,3 +375,12 @@ owner sets priorities; agents act as the engineering team.
 - `plasma-workspace-data` (not `plasma-workspace`) ships the QML of
   Plasma's applets; extract it with `apt-get download` in the builder to
   read the exact upstream text for overrides (`out/upstream/`).
+- Qt 6.8's `PdfMultiPageView` calls `forceLayout()` on a scale change
+  before its column width (`pageHolderWidth`) has followed the new scale:
+  zooming out left the pages off-centre. VeltOS PDF Reader lays the page
+  table out again afterwards. Its QML is inside `libQt6PdfQuick.so.6`
+  (Qt resources): load the library with `ctypes.CDLL` in a PySide6 script
+  and read `:/qt-project.org/imports/QtQuick/Pdf/*.qml` with `QFile`.
+- A modal Popup's `Overlay.modal` covers the whole QQuickWindow, including
+  the transparent shadow margin of VeltOS' self-drawn windows; use
+  `Scrim.qml` (dims the window only).

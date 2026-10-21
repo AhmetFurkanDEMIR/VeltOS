@@ -12,3 +12,4 @@ ThisPCView 1.0 ThisPCView.qml
 FolderView 1.0 FolderView.qml
 StatusBar 1.0 StatusBar.qml
 Glyph 1.0 Glyph.qml
+Scrim 1.0 Scrim.qml

@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-pdf
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-pdf/usr/lib/python3/dist-packages
+	cp -r veltos_pdf debian/veltos-pdf/usr/lib/python3/dist-packages/
+	find debian/veltos-pdf -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-pdf debian/veltos-pdf/usr/bin/veltos-pdf
+	install -D -m 644 data/veltos-pdf.desktop \
+		debian/veltos-pdf/usr/share/applications/veltos-pdf.desktop
+	install -D -m 644 data/veltos-pdf.svg \
+		debian/veltos-pdf/usr/share/icons/hicolor/scalable/apps/veltos-pdf.svg
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

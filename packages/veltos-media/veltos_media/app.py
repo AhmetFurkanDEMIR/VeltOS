@@ -315,8 +315,11 @@ class Backend(QObject):
         if not words:
             return []
 
+        # The file name, not its folders: every song under a folder named
+        # "2024" matched "2" (the test failed with such temporary folders).
         def hit(e):
-            haystack = " ".join(str(e.get(k, "")) for k in ("title", "artist", "album", "path")).lower()
+            haystack = " ".join([str(e.get(k, "")) for k in ("title", "artist", "album")]
+                                + [Path(e.get("path", "")).name]).lower()
             return all(w in haystack for w in words)
         return [e for e in self._songs + self._videos if hit(e)][:200]
 
