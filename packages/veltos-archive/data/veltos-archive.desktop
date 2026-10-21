@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Application
+Name=Archive
+Name[tr]=Arşiv
+GenericName=Archive manager
+GenericName[tr]=Arşiv yöneticisi
+Comment=Open, extract and create ZIP, RAR, 7Z and other archives
+Comment[tr]=ZIP, RAR, 7Z ve diğer arşivleri açın, çıkarın ve oluşturun
+Exec=veltos-archive %f
+Icon=veltos-archive
+Categories=Utility;Archiving;Compression;
+Keywords=zip;rar;7z;tar;winrar;archive;extract;compress;arşiv;sıkıştır;çıkar;
+MimeType=application/zip;application/x-zip-compressed;application/x-7z-compressed;application/vnd.rar;application/x-rar;application/x-rar-compressed;application/x-tar;application/x-compressed-tar;application/x-bzip-compressed-tar;application/x-bzip2-compressed-tar;application/x-xz-compressed-tar;application/x-zstd-compressed-tar;application/gzip;application/x-gzip;application/x-bzip2;application/x-bzip;application/x-xz;application/zstd;application/x-lzma;application/x-lzip;application/vnd.ms-cab-compressed;application/x-arj;application/x-lha;application/x-cpio;application/x-cd-image;application/x-iso9660-image;
+InitialPreference=12
+StartupNotify=false
+Actions=New;
+
+[Desktop Action New]
+Name=New archive
+Name[tr]=Yeni arşiv
+Exec=veltos-archive --add

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Archive: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2B12A"/>
+      <stop offset="1" stop-color="#E0950E"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE17D"/>
+      <stop offset="1" stop-color="#FFC83D"/>
+    </linearGradient>
+    <linearGradient id="pull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8A94A3"/>
+      <stop offset="1" stop-color="#4A5361"/>
+    </linearGradient>
+  </defs>
+  <path d="M 20 66 Q 20 50 36 50 H 96 Q 106 50 113 58 L 122 68 H 220 Q 236 68 236 84 V 200 Q 236 216 220 216 H 36 Q 20 216 20 200 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 20 66 Q 20 50 36 50 H 96 Q 106 50 113 58 L 122 68 H 220 Q 236 68 236 84 V 200 Q 236 216 220 216 H 36 Q 20 216 20 200 Z" fill="url(#back)"/>
+  <path d="M 20 98 Q 20 86 32 86 H 224 Q 236 86 236 98 V 200 Q 236 216 220 216 H 36 Q 20 216 20 200 Z" fill="url(#front)"/>
+  <path d="M 32 88 H 224" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="3" stroke-linecap="round"/>
+  <rect x="120" y="90" width="10" height="8" rx="2" fill="#5B6573"/>
+  <rect x="130" y="102" width="10" height="8" rx="2" fill="#5B6573"/>
+  <rect x="120" y="114" width="10" height="8" rx="2" fill="#5B6573"/>
+  <rect x="130" y="126" width="10" height="8" rx="2" fill="#5B6573"/>
+  <rect x="120" y="138" width="10" height="8" rx="2" fill="#5B6573"/>
+  <rect x="130" y="150" width="10" height="8" rx="2" fill="#5B6573"/>
+  <rect x="120" y="162" width="10" height="8" rx="2" fill="#5B6573"/>
+  <rect x="112" y="174" width="32" height="34" rx="7" fill="url(#pull)"/>
+  <rect x="122" y="184" width="12" height="14" rx="3" fill="#F2F4F7"/>
+</svg>

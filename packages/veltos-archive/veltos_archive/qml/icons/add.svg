@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- VeltOS Archive toolbar: Add. VeltOS artwork. SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="fb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2B12A"/><stop offset="1" stop-color="#E0950E"/></linearGradient>
+    <linearGradient id="ff" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE17D"/><stop offset="1" stop-color="#FFC83D"/></linearGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4FD47A"/><stop offset="1" stop-color="#1E9E4A"/></linearGradient>
+  </defs>
+  <path d="M 4 13 Q 4 10 7 10 H 18 Q 20 10 21.3 11.5 L 23 13.5 H 41 Q 44 13.5 44 16.5 V 38 Q 44 41 41 41 H 7 Q 4 41 4 38 Z" fill="url(#fb)"/>
+  <path d="M 4 19.5 Q 4 17 6.5 17 H 41.5 Q 44 17 44 19.5 V 38 Q 44 41 41 41 H 7 Q 4 41 4 38 Z" fill="url(#ff)"/>
+  <rect x="21" y="18.0" width="2.4" height="2" rx="0.5" fill="#5B6573"/>
+  <rect x="23" y="21.4" width="2.4" height="2" rx="0.5" fill="#5B6573"/>
+  <rect x="21" y="24.8" width="2.4" height="2" rx="0.5" fill="#5B6573"/>
+  <rect x="23" y="28.2" width="2.4" height="2" rx="0.5" fill="#5B6573"/>
+  <rect x="21" y="31.6" width="2.4" height="2" rx="0.5" fill="#5B6573"/>
+  <circle cx="36" cy="35" r="10" fill="url(#g)"/>
+  <path d="M 36 30 V 40 M 31 35 H 41" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+</svg>

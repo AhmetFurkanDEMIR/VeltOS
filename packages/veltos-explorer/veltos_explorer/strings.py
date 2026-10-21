@@ -88,6 +88,8 @@ TEXTS = {
     "unpin_from_quick_access": ("Unpin from Quick access", "Hızlı erişimden kaldır"),
     "compress_zip": ("Compress to ZIP file", "ZIP dosyasına sıkıştır"),
     "extract_all": ("Extract All…", "Tümünü Ayıkla…"),
+    "extract_here": ("Extract here", "Buraya çıkar"),
+    "add_to_archive": ("Add to archive…", "Arşive ekle…"),
     "copy_as_path": ("Copy as path", "Yol olarak kopyala"),
     "eject": ("Eject", "Çıkar"),
     # Status bar

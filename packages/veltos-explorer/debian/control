@@ -33,7 +33,7 @@ Depends: ${python3:Depends},
          qt6-svg-plugins,
          shared-mime-info,
          ${misc:Depends}
-Recommends: ark,
+Recommends: veltos-archive,
             konsole,
             udisks2
 Description: VeltOS File Explorer, a Windows 11 style file manager
