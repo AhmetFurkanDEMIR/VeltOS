@@ -65,6 +65,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
 | `packages/veltos-calculator/` | VeltOS Calculator: Windows 11 Calculator (Standard and Scientific modes, memory, history, keep on top, app theme); decimal engine in `engine.py` |
+| `packages/veltos-notepad/` | VeltOS Notepad: Windows 11 Notepad layout (tabs in the title bar, File/Edit/View, find and replace, status bar with encoding and line ending), keeps encodings/line endings, restores unsaved tabs; default for text files |
 | `packages/veltos-archive/` | VeltOS Archive: WinRAR's layout (toolbar, archive list, Extract To, Add, Test, passwords) on 7-Zip (+ 7zip-rar) and bsdtar; File Explorer's extract/compress |
 | `packages/veltos-camera/` | VeltOS Camera: Windows 11 Camera layout (photo, video, timer, framing grid, Camera Roll) on Qt Multimedia (FFmpeg backend, V4L2) |
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
@@ -355,6 +356,19 @@ owner sets priorities; agents act as the engineering team.
   version (all VeltOS packages are `0.1.0~dev1`): the old files stayed in
   the VM. Use `dpkg -i` to replace an installed package of the same
   version.
+- PySide6 ties the Python wrapper of `QQuickTextDocument.textDocument()`
+  to the wrapper of the QQuickTextDocument passed in from QML: keep both,
+  or the QTextDocument is "already deleted" for Python once QML's wrapper
+  is collected (VeltOS Notepad `attach`).
+- A QML property bound to `repeater.itemAt(index)` is not re-evaluated when
+  the Repeater creates its delegates later; depend on `repeater.count` too.
+- `plasma-apply-colorscheme --accent-color` writes the colours but not
+  `AccentColor`; VeltOS Settings records it with kwriteconfig6 so it can be
+  read back.
+- Plasma shows an applet's right-click menu only through the panel's
+  context menu plugin; with VeltOS' locked taskbar it has no actions and
+  no applet menu appears (libplasma `ContainmentItem::mousePressEvent`).
+  Applets open their own `PlasmaExtras.Menu` (Start's Windows + X menu).
 - `plasma-workspace-data` (not `plasma-workspace`) ships the QML of
   Plasma's applets; extract it with `apt-get download` in the builder to
   read the exact upstream text for overrides (`out/upstream/`).

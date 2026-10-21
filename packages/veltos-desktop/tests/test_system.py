@@ -131,6 +131,21 @@ class AppNameTests(unittest.TestCase):
         self.assertIn("org.kde.dolphin.desktop", app_names.HIDE)
         self.assertIn("systemsettings.desktop", app_names.HIDE)
 
+    def test_default_apps_follow_installed_veltos_apps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src, out = Path(tmp) / "src", Path(tmp) / "out"
+            src.mkdir()
+            app_names.update(src, out)
+            self.assertFalse((out / "kde-mimeapps.list").exists())
+            (src / "veltos-notepad.desktop").write_text("[Desktop Entry]\nName=Notepad\n", encoding="utf-8")
+            app_names.update(src, out)
+            text = (out / "kde-mimeapps.list").read_text(encoding="utf-8")
+            self.assertIn("[Default Applications]", text)
+            self.assertIn("text/plain=veltos-notepad.desktop;", text)
+            (src / "veltos-notepad.desktop").unlink()
+            app_names.update(src, out)
+            self.assertFalse((out / "kde-mimeapps.list").exists())
+
     def test_hidden_apps_keep_their_windows_names(self):
         # KDE Info Center is hidden like Windows' (Settings > About opens
         # instead) but keeps its Windows name where it still shows.

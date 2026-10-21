@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+Name=Notepad
+Name[tr]=Not Defteri
+GenericName=Text Editor
+GenericName[tr]=Metin Düzenleyici
+Comment=Write and edit plain text files
+Comment[tr]=Düz metin dosyaları yazın ve düzenleyin
+Exec=veltos-notepad %F
+Icon=veltos-notepad
+Categories=Utility;TextEditor;
+Keywords=notepad;text;editor;txt;log;ini;not;defteri;metin;düzenleyici;
+MimeType=text/plain;text/x-log;text/x-readme;text/markdown;text/csv;text/x-csrc;text/x-chdr;text/x-c++src;text/x-python;text/x-shellscript;application/x-shellscript;application/json;application/xml;text/xml;application/x-yaml;text/x-ini;application/x-desktop;text/x-makefile;text/x-cmake;text/css;text/javascript;application/javascript;text/x-java;text/x-sql;
+StartupNotify=true
+Actions=new-window;
+
+[Desktop Action new-window]
+Name=New window
+Name[tr]=Yeni pencere
+Exec=veltos-notepad --new-window

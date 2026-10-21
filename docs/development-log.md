@@ -3,6 +3,33 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (17:00) — VeltOS Notepad (Windows 11 Notepad)
+
+- Product owner: the text editor must be exactly Windows 11's Notepad.
+  New package `veltos-notepad` (PySide6/QML, same frame technique as File
+  Explorer): tabs in the title bar with the unsaved dot, File/Edit/View
+  menus and Settings, find and replace panel at the top right, status bar
+  with line/column, characters, zoom, line ending and encoding (both can
+  be changed there), Settings page (app theme, font, word wrap, opening
+  files, session). Encodings and line endings are detected and kept
+  (`textfile.py`); Replace all is one Undo step (QTextCursor edit block);
+  unsaved tabs are kept in a session file like Windows 11; a second start
+  hands its files to the running Notepad over a local socket.
+- Default apps: veltos-desktop's `update-app-names` now also writes
+  `/var/lib/veltos/xdg/applications/kde-mimeapps.list` with the installed
+  VeltOS apps per file type; Plasma reads it before KDE's
+  `/usr/share/applications/kde-mimeapps.list` (checked: XDG_DATA_DIRS of the
+  session is `/var/lib/veltos/xdg:/usr/local/share:/usr/share`). Text files
+  → Notepad. KWrite leaves the image; Start's pinned KWrite becomes
+  Notepad once.
+- Found: PySide6 makes the QTextDocument of a QML TextArea unusable from
+  Python when the QQuickTextDocument wrapper is dropped ("already
+  deleted"); Notepad keeps both (probe in the builder: `out/vm/doctest.py`).
+- Verified: 19 Notepad unit tests (offscreen window EN/TR); VM (live): a
+  CRLF file opened with xdg-open in Notepad, File menu, typing (dot on the
+  tab), find, Ctrl+S kept CRLF (od -c), Settings page. Not tested: printing
+  to a real printer, very large files.
+
 ## 2026-10-21 (15:40) — Settings Home and Themes like Windows 11
 
 - Product owner's screenshots: Windows 11 Settings Home (device card with
