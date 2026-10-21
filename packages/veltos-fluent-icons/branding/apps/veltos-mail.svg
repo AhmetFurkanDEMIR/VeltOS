@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Mail: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A64C8"/>
+      <stop offset="1" stop-color="#0F4AA0"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0" stop-color="#45B9F9"/>
+      <stop offset="1" stop-color="#1F86E8"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E8EEF5"/>
+    </linearGradient>
+  </defs>
+  <path d="M 24 104 L 128 36 L 232 104 V 196 Q 232 214 214 214 H 42 Q 24 214 24 196 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 24 104 L 128 36 L 232 104 V 196 Q 232 214 214 214 H 42 Q 24 214 24 196 Z" fill="url(#back)"/>
+  <rect x="58" y="70" width="140" height="104" rx="8" fill="url(#paper)"/>
+  <path d="M 80 98 H 176 M 80 118 H 150" stroke="#9FB4CC" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 24 112 L 128 176 L 232 112 V 196 Q 232 214 214 214 H 42 Q 24 214 24 196 Z" fill="url(#front)"/>
+  <path d="M 24 214 L 108 152 Q 128 140 148 152 L 232 214 Z" fill="#5CC7FF" opacity="0.55"/>
+</svg>

@@ -3,6 +3,26 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (08:30) — One Windows 11 style family of app icons
+
+- The product owner: Camera, Mail, the archive app, Calculator, Settings
+  and the other default apps should have Windows 11 like icons that match
+  each other. Windows 11's icons were looked at for reference (Wikipedia
+  articles' logos); VeltOS draws its own (`veltos-fluent-icons/tools/
+  app-icons.py`): objects rather than tiles, soft top-to-bottom gradients,
+  light from the top left, the same faint contact shadow — Calculator,
+  Camera, Mail (envelope), Snipping Tool, Store (bag with the VeltOS V),
+  Settings (gear), Task Manager (chart), File Explorer (folder with a
+  blue tab), Notepad (Text Editor), Photos, Document Viewer (PDF page),
+  Archive (zipped folder), Media Player. No Microsoft file or logo is
+  used.
+- Each drawing is installed in `.Fluent-base/scalable/apps` under the
+  VeltOS app's name and the names of the KDE/Debian apps it stands for
+  (e.g. `thunderbird` gets the envelope, `org.kde.kwrite` the notepad); the
+  VeltOS apps' own hicolor icons are the same drawings (non-Fluent themes).
+- VM (installed system): Start shows the new family (pinned apps and the
+  category cards).
+
 ## 2026-10-21 (08:10) — File Explorer: Windows 11 folder colours, whole pins
 
 - The product owner sent Windows 11's File Explorer for reference: the

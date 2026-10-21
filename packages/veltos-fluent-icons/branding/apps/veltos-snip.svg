@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Snipping Tool: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7F9FC"/>
+      <stop offset="1" stop-color="#E3E8EF"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9AA4B2"/>
+      <stop offset="1" stop-color="#6E7887"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5FC2FF"/>
+      <stop offset="1" stop-color="#2F7BE6"/>
+    </linearGradient>
+  </defs>
+  <path d="M 54 28 H 170 Q 196 28 196 54 V 170 Q 196 196 170 196 H 54 Q 28 196 28 170 V 54 Q 28 28 54 28 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 54 28 H 170 Q 196 28 196 54 V 170 Q 196 196 170 196 H 54 Q 28 196 28 170 V 54 Q 28 28 54 28 Z" fill="url(#tile)" stroke="#D4DAE3" stroke-width="2"/>
+  <path d="M 56 132 V 66 Q 56 56 66 56 H 132" fill="none" stroke="#F04A3C" stroke-width="14" stroke-linecap="round" stroke-dasharray="22 16"/>
+  <path d="M 112 112 L 200 200" stroke="url(#blade)" stroke-width="16" stroke-linecap="round"/>
+  <path d="M 196 112 L 112 196" stroke="url(#blade)" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="102" cy="208" r="20" fill="none" stroke="url(#handle)" stroke-width="12"/>
+  <circle cx="210" cy="208" r="20" fill="none" stroke="url(#handle)" stroke-width="12"/>
+  <circle cx="155" cy="155" r="6" fill="#4A5361"/>
+</svg>

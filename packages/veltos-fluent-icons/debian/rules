@@ -63,6 +63,14 @@ override_dh_auto_install:
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/drive-harddisk-windows.svg
 	install -D -m 644 branding/small/drive-harddisk-windows.svg \
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/devices/drive-harddisk-windows.svg
+	# App icons as one Windows 11 style family (VeltOS artwork, branding/apps/,
+	# tools/app-icons.py): VeltOS apps and the KDE apps they stand for. All
+	# Fluent themes share .Fluent-base/scalable; a symbolic link of that name
+	# is replaced by the file.
+	for f in branding/apps/*.svg; do \
+		dest=$(ICONS)/.Fluent-base/scalable/apps/$$(basename $$f); \
+		rm -f $$dest && cp $$f $$dest; \
+	done
 	# File Explorer's Home: an orange house like Windows 11 (a VeltOS name,
 	# next to every user-home icon of the Fluent themes).
 	for f in $$(find $(ICONS) -path '*/places/user-home.svg' \( -type f -o -type l \)); do \
@@ -99,6 +107,9 @@ execute_after_dh_auto_install:
 	cmp -s $(ICONS)/.Fluent-base/16/devices/drive-harddisk-windows.svg branding/small/drive-harddisk-windows.svg
 	! grep -qi '198ee6' $(ICONS)/.Fluent-base/scalable/places/default-folder.svg
 	cmp -s $(ICONS)/.Fluent-base/scalable/places/veltos-home.svg branding/veltos-home.svg
+	for f in branding/apps/*.svg; do \
+		cmp -s $(ICONS)/Fluent/scalable/apps/$$(basename $$f) $$f || exit 1; \
+	done
 	cmp -s $(ICONS)/.Fluent-base/16/places/veltos-home.svg branding/small/veltos-home.svg
 	cmp -s $(ICONS)/.Fluent-base/16/places/folder-download.svg branding/small/folder-download.svg
 	grep -q 'FFC83D' $(ICONS)/.Fluent-base/scalable/apps/file-manager.svg
