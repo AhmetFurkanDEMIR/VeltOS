@@ -3,6 +3,36 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (04:15) — New ISO checked screen by screen; Start centred
+
+- ISO `veltos-0.1.0-dev-20261021-001546` (all work up to Mail; Camera
+  came later): `build/run.sh test uefi` passed every check
+  (`out/test-results/20261021-003040-uefi`).
+- **Boot and installation recorded frame by frame** (`frames:` action,
+  one screenshot per 1–8 s) for the product owner's "never show code or
+  logs during installation and start-up": live boot = firmware logo,
+  VeltOS splash, "Welcome" splash, desktop; installed system = firmware,
+  boot splash, lock-style sign-in screen. The only text is OVMF's own
+  "BdsDxe: loading Boot0001" line, printed by the VM firmware before
+  VeltOS starts (real PCs show their maker's logo there). The installer,
+  however, showed commands: the Summary page listed partition operations
+  and the installation page "Running command
+  /usr/libexec/veltos-installer/sources-media..." with a "Toggle log"
+  button. Both are gone (commit cfe8fde); checked in the live VM with
+  the rebuilt package: Users → confirmation → slideshow with only the
+  progress bar → "All done".
+- Installed system (same VM): sign-in screen with the default account
+  picture; Mail found in Start and opened without the privacy tab after
+  the fix; Camera with a virtual webcam (v4l2loopback fed by ffmpeg's
+  test picture): preview, photo, video (H.264 after the fix).
+- **Start centred like Windows 11**: Plasma places an applet's popup over
+  its "visual parent"; the desktop shell's `CompactApplet.qml`
+  (plasma-desktop-data 6.3.6) now gives the Start menu an empty item in
+  the middle of the panel window as visual parent (override spec
+  `org.kde.plasma.desktop.json`). VM: Start opens centred; the clock and
+  Quick Settings flyouts still open over their buttons. veltos-desktop
+  76 tests (new: the override applies to Plasma's file).
+
 ## 2026-10-21 (01:00) — Mail and Camera; ISO build fixed
 
 - **ISO build failed** (first build since Dolphin left the image): the

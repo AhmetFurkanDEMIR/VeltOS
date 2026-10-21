@@ -1,13 +1,25 @@
 {
   "plugin": "org.kde.plasma.desktop",
   "type": "shells",
-  "about": "Plasma's desktop shell package also holds the lock screen (kscreenlocker loads lockscreen/LockScreen.qml from it). Its LockScreenUi.qml is replaced by the Windows 11 lock screen in files/lockscreen/ while Plasma's file is the one of plasma-workspace 6.3.6 (Debian 13); everything else in the shell stays Plasma's.",
+  "about": "Plasma's desktop shell package holds the lock screen (kscreenlocker loads lockscreen/LockScreen.qml from it) and CompactApplet.qml, which opens every panel applet's popup. Its LockScreenUi.qml is replaced by the Windows 11 lock screen in files/lockscreen/ while Plasma's file is the one of plasma-workspace 6.3.6 (Debian 13); CompactApplet.qml (plasma-desktop-data 6.3.6) places the Start menu's popup over the middle of the taskbar; everything else in the shell stays Plasma's.",
   "replacements": [
     {
       "file": "contents/lockscreen/LockScreenUi.qml",
       "why": "Windows 11 lock screen: time and date, then account picture and password box",
       "replace_with": "lockscreen/LockScreenUi.qml",
       "upstream_sha256": "7154011ec3f7bd6985577293f0bb8de7da27e259de05917b3074cf39221a6d17"
+    },
+    {
+      "file": "contents/applet/CompactApplet.qml",
+      "why": "Start opens centred over the taskbar like Windows 11: an empty item in the middle of the panel window (which spans the screen) to place the popup over",
+      "old": "    PlasmaCore.AppletPopup {\n        id: dialog\n        objectName: \"popupWindow\"\n",
+      "new": "    // VeltOS: Start opens centred over the taskbar, like Windows 11. The\n    // popup is placed over its visual parent; this empty item sits in the\n    // middle of the panel window, which spans the screen.\n    Item {\n        id: startCentre\n        parent: root.Window.window ? root.Window.window.contentItem : null\n        x: parent ? Math.round(parent.width / 2) - 1 : 0\n        width: 2\n        height: parent ? parent.height : 0\n    }\n\n    PlasmaCore.AppletPopup {\n        id: dialog\n        objectName: \"popupWindow\"\n"
+    },
+    {
+      "file": "contents/applet/CompactApplet.qml",
+      "why": "the Start menu uses the centred item as its popup's visual parent",
+      "old": "        visualParent: root.compactRepresentation\n",
+      "new": "        visualParent: Plasmoid.pluginName === \"org.veltos.startmenu\" && startCentre.parent\n                      ? startCentre : root.compactRepresentation\n"
     }
   ]
 }
