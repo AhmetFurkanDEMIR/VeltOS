@@ -1,0 +1,13 @@
+#!/usr/bin/python3
+"""VeltOS Camera (Windows 11 style)."""
+import os
+import sys
+
+os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
+# Same file times in every package build: compile the QML at start (see
+# AGENTS.md, QML disk cache).
+os.environ["QML_DISABLE_DISK_CACHE"] = "1"
+
+from veltos_camera.app import main
+
+sys.exit(main())

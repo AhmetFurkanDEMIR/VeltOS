@@ -1,0 +1,39 @@
+Source: veltos-camera
+Section: video
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtmultimedia,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-qtmultimedia,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qml6-module-qtqml-models
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-camera
+Architecture: all
+Depends: ${python3:Depends},
+         python3-pyside6.qtmultimedia,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-qtmultimedia,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qml6-module-qtqml-models,
+         xdg-user-dirs,
+         ${misc:Depends}
+Description: VeltOS Camera, a Windows 11 style camera app
+ Takes photos and videos with a webcam in the layout of Windows 11's
+ Camera: the picture fills the window, Photo/Video, the shutter and the
+ last capture on the right, settings (framing grid, sound with videos,
+ save location) and a photo timer on the left. Photos and videos are
+ saved in Pictures > Camera Roll.
+ .
+ The camera is Qt Multimedia's (FFmpeg backend, V4L2 cameras).

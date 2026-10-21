@@ -65,6 +65,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
 | `packages/veltos-calculator/` | VeltOS Calculator: Windows 11 Calculator (Standard and Scientific modes, memory, history, keep on top, app theme); decimal engine in `engine.py` |
+| `packages/veltos-camera/` | VeltOS Camera: Windows 11 Camera layout (photo, video, timer, framing grid, Camera Roll) on Qt Multimedia (FFmpeg backend, V4L2) |
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
 | `packages/veltos-store/` | VeltOS Store: Microsoft Store layout (Home, Apps, Gaming, Library, app pages) on AppStream (gir1.2-appstream-1.0) and PackageKit (pkcon); replaces Discover |
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
