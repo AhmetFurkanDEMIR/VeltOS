@@ -30,6 +30,9 @@ override_dh_auto_install:
 		-o -name 'distributor-logo.svg' -o -name 'distributor-logo-symbolic.svg' \) \
 		-exec cp branding/veltos-logo.svg {} \;
 	find $(ICONS) -type f \( -name 'wine.svg' -o -name 'wine-winecfg.svg' -o -name 'windows.svg' \) -delete
+	# Firefox shows its own logo (firefox-esr's hicolor icons), as on
+	# Windows 11; Fluent's flat redrawing of it is removed.
+	find $(ICONS) \( -type f -o -type l \) -path '*/apps/*' -name 'firefox*' ! -name '*symbolic*' -delete
 	# "This PC", the Recycle Bin, folders, the local disk and the terminal in the look of
 	# Windows 11 (VeltOS artwork, branding/, tools/draw-icons.py), at all
 	# sizes and in the dark theme too. Many of Fluent's are symbolic links
@@ -98,8 +101,9 @@ override_dh_auto_install:
 execute_after_dh_auto_install:
 	grep -q '^Inherits=breeze-dark,hicolor' $(ICONS)/Fluent-dark/index.theme
 	test -z "$$(find $(ICONS) -xtype l)"
-	for app in org.kde.dolphin firefox-esr org.kde.konsole systemsettings; do \
+	for app in org.kde.dolphin org.kde.konsole systemsettings; do \
 		test -e $(ICONS)/Fluent/scalable/apps/$$app.svg || exit 1; done
+	test -z "$$(find -L $(ICONS) -path '*/apps/*' -name 'firefox-esr.svg')"
 	test -f $(ICONS)/Fluent-cursors/index.theme
 	test -e $(ICONS)/Fluent-cursors/cursors/default
 	grep -qx 'Inherits=Fluent-cursors' $(ICONS)/Fluent-cursors/cursor.theme

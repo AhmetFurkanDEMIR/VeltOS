@@ -24,9 +24,11 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
 - **App icons as one family** (`branding/apps/`, drawn by
   `tools/app-icons.py`): Calculator, Camera, Mail, Snipping Tool, Store,
   Settings, Task Manager, File Explorer, Notepad, Photos, Document Viewer,
-  Archive and Media Player in the look of Windows 11's app icons (VeltOS
-  drawings, no Microsoft files or logos), installed under the VeltOS apps'
-  names and the KDE/Debian apps they stand for.
+  Archive, Media Player and Disk Management in the look of Windows 11's
+  app icons (VeltOS drawings, no Microsoft files or logos), installed under
+  the VeltOS apps' names and the KDE/Debian apps they stand for.
+- **Firefox** shows its own logo (the firefox-esr package's hicolor
+  icons), as on Windows 11: Fluent's flat redrawings of it are removed.
 - **Special folders** coloured like Windows 11's (Desktop, Downloads,
   Documents, Pictures, Music, Videos) with 16 px drawings, and File
   Explorer's orange Home (`veltos-home`).
