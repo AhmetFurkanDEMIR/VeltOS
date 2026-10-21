@@ -1,0 +1,6 @@
+veltos-media (0.1.0~dev1) unstable; urgency=medium
+
+  * Initial package: Windows 11 style Media Player (music and video
+    libraries, play queue, playlists, now playing, player bar).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Wed, 21 Oct 2026 21:00:00 +0000

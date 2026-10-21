@@ -49,7 +49,7 @@ def _store(image, path, flavour):
         return ""
     image.setText("Thumb::URI", file_uri(path))
     image.setText("Thumb::MTime", mtime)
-    image.setText("Software", "VeltOS Photos")
+    image.setText("Software", "VeltOS")
     thumb = thumbnail_path(path, flavour)
     try:
         thumb.parent.mkdir(parents=True, exist_ok=True, mode=0o700)

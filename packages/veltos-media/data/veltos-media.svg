@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Media Player: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF9A4D"/>
+      <stop offset="1" stop-color="#F0436F"/>
+    </linearGradient>
+  </defs>
+  <path d="M 72 28 H 184 Q 228 28 228 72 V 184 Q 228 228 184 228 H 72 Q 28 228 28 184 V 72 Q 28 28 72 28 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 72 28 H 184 Q 228 28 228 72 V 184 Q 228 228 184 228 H 72 Q 28 228 28 184 V 72 Q 28 28 72 28 Z" fill="url(#tile)"/>
+  <path d="M 104 84 Q 104 70 116 77 L 176 117 Q 188 128 176 139 L 116 179 Q 104 186 104 172 Z" fill="#FFFFFF"/>
+</svg>
