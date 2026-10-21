@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS Camera: a camera body with a VeltOS blue lens. VeltOS artwork.
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A3F5C"/>
+      <stop offset="1" stop-color="#20233A"/>
+    </linearGradient>
+    <radialGradient id="lens" cx="0.4" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#7FD4FF"/>
+      <stop offset="0.45" stop-color="#4F7CFF"/>
+      <stop offset="1" stop-color="#5B3FE0"/>
+    </radialGradient>
+  </defs>
+  <path d="M 92 52 L 164 52 L 180 76 L 212 76 Q 236 76 236 100 L 236 196 Q 236 220 212 220 L 44 220 Q 20 220 20 196 L 20 100 Q 20 76 44 76 L 76 76 Z"
+        fill="#000000" opacity="0.18" transform="translate(0 4)"/>
+  <path d="M 92 52 L 164 52 L 180 76 L 212 76 Q 236 76 236 100 L 236 196 Q 236 220 212 220 L 44 220 Q 20 220 20 196 L 20 100 Q 20 76 44 76 L 76 76 Z"
+        fill="url(#body)"/>
+  <circle cx="128" cy="146" r="58" fill="#14162A"/>
+  <circle cx="128" cy="146" r="48" fill="url(#lens)"/>
+  <circle cx="110" cy="128" r="12" fill="#FFFFFF" opacity="0.55"/>
+  <rect x="190" y="94" width="24" height="12" rx="6" fill="#2FA8F0"/>
+</svg>

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Camera
+Name[tr]=Kamera
+GenericName=Camera
+GenericName[tr]=Kamera
+Comment=Take photos and videos with your camera
+Comment[tr]=Kameranızla fotoğraf ve video çekin
+Exec=veltos-camera
+Icon=veltos-camera
+Categories=AudioVideo;Video;Photography;
+Keywords=camera;webcam;photo;video;record;kamera;web kamerası;fotoğraf;video;kayıt;
+StartupNotify=false

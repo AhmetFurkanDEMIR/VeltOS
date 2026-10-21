@@ -3,6 +3,34 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (01:00) — Mail and Camera; ISO build fixed
+
+- **ISO build failed** (first build since Dolphin left the image): the
+  verify hook still required the `kde-plasma-desktop` metapackage, which
+  the package list spells out without Dolphin. The hook now checks
+  Plasma's main packages and the VeltOS apps; the fixed hook passed in
+  the chroot of the failed build (the hook stops at its first failure, so
+  the rest had never run).
+- **Mail** (product owner: "an e-mail app, Windows 11 look"): writing a
+  mail client is out of proportion; Debian's Thunderbird 140.17 ESR
+  (verified with apt-cache in the builder; 70 MB package) is installed as
+  "Mail"/"Posta", gets the VeltOS caption buttons through its autoconfig
+  (`/usr/lib/thunderbird/veltos.cfg`, defaults in
+  `/usr/share/thunderbird/defaults/pref/veltos.js`, the paths of
+  Debian's package) and starts without the default-client question,
+  start page or donation tab. Not yet checked in a VM.
+- **Camera**: new package `veltos-camera` (PySide6 + Qt Multimedia 6.8;
+  Debian's `libqt6multimedia6` contains the FFmpeg backend, verified by
+  listing the package). Windows 11 Camera layout: picture over the whole
+  window, Photo/Video, shutter, last capture, change camera, timer,
+  settings (grid, sound with videos, save location), Pictures > Camera
+  Roll. 10 unit tests; rendered offscreen (no-camera state, settings,
+  video mode). Taking photos and videos is **untested**: QEMU has no
+  camera.
+- `tests/boot/vmpreview.py` gained `frames:SECONDS,STEP,NAME` to record a
+  whole boot screen by screen (for the "no log output during boot and
+  installation" request).
+
 ## 2026-10-21 (00:00) — Default account picture
 
 - The product owner asked for a nice default account picture for "Velt"
