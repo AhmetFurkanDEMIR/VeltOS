@@ -9,7 +9,7 @@
    (Debian 13). SPDX-License-Identifier: GPL-3.0-or-later */
 
 @-moz-document url-prefix("chrome://messenger/content/"), url("about:3pane"), url("about:message"),
-               url("about:addressbook") {
+               url("about:addressbook"), url("about:accountsetup"), url("about:accountcentral") {
 
   :root {
     --veltos-window: #F3F5FA;
@@ -17,8 +17,10 @@
     --veltos-border: #E3E6EE;
     --veltos-text: #1B1D24;
     --veltos-subtext: #5D6475;
-    --veltos-accent: #2F5EE6;
-    --veltos-accent-text: #FFFFFF;
+    /* The accent chosen in Settings (Thunderbird gets it from the GTK
+       theme), as in every other VeltOS window. */
+    --veltos-accent: AccentColor;
+    --veltos-accent-text: AccentColorText;
     --veltos-hover: rgba(0, 0, 0, 0.045);
 
     --selected-item-color: var(--veltos-accent) !important;
@@ -52,8 +54,6 @@
       --veltos-border: #363949;
       --veltos-text: #F2F3F7;
       --veltos-subtext: #AEB3C5;
-      --veltos-accent: #6E95FF;
-      --veltos-accent-text: #0B1020;
       --veltos-hover: rgba(255, 255, 255, 0.06);
     }
   }
@@ -156,5 +156,140 @@
   }
   tr.card-layout[data-properties~="unread"] .subject {
     color: var(--veltos-accent) !important;
+  }
+
+  /* --- Add account (Thunderbird's account setup tab) as one centred card,
+     like Outlook's "Add your account": the column with Thunderbird's
+     illustrations and Mozilla links is hidden, the title and the text
+     under it are VeltOS' own (English, Turkish); the form, its checks and
+     the automatic server configuration are Thunderbird's, unchanged. The
+     texts are replaced only while the page has its first-step ids (the
+     same title shows "Account successfully created" later). Checked
+     against accountSetup.xhtml of Thunderbird 140.17 ESR. */
+  #accountSetup body {
+    background-color: var(--veltos-window) !important;
+    align-items: center !important;
+    padding-block: 40px !important;
+  }
+  #accountSetup header,
+  #accountSetup .main-container {
+    box-sizing: border-box !important;
+    width: min(560px, calc(100% - 32px)) !important;
+    max-width: none !important;
+    margin: 0 !important;
+    background-color: var(--veltos-card) !important;
+    border: 1px solid var(--veltos-border) !important;
+  }
+  #accountSetup header {
+    border-block-end: none !important;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 32px 40px 0 !important;
+  }
+  #accountSetup .main-container {
+    border-block-start: none !important;
+    border-radius: 0 0 8px 8px !important;
+    padding: 8px 40px 28px !important;
+    /* Downwards only: an upward shadow drew a line between the parts. */
+    box-shadow: 0 16px 24px -14px rgba(0, 0, 0, 0.16) !important;
+  }
+  #accountSetup header::before {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 48px;
+    margin-block-end: 16px;
+    background: url("file:///usr/share/icons/.Fluent-base/scalable/apps/veltos-mail.svg") center / contain no-repeat;
+  }
+  #accountSetup .second-column,
+  #accountSetupDescriptionSecondary {
+    display: none !important;
+  }
+  #accountSetup .first-column {
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  #accountSetup .title {
+    font-size: 26px !important;
+    font-weight: 600 !important;
+    margin-block: 0 6px !important;
+  }
+  #accountSetupTitle[data-l10n-id="account-setup-title"],
+  #accountSetupDescription[data-l10n-id="account-setup-description"] {
+    font-size: 0 !important;
+    line-height: 0 !important;
+  }
+  #accountSetupTitle[data-l10n-id="account-setup-title"]::after {
+    content: "Add your account";
+    display: block;
+    font-size: 26px;
+    line-height: 1.3;
+  }
+  #accountSetupDescription[data-l10n-id="account-setup-description"]::after {
+    content: "Use your email address from Gmail, Outlook.com, Yahoo, iCloud or any other provider.";
+    display: block;
+    font-size: 14px;
+    line-height: 1.45;
+    margin-block-end: 18px;
+    color: var(--veltos-subtext);
+  }
+  :root:lang(tr) #accountSetupTitle[data-l10n-id="account-setup-title"]::after {
+    content: "Hesabınızı ekleyin";
+  }
+  :root:lang(tr) #accountSetupDescription[data-l10n-id="account-setup-description"]::after {
+    content: "Gmail, Outlook.com, Yahoo, iCloud veya başka bir sağlayıcıdaki e-posta adresinizi kullanın.";
+  }
+  #accountSetupDescription {
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+  }
+  /* "Cancel" asks whether to go on without an account; the app is "Mail"
+     in VeltOS, not Thunderbird. */
+  #confirmExitDialog [data-l10n-id="exit-dialog-description"],
+  #confirmExitDialog [data-l10n-id="account-setup-no-account-checkbox"] {
+    font-size: 0 !important;
+  }
+  #confirmExitDialog [data-l10n-id="exit-dialog-description"] {
+    line-height: 0 !important;
+  }
+  #confirmExitDialog [data-l10n-id="exit-dialog-description"]::after,
+  #confirmExitDialog [data-l10n-id="account-setup-no-account-checkbox"]::after {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  #confirmExitDialog [data-l10n-id="exit-dialog-description"]::after {
+    display: block;
+  }
+  #confirmExitDialog [data-l10n-id="exit-dialog-description"]::after {
+    content: "Are you sure you want to stop adding an account? Mail works without an email account too, but most of its features need one.";
+  }
+  #confirmExitDialog [data-l10n-id="account-setup-no-account-checkbox"]::after {
+    content: "Use Mail without an email account";
+  }
+  :root:lang(tr) #confirmExitDialog [data-l10n-id="exit-dialog-description"]::after {
+    content: "Hesap eklemeyi bırakmak istediğinizden emin misiniz? Posta e-posta hesabı olmadan da açılır, ancak çoğu özelliği için bir hesap gerekir.";
+  }
+  :root:lang(tr) #confirmExitDialog [data-l10n-id="account-setup-no-account-checkbox"]::after {
+    content: "Postayı e-posta hesabı olmadan kullan";
+  }
+  /* Windows 11 fields and buttons: 4 px corners, an accent line under the
+     focused field, the main button filled with the accent. */
+  #accountSetup .input-field,
+  #accountSetup select {
+    border-radius: 4px !important;
+    min-height: 32px !important;
+  }
+  #accountSetup .input-field:focus {
+    outline: none !important;
+    border-color: var(--veltos-border) !important;
+    box-shadow: inset 0 -2px 0 var(--veltos-accent) !important;
+  }
+  #accountSetup button {
+    border-radius: 4px !important;
+    min-height: 32px !important;
+  }
+  #accountSetup button.primary:not([disabled]) {
+    background-color: var(--veltos-accent) !important;
+    color: var(--veltos-accent-text) !important;
+    border-color: transparent !important;
   }
 }

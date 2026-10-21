@@ -3,6 +3,25 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-21 (20:00) — Mail: Outlook-like "Add your account"
+
+- Product owner: Mail still opened on an old-looking sign-in page. It was
+  Thunderbird's account setup tab with its octopus illustrations and
+  Mozilla links: `mail.css` never reached it because the page is
+  `about:accountsetup`, not a `chrome://messenger/content/` URL (found by
+  extracting `omni.ja` of Debian's Thunderbird 140.17 ESR in the builder
+  and searching for the page's URL).
+- Now: one centred card like Outlook's "Add your account" with the Mail
+  icon, VeltOS' title and text (English/Turkish, replaced only while the
+  page shows its first step), the illustration column hidden, Windows 11
+  fields (accent line under the focused field) and buttons. The "cancel"
+  question names Mail instead of Thunderbird. Mail uses the accent chosen
+  in Settings (`AccentColor`) instead of a fixed blue.
+- Verified in a live VM (fresh profile): the card, the cancel question,
+  "use without an account" leading to the Outlook-like main window. Not
+  checked: adding a real account (needs credentials), Turkish texts on
+  screen, dark mode.
+
 ## 2026-10-21 (19:40) — VeltOS Office (LibreOffice for Windows users)
 
 - Product owner: Word, Excel and PowerPoint like Windows 11's Office.
