@@ -24,6 +24,22 @@ export GTK_USE_PORTAL=1
 # animation there (VM, 2026-10-20). With a real GPU this changes nothing.
 export KWIN_EFFECTS_FORCE_ANIMATIONS=1
 
+# VirtualBox's VMSVGA display (the vmwgfx driver) reports an unsupported
+# hypervisor and offers no working OpenGL, so KWin cannot configure its
+# output and plasmashell and the QML apps cannot create a GL context
+# ("Applying output config failed", "libEGL: failed to create dri2
+# screen"): the desktop stays black (VirtualBox BIOS, VMSVGA, 16 MB VRAM,
+# 3D off: the product owner's set-up, 2026-10-22). Render the whole stack
+# in software there: KWin's QPainter compositor, Qt Quick's software scene
+# graph (plasmashell and every VeltOS QML app), and Mesa's llvmpipe. The
+# desktop then paints at once. Detected by DMI; real GPUs, QEMU and other
+# machines keep hardware rendering and are untouched.
+if grep -qi virtualbox /sys/class/dmi/id/product_name /sys/class/dmi/id/sys_vendor 2>/dev/null; then
+    export KWIN_COMPOSE=Q
+    export QT_QUICK_BACKEND=software
+    export LIBGL_ALWAYS_SOFTWARE=1
+fi
+
 # Per-user defaults KDE has no system-wide setting for (application style,
 # File Explorer side bar). Created once; a user's own files are kept.
 if [ ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig" ] ||

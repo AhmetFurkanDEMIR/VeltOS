@@ -27,11 +27,11 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   Archive, Media Player and Disk Management in the look of Windows 11's
   app icons (VeltOS drawings, no Microsoft files or logos), installed under
   the VeltOS apps' names and the KDE/Debian apps they stand for. The
-  Office apps (Word Processor, Spreadsheet, Presentation, for LibreOffice)
-  follow the composition of Microsoft 365's Windows 11 icons: a tile in
-  the app's colour (Word blue, Excel green, PowerPoint orange) with the
-  app's initial (W, S, P: VeltOS' own app names) in front of a page, sheet
-  or slide; the same drawings stand for the Office file types.
+  Office apps (Word, Excel, PowerPoint: LibreOffice under the names the
+  product owner chose on 2026-10-22) follow the composition of Microsoft
+  365's Windows 11 icons: a tile in the app's colour (Word blue, Excel
+  green, PowerPoint orange) with the initial W, X or P in front of a page,
+  sheet or slide; the same drawings stand for the Office file types.
 - **Firefox** shows its own logo (the firefox-esr package's hicolor
   icons), as on Windows 11: Fluent's flat redrawings of it are removed.
 - **Special folders** coloured like Windows 11's (Desktop, Downloads,

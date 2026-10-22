@@ -410,9 +410,18 @@ class FullBuildTest(unittest.TestCase):
 
     def check_session_files(self, root, kdeglobals):
         self.assertTrue((root / "etc/xdg/plasma-workspace/env/veltos-session.sh").is_file())
-        for helper in ("session-defaults", "update-app-names", "start-categories"):
+        for helper in ("session-defaults", "update-app-names", "start-categories", "greeter-compositor"):
             path = root / "usr/libexec/veltos" / helper
             self.assertTrue(path.stat().st_mode & 0o111, f"{helper} is not executable")
+        # The sign-in screen runs KWin through the wrapper that uses the
+        # software compositor in VirtualBox (the session does the same).
+        sddm = (root / "usr/lib/sddm/sddm.conf.d/10-veltos.conf").read_text()
+        self.assertIn("CompositorCommand=/usr/libexec/veltos/greeter-compositor\n", sddm)
+        self.assertIn("QT_QUICK_BACKEND=software", sddm)       # greeter renders in software
+        # The session renders the whole stack in software in VirtualBox.
+        session = (root / "etc/xdg/plasma-workspace/env/veltos-session.sh").read_text()
+        for var in ("KWIN_COMPOSE=Q", "QT_QUICK_BACKEND=software", "LIBGL_ALWAYS_SOFTWARE=1"):
+            self.assertIn(var, session)
         # Default account picture: new accounts (skel), sign-in screen (FacesDir).
         picture = (root / "usr/share/veltos/faces/default.png").read_bytes()
         self.assertTrue(picture.startswith(b"\x89PNG"))

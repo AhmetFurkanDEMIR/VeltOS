@@ -491,9 +491,14 @@ def build_static_config(root):
             "[General]\n"
             "InputMethod=\n"
             "DisplayServer=wayland\n"
-            "GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell\n"
+            # The login screen renders with Qt's software scene graph and
+            # llvmpipe: it must appear on any GPU, driver or VM (VirtualBox's
+            # VMSVGA offers no working OpenGL, which left the greeter black
+            # on an installed system; the session does the same through
+            # veltos-session.sh). A login screen does not need the GPU.
+            "GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell,QT_QUICK_BACKEND=software,LIBGL_ALWAYS_SOFTWARE=1\n"
             "\n[Wayland]\n"
-            "CompositorCommand=kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1\n"
+            "CompositorCommand=/usr/libexec/veltos/greeter-compositor\n"
             "\n[Theme]\n"
             "Current=veltos\n"
             f"CursorTheme={CURSOR_THEME}\n"
@@ -574,8 +579,8 @@ def build_static_config(root):
     shutil.copy(SRC / "system/veltos-session-fixups.desktop", autostart / "veltos-session-fixups.desktop")
     libexec = root / "usr/libexec/veltos"
     libexec.mkdir(parents=True, exist_ok=True)
-    for helper in ("context-menus", "display-scale", "session-defaults", "session-fixups", "start-categories",
-                   "terminal-theme", "update-app-names", "update-plasma-overrides"):
+    for helper in ("context-menus", "display-scale", "greeter-compositor", "session-defaults", "session-fixups",
+                   "start-categories", "terminal-theme", "update-app-names", "update-plasma-overrides"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
 

@@ -492,6 +492,28 @@ owner sets priorities; agents act as the engineering team.
   (integers). An .xcd layer overrides writer/calc/impress.xcd only when
   it names them as dependencies (later files win; the default-filter
   override was silently lost before).
+- VirtualBox's VMSVGA display (the vmwgfx driver) offers no working
+  OpenGL and reports an "unsupported hypervisor"; Plasma 6 Wayland then
+  stays black (`Applying output config failed`, plasmashell's
+  `libEGL: failed to create dri2 screen`). KWin's software compositor
+  (`KWIN_COMPOSE=Q`) alone is NOT enough — plasmashell and the QML apps
+  still need a GL context. Render the whole stack in software:
+  `KWIN_COMPOSE=Q` + `QT_QUICK_BACKEND=software` + `LIBGL_ALWAYS_SOFTWARE=1`
+  (veltos-session.sh, DMI gated on VirtualBox; the greeter too). Not a
+  VRAM/mode problem: kscreen-doctor showed the output at 1280x800 (4 MB)
+  the whole time. 16 MB VRAM then works; 128 MB is smoother. (2026-10-22)
+- VirtualBox on the developer host can be driven from Git Bash without
+  touching the product owner's VMs (`out/vbox/boot-probe*.sh`,
+  `diag-probe.sh`, 2026-10-22): `VBoxManage createvm/modifyvm` with the
+  owner's settings (`showvminfo <vm> --machinereadable` reads them),
+  `startvm --type headless`, `controlvm <vm> screenshotpng FILE` every
+  few seconds, `keyboardputscancode 1d 38 3c bc b8 9d` for Ctrl+Alt+F2
+  (the live system logs the live user in on tty2, so commands can be typed
+  with `keyboardputstring` + `keyboardputscancode 1c 9c` for Enter), and a
+  serial port written to a host file (`modifyvm --uart1 0x3F8 4
+  --uartmode1 file PATH`; in the guest `sudo chmod 666 /dev/ttyS0` and
+  `cmd > /dev/ttyS0`) brings journal text out. Three VMs booting at once
+  slow every boot down (a desktop at 4 min instead of 1.5).
 - Qt 6.8 `Rectangle` has `topLeftRadius` & co. (per-corner radii); the
   Office start screen's page area uses it against the coloured rail.
 - LibreOffice configuration: VeltOS adds `share/registry/veltos-office.xcd`

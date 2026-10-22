@@ -5,9 +5,9 @@ import os
 
 # kind -> (app title, Turkish), blank document tile, Turkish
 KINDS = {
-    "word": ("Word Processor", "Kelime İşlemci"),
-    "sheet": ("Spreadsheet", "Hesap Tablosu"),
-    "slides": ("Presentation", "Sunu"),
+    "word": ("Word", "Word"),
+    "sheet": ("Excel", "Excel"),
+    "slides": ("PowerPoint", "PowerPoint"),
 }
 
 TEXTS = {

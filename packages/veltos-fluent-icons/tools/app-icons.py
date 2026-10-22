@@ -287,18 +287,17 @@ def disk_management():
 
 # Office (LibreOffice, veltos-office): the composition of Microsoft 365's
 # Windows 11 icons (a coloured tile with the app's initial in front of a
-# page, sheet or slide), drawn here with VeltOS' own letters and colours:
-# W, S and P are the initials of VeltOS' app names Word Processor,
-# Spreadsheet and Presentation; the colours are Word blue, Excel green and
-# PowerPoint orange so the apps read as the ones Windows users know.
-# Microsoft's own icon files are not used. The same three drawings stand
-# for the file types (MIME icons below).
+# page, sheet or slide), drawn here: W, X and P in Word blue, Excel green
+# and PowerPoint orange, the apps' names in Start being Word, Excel and
+# PowerPoint (product owner, 2026-10-22). Microsoft's own icon files are
+# not used. The same three drawings stand for the file types (MIME icons
+# below).
 OFFICE_PAGE_D = "M 108 20 H 196 L 236 60 V 224 Q 236 236 224 236 H 108 Q 96 236 96 224 V 32 Q 96 20 108 20 Z"
 OFFICE_TILE_D = rrect(16, 72, 124, 124, 22)
 OFFICE_LETTERS = {
     # Thick strokes with round caps, centred in the tile (16..140 x 72..196).
     "W": "M 44 110 L 60 160 L 78 122 L 96 160 L 112 110",
-    "S": "M 104 116 Q 92 104 76 106 Q 56 110 58 126 Q 60 140 80 142 Q 100 144 102 160 Q 100 176 78 176 Q 60 174 52 162",
+    "X": "M 52 108 L 104 172 M 104 108 L 52 172",
     "P": "M 58 166 V 106 H 86 Q 108 106 108 128 Q 108 150 86 150 H 58",
 }
 
@@ -331,7 +330,7 @@ def spreadsheet():
             '  <path d="M 150 84 H 222 V 108 H 150 Z" fill="#107C41"/>\n'
             '  <path d="M 150 132 H 222 M 150 156 H 222 M 150 180 H 222 M 174 108 V 204 M 198 108 V 204" '
             'stroke="#7CC79A" stroke-width="3"/>\n')
-    return office_icon("Spreadsheet", "S", "#0B5A2F", "#107C41", "#2DA860", "#107C41", grid)
+    return office_icon("Spreadsheet", "X", "#0B5A2F", "#107C41", "#2DA860", "#107C41", grid)
 
 
 def presentation():

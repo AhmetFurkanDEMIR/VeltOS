@@ -1,0 +1,14 @@
+#!/bin/sh
+# SDDM greeter compositor: KWin on Wayland, with the arguments Plasma's own
+# SDDM settings module writes (plasma-workspace 6.3). In VirtualBox the
+# VMSVGA display (vmwgfx) makes KWin's OpenGL/EGL setup fail, so the greeter
+# stays black while KWin retries for minutes before falling back to
+# software; use KWin's software (QPainter) compositor from the start there
+# (the session does the same in veltos-session.sh). Detected by DMI; real
+# GPUs, QEMU and other machines keep hardware rendering.
+if grep -qi virtualbox /sys/class/dmi/id/product_name /sys/class/dmi/id/sys_vendor 2>/dev/null; then
+    KWIN_COMPOSE=Q
+    LIBGL_ALWAYS_SOFTWARE=1
+    export KWIN_COMPOSE LIBGL_ALWAYS_SOFTWARE
+fi
+exec kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1 "$@"

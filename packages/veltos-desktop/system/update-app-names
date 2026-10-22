@@ -39,13 +39,14 @@ APPS = {
                                          "Partition;Format;Bölüm;Biçimlendir;"),
     "org.kde.plasma.emojier.desktop": ("Emoji", "Emoji", "Smiley;Emoticon;"),
     "firefox-esr.desktop": ("Firefox", "Firefox", "Browser;Internet;Web;Tarayıcı;"),
-    # Office (veltos-office): LibreOffice under generic names; "Word",
-    # "Excel" and "PowerPoint" are only search words (Microsoft's names are
-    # not used as app names).
-    "libreoffice-writer.desktop": ("Word Processor", "Kelime İşlemci",
-                                   "Word;Office;Document;Letter;Belge;Mektup;Writer;"),
-    "libreoffice-calc.desktop": ("Spreadsheet", "Hesap Tablosu", "Excel;Office;Table;Tablo;Calc;"),
-    "libreoffice-impress.desktop": ("Presentation", "Sunu", "PowerPoint;Office;Slides;Slayt;Sunum;Impress;"),
+    # Office (veltos-office): the product owner's names for the LibreOffice
+    # apps (2026-10-22); the generic names stay as search words.
+    "libreoffice-writer.desktop": ("Word", "Word",
+                                   "Word Processor;Kelime İşlemci;Office;Document;Letter;Belge;Mektup;Writer;"),
+    "libreoffice-calc.desktop": ("Excel", "Excel",
+                                 "Spreadsheet;Hesap Tablosu;Office;Table;Tablo;Calc;"),
+    "libreoffice-impress.desktop": ("PowerPoint", "PowerPoint",
+                                    "Presentation;Sunu;Office;Slides;Slayt;Sunum;Impress;"),
     # Windows' e-mail app is "Mail" ("Posta"); VeltOS uses Thunderbird.
     "thunderbird.desktop": ("Mail", "Posta", "Email;E-mail;Outlook;E-posta;"),
 }
