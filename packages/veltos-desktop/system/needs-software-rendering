@@ -1,0 +1,29 @@
+#!/bin/sh
+# Does this machine need VeltOS' software rendering (KWin's QPainter
+# compositor and Mesa's llvmpipe instead of the display driver's OpenGL)?
+# Exit status 0 = yes. The one place for the rule, used by
+# veltos-session.sh (the session) and sddm-virtualbox-env (before SDDM
+# starts; it leaves the answer in /run/veltos/software-rendering for
+# greeter-compositor).
+#
+# Rule: VirtualBox without working 3D acceleration. Its VMSVGA display
+# (the vmwgfx driver) then offers no OpenGL: KWin cannot configure its
+# output and plasmashell and the QML apps cannot create a GL context
+# ("Applying output config failed", "libEGL: failed to create dri2
+# screen") and the desktop stays black (the product owner's VM: BIOS,
+# VMSVGA, 16 MB VRAM, 3D off; 2026-10-22). With 3D acceleration on, the
+# same display gives real OpenGL (Mesa's svga driver, renderer "SVGA3D")
+# and everything renders natively, so VirtualBox alone is not the test.
+# Nothing in sysfs or DMI tells the two apart (both have card0 and
+# renderD128 and the same vmwgfx parameters); Mesa's answer on the GBM
+# platform does: "llvmpipe" means it has already fallen back to software.
+# eglinfo (mesa-utils-bin) needs no display. Only VirtualBox is probed,
+# so real GPUs, QEMU and other machines never run it; and when the probe
+# cannot answer, software is the safe choice there (it always works).
+grep -qi virtualbox /sys/class/dmi/id/product_name /sys/class/dmi/id/sys_vendor 2>/dev/null || exit 1
+renderer="$(eglinfo -B 2>/dev/null | sed -n '/^GBM platform/,/^[A-Za-z0-9]* platform/p' \
+            | sed -n 's/^OpenGL core profile renderer: //p' | head -n 1)"
+case "$renderer" in
+    ""|*llvmpipe*|*softpipe*|*"Software Rasterizer"*) exit 0 ;;   # no hardware OpenGL
+    *) exit 1 ;;                                               # SVGA3D or another real renderer
+esac

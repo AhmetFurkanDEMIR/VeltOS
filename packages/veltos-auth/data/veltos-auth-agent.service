@@ -5,6 +5,12 @@ PartOf=graphical-session.target
 After=plasma-core.target
 
 [Service]
+# KDE's platform theme, not the portal's: the session gives every program
+# QT_QPA_PLATFORMTHEME=xdgdesktopportal (Windows 11 file dialogs), and a
+# Qt program starting with it asks the portal first; at session start the
+# portal is not up yet and the call times out after 25 s (2026-10-22).
+# The agent opens no file dialogs.
+Environment=QT_QPA_PLATFORMTHEME=kde
 ExecStart=/usr/bin/veltos-auth-agent
 Slice=background.slice
 TimeoutStopSec=5sec

@@ -24,19 +24,19 @@ export GTK_USE_PORTAL=1
 # animation there (VM, 2026-10-20). With a real GPU this changes nothing.
 export KWIN_EFFECTS_FORCE_ANIMATIONS=1
 
-# VirtualBox's VMSVGA display (the vmwgfx driver) reports an unsupported
-# hypervisor and offers no working OpenGL, so KWin cannot configure its
-# output and plasmashell and the QML apps cannot create a GL context
-# ("Applying output config failed", "libEGL: failed to create dri2
-# screen"): the desktop stays black (VirtualBox BIOS, VMSVGA, 16 MB VRAM,
-# 3D off: the product owner's set-up, 2026-10-22). Render the whole stack
-# in software there: KWin's QPainter compositor, Qt Quick's software scene
-# graph (plasmashell and every VeltOS QML app), and Mesa's llvmpipe. The
-# desktop then paints at once. Detected by DMI; real GPUs, QEMU and other
-# machines keep hardware rendering and are untouched.
-if grep -qi virtualbox /sys/class/dmi/id/product_name /sys/class/dmi/id/sys_vendor 2>/dev/null; then
-    export KWIN_COMPOSE=Q
-    export QT_QUICK_BACKEND=software
+# Where the display driver has no working OpenGL (VirtualBox without 3D
+# acceleration: its VMSVGA display, the vmwgfx driver, then leaves KWin
+# unable to configure its output and plasmashell and the QML apps unable
+# to create a GL context, and the desktop stays black; the rule is in
+# needs-software-rendering), render with Mesa's llvmpipe: OpenGL in
+# software. Only that: KWin's own OpenGL scene on llvmpipe keeps the window
+# animations, Task View's window previews and the desktop labels' shadows.
+# KWin's QPainter compositor (KWIN_COMPOSE=Q) made Task View's previews
+# black, and Qt Quick's software scene graph (QT_QUICK_BACKEND=software)
+# drew grey boxes under the desktop labels and painted slowly (product
+# owner, VirtualBox, 2026-10-22). Real GPUs, QEMU and other machines, and
+# VirtualBox with 3D acceleration on (real OpenGL), are untouched.
+if /usr/libexec/veltos/needs-software-rendering; then
     export LIBGL_ALWAYS_SOFTWARE=1
 fi
 

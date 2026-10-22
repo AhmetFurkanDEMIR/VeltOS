@@ -18,6 +18,9 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   programs (`GTK_USE_PORTAL=1`), Qt and KDE programs and LibreOffice
   (through Qt's portal platform theme, `QT_QPA_PLATFORMTHEME=xdgdesktopportal`
   in veltos-desktop's session script) therefore show the VeltOS dialog.
+  The dialogs the backend starts (`--pick`) run with KDE's platform theme
+  (`app.portal_platform_theme`): they are the portal's own dialog and must
+  not ask the portal from inside its request (2026-10-22).
 - `veltos-explorer --open-with FILE` (`openwith.py`, `qml/OpenWith.qml`):
   "Select an app to open this .txt file" as Windows 11 asks it, with the
   apps that claim the type, "More apps", Always (records the default in

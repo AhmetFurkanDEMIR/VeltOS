@@ -725,12 +725,28 @@ def prepare_application(argv, name, title_key="app_title"):
     return app
 
 
+def portal_platform_theme(environ=os.environ):
+    """The portal's own dialogs do not use Qt's portal platform theme.
+
+    The session gives every program QT_QPA_PLATFORMTHEME=xdgdesktopportal
+    (veltos-session.sh) so their file dialogs come from the portal; the
+    backend (portal.py, GLib, no Qt) inherits it through D-Bus activation
+    and passes it on to the dialogs it starts (--pick, Qt). Those are the
+    portal's dialog: with that theme they would ask the portal (colour
+    scheme) from inside the portal's own request. KDE's theme gives them
+    the same colours, fonts and icons directly. (Plasma's own services get
+    the same through unit drop-ins in veltos-desktop, 2026-10-22.)"""
+    environ["QT_QPA_PLATFORMTHEME"] = "kde"
+    return environ["QT_QPA_PLATFORMTHEME"]
+
+
 def main(argv=None):
     argv = sys.argv if argv is None else argv
     if "--filemanager1" in argv[1:]:
         from . import filemanager1
         return filemanager1.serve(argv)
     if "--portal" in argv[1:]:
+        portal_platform_theme()
         from . import portal
         return portal.serve(argv)
     if "--pick" in argv[1:]:

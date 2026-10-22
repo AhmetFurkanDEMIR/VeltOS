@@ -1,14 +1,19 @@
 #!/bin/sh
 # SDDM greeter compositor: KWin on Wayland, with the arguments Plasma's own
-# SDDM settings module writes (plasma-workspace 6.3). In VirtualBox the
-# VMSVGA display (vmwgfx) makes KWin's OpenGL/EGL setup fail, so the greeter
-# stays black while KWin retries for minutes before falling back to
-# software; use KWin's software (QPainter) compositor from the start there
-# (the session does the same in veltos-session.sh). Detected by DMI; real
-# GPUs, QEMU and other machines keep hardware rendering.
-if grep -qi virtualbox /sys/class/dmi/id/product_name /sys/class/dmi/id/sys_vendor 2>/dev/null; then
-    KWIN_COMPOSE=Q
+# SDDM settings module writes (plasma-workspace 6.3). Where the display
+# driver has no working OpenGL (VirtualBox; the rule is in
+# needs-software-rendering), KWin's OpenGL/EGL setup fails and the greeter
+# stays black: render with Mesa's llvmpipe (OpenGL in software; KWin's own
+# scene keeps its effects) from the start there (the session does the same
+# in veltos-session.sh).
+# Elsewhere KWin renders with the GPU. The answer comes from
+# sddm-virtualbox-env, which ran as root just before SDDM started and left
+# /run/veltos/software-rendering when software is needed (the rule itself
+# probes the render node, which the sddm user may not open); the rule is
+# asked directly only when SDDM was started some other way.
+if [ -e /run/veltos/software-rendering ] ||
+   { [ ! -d /run/veltos ] && /usr/libexec/veltos/needs-software-rendering; }; then
     LIBGL_ALWAYS_SOFTWARE=1
-    export KWIN_COMPOSE LIBGL_ALWAYS_SOFTWARE
+    export LIBGL_ALWAYS_SOFTWARE
 fi
 exec kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1 "$@"

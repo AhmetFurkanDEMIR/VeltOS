@@ -410,18 +410,37 @@ class FullBuildTest(unittest.TestCase):
 
     def check_session_files(self, root, kdeglobals):
         self.assertTrue((root / "etc/xdg/plasma-workspace/env/veltos-session.sh").is_file())
-        for helper in ("session-defaults", "update-app-names", "start-categories", "greeter-compositor"):
+        for helper in ("session-defaults", "update-app-names", "start-categories", "greeter-compositor",
+                       "sddm-virtualbox-env", "needs-software-rendering"):
             path = root / "usr/libexec/veltos" / helper
             self.assertTrue(path.stat().st_mode & 0o111, f"{helper} is not executable")
-        # The sign-in screen runs KWin through the wrapper that uses the
-        # software compositor in VirtualBox (the session does the same).
+        # The sign-in screen runs KWin through the wrapper (software rendering
+        # in VirtualBox); its own environment is the plain vendor line, and
+        # sddm-virtualbox-env (ExecStartPre) adds llvmpipe only in VirtualBox.
         sddm = (root / "usr/lib/sddm/sddm.conf.d/10-veltos.conf").read_text()
         self.assertIn("CompositorCommand=/usr/libexec/veltos/greeter-compositor\n", sddm)
-        self.assertIn("QT_QUICK_BACKEND=software", sddm)       # greeter renders in software
+        self.assertIn("GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell\n", sddm)
+        self.assertNotIn("QT_QUICK_BACKEND", sddm)
+        dropin = (root / "usr/lib/systemd/system/sddm.service.d/veltos-virtualbox.conf").read_text()
+        self.assertIn("ExecStartPre=-/usr/libexec/veltos/sddm-virtualbox-env\n", dropin)
+        # Plasma's own services do not use the portal platform theme (each
+        # blocked 25 s on the portal at session start, 2026-10-22).
+        for unit in ("plasma-kwin_wayland", "plasma-ksplash", "plasma-plasmashell", "plasma-kded6",
+                     "plasma-xdg-desktop-portal-kde"):
+            conf = (root / "usr/lib/systemd/user" / f"{unit}.service.d" / "veltos-portal-theme.conf").read_text()
+            self.assertIn("[Service]\nEnvironment=QT_QPA_PLATFORMTHEME=kde\n", conf, unit)
         # The session renders the whole stack in software in VirtualBox.
         session = (root / "etc/xdg/plasma-workspace/env/veltos-session.sh").read_text()
-        for var in ("KWIN_COMPOSE=Q", "QT_QUICK_BACKEND=software", "LIBGL_ALWAYS_SOFTWARE=1"):
-            self.assertIn(var, session)
+        self.assertIn("if /usr/libexec/veltos/needs-software-rendering; then", session)   # one rule, shared
+        # llvmpipe only: KWin's QPainter compositor left Task View's previews
+        # black and Qt Quick's software scene graph drew boxes under the
+        # desktop labels (VirtualBox, 2026-10-22).
+        self.assertIn("export LIBGL_ALWAYS_SOFTWARE=1", session)
+        for var in ("KWIN_COMPOSE", "QT_QUICK_BACKEND"):
+            self.assertNotIn("export " + var, session)
+        greeter = (root / "usr/libexec/veltos/greeter-compositor").read_text()
+        self.assertIn("LIBGL_ALWAYS_SOFTWARE", greeter)
+        self.assertNotIn("KWIN_COMPOSE", greeter)
         # Default account picture: new accounts (skel), sign-in screen (FacesDir).
         picture = (root / "usr/share/veltos/faces/default.png").read_bytes()
         self.assertTrue(picture.startswith(b"\x89PNG"))
