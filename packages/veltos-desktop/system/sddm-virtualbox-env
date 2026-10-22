@@ -1,0 +1,26 @@
+#!/bin/sh
+# Runs before SDDM starts (ExecStartPre of sddm.service, see
+# /usr/lib/systemd/system/sddm.service.d/veltos-virtualbox.conf). In
+# VirtualBox the VMSVGA display (the vmwgfx driver) offers no working
+# OpenGL, so the sign-in screen's QML cannot create a GL context and the
+# screen stays black; give the greeter Mesa's llvmpipe (OpenGL in software:
+# every effect still works, it is only slower). The greeter's compositor
+# gets the same from /usr/libexec/veltos/greeter-compositor, the session
+# from veltos-session.sh.
+#
+# SDDM reads its configuration at start, and a later file's
+# GreeterEnvironment replaces an earlier one's, so the whole line is
+# written here (the vendor line is in /usr/lib/sddm/sddm.conf.d/10-veltos.conf).
+# Decided by DMI at every start, so a disk moved between a VM and real
+# hardware does the right thing: elsewhere the file is removed and the
+# vendor line applies. Never fails: SDDM must start whatever happens here.
+conf=/etc/sddm.conf.d/zz-veltos-virtualbox.conf
+marker=/run/veltos/software-rendering    # read by greeter-compositor
+mkdir -p /run/veltos /etc/sddm.conf.d 2>/dev/null
+if /usr/libexec/veltos/needs-software-rendering; then
+    : > "$marker" 2>/dev/null
+    printf '[General]\nGreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell,LIBGL_ALWAYS_SOFTWARE=1\n' > "$conf" 2>/dev/null
+else
+    rm -f "$marker" "$conf" 2>/dev/null
+fi
+exit 0

@@ -3,6 +3,121 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-22 (12:30) — Session start +75 s since the 2026-10-21 evening: the portal platform theme
+
+- The product owner: "it used to come at once". It did: the QEMU boot
+  tests record "plasmashell running for live user" after 16–25 s from
+  2026-10-18 to 2026-10-21 16:57, and after **92–96 s** for every ISO since
+  2026-10-21 23:33 — on QEMU too, so neither VirtualBox nor llvmpipe. The
+  kernel boot is unchanged (guest agent after 12–14 s); the +75 s is all
+  inside the session start. The new reports' journal excerpts: `Failed to
+  start plasma-ksplash.service` (48 s), `Failed to start
+  xdg-desktop-portal.service` (98 s).
+- In a VM (ISO 084833, 3D off), `systemd-analyze --user blame`: kcminit
+  54 s, ksplash 40 s (timed out), plasmashell 27 s, kactivitymanagerd
+  25.6 s, kded6 25.4 s, ksmserver 25.4 s, powerdevil 15.7 s, KDE's portal
+  backend 14.5 s. The journal: `xdg-desktop-portal: Failed to create
+  settings proxy: Error calling StartServiceByName for
+  org.freedesktop.impl.portal.desktop.kde`, KSplash `WaitForName: Service
+  was not registered within timeout`, the portal timing out after 90 s,
+  dbus "Failed to activate service 'org.freedesktop.portal.Desktop': timed
+  out" (`tests/results/2026-10-22-session-start/`). Cause: commit e676c2c
+  (2026-10-21 23:11) gave the whole session
+  `QT_QPA_PLATFORMTHEME=xdgdesktopportal` for the Windows 11 file dialogs.
+  A Qt program starting with that theme first asks the portal (colour
+  scheme) and blocks until the D-Bus timeout (25 s) when it does not
+  answer; at session start it cannot: its backends (KDE's, a Qt program
+  with the same theme) are Wayland clients of the very KWin that is
+  blocked asking it. So kwin, kcminit, ksplash, kded6, ksmserver,
+  kactivitymanagerd, plasmashell ... each waited 25 s in turn.
+- Ruled out by measurement, same VM and ISO: the Wayland greeter of the
+  same commit (session restart with it 150 s, with `DisplayServer=x11`
+  135 s — noise; SDDM starts the autologin session within a second, so
+  the greeter stays), and VeltOS' own portal backend (GLib, no Qt: run
+  without the theme, 120 s and the portal still timed out).
+- Fix, measured in the same VM (session restart: the desktop after
+  **15 s**, 120–150 s before; the portal active, ksplash finished): a
+  drop-in `Environment=QT_QPA_PLATFORMTHEME=kde` for every Plasma user
+  service
+  (`PLASMA_SERVICES` in veltos-desktop's build-assets.py, installed as
+  `/usr/lib/systemd/user/<unit>.d/veltos-portal-theme.conf`), the same
+  line in `veltos-auth-agent.service` (PySide6), and File Explorer's
+  portal backend hands the dialogs it starts KDE's theme
+  (`portal_platform_theme`). Programs the user starts keep the portal
+  theme and their Windows 11 dialogs.
+- ISO `veltos-0.1.0-dev-20261022-093321` built with all of it. Its live
+  filesystem, listed with xorriso + unsquashfs in the builder, has the 25
+  drop-ins (seven units were added to `PLASMA_SERVICES` after a package
+  build, and `out/packages` still held that older package: the ISO build
+  rebuilds the packages inside the build volume — AGENTS.md gotcha), the
+  three helpers, the agent's `Environment=` line, the explorer change and
+  a session script exporting only `LIBGL_ALWAYS_SOFTWARE=1`.
+- Verified (ISO 093321): QEMU boot tests, plasmashell after **17.2 s**
+  (UEFI, `out/test-results/20261022-100005-uefi`) and **16.4 s** (BIOS,
+  `20261022-100224-bios`) — back from 92–97 s. VirtualBox cold boot with
+  the owner's settings (BIOS, VMSVGA, 16 MB, 3D off; measured while the
+  owner's own VM was running): the desktop at **75 s** from power-on
+  (180–240 s before), Start and Task View rendering; with 3D on (128 MB)
+  also 75 s. The sign-in screen (autologin switched off, SDDM restarted)
+  painted in the 3D-off VM. One boot-test check now fails for the right
+  reason: it grepped `xdgdesktopportal` in plasmashell's environment, and
+  plasmashell runs with KDE's theme by design; `vmtest.py` now reads the
+  user manager's environment (`systemctl --user show-environment`), which
+  is what programs the user starts inherit — this changed check has not
+  been run yet (usage limit); the rest passed (17/18, 16/17).
+
+## 2026-10-22 (11:45) — VirtualBox: llvmpipe alone, and only without 3D acceleration
+
+- Product owner, testing ISO `veltos-0.1.0-dev-20261022-072126` in
+  VirtualBox: the desktop takes long to appear ("it used to come at
+  once"), grey boxes under the desktop icons' labels, and Task View shows
+  "Desktop 1" black. The two visual ones came from the 04:00 fix being too
+  blunt (the slowness has another cause, since the 2026-10-21 evening ISO;
+  entry above):
+  `QT_QUICK_BACKEND=software` (Qt Quick's software scene graph) paints
+  slowly and cannot draw the labels' shadow effect, so Plasma puts a solid
+  box behind each label; `KWIN_COMPOSE=Q` (QPainter) cannot render the
+  Task View effect's `WindowThumbnail`s, so its previews are black.
+- Two renderer experiments in a VM were void before one was valid: a
+  `99-*.sh` file in `plasma-workspace/env` is sourced *before*
+  `veltos-session.sh` and cannot unset what it exports (AGENTS.md
+  gotcha). Editing the session script in the VM instead: with
+  `LIBGL_ALWAYS_SOFTWARE=1` **alone** (Mesa llvmpipe), KWin's own OpenGL
+  scene runs in software and paints (desktop ~105 s after the session
+  restart, measured while another VM booted on the host), the labels have
+  their shadows and no boxes, and Task View shows the live window and a
+  real "Desktop 1" preview (`tests/results/2026-10-22-virtualbox-renderer/`).
+  KWin still logs "Applying output config failed" and Xwayland's glamor
+  lines; they are harmless here.
+- The rule: a VM with 3D acceleration *on* gives real OpenGL (Mesa's
+  svga driver, renderer "SVGA3D"), so forcing software on every
+  VirtualBox VM would have crippled it. Nothing in sysfs or DMI tells 3D
+  on from off (both: card0 + renderD128, the same vmwgfx parameters);
+  `eglinfo -B` on the GBM platform does ("llvmpipe" = Mesa already fell
+  back). New `/usr/libexec/veltos/needs-software-rendering` (VirtualBox by
+  DMI AND that probe; only VirtualBox is probed) is the one place for the
+  rule, used by `veltos-session.sh` and, before SDDM starts, by
+  `sddm-virtualbox-env` (`ExecStartPre` drop-in
+  `/usr/lib/systemd/system/sddm.service.d/veltos-virtualbox.conf`), which
+  writes `/etc/sddm.conf.d/zz-veltos-virtualbox.conf` (the greeter's
+  `GreeterEnvironment` plus `LIBGL_ALWAYS_SOFTWARE=1`) and the marker
+  `/run/veltos/software-rendering` that `greeter-compositor` reads (the
+  sddm user may not open the render node). The unconditional
+  `QT_QUICK_BACKEND=software` the 04:00 change put in `GreeterEnvironment`
+  is gone. `veltos-desktop` now depends on `mesa-utils` (eglinfo; glxinfo
+  was already used by session-fixups). The greeter path in VirtualBox
+  (the live ISO signs in automatically, so autologin was switched off in
+  a VM and SDDM restarted): the ExecStartPre ran — the marker and the
+  drop-in were there and the greeter's KWin was running — but whether
+  the greeter painted could not be seen in that VM, which was still under
+  the session-start deadlock of the 12:30 entry; re-tested with the
+  fixed ISO (below, when run).
+- Also: a `veltos-vm` QEMU container from 2026-10-21 had been running for
+  15 h with 8 GB reserved (`build/run.sh vm stop` leaves the container up;
+  gotcha), slowing every VM test today; removed. Docker's build cache
+  (10.9 GB) pruned; the developer's C: was at 99 % with Docker's virtual
+  disk at 94 GB — compacting it is the owner's call.
+
 ## 2026-10-22 (04:00) — Office apps named Word, Excel, PowerPoint; black screen in VirtualBox
 
 - Product owner: the apps are to be called **Word, Excel and PowerPoint**
@@ -54,6 +169,9 @@ went wrong, so the next person can trust the state of the repository.
   settings: with the three variables set and a fresh session, the full
   desktop (wallpaper, taskbar, icons) painted where it had stayed black.
   Note for the owner: 16 MB VRAM works with this fix; 128 MB is smoother.
+  **Superseded at 11:45 the same day**: llvmpipe alone is right; the other
+  two variables caused grey label boxes and a black Task View, and the
+  rule became "VirtualBox without 3D acceleration" (see above).
 
 ## 2026-10-22 (00:30) — VeltOS Office: Microsoft 365's start screen in front of LibreOffice
 

@@ -304,6 +304,34 @@ llvmpipe. Its window captures are then garbled, so the taskbar shows window
 titles instead of previews there (`session-fixups`, decided at each
 sign-in from KWin's renderer); with a real GPU the previews stay on.
 
+**VirtualBox** (2026-10-22). Its VMSVGA display (the vmwgfx driver) does
+not even fall back by itself: with 3D acceleration off, KWin cannot
+configure its output and plasmashell and the QML apps cannot create a GL
+context, and the desktop stays black. VeltOS then forces Mesa's llvmpipe
+for the whole session (`LIBGL_ALWAYS_SOFTWARE=1`) — and only that: KWin's
+own OpenGL scene runs on llvmpipe, so window animations, Task View's
+previews and the desktop labels' shadows all work. Rejected: KWin's
+QPainter compositor (`KWIN_COMPOSE=Q`), which cannot render QML scene
+effects' thumbnails (Task View's previews stayed black), and Qt Quick's
+software scene graph (`QT_QUICK_BACKEND=software`), which paints slowly
+and cannot draw shader effects (grey boxes behind the desktop labels);
+both were shipped for a few hours and withdrawn. The rule lives in one
+script, `needs-software-rendering`: VirtualBox by DMI *and* Mesa's
+GBM-platform renderer being llvmpipe (`eglinfo -B`, no display needed).
+With 3D acceleration on, the same display gives real OpenGL (Mesa's svga
+driver, "SVGA3D") and nothing is forced; nothing in sysfs or DMI tells
+the two apart. Only VirtualBox is probed, so real GPUs and QEMU never run
+it. The sign-in screen gets the same answer through an `ExecStartPre` of
+`sddm.service` (`sddm-virtualbox-env`: a later `sddm.conf.d` drop-in for
+the greeter's environment, and a marker in `/run/veltos` for the
+greeter's compositor wrapper), because SDDM's `GreeterEnvironment` is
+static and the sddm user may not open the render node. Alternative
+considered: asking the owner to enable 3D acceleration — the better
+experience (native OpenGL), and the rule leaves it alone, but the system
+must also come up when it is off. Trade-off: llvmpipe is CPU rendering;
+the desktop appears later than on a GPU (about two minutes on 4 vCPUs),
+and Mesa's svga driver still reports "No 3D enabled" in the journal.
+
 #### 2.3.11 Taskbar lock, power key, Ctrl+Alt+Del, display scale
 
 - **Locked taskbar.** Windows' taskbar has no widgets to add, move or
@@ -481,6 +509,25 @@ Snapshot-based rollback (e.g. Btrfs + snapper) is a candidate to evaluate.
   opened in the first milliseconds of a Qt program, before the portal's
   version is known, fall back to KDE's; file dialogs inside Flatpak apps
   would go through the same backend (good).
+- Start-up (2026-10-22): the theme must not reach Plasma's own services
+  or the portal's backends. A Qt program starting with it asks the portal
+  (colour scheme) and blocks up to the D-Bus timeout (25 s); at session
+  start the portal cannot answer, because its backends are Wayland
+  clients of the very KWin that is asking — so kwin, kcminit, ksplash,
+  kded6, ksmserver, kactivitymanagerd and plasmashell each waited 25 s,
+  the portal failed after 90 s and plasmashell came after ~95 s instead
+  of ~18 s (QEMU boot tests since the 2026-10-21 evening ISO;
+  `systemd-analyze --user blame` in a VM). VeltOS gives every Plasma user
+  service a drop-in `Environment=QT_QPA_PLATFORMTHEME=kde`
+  (`PLASMA_SERVICES`, veltos-desktop), the same to its polkit agent, and
+  the portal's own dialogs KDE's theme. Alternatives: setting the theme
+  only for programs the user starts (Plasma has no such layer: launched
+  programs inherit the session environment); a `service.d` drop-in for
+  all user services (would also strip launched programs, which Plasma
+  runs as transient services); dropping the portal theme altogether (no
+  Windows 11 dialogs in Qt programs). Trade-off: the list of Plasma's
+  units must follow Plasma (a drop-in for a unit that is not installed is
+  inert).
 
 ### 2.11 Administrator password: VeltOS' own polkit agent (2026-10-21)
 

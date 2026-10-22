@@ -55,6 +55,31 @@ journal dump over a serial port). They mirror the product owner's VM
 (BIOS, PIIX3, VMSVGA, 3D off) and keep their own VMs under
 `out/vbox/vms`. See AGENTS.md for the VBoxManage calls.
 
+When the desktop comes late or stays black there (2026-10-22):
+
+- First compare the QEMU boot-test reports across ISOs
+  (`out/test-results/*/report.md`, "plasmashell running for live user |
+  after N s"): a jump between two ISOs points at that ISO's changes, not
+  at VirtualBox. The session-start deadlock of the portal platform theme
+  showed as 18 s → 95 s on QEMU too.
+- In the VM, on tty2 (Ctrl+Alt+F2; the live user is logged in there):
+  `systemd-analyze --user critical-chain plasma-workspace.target`,
+  `systemd-analyze --user blame | head`, and `journalctl -b -o
+  short-monotonic | grep -iE 'WaitForName|timed out|Failed to start'`
+  name the unit that waits and the D-Bus service it waits for.
+- To try a changed session environment, edit
+  `/etc/xdg/plasma-workspace/env/veltos-session.sh` itself (`sudo sed
+  -i`) — a later `99-*.sh` file is sourced *before* it and cannot unset
+  its exports — then `sudo systemctl restart sddm`. After the restart send
+  no VT keystrokes (SDDM activates its VT itself) and force real repaints
+  (Start, Win+Tab) before trusting a screenshot: VirtualBox's framebuffer
+  keeps the last text console when a compositor never paints.
+  Screenshot sizes tell the state at a glance: ~3.5 KB black, ~11.5 KB a
+  text console, 100 KB and more a painted desktop.
+- The sign-in screen is not seen on the live ISO (automatic login): write
+  `/etc/sddm.conf.d/zz-noautologin.conf` with `[Autologin]`, `User=` and
+  `Session=` empty, restart SDDM, and the greeter appears.
+
 ## Manual checks in the long-running VM (`build/run.sh vm`)
 
 Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):

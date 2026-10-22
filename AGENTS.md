@@ -60,7 +60,7 @@ owner sets priorities; agents act as the engineering team.
 | `build/scripts/` | In-container scripts: package build, ISO build |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus), master logo |
+| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus), master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start) |
 | `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy); diverts `systemsettings`/`kcmshell6`/`kinfocenter` to itself so KDE's settings window never opens |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`) |
 | `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
@@ -493,15 +493,20 @@ owner sets priorities; agents act as the engineering team.
   it names them as dependencies (later files win; the default-filter
   override was silently lost before).
 - VirtualBox's VMSVGA display (the vmwgfx driver) offers no working
-  OpenGL and reports an "unsupported hypervisor"; Plasma 6 Wayland then
-  stays black (`Applying output config failed`, plasmashell's
-  `libEGL: failed to create dri2 screen`). KWin's software compositor
-  (`KWIN_COMPOSE=Q`) alone is NOT enough — plasmashell and the QML apps
-  still need a GL context. Render the whole stack in software:
-  `KWIN_COMPOSE=Q` + `QT_QUICK_BACKEND=software` + `LIBGL_ALWAYS_SOFTWARE=1`
-  (veltos-session.sh, DMI gated on VirtualBox; the greeter too). Not a
-  VRAM/mode problem: kscreen-doctor showed the output at 1280x800 (4 MB)
-  the whole time. 16 MB VRAM then works; 128 MB is smoother. (2026-10-22)
+  OpenGL when 3D acceleration is off (Mesa: "VMware: No 3D enabled") and
+  Plasma 6 Wayland then stays black (`Applying output config failed`,
+  plasmashell's `libEGL: failed to create dri2 screen`). Not a VRAM/mode
+  problem (kscreen-doctor showed the output at 1280x800 the whole time).
+  The fix is `LIBGL_ALWAYS_SOFTWARE=1` ONLY (Mesa llvmpipe: OpenGL in
+  software): KWin's own OpenGL scene then runs on llvmpipe and paints,
+  with Task View's window previews and the desktop labels' shadows. The
+  two "safer" extras were harmful: `KWIN_COMPOSE=Q` (QPainter) leaves Task
+  View's previews black, `QT_QUICK_BACKEND=software` draws grey boxes
+  under desktop labels and paints slowly. With 3D acceleration ON the same
+  display gives real OpenGL (Mesa svga, renderer "SVGA3D"), so the rule
+  (`needs-software-rendering`) is "VirtualBox AND Mesa's GBM renderer is
+  llvmpipe" (`eglinfo -B`, no display needed; sysfs and DMI cannot tell 3D
+  on from off). 16 MB VRAM works; 128 MB is smoother. (2026-10-22)
 - VirtualBox on the developer host can be driven from Git Bash without
   touching the product owner's VMs (`out/vbox/boot-probe*.sh`,
   `diag-probe.sh`, 2026-10-22): `VBoxManage createvm/modifyvm` with the
@@ -525,3 +530,57 @@ owner sets priorities; agents act as the engineering team.
   --terminate_after_init`. LibreOffice is single-instance: kill
   `soffice.bin` (`pkill -9 -x soffice.bin`) and delete the profile before
   checking first-start defaults.
+- Plasma sources `/etc/xdg/plasma-workspace/env/*.sh` in name order, and
+  `99-*.sh` sorts *before* `veltos-session.sh` (digits before letters): a
+  later file cannot `unset` what the session script exports, so two
+  renderer experiments in a VM silently ran with the unchanged variables
+  (2026-10-22). To test a changed session environment, edit
+  `veltos-session.sh` itself in the VM (`sudo sed -i`), then `systemctl
+  restart sddm`; adding variables in an earlier file is fine. After the
+  restart send no VT keystrokes (SDDM activates its VT itself) and force
+  real repaints (Start, Win+Tab) before trusting a screenshot: VirtualBox's
+  framebuffer keeps the last text console when a compositor never paints.
+- `QT_QPA_PLATFORMTHEME=xdgdesktopportal` in the session environment
+  reaches Plasma's own services, and a Qt program starting with that
+  theme asks the portal (colour scheme) and blocks up to 25 s when it
+  does not answer; at session start it cannot (its backends are Wayland
+  clients of the KWin that is asking). kwin, kcminit, ksplash, kded6,
+  ksmserver and plasmashell each waited 25 s: plasmashell after ~95 s
+  instead of ~18 s from the 2026-10-21 evening ISO until 2026-10-22.
+  Plasma's user services get `Environment=QT_QPA_PLATFORMTHEME=kde`
+  drop-ins (`PLASMA_SERVICES`, veltos-desktop). What found it: the
+  boot-test reports' "plasmashell running ... after N s" across ISOs, and
+  in a VM `systemd-analyze --user blame` / `critical-chain
+  plasma-workspace.target` and `journalctl -b | grep -iE
+  'WaitForName|timed out|Failed to start'`. Compare a timing against the
+  previous ISOs' reports before blaming the renderer.
+- `build/run.sh vm stop` is forwarded to `vmctl.py` inside the `veltos-vm`
+  container and leaves the container itself running (it still showed "Up
+  15 hours" afterwards, with the QEMU guest's 8 GB reserved; 2026-10-22).
+  When done with the dev VM, remove it: `docker rm -f veltos-vm && docker
+  volume rm veltos-vm`. Check `docker ps` before long VirtualBox or QEMU
+  test runs; a forgotten dev VM slows every other VM on the host.
+- `build/run.sh iso` rebuilds every package inside the build volume from
+  the current source and copies them into the image; `out/packages` is
+  written only by `build/run.sh packages`. So `out/packages` can be older
+  than the ISO (18 drop-ins there, 25 in the ISO, 2026-10-22). To know
+  what an ISO contains, list its live filesystem in the builder:
+  `xorriso -osirrox on -indev ISO -extract /live/filesystem.squashfs
+  /tmp/fs.squashfs && unsquashfs -l /tmp/fs.squashfs | grep ...`
+  (`unsquashfs -q -f -d /tmp/x /tmp/fs.squashfs PATH...` extracts single
+  files). Docker Desktop's bind mount showed the container the edited
+  source at once; it was not stale.
+- VirtualBox: `startvm` of a VM created under a name that was just
+  unregistered (or that is selected in the owner's VirtualBox window)
+  can fail with "already locked by a session"; the script went on,
+  every `screenshotpng` failed, and the old files of the same name's
+  output directory passed for results (2026-10-22). Use a fresh name per
+  run (`veltos-chk-off-HHMM`), check `showvminfo --machinereadable` for
+  `VMState="running"` right after `startvm`, and treat a screenshot's
+  file time, not only its size, as evidence.
+- Never edit a bash script while it is running: bash reads the file as
+  it goes, so the running `out/vbox/verify-chain.sh` and `verify-iso.sh`
+  died with "syntax error near unexpected token" and "unexpected EOF"
+  the moment they were edited (2026-10-22), the QEMU step never ran and
+  the jobs gated on their "done" line waited forever. Copy a script to a
+  new name before changing it, or wait for the run to end.

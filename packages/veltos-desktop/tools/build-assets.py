@@ -487,16 +487,24 @@ def build_static_config(root):
         # 2026-10-21). KWin picks the same screen mode for the greeter and
         # the session. The command line is the one Plasma's own SDDM settings
         # module writes (plasma-workspace 6.3).
+        # Before SDDM starts, pick the sign-in screen's renderer for this
+        # machine (VirtualBox: Mesa llvmpipe; the script explains).
+        "usr/lib/systemd/system/sddm.service.d/veltos-virtualbox.conf": (
+            "# Installed as /usr/lib/systemd/system/sddm.service.d/veltos-virtualbox.conf.\n"
+            "# Decides the sign-in screen's renderer for this machine before SDDM\n"
+            "# starts (VirtualBox: Mesa llvmpipe; /usr/libexec/veltos/sddm-virtualbox-env).\n"
+            "[Service]\n"
+            "ExecStartPre=-/usr/libexec/veltos/sddm-virtualbox-env\n"
+        ),
         "usr/lib/sddm/sddm.conf.d/10-veltos.conf": (
             "[General]\n"
             "InputMethod=\n"
             "DisplayServer=wayland\n"
-            # The login screen renders with Qt's software scene graph and
-            # llvmpipe: it must appear on any GPU, driver or VM (VirtualBox's
-            # VMSVGA offers no working OpenGL, which left the greeter black
-            # on an installed system; the session does the same through
-            # veltos-session.sh). A login screen does not need the GPU.
-            "GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell,QT_QUICK_BACKEND=software,LIBGL_ALWAYS_SOFTWARE=1\n"
+            # In VirtualBox, sddm-virtualbox-env (ExecStartPre of sddm.service)
+            # writes a later drop-in that repeats this line with Mesa's
+            # llvmpipe added, so the greeter renders there too; on every
+            # other machine this line is the whole greeter environment.
+            "GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell\n"
             "\n[Wayland]\n"
             "CompositorCommand=/usr/libexec/veltos/greeter-compositor\n"
             "\n[Theme]\n"
@@ -579,10 +587,45 @@ def build_static_config(root):
     shutil.copy(SRC / "system/veltos-session-fixups.desktop", autostart / "veltos-session-fixups.desktop")
     libexec = root / "usr/libexec/veltos"
     libexec.mkdir(parents=True, exist_ok=True)
-    for helper in ("context-menus", "display-scale", "greeter-compositor", "session-defaults", "session-fixups",
-                   "start-categories", "terminal-theme", "update-app-names", "update-plasma-overrides"):
+    for helper in ("context-menus", "display-scale", "greeter-compositor", "needs-software-rendering",
+                   "sddm-virtualbox-env", "session-defaults", "session-fixups", "start-categories",
+                   "terminal-theme", "update-app-names", "update-plasma-overrides"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
+    # Plasma's own services start with KDE's platform theme, not the
+    # portal's. veltos-session.sh gives every program
+    # QT_QPA_PLATFORMTHEME=xdgdesktopportal (Windows 11 file dialogs), and a
+    # Qt program starting with it first asks the portal (colour scheme). At
+    # session start the portal cannot be up yet: its backends are Wayland
+    # clients of KWin and Qt programs themselves. So kcminit, ksplash,
+    # plasmashell, kded6, ksmserver, kactivitymanagerd ... each blocked 25 s
+    # (the D-Bus timeout; systemd-analyze --user blame, VM 2026-10-22) and
+    # xdg-desktop-portal.service itself timed out after 90 s: plasmashell
+    # came after ~95 s instead of ~18 s (QEMU boot tests, since 2026-10-21).
+    # A drop-in per unit; one for a unit that is not installed is inert.
+    # Programs the user starts keep the portal theme.
+    units_dir = root / "usr/lib/systemd/user"
+    for unit in PLASMA_SERVICES:
+        dropin = units_dir / f"{unit}.service.d" / "veltos-portal-theme.conf"
+        dropin.parent.mkdir(parents=True, exist_ok=True)
+        dropin.write_bytes(
+            b"# Installed by veltos-desktop (tools/build-assets.py): Plasma's own\n"
+            b"# services use KDE's platform theme; the portal's would wait for the\n"
+            b"# portal, which cannot be up before they are (25 s each, 2026-10-22).\n"
+            b"[Service]\nEnvironment=QT_QPA_PLATFORMTHEME=kde\n")
+
+
+# Plasma's user services (plasma-workspace, kwin, kded6, powerdevil,
+# kactivitymanagerd, kglobalacceld, xdg-desktop-portal-kde; Debian trixie,
+# checked against the live image's /usr/lib/systemd/user on 2026-10-22).
+PLASMA_SERVICES = (
+    "plasma-baloorunner", "plasma-gmenudbusmenuproxy", "plasma-kaccess", "plasma-kactivitymanagerd",
+    "plasma-kcminit", "plasma-kcminit-phase1", "plasma-kded", "plasma-kded6", "plasma-kglobalaccel",
+    "plasma-krunner", "plasma-kscreen", "plasma-kscreen-osd", "plasma-ksmserver", "plasma-ksplash",
+    "plasma-ksplash-ready", "plasma-ksystemstats", "plasma-kwallet-pam", "plasma-kwin_wayland",
+    "plasma-kwin_x11", "plasma-plasmashell", "plasma-polkit-agent", "plasma-powerdevil",
+    "plasma-restoresession", "plasma-xdg-desktop-portal-kde", "plasma-xembedsniproxy",
+)
 
 
 # VeltOS plasmoids: source directory under plasma/ -> plugin id.

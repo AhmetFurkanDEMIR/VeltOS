@@ -194,7 +194,10 @@ def run_checks(args, report, qmp, agent):
                           f"pgrep -u {LIVE_USER} -f polkit-kde-authentication-agent-1 >/dev/null && echo kde-agent; "
                           f"pgrep -u {LIVE_USER} -f veltos-clock-agent >/dev/null && echo clock-agent; "
                           "grep -h FileChooser /etc/xdg/xdg-desktop-portal/kde-portals.conf; "
-                          f"grep -c xdgdesktopportal /proc/$(pgrep -u {LIVE_USER} -x plasmashell | head -1)/environ")
+                          # Programs the user starts inherit the user manager's environment;
+                          # Plasma's own services (plasmashell) run with KDE's theme by design.
+                          f"runuser -u {LIVE_USER} -- env XDG_RUNTIME_DIR=/run/user/1000 "
+                          "systemctl --user show-environment | grep -c QT_QPA_PLATFORMTHEME=xdgdesktopportal")
     report.check("VeltOS password prompt and Clock alarms run with the session; portal file dialogs",
                  "veltos-agent" in out and "kde-agent" not in out and "clock-agent" in out
                  and "FileChooser=veltos" in out and "\n1" in out,

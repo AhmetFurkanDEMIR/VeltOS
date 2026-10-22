@@ -131,18 +131,22 @@ checks that passed.
 
 ## Next steps
 
-1. Current ISO: `veltos-0.1.0-dev-20261022-072126`: QEMU boot tests PASS on
-   UEFI (`out/test-results/20261022-073802-uefi`, 18/18) and BIOS
-   (`20261022-074535-bios`, 17/17, no crashes), and
-   it **boots to the desktop in VirtualBox** with the product owner's
-   settings (BIOS, VMSVGA, 16 MB VRAM, 3D off) where every earlier ISO
-   stayed black — the Plasma/Qt stack now renders in software when
-   VirtualBox is detected (`tests/results/2026-10-22-virtualbox-and-names/`).
-   It contains the VeltOS Office start screen with the apps renamed Word /
-   Excel / PowerPoint, the 2026-10-21 evening work and the Mail account
-   page. Still to check on this ISO: the installer slideshow during an
-   installation, the sounds by ear, the power key and shutdown on screen,
-   Camera with a real webcam, Mail with a real account, and dark mode.
+1. Current ISO: `veltos-0.1.0-dev-20261022-093321` (copy on the owner's
+   Desktop as `VeltOS-20261022-093321.iso`). The session start is back to
+   seconds: QEMU boot tests report plasmashell after 17.2 s (UEFI) / 16.4 s
+   (BIOS) instead of ~95 s since the 2026-10-21 evening (the portal
+   platform theme no longer reaches Plasma's own services; development
+   log 12:30). In VirtualBox with the owner's settings (BIOS, VMSVGA,
+   16 MB, 3D off) the desktop comes at ~75 s from power-on (llvmpipe; 3D
+   on gives the native path, also ~75 s there), labels without boxes,
+   Task View with real previews, and the sign-in screen renders
+   (`tests/results/2026-10-22-session-start/`, `...-virtualbox-renderer/`).
+   Boot tests: 17/18 and 16/17 — the one failing check grepped the portal
+   theme in plasmashell's environment, which is now KDE's by design;
+   `vmtest.py` was changed to read the user manager's environment and
+   **has not been re-run yet**. Still to check: the installer slideshow,
+   the sounds by ear, the power key and shutdown on screen, Camera with a
+   real webcam, Mail with a real account, and dark mode.
 2. Disk Management in the Windows layout (`packages/veltos-disks`, a
    UDisks2 reader exists, no window yet).
 3. Listen to the VeltOS sounds on real hardware; measure animation CPU
