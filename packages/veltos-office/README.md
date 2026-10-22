@@ -100,13 +100,16 @@ the VeltOS dialog), the Colibre icons, and fonts with the metrics of
 Calibri/Cambria (Carlito, Caladea) and Arial/Times New Roman/Courier New
 (Liberation), so documents from Windows keep their layout.
 
-Elsewhere (veltos-fluent-icons): the apps' icons follow the composition
-of Microsoft 365's Windows 11 icons (a coloured tile with the app's
-initial, W / S / P for Word Processor / Spreadsheet / Presentation, in
-front of a page, sheet or slide; VeltOS drawings, no Microsoft files);
-"Word", "Excel" and "PowerPoint" are only search words. The windows'
-title bars take the app's colour from the VeltOS window frame
-(veltos-desktop, `plasma-overrides/aurorae.json`, told by the caption).
+Elsewhere: the apps are named **Word**, **Excel** and **PowerPoint** in
+Start and on the start screens (the product owner's choice, 2026-10-22;
+the generic names Word Processor / Spreadsheet / Presentation and their
+Turkish forms stay as search words; veltos-desktop `update-app-names`),
+and their icons (veltos-fluent-icons) follow the composition of Microsoft
+365's Windows 11 icons: a coloured tile with the initial W / X / P in
+front of a page, sheet or slide (VeltOS drawings, no Microsoft files).
+The windows' title bars take the app's colour from the VeltOS window
+frame (veltos-desktop, `plasma-overrides/aurorae.json`, told by the
+caption).
 
 ## Tests
 

@@ -3,6 +3,58 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-22 (04:00) — Office apps named Word, Excel, PowerPoint; black screen in VirtualBox
+
+- Product owner: the apps are to be called **Word, Excel and PowerPoint**
+  and the Excel icon's letter is to be an **X**. Done in veltos-desktop's
+  `update-app-names` (the generic names Word Processor / Spreadsheet /
+  Presentation and their Turkish forms stay as search words), on the start
+  screens (`strings.KINDS`), in the verify hook (`Name=Word`), and in
+  `tools/app-icons.py` (W, X, P tiles). The names are Microsoft's product
+  names; the product owner chose them for this distribution. The icons
+  remain VeltOS drawings (no Microsoft files).
+- Product owner: the ISO `veltos-0.1.0-dev-20261021-231629` stays on a
+  black screen in their VirtualBox VM. The automatic boot tests (QEMU,
+  UEFI and BIOS) had passed. Their VM: BIOS firmware, PIIX3, **VMSVGA with
+  16 MB video memory, 3D off**. Reproduced in a throw-away VirtualBox VM
+  with the owner's settings (scripts in `out/vbox/`, driven with
+  VBoxManage; the owner's own VMs untouched). GRUB, the kernel and the
+  Plymouth splash come up; the desktop does not. The journal (read over a
+  serial port) shows the kernel's `vmwgfx ... unsupported hypervisor ...
+  likely broken`, then KWin's Wayland session failing OpenGL on the VMSVGA
+  display: `kwin_core: Failed to open drm node`, `EGL setup failed,
+  disabling glamor`, `Failed to initialize glamor, falling back to sw`,
+  `kwin_core: Applying output config failed!`, and KWin restarting while
+  KSplash times out (`WaitForName ... not registered within timeout`).
+  Probes at other settings: VMSVGA with **128 MB** VRAM reaches the
+  desktop (slowly, ~4 min); VBoxSVGA stays black; 16 MB stays black. So
+  the VMSVGA OpenGL path does not come up at 16 MB and is very slow even
+  at 128 MB.
+- Diagnosis, in two steps. First tried KWin's software compositor alone
+  (`KWIN_COMPOSE=Q`); a clean cold boot of the ISO with it was **still
+  black**. kscreen-doctor on the black VM showed the output enabled at
+  1280x800 (a 4 MB framebuffer, well within 16 MB), so the mode/VRAM was
+  not the wall; `KWIN_COMPOSE=Q` was confirmed set on kwin_wayland yet the
+  compositor could not configure a working scene. The journal showed the
+  real cause: with no OpenGL, not only KWin but **plasmashell and the QML
+  apps** cannot get a GL context (`libEGL: failed to create dri2 screen`,
+  `Applying output config failed`), so nothing paints.
+- Fix: render the whole stack in software in VirtualBox. veltos-session.sh,
+  when the DMI product/vendor is VirtualBox, exports `KWIN_COMPOSE=Q`
+  (KWin's QPainter compositor), `QT_QUICK_BACKEND=software` (Qt Quick's
+  software scene graph: plasmashell and every VeltOS QML app) and
+  `LIBGL_ALWAYS_SOFTWARE=1` (Mesa llvmpipe). The SDDM greeter gets the
+  same: the compositor through a new wrapper
+  `/usr/libexec/veltos/greeter-compositor` (KWIN_COMPOSE/llvmpipe, DMI
+  gated), and the greeter UI through `QT_QUICK_BACKEND=software` in
+  `GreeterEnvironment` (unconditional: a login screen must always render,
+  on any GPU or VM, and does not need the GPU). The session detection is
+  DMI gated, so real GPUs, QEMU and other machines keep hardware
+  rendering. Proven in a throw-away 16 MB VMSVGA VM with the owner's
+  settings: with the three variables set and a fresh session, the full
+  desktop (wallpaper, taskbar, icons) painted where it had stayed black.
+  Note for the owner: 16 MB VRAM works with this fix; 128 MB is smoother.
+
 ## 2026-10-22 (00:30) — VeltOS Office: Microsoft 365's start screen in front of LibreOffice
 
 Product owner: "Redo the Office apps (Word, Excel, PowerPoint) completely

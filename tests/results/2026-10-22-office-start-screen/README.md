@@ -19,7 +19,7 @@ with the rebuilt `veltos-office` and `veltos-desktop` packages of
 | `writer-meeting-notes-template.png` | "Meeting notes" chosen on Home: LibreOffice Writer with the template, the Tabbed interface, the title "Untitled 1 — VeltOS Office Writer" |
 | `writer-blue-title-bar.png` | After a new session (KWin reads the frame QML at start): Writer's title bar in Word's blue with white caption and buttons (VeltOS' Aurorae change, told by the caption) |
 | `writer-save-dialog-docx.png` | Ctrl+S in a blank document: the VeltOS Save dialog offers "Word 2007 (.docx)" (the layer now depends on writer/calc/impress.xcd; before it offered .odt) |
-| `start-menu-office-icons.png` | Start with the redrawn Office icons (W / S / P tiles in front of a page, sheet and slide, Microsoft 365's composition in VeltOS' drawing) |
+| `start-menu-office-icons.png` | Start with the redrawn Office icons (W / S / P tiles in front of a page, sheet and slide, Microsoft 365's composition in VeltOS' drawing; the S became an X and the names Word / Excel / PowerPoint later that day) |
 
 Not in pictures: the entrance animations (sections glide in; tiles lift
 on hover), the pin and the right-click menu of the recent list, the Open

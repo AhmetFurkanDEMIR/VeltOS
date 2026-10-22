@@ -46,6 +46,15 @@ Numbers from the boot test describe **a live session in a VM**:
   from QEMU start and including the deliberate boot-menu delay).
 - llvmpipe rendering inflates CPU use and plasmashell/kwin memory.
 
+## Checks in VirtualBox (the product owner's set-up)
+
+The ISO can be booted headless in a throw-away VirtualBox VM on the
+developer host with the scripts in `out/vbox/` (`boot-probe.sh NAME [ISO]
+[VRAM]`, `boot-probe2.sh NAME CONTROLLER 3D [VRAM]`, `diag-probe.sh` for a
+journal dump over a serial port). They mirror the product owner's VM
+(BIOS, PIIX3, VMSVGA, 3D off) and keep their own VMs under
+`out/vbox/vms`. See AGENTS.md for the VBoxManage calls.
+
 ## Manual checks in the long-running VM (`build/run.sh vm`)
 
 Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):

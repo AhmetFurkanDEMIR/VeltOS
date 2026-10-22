@@ -24,5 +24,5 @@
   <path d="M 38 72 H 118 Q 140 72 140 94 V 174 Q 140 196 118 196 H 38 Q 16 196 16 174 V 94 Q 16 72 38 72 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
   <path d="M 38 72 H 118 Q 140 72 140 94 V 174 Q 140 196 118 196 H 38 Q 16 196 16 174 V 94 Q 16 72 38 72 Z" fill="url(#tile)"/>
   <path d="M 16 134 V 174 Q 16 196 38 196 H 118 Q 140 196 140 174 V 134 Z" fill="url(#edge)" opacity="0.55"/>
-  <path d="M 104 116 Q 92 104 76 106 Q 56 110 58 126 Q 60 140 80 142 Q 100 144 102 160 Q 100 176 78 176 Q 60 174 52 162" fill="none" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 52 108 L 104 172 M 104 108 L 52 172" fill="none" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
