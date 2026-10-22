@@ -47,6 +47,17 @@ class FolderTests(unittest.TestCase):
         self.assertEqual((item["size"], item["type"], item["icon"], item["isDir"]),
                          (10, "Text document", "text-plain", False))
 
+    def test_desktop_launcher_shows_its_own_name_and_icon(self):
+        (self.dir / "my-app.desktop").write_text(
+            "[Desktop Entry]\nType=Application\nName=My App\nName[tr]=Uygulamam\nIcon=veltos-store\nExec=true\n",
+            encoding="utf-8")
+        (self.dir / "notes.desktop").write_text("just text, not a launcher\n", encoding="utf-8")
+        items = {i["path"].rsplit(os.sep, 1)[-1]: i for i in files.list_folder(self.dir, mime=fake_mime)}
+        launcher = items["my-app.desktop"]
+        self.assertEqual((launcher["name"], launcher["icon"], launcher["type"]), ("My App", "veltos-store", "Shortcut"))
+        self.assertEqual(items["notes.desktop"]["name"], "notes.desktop")     # not a launcher: the file name
+        self.assertEqual(files.desktop_entry(self.dir / "my-app.desktop", "tr")["name"], "Uygulamam")
+
     def test_unreadable_folder_raises(self):
         with self.assertRaises(OSError):
             files.list_folder(self.dir / "missing")

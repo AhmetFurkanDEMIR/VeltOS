@@ -15,7 +15,7 @@ installed() {
 # kde-plasma-desktop is spelled out in the package list (without Dolphin),
 # so its main parts are checked instead of the metapackage.
 for pkg in veltos-base veltos-desktop veltos-settings veltos-boot veltos-fluent-icons \
-           veltos-explorer veltos-taskmanager veltos-store veltos-snip veltos-calculator veltos-archive \
+           veltos-explorer veltos-taskmanager veltos-disks veltos-store veltos-snip veltos-calculator veltos-archive \
            calamares-settings-veltos veltos-winapps veltos-wine-addons wine32 \
            plasma-desktop plasma-workspace kwin-wayland sddm calamares plymouth \
            live-boot live-config qemu-guest-agent; do

@@ -240,7 +240,10 @@ class PersonalizationTests(unittest.TestCase):
         self.assertEqual(system.commands, [["plasma-apply-wallpaperimage", "/usr/share/wallpapers/Next"],
                                            ["plasma-apply-colorscheme", "--accent-color", "#0078D4"],
                                            ["kwriteconfig6", "--file", "kdeglobals", "--group", "General",
-                                            "--key", "AccentColor", "0,120,212"]])
+                                            "--key", "AccentColor", "0,120,212"],
+                                           # running programs (the taskbar) hear about it at once
+                                           ["dbus-send", "--session", "--type=signal", "/KGlobalSettings",
+                                            "org.kde.KGlobalSettings.notifyChange", "int32:0", "int32:0"]])
 
 
 class TimeTests(unittest.TestCase):
@@ -292,8 +295,10 @@ class ThemeTests(unittest.TestCase):
         devices.Personalization(system).apply_theme("/usr/share/wallpapers/VeltOS-Tide", "#12949B",
                                                      ["sh", "-c", "mode"])
         self.assertEqual([c[0] for c in system.commands],
-                         ["sh", "plasma-apply-wallpaperimage", "plasma-apply-colorscheme", "kwriteconfig6"])
-        self.assertEqual(system.commands[-1][-2:], ["AccentColor", "18,148,155"])
+                         ["sh", "plasma-apply-wallpaperimage", "plasma-apply-colorscheme", "kwriteconfig6",
+                          "dbus-send"])
+        self.assertEqual(system.commands[-2][-2:], ["AccentColor", "18,148,155"])
+        self.assertEqual(system.commands[-1], devices.PALETTE_CHANGED)       # the taskbar hears it at once
 
 
 if __name__ == "__main__":

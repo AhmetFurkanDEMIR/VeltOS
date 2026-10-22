@@ -1,0 +1,7 @@
+veltos-disks (0.1.0~dev1) unstable; urgency=medium
+
+  * Initial package: Windows 11 style Disk Management (volume list, disk
+    map, format, delete, new simple volume, label, mount, eject,
+    initialize) on UDisks2.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Thu, 22 Oct 2026 12:00:00 +0000

@@ -282,6 +282,76 @@ a square hover everywhere (sticks out of the rounded window corner), a QML
 window decoration of our own (much more code to maintain), Breeze-style
 C++ decoration (a fork).
 
+The mechanism can also **add a file** to a Plasma package (`"add"`,
+2026-10-22): the desktop's Windows 11 behaviour lives in one VeltOS QML
+file placed next to Plasma's folder view (`VeltOSDesktop.qml`), and the
+replacements in `FolderView.qml` are a dozen one-line hooks into it
+(right-click, Menu key, Delete/F2/Ctrl+X/F5). The file is dropped like
+any other change when Plasma gains a file of that name.
+
+#### 2.3.8b The taskbar in the accent colour; Plasma themes without colours of their own (2026-10-22)
+
+- The VeltOS Plasma themes (derived from Fluent-kde) shipped Fluent's
+  practice of a `colors` file in the theme. Plasma then draws the panel,
+  Start and the flyouts in those fixed colours and ignores the colour
+  scheme the user has, accent included: with a red accent, Start's search
+  field stayed VeltOS blue (VM). Since the file held exactly the VeltOS
+  Light/Dark scheme that the global theme selects anyway, the themes now
+  have no `colors` file and Plasma follows the system scheme — so the
+  taskbar, Start and the flyouts take the user's accent, as Windows 11's
+  do. Trade-off: a user who picks a non-VeltOS colour scheme in some
+  other way also recolours the taskbar (VeltOS Settings offers only the
+  VeltOS pair).
+- The owner asked for the taskbar to change colour "by theme and accent,
+  with a nice transition, like Windows 11". Read as: Windows 11's taskbar
+  takes on the accent (acrylic tinted by it); VeltOS draws a soft accent
+  glow behind the centred icons (`TaskbarTint.qml`, added to Plasma's
+  panel view through the override mechanism), which cross-fades and
+  sends one band of colour across the bar when the accent or light/dark
+  mode changes. Nothing animates at rest: in VMs with software rendering
+  every animated frame of the panel costs CPU. Alternatives: an accent
+  layer in the theme's SVGs (no transition, and SVG gradients cannot take
+  the accent colour), a switch between the panel's translucent and opaque
+  backgrounds (Plasma cross-fades those, but "opaque" also changes when
+  windows touch the bar), Windows' "Show accent colour on Start and
+  taskbar" switch (not asked for as such; possible later).
+- `plasma-apply-colorscheme --accent-color` rewrites kdeglobals but does
+  not make plasmashell reload its colours; KDE's own colours module sends
+  `org.kde.KGlobalSettings.notifyChange(0, 0)` (PaletteChanged) and VeltOS
+  Settings now does the same after an accent change.
+
+#### 2.3.8a The desktop: Windows 11's menus inside Plasma's folder view (2026-10-22)
+
+The product owner wants the desktop to behave like Windows 11's: its own
+right-click menu (View, Sort by, Refresh, New, Display settings,
+Personalize, Open in Terminal), "New > Folder" that makes the folder and
+opens its name at once (Plasma's `KNewFileMenu` asks in a dialog), a
+blink on Refresh, and system icons (Recycle Bin, This PC, Store) that
+cannot be deleted. The desktop is Plasma's folder-view containment
+(`org.kde.desktopcontainment`, C++ model + QML view).
+
+- Decision: keep Plasma's containment and change its QML through the
+  override mechanism (2.3.8). The added `VeltOSDesktop.qml` holds two
+  `PlasmaExtras.Menu`s (Plasma's own QMenu-backed menus, styled by the
+  application style like every other VeltOS menu), runs commands through
+  `plasma5support`'s executable engine (the folder view cannot write
+  files; a small helper, `desktop-new`, picks Windows' names "New
+  folder (2)"), waits for KDirLister to list the new item and then
+  selects it and calls the view's own `rename()`; protected icons are
+  recognised by file name (`recycle-bin.desktop`, ...) through the
+  model's `urlForIndex`. Texts use `i18nd` with a VeltOS catalog
+  (`veltos-desktop.mo`), so KDE's catalog for the containment stays as
+  it is.
+- Alternatives: a VeltOS desktop containment of our own (a second file
+  manager's worth of code: positioning, drag and drop, selection,
+  previews — rule 5); patching plasma-desktop (a fork); Plasma's
+  containment menu with fewer entries (`context-menus` already does
+  that, but "New" still went through KDE's dialog, and Plasma's
+  "Enter Edit Mode"/"Add Widgets" could not be removed from it).
+- Trade-off: as with every override, the hooks are checked against
+  Plasma's text and fall back to Plasma's own desktop after a Plasma
+  update that changes them.
+
 #### 2.3.9 Non-KDE programs
 
 - **GTK programs** use the `VeltOS` GTK theme: Breeze (KDE's GTK theme,
@@ -518,9 +588,13 @@ Snapshot-based rollback (e.g. Btrfs + snapper) is a candidate to evaluate.
   the portal failed after 90 s and plasmashell came after ~95 s instead
   of ~18 s (QEMU boot tests since the 2026-10-21 evening ISO;
   `systemd-analyze --user blame` in a VM). VeltOS gives every Plasma user
-  service a drop-in `Environment=QT_QPA_PLATFORMTHEME=kde`
+  service but plasmashell a drop-in `Environment=QT_QPA_PLATFORMTHEME=kde`
   (`PLASMA_SERVICES`, veltos-desktop), the same to its polkit agent, and
-  the portal's own dialogs KDE's theme. Alternatives: setting the theme
+  the portal's own dialogs KDE's theme. plasmashell keeps the portal
+  theme: programs started from Start inherit its environment (KIO's
+  launcher hands it to their transient unit), and with KDE's theme there
+  every program lost the Windows 11 dialogs (2026-10-22); once the other
+  services no longer wait, the portal is up within seconds for it. Alternatives: setting the theme
   only for programs the user starts (Plasma has no such layer: launched
   programs inherit the session environment); a `service.d` drop-in for
   all user services (would also strip launched programs, which Plasma
@@ -596,6 +670,34 @@ Snapshot-based rollback (e.g. Btrfs + snapper) is a candidate to evaluate.
   flat ODF by LibreOffice itself, with thumbnails), so "New from
   template" is LibreOffice's `-n`, and users' templates in LibreOffice's
   folder appear too.
+
+### 2.14 Disk Management: a VeltOS app on UDisks2 (2026-10-22)
+
+- The product owner wants Disk Management "nicer, like Windows 11". KDE
+  Partition Manager (what VeltOS named "Disk Management" until now) is a
+  Qt Widgets program with its own layout and dialogs; restyling it would
+  stay KDE's layout. VeltOS Disk Management (`veltos-disks`,
+  PySide6/QML like the other VeltOS apps) draws Windows' layout: the
+  volume list over the disk map with partitions to scale and Disk
+  Management's partition colours, and the same menu entries and dialogs
+  (Format, Delete Volume, New Simple Volume, label, Initialize Disk,
+  Properties).
+- It does nothing itself: every change is a UDisks2 method call
+  (`busctl --system`), the system service every desktop uses, which
+  enforces polkit (the VeltOS administrator prompt appears where
+  UDisks2's rules ask) and refuses what it must not do. VeltOS adds its
+  own guard rails like Windows': the running system's volumes (`/`,
+  `/boot`, the EFI system partition, the live medium) cannot be
+  formatted or deleted, optical and read-only devices neither, and a
+  disk with a partition table is never initialized again. Formats
+  offered are those whose `mkfs` is installed (NTFS, exFAT, FAT32,
+  ext4). Alternatives: KDE Partition Manager's KPMcore (a C++ library,
+  root helper of its own, no Windows look); GNOME Disks (a GTK program,
+  again its own layout); writing partition tables with `sfdisk`/`parted`
+  from the app (would need VeltOS' own privileged helper and policy —
+  UDisks2 already is that helper).
+- No daemon: the window re-reads UDisks2 every 5 s only while it is
+  open, and after each action.
 
 ## 3. Licensing and redistribution
 

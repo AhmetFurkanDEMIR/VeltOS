@@ -19,6 +19,9 @@ Rectangle {
         id: row
 
         property string icon
+        // Drawn in the accent colour (the Home entry: its house follows the
+        // theme's colour, as the product owner asked, 2026-10-22).
+        property bool accent: false
         property string text
         property string location
         property bool pinned: false
@@ -61,6 +64,9 @@ Rectangle {
                 Layout.preferredWidth: 18
                 Layout.preferredHeight: 18
                 source: row.icon
+                isMask: row.accent
+                // (Transparent = Kirigami's "no colour"; undefined cannot be assigned.)
+            color: row.accent ? Theme.accent : "transparent"
             }
             Text {
                 Layout.fillWidth: true
@@ -135,6 +141,7 @@ Rectangle {
 
             NavRow {
                 icon: "veltos-home"
+                accent: true
                 text: backend.text("home")
                 location: "home:"
             }

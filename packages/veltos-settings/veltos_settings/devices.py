@@ -557,6 +557,11 @@ class Personalization:
         # light and dark mode are switched.
         rgb = ",".join(str(int(color[i:i + 2], 16)) for i in (1, 3, 5))
         self.run(["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "AccentColor", rgb])
+        # Tell running programs the palette changed (KGlobalSettings
+        # PaletteChanged, as KDE's colours module does): plasmashell (the
+        # taskbar's accent glow, Start, the flyouts) kept the old accent
+        # until it was restarted (VM, 2026-10-22).
+        self.run(PALETTE_CHANGED)
         return True
 
     def apply_theme(self, wallpaper, accent, mode_command=None):
@@ -576,6 +581,9 @@ class Personalization:
 
 
 PICTURES_FILTER = ("Pictures", ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.avif", "*.jxl", "*.bmp", "*.gif"])
+# KGlobalSettings::notifyChange(PaletteChanged = 0, 0) on the session bus.
+PALETTE_CHANGED = ["dbus-send", "--session", "--type=signal", "/KGlobalSettings",
+                   "org.kde.KGlobalSettings.notifyChange", "int32:0", "int32:0"]
 
 
 def pick_file(start, title, filters, mode="open", run_dialog=None):

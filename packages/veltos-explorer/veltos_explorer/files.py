@@ -20,6 +20,33 @@ def natural_key(name):
             for part in re.split(r"(\d+)", name)]
 
 
+def desktop_entry(path, lang="en"):
+    """Name, icon and kind of a .desktop launcher, or None if the file is
+    not one. Windows shows a shortcut's own name and icon, not its file
+    name (product owner, 2026-10-22). The first value of a key wins, as
+    the desktop entry specification says; Name[lang] before Name."""
+    try:
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    if not text.lstrip().startswith("[Desktop Entry]"):
+        return None
+    values = {}
+    for line in text.lstrip().splitlines()[1:]:
+        if line.startswith("["):
+            break
+        key, sep, value = line.partition("=")
+        key = key.strip()
+        if sep and key and key not in values:
+            values[key] = value.strip()
+    name = values.get(f"Name[{lang}]") or values.get("Name")
+    if not name:
+        return None
+    kind = values.get("Type", "Application")
+    default_icon = "folder" if kind == "Directory" else "application-x-executable"
+    return {"name": name, "icon": values.get("Icon") or default_icon, "kind": kind}
+
+
 def entry_for(path, st, mime=None):
     """One item of a folder listing (a dict, ready for QML)."""
     path = Path(path)
@@ -27,8 +54,15 @@ def entry_for(path, st, mime=None):
     mime_name, type_text, icon = (FOLDER_MIME, "", "folder") if is_dir else ("", "", "")
     if mime is not None:
         mime_name, type_text, icon = mime(str(path), is_dir)
+    name = path.name
+    if not is_dir and path.suffix == ".desktop":
+        entry = desktop_entry(path, getattr(mime, "lang", "en"))
+        if entry:
+            from . import strings
+            name, icon = entry["name"], entry["icon"]
+            type_text = strings.text(getattr(mime, "lang", "en"), "shortcut")
     return {
-        "name": path.name,
+        "name": name,
         "path": str(path),
         "isDir": is_dir,
         "size": 0 if is_dir else st.st_size,

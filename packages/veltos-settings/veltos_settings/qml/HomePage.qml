@@ -204,7 +204,7 @@ ColumnLayout {
             }
         }
         HoverHandler { id: hover; enabled: row.clickable; cursorShape: Qt.PointingHandCursor }
-        TapHandler { id: tap; enabled: row.clickable; onTapped: row.clicked() }
+        TapHandler { id: tap; enabled: row.clickable; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: row.clicked() }
     }
 
     // --- This PC, network, VeltOS Update ---------------------------------------
@@ -401,7 +401,7 @@ ColumnLayout {
                     }
                 }
                 CardRow {
-                    icon: "preferences-color-symbolic"
+                    icon: "veltos-colour-mode-symbolic"
                     title: backend.text("colour_mode")
                     chevron: false
                     clickable: false

@@ -322,6 +322,8 @@ def build_look_and_feel(root, tmp_dir):
         (contents / "layouts").mkdir(parents=True, exist_ok=True)
         shutil.copy(layout, contents / "layouts/org.kde.plasma.desktop-layout.js")
         shutil.copytree(splash_dir, contents / "splash", dirs_exist_ok=True)
+        # (The on-screen display is not here: plasmashell 6.3 loads it from
+        # the desktop shell package, see plasma-overrides/files/osd.)
         splash = contents / "splash/Splash.qml"
         splash_qml = splash.read_text(encoding="utf-8")
         if "@LOGIN_IMAGE@" not in splash_qml:
@@ -369,6 +371,32 @@ def build_static_config(root):
 
     files = {
         # Window frames: Windows 11 style buttons on the right, app icon left.
+        # LibreOffice's start-up window (window class "soffice", before the
+        # module sets libreoffice-writer & co.) stays off the taskbar: it
+        # flashed there as "LibreOffice" while Word opened from the Office
+        # start screen (product owner, 2026-10-22; seen in VirtualBox, too
+        # quick to catch in QEMU). KWin reads /etc/xdg/kwinrulesrc as the
+        # default below the user's rules.
+        "etc/xdg/kwinrulesrc": (
+            "[General]\n"
+            "count=1\n"
+            "rules=veltos-office-startup\n"
+            "\n[veltos-office-startup]\n"
+            "Description=VeltOS: LibreOffice's start-up window stays off the taskbar\n"
+            "skiptaskbar=true\n"
+            "skiptaskbarrule=2\n"
+            "wmclass=soffice\n"
+            "wmclasscomplete=false\n"
+            "wmclassmatch=1\n"
+        ),
+        # Like Windows: moving files to the Recycle Bin asks nothing;
+        # deleting for good and emptying the bin still do (KIO's own dialogs).
+        "etc/xdg/kiorc": (
+            "[Confirmations]\n"
+            "ConfirmTrash=false\n"
+            "ConfirmDelete=true\n"
+            "ConfirmEmptyTrash=true\n"
+        ),
         "etc/xdg/kwinrc": (
             "[org.kde.kdecoration2]\n"
             "library=org.kde.kwin.aurorae\n"
@@ -587,11 +615,32 @@ def build_static_config(root):
     shutil.copy(SRC / "system/veltos-session-fixups.desktop", autostart / "veltos-session-fixups.desktop")
     libexec = root / "usr/libexec/veltos"
     libexec.mkdir(parents=True, exist_ok=True)
-    for helper in ("context-menus", "display-scale", "greeter-compositor", "needs-software-rendering",
-                   "sddm-virtualbox-env", "session-defaults", "session-fixups", "start-categories",
-                   "terminal-theme", "update-app-names", "update-plasma-overrides"):
+    for helper in ("context-menus", "desktop-new", "display-scale", "greeter-compositor",
+                   "needs-software-rendering", "sddm-virtualbox-env", "session-defaults", "session-fixups",
+                   "start-categories", "terminal-theme", "trash-icon", "update-app-names",
+                   "update-plasma-overrides"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
+    # The desktop's Recycle Bin icon follows the trash: a systemd user path
+    # unit (no process of its own) watches the trash and runs trash-icon,
+    # which touches the launcher so the desktop re-reads its icon (full or
+    # empty). Started with the Plasma session (plasma-workspace.target).
+    units_dir = root / "usr/lib/systemd/user"
+    units_dir.mkdir(parents=True, exist_ok=True)
+    (units_dir / "veltos-trash-icon.path").write_bytes(
+        b"[Unit]\nDescription=VeltOS: Recycle Bin icon follows the trash\n"
+        b"# See /usr/libexec/veltos/trash-icon.\n\n"
+        b"[Path]\nPathChanged=%h/.local/share/Trash/files\nPathChanged=%h/.local/share/Trash/info\n"
+        b"MakeDirectory=yes\nDirectoryMode=0700\n\n"
+        b"[Install]\nWantedBy=plasma-workspace.target\n")
+    (units_dir / "veltos-trash-icon.service").write_bytes(
+        b"[Unit]\nDescription=VeltOS: refresh the desktop's Recycle Bin icon\n\n"
+        b"[Service]\nType=oneshot\nExecStart=/usr/libexec/veltos/trash-icon\n")
+    wants = units_dir / "plasma-workspace.target.wants"
+    wants.mkdir(parents=True, exist_ok=True)
+    link = wants / "veltos-trash-icon.path"
+    if not link.is_symlink():
+        link.symlink_to("../veltos-trash-icon.path")
     # Plasma's own services start with KDE's platform theme, not the
     # portal's. veltos-session.sh gives every program
     # QT_QPA_PLATFORMTHEME=xdgdesktopportal (Windows 11 file dialogs), and a
@@ -603,7 +652,11 @@ def build_static_config(root):
     # xdg-desktop-portal.service itself timed out after 90 s: plasmashell
     # came after ~95 s instead of ~18 s (QEMU boot tests, since 2026-10-21).
     # A drop-in per unit; one for a unit that is not installed is inert.
-    # Programs the user starts keep the portal theme.
+    # Not plasmashell: programs started from Start inherit plasmashell's
+    # environment (KIO's launcher hands it to the transient unit), so it
+    # keeps the portal theme for them (with the drop-in, LibreOffice got
+    # KDE's file dialog; ISO 093321, 2026-10-22). By the time plasmashell
+    # starts, the portal and its backends start without the chain above.
     units_dir = root / "usr/lib/systemd/user"
     for unit in PLASMA_SERVICES:
         dropin = units_dir / f"{unit}.service.d" / "veltos-portal-theme.conf"
@@ -623,9 +676,9 @@ PLASMA_SERVICES = (
     "plasma-kcminit", "plasma-kcminit-phase1", "plasma-kded", "plasma-kded6", "plasma-kglobalaccel",
     "plasma-krunner", "plasma-kscreen", "plasma-kscreen-osd", "plasma-ksmserver", "plasma-ksplash",
     "plasma-ksplash-ready", "plasma-ksystemstats", "plasma-kwallet-pam", "plasma-kwin_wayland",
-    "plasma-kwin_x11", "plasma-plasmashell", "plasma-polkit-agent", "plasma-powerdevil",
+    "plasma-kwin_x11", "plasma-polkit-agent", "plasma-powerdevil",
     "plasma-restoresession", "plasma-xdg-desktop-portal-kde", "plasma-xembedsniproxy",
-)
+)   # not plasma-plasmashell: see above
 
 
 # VeltOS plasmoids: source directory under plasma/ -> plugin id.
@@ -660,13 +713,23 @@ def build_plasmoids(root):
             run(["msgfmt", "--check", "--output-file", str(mo), str(po)])
 
 
+def build_translations(root):
+    """The veltos-desktop message catalog: the texts VeltOS adds to Plasma's
+    own components (the desktop's Windows 11 menus, i18nd in
+    plasma-overrides/files), kept apart from KDE's catalogs."""
+    for po in sorted((SRC / "translations").glob("*.po")):
+        mo = root / "usr/share/locale" / po.stem / "LC_MESSAGES/veltos-desktop.mo"
+        mo.parent.mkdir(parents=True, exist_ok=True)
+        run(["msgfmt", "--check", "--output-file", str(mo), str(po)])
+
+
 def build_fluent_themes(fluent_dir, root, schemes):
     fluent.build_kvantum(fluent_dir, root)
     fluent.build_aurorae(fluent_dir, root)
     for name, variant in fluent.DESKTOPTHEMES.items():
-        scheme_id = "VeltOSLight" if variant == "light" else "VeltOSDark"
-        colors = format_kconfig(schemes[scheme_id], f"# {fluent.ATTRIBUTION}\n")
-        fluent.build_desktoptheme(fluent_dir, root, name, variant, colors)
+        # No colours of its own: the Plasma theme follows the system scheme
+        # (VeltOS Light/Dark) and the user's accent colour.
+        fluent.build_desktoptheme(fluent_dir, root, name, variant)
 
 
 def main(argv=None):
@@ -692,6 +755,7 @@ def main(argv=None):
     build_wallpaper(root, tmp_dir)
     build_look_and_feel(root, tmp_dir)
     build_plasmoids(root)
+    build_translations(root)
     build_static_config(root)
     build_user_picture(root, tmp_dir)
     gtktheme.build(root)

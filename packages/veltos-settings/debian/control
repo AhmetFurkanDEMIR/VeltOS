@@ -20,6 +20,7 @@ Package: veltos-settings
 Architecture: all
 Depends: ${python3:Depends},
          accountsservice,
+         dbus-bin,
          kde-cli-tools,
          kdialog,
          libglib2.0-bin,
@@ -44,7 +45,7 @@ Recommends: bluedevil,
             veltos-auth,
             veltos-explorer,
             network-manager,
-            partitionmanager,
+            veltos-disks,
             veltos-store,
             pulseaudio-utils,
             veltos-winapps

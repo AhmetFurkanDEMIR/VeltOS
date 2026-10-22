@@ -46,6 +46,9 @@ baloo6
 
 veltos-explorer
 veltos-taskmanager
+# Disk Management (Windows 11 layout) on UDisks2; KDE Partition Manager is
+# no longer in the image (it was pulled in by veltos-settings' Recommends).
+veltos-disks
 veltos-store
 # Clock (Windows 11 layout): alarms, timers, stopwatch, world clock.
 veltos-clock

@@ -1,0 +1,102 @@
+{
+  "plugin": "org.kde.desktopcontainment",
+  "about": "Plasma's desktop (folder view) containment, plasma-desktop-data 6.3.6 (Debian 13). VeltOS adds files/desktop/VeltOSDesktop.qml to it: the desktop's right-click menu is Windows 11's (View, Sort by, Refresh, Paste, New, Display settings, Personalize, Open in Terminal; Plasma's containment menu with Edit Mode and Add Widgets never opens), New > Folder / Text Document make the item at once and open its name for editing (Plasma asked in a dialog), Refresh blinks the icons, and the Recycle Bin, This PC and the VeltOS Store cannot be deleted, renamed or cut (their own small menu). The name box gets Windows 11's square corners. Everything else stays Plasma's.",
+  "replacements": [
+    {
+      "file": "contents/ui/VeltOSDesktop.qml",
+      "why": "the Windows 11 behaviour in one file of its own (menus, New, Refresh, protected icons)",
+      "add": "desktop/VeltOSDesktop.qml"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "the folder view hands its parts to VeltOSDesktop",
+      "old": "        Component {\n            id: editorComponent\n",
+      "new": "        // VeltOS: Windows 11's desktop menus, New, Refresh, protected icons.\n        VeltOSDesktop {\n            id: veltos\n            view: main\n            folderModel: dir\n            grid: gridView\n            mapper: positioner\n        }\n\n        Component {\n            id: editorComponent\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "the desktop's view takes right-clicks on empty space itself (Plasma left them to the containment, whose menu then opened)",
+      "old": "            if (hoveredItem === null && main.isRootView) {\n                return root.isPopup ? (Qt.LeftButton | Qt.MiddleButton | Qt.BackButton) : Qt.LeftButton;\n            }\n",
+      "new": "            if (hoveredItem === null && main.isRootView) {\n                // VeltOS: the desktop takes right-clicks itself (Windows 11's menu, VeltOSDesktop.qml).\n                return root.isPopup ? (Qt.LeftButton | Qt.MiddleButton | Qt.BackButton)\n                    : (dir.usedByContainment ? (Qt.LeftButton | Qt.RightButton) : Qt.LeftButton);\n            }\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "right-click on the desktop opens Windows 11's menu instead of Plasma's containment menu",
+      "old": "                    // If it's the desktop, fall through to the desktop context menu plugin\n                    if (!dir.usedByContainment) {\n                        dir.openContextMenu(main, mouse.modifiers);\n                        mouse.accepted = true;\n                    }\n",
+      "new": "                    // VeltOS: the desktop has Windows 11's menu (VeltOSDesktop.qml);\n                    // a folder view in a panel keeps Plasma's.\n                    if (dir.usedByContainment) {\n                        veltos.desktopMenu(listener.mapToItem(main, mouse.x, mouse.y));\n                    } else {\n                        dir.openContextMenu(main, mouse.modifiers);\n                    }\n                    mouse.accepted = true;\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "the Recycle Bin, This PC and the Store get their own menu without Delete (right-click and press-and-hold)",
+      "count": 2,
+      "old": "dir.openContextMenu(hoveredItem, mouse.modifiers);",
+      "new": "if (!veltos.itemMenu(hoveredItem, listener.mapToItem(main, mouse.x, mouse.y))) dir.openContextMenu(hoveredItem, mouse.modifiers); // VeltOS"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "the Menu key on a protected icon opens its own menu",
+      "old": "                        dir.openContextMenu(currentItem.frame, event.modifiers);\n",
+      "new": "                        if (!veltos.itemMenu(currentItem, null)) dir.openContextMenu(currentItem.frame, event.modifiers); // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "the Menu key on the empty desktop opens Windows 11's menu, not the containment's",
+      "old": "                    } else {\n                        // Otherwise let the containment handle it.\n                        event.accepted = false;\n                    }\n",
+      "new": "                    } else if (dir.usedByContainment) {\n                        veltos.desktopMenu(null); // VeltOS: Windows 11's desktop menu\n                    } else {\n                        // Otherwise let the containment handle it.\n                        event.accepted = false;\n                    }\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "the Delete key leaves the protected icons alone",
+      "old": "                    onDeleteFile: {\n                        dir.deleteSelected();\n",
+      "new": "                    onDeleteFile: {\n                        if (veltos.selectionProtected()) return; // VeltOS: not the Recycle Bin, This PC, the Store\n                        dir.deleteSelected();\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "moving to the Recycle Bin leaves the protected icons alone",
+      "old": "                    onMoveToTrash: {\n                        const action = dir.action(\"trash\");\n",
+      "new": "                    onMoveToTrash: {\n                        if (veltos.selectionProtected()) return; // VeltOS\n                        const action = dir.action(\"trash\");\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "Ctrl+X leaves the protected icons alone",
+      "old": "                    } else if (event.matches(StandardKey.Cut)) {\n                        dir.cut();\n",
+      "new": "                    } else if (event.matches(StandardKey.Cut)) {\n                        if (!veltos.selectionProtected()) dir.cut(); // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "F5 blinks the icons like Windows",
+      "old": "                    } else if (event.matches(StandardKey.Refresh)) {\n                        dir.refresh();\n",
+      "new": "                    } else if (event.matches(StandardKey.Refresh)) {\n                        veltos.refresh(); // VeltOS: blinks the icons like Windows\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "F2 and the menu's Rename leave the protected icons alone",
+      "old": "    function rename() {\n        if (gridView.currentIndex !== -1) {\n",
+      "new": "    function rename() {\n        if (gridView.currentIndex !== -1 && !veltos.selectionProtected()) { // VeltOS: not the Recycle Bin, This PC, the Store\n"
+    },
+    {
+      "file": "contents/ui/FolderItemDelegate.qml",
+      "why": "every item tells its file name (the protected desktop icons are recognised by it)",
+      "old": "    property string name:        model.blank ? \"\" : model.display\n",
+      "new": "    property string name:        model.blank ? \"\" : model.display\n    // VeltOS: the item's file name (the protected desktop icons, VeltOSDesktop.qml).\n    readonly property string veltosFileName: model.blank ? \"\" : String(model.fileName !== undefined ? model.fileName : (model.url !== undefined ? model.url : \"\"))\n"
+    },
+    {
+      "file": "contents/ui/RenameEditor.qml",
+      "why": "the name box grows with a long name like Windows 11's (it stopped at the label's lines plus one and showed a scroll bar)",
+      "old": "                var maxHeight = Kirigami.Units.iconSizes.sizeForLabels * (Plasmoid.configuration.textLines + 1) + editor.topPadding + editor.bottomPadding;\n",
+      "new": "                // VeltOS: the box grows with the name, like Windows 11's.\n                var maxHeight = Kirigami.Units.iconSizes.sizeForLabels * (Plasmoid.configuration.textLines + 8) + editor.topPadding + editor.bottomPadding;\n"
+    },
+    {
+      "file": "contents/ui/RenameEditor.qml",
+      "why": "no scroll bar in the name box (Windows 11's has none)",
+      "old": "                    root.PlasmaComponents.ScrollBar.vertical.policy = Qt.ScrollBarAlwaysOn;\n                    root.width = getWidth(true);\n",
+      "new": "                    root.PlasmaComponents.ScrollBar.vertical.policy = Qt.ScrollBarAlwaysOff; // VeltOS: no scroll bar\n                    root.width = getWidth();\n"
+    },
+    {
+      "file": "contents/ui/RenameEditor.qml",
+      "why": "the name box has Windows 11's square-ish corners",
+      "old": "        background: Rectangle {\n            color: Kirigami.Theme.backgroundColor\n            radius: Kirigami.Units.cornerRadius\n            border.color: Kirigami.Theme.highlightColor\n            border.width: 1\n        }\n",
+      "new": "        background: Rectangle {\n            // VeltOS: the name box of Windows 11.\n            color: Kirigami.Theme.backgroundColor\n            radius: 2\n            border.color: Kirigami.Theme.highlightColor\n            border.width: 1\n        }\n"
+    }
+  ]
+}

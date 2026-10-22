@@ -24,6 +24,10 @@ for (var i = 0; i < desktopsArray.length; i++) {
     desktop.writeConfig("arrangement", 1);
     desktop.writeConfig("sortMode", 2);
     desktop.writeConfig("sortDirsFirst", false);
+    // No hover buttons on the icons (Plasma's selection markers and folder
+    // preview pop-ups): Windows shows none.
+    desktop.writeConfig("selectionMarkers", false);
+    desktop.writeConfig("popups", false);
 }
 
 var panel = new Panel;

@@ -256,6 +256,58 @@ class SessionDefaultsTests(unittest.TestCase):
         self.assertEqual(session_defaults.KVANTUM_THEME, fluent.KVANTUM_DIR)
 
 
+class DesktopNewTests(unittest.TestCase):
+    """desktop-new: the desktop's New > Folder / Text Document with Windows'
+    names, also for Plasma's desktop:/ (resolved from user-dirs.dirs)."""
+    SCRIPT = PKG / "system/desktop-new"
+
+    def run_helper(self, home, *args):
+        env = {"HOME": str(home), "PATH": "/usr/bin:/bin"}
+        return subprocess.run(["sh", str(self.SCRIPT), *args], env=env, capture_output=True, text=True)
+
+    def test_windows_names_and_desktop_url(self):
+        home = Path(tempfile.mkdtemp())
+        (home / ".config").mkdir()
+        (home / ".config/user-dirs.dirs").write_text('XDG_DESKTOP_DIR="$HOME/Masaüstü"\n', encoding="utf-8")
+        desktop = home / "Masaüstü"
+        desktop.mkdir()
+        self.assertEqual(self.run_helper(home, "desktop:/", "path").stdout.strip(), str(desktop))
+        self.assertEqual(self.run_helper(home, "desktop:/", "folder", "Yeni klasör").stdout.strip(),
+                         str(desktop / "Yeni klasör"))
+        self.assertTrue((desktop / "Yeni klasör").is_dir())
+        self.assertEqual(self.run_helper(home, "desktop:/", "folder", "Yeni klasör").stdout.strip(),
+                         str(desktop / "Yeni klasör (2)"))
+        self.assertEqual(self.run_helper(home, f"file://{desktop}", "text", "New Text Document.txt").stdout.strip(),
+                         str(desktop / "New Text Document.txt"))
+        self.assertEqual(self.run_helper(home, str(desktop), "text", "New Text Document.txt").stdout.strip(),
+                         str(desktop / "New Text Document (2).txt"))
+        self.assertEqual((desktop / "New Text Document (2).txt").read_bytes(), b"")
+        self.assertNotEqual(self.run_helper(home, str(desktop), "folder", "../x").returncode, 0)
+        self.assertNotEqual(self.run_helper(home, str(home / "missing"), "folder", "x").returncode, 0)
+
+
+@unittest.skipUnless(sys.platform.startswith("linux"), "GNU stat and touch")
+class TrashIconTests(unittest.TestCase):
+    """trash-icon: the Recycle Bin launcher's date alternates between @2 and
+    @2.5 (a change the desktop notices, both before This PC's @3)."""
+
+    def test_date_alternates_and_keeps_the_order(self):
+        home = Path(tempfile.mkdtemp())
+        (home / ".config").mkdir()
+        (home / ".config/user-dirs.dirs").write_text('XDG_DESKTOP_DIR="$HOME/Masaüstü"\n', encoding="utf-8")
+        desktop = home / "Masaüstü"
+        desktop.mkdir()
+        env = {"HOME": str(home), "PATH": "/usr/bin:/bin"}
+        subprocess.run(["sh", str(PKG / "system/trash-icon")], env=env, check=True)      # no launcher: fine
+        launcher = desktop / "recycle-bin.desktop"
+        launcher.write_text("[Desktop Entry]\n", encoding="utf-8")
+        os.utime(launcher, (2, 2))
+        for expected in (2.5, 2.0, 2.5):
+            subprocess.run(["sh", str(PKG / "system/trash-icon")], env=env, check=True)
+            self.assertEqual(launcher.stat().st_mtime, expected)
+        self.assertLess(launcher.stat().st_mtime, 3)
+
+
 class SessionScriptTests(unittest.TestCase):
     SCRIPT = PKG / "system/veltos-session.sh"
 
@@ -309,9 +361,9 @@ class SessionScriptTests(unittest.TestCase):
         # Fixed dates give the desktop's date order: Recycle Bin, This PC, Store.
         self.assertEqual(sorted(desktop.iterdir(), key=lambda p: p.stat().st_mtime)[0].name, "recycle-bin.desktop")
         self.assertEqual((desktop / "veltos-store.desktop").stat().st_mtime, 4)
-        (desktop / "veltos-store.desktop").unlink()           # the Store icon may go for good
+        (desktop / "veltos-store.desktop").unlink()           # like Windows' system icons: it comes back
         self.source(home)
-        self.assertFalse((desktop / "veltos-store.desktop").exists())
+        self.assertTrue((desktop / "veltos-store.desktop").exists())
         self.assertTrue(os.access(desktop / "this-pc.desktop", os.X_OK))
         (desktop / "this-pc.desktop").unlink()
         self.source(home)
@@ -469,6 +521,10 @@ class StartCategoryTests(unittest.TestCase):
         cases = {
             "Network;WebBrowser;": "productivity",
             "Qt;KDE;Utility;TextEditor;": "productivity",
+            "Office;WordProcessor;": "office",            # Word, Excel, PowerPoint
+            "Office;Spreadsheet;": "office",
+            "Office;Viewer;": "office",                   # the PDF reader
+            "Office;Calendar;": "productivity",           # Mail, Calendar stay here
             "Qt;KDE;Graphics;Viewer;": "creativity",
             "Utility;Calculator;": "utilities",
             "Qt;KDE;System;TerminalEmulator;": "utilities",

@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-disks
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-disks/usr/lib/python3/dist-packages
+	cp -r veltos_disks debian/veltos-disks/usr/lib/python3/dist-packages/
+	find debian/veltos-disks -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-disks debian/veltos-disks/usr/bin/veltos-disks
+	install -D -m 644 data/veltos-disks.desktop \
+		debian/veltos-disks/usr/share/applications/veltos-disks.desktop
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Disk Management
+Name[tr]=Disk Yönetimi
+GenericName=Disks and volumes
+GenericName[tr]=Diskler ve birimler
+Comment=See the disks and their volumes, format, delete and create volumes
+Comment[tr]=Diskleri ve birimlerini görün; birimleri biçimlendirin, silin ve oluşturun
+Exec=veltos-disks
+Icon=veltos-disks
+Categories=System;
+Keywords=disk;partition;format;volume;drive;bölüm;biçimlendir;birim;sürücü;
+StartupNotify=true

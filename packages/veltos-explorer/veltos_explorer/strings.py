@@ -100,6 +100,7 @@ TEXTS = {
     # Messages
     "file_folder": ("File folder", "Dosya klasörü"),
     "file": ("File", "Dosya"),
+    "shortcut": ("Shortcut", "Kısayol"),
     "delete_title": ("Delete multiple items", "Birden çok öğeyi sil"),
     "delete_forever": ("Are you sure you want to permanently delete these {count} items?",
                        "Bu {count} öğeyi kalıcı olarak silmek istediğinizden emin misiniz?"),

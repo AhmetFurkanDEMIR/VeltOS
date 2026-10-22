@@ -56,11 +56,20 @@ function lockAll(containment) {
         widget.locked = true;
     });
 }
-// Desktop icons in date order (see layout.js), also for existing users.
+// Desktop icons in date order (see layout.js), also for users from before
+// it; once per desktop, so that 'Sort by' in the desktop's menu (the
+// plasma override of the folder view) keeps what the user chose.
 desktops().forEach(function (desktop) {
     desktop.currentConfigGroup = ['General'];
-    desktop.writeConfig('sortMode', 2);
-    desktop.writeConfig('sortDirsFirst', false);
+    if (desktop.readConfig('veltosDateOrder', false) !== true) {
+        desktop.writeConfig('sortMode', 2);
+        desktop.writeConfig('sortDirsFirst', false);
+        desktop.writeConfig('veltosDateOrder', true);
+    }
+    // No hover buttons on the icons (see layout.js), also for users from
+    // before them; nothing in VeltOS turns them on.
+    desktop.writeConfig('selectionMarkers', false);
+    desktop.writeConfig('popups', false);
 });
 panels().forEach(function (panel) {
     lockAll(panel);

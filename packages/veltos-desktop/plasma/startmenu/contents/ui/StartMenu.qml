@@ -63,6 +63,7 @@ FocusScope {
 
     readonly property var categoryTitles: ({
         "productivity": i18n("Productivity"),
+        "office": i18n("Office"),
         "social": i18n("Social"),
         "creativity": i18n("Creativity"),
         "entertainment": i18n("Entertainment"),
@@ -72,7 +73,7 @@ FocusScope {
         "utilities": i18n("Utilities & tools"),
         "other": i18n("Other"),
     })
-    readonly property var categoryOrder: ["productivity", "social", "creativity", "entertainment", "games",
+    readonly property var categoryOrder: ["productivity", "office", "social", "creativity", "entertainment", "games",
                                           "education", "developer", "utilities", "other"]
 
     Layout.minimumWidth: Kirigami.Units.gridUnit * 40
@@ -180,18 +181,17 @@ FocusScope {
             const key = categoryOf[app.id] || "other";
             (buckets[key] = buckets[key] || []).push(app);
         }
-        // Like Windows: a category needs three apps, the rest is "Other".
+        // Windows needs three apps for a category; VeltOS' catalogue is
+        // small, so every category with an app is shown and "Other" holds
+        // only apps without one (Media Player alone in Entertainment was
+        // landing in Other; product owner, 2026-10-22).
         const result = [];
         let other = buckets["other"] || [];
         for (const key of categoryOrder) {
             if (key === "other" || !buckets[key]) {
                 continue;
             }
-            if (buckets[key].length < 3) {
-                other = other.concat(buckets[key]);
-            } else {
-                result.push({ key: key, title: categoryTitles[key], apps: buckets[key] });
-            }
+            result.push({ key: key, title: categoryTitles[key], apps: buckets[key] });
         }
         if (other.length > 0) {
             other.sort((a, b) => a.name.localeCompare(b.name));

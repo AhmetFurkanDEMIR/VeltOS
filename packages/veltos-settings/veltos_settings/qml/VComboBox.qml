@@ -86,7 +86,13 @@ Rectangle {
         width: Math.max(box.width, 200)
         height: Math.min(list.contentHeight + 2 * padding, 360)
         padding: 4
-        modal: false
+        // Modal without a dim: a press outside closes the list and goes no
+        // further. Not modal, the press reached the row under the list too
+        // (TapHandlers take only a passive grab): choosing a colour mode on
+        // Settings' Home opened "Browse themes" beneath it (product owner,
+        // 2026-10-22).
+        modal: true
+        dim: false
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
@@ -148,7 +154,11 @@ Rectangle {
                     elide: Text.ElideRight
                 }
                 HoverHandler { id: optionHover; cursorShape: Qt.PointingHandCursor }
-                TapHandler { id: optionTap; onTapped: list.choose(option.index) }
+                // Exclusive grab on press (ReleaseWithinBounds): with the
+                // default passive grab the press went on to the row under
+                // the list as well, and its tap opened "Browse themes"
+                // (VM, 2026-10-22).
+                TapHandler { id: optionTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: list.choose(option.index) }
             }
         }
     }

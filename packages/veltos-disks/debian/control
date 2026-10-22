@@ -1,0 +1,43 @@
+Source: veltos-disks
+Section: admin
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qt6-svg-plugins
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-disks
+Architecture: all
+Depends: ${python3:Depends},
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qt6-svg-plugins,
+         udisks2,
+         systemd (>= 250),
+         ${misc:Depends}
+Recommends: veltos-explorer,
+            ntfs-3g,
+            exfatprogs,
+            dosfstools,
+            e2fsprogs
+Description: VeltOS Disk Management, Windows 11's Disk Management layout
+ The volume list over the disk map, as Windows' Disk Management shows
+ them: every disk ("Disk 0", "CD-ROM 0") with its partitions and
+ unallocated space to scale. Format a volume, delete it, make a new
+ simple volume in unallocated space, change its label, mount, unmount and
+ eject, or initialize a blank disk (GPT or MBR). Everything goes through
+ UDisks2 (busctl), which asks for the administrator's password where
+ needed and keeps the running system's volumes safe.

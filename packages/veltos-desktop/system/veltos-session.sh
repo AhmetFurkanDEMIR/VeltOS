@@ -71,9 +71,12 @@ for veltos_gtk in gtk-3.0 gtk-4.0; do
 done
 unset veltos_gtk veltos_ini
 
-# "This PC" and "Recycle Bin" on the desktop, like Windows. They cannot be
-# removed for good: a deleted one comes back at the next sign-in. The
-# Store icon is put there once; a user may delete it.
+# "This PC", "Recycle Bin" and the VeltOS Store on the desktop, like
+# Windows' system icons. They cannot be removed for good: a deleted one
+# comes back at the next sign-in (and the desktop's menu offers no Delete
+# for them, plasma-overrides/files/desktop/VeltOSDesktop.qml). Any other
+# icon from /usr/share/veltos/desktop is put there once; a user may delete
+# it.
 veltos_desktop="$( . "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" 2>/dev/null
                    printf '%s' "${XDG_DESKTOP_DIR:-$HOME/Desktop}" )"
 mkdir -p "$veltos_desktop"
@@ -81,7 +84,7 @@ for veltos_icon in "${VELTOS_DESKTOP_ICONS:-/usr/share/veltos/desktop}"/*.deskto
     veltos_name="${veltos_icon##*/}"
     veltos_once="${XDG_STATE_HOME:-$HOME/.local/state}/veltos/desktop-$veltos_name"
     case "$veltos_name" in
-        recycle-bin.desktop|this-pc.desktop) ;;
+        recycle-bin.desktop|this-pc.desktop|veltos-store.desktop) ;;
         *) [ -e "$veltos_once" ] && continue
            mkdir -p "${veltos_once%/*}" && : > "$veltos_once" ;;
     esac
