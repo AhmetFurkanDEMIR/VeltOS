@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Colour mode (light / dark): a circle, its right half filled — a
+       symbolic icon in the look of Windows 11's Settings icons (VeltOS
+       artwork; drawn as a mask in the theme's text colour).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <path fill="currentColor" fill-rule="evenodd" d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 1a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"/>
+  <path fill="currentColor" d="M8 3a5 5 0 0 1 0 10z"/>
+</svg>

@@ -11,9 +11,11 @@ package in plasma/shells/ (the lock screen lives in the desktop shell),
 or with "type": "kwin" a folder of KWin's QML in kwin/ (the Aurorae
 window frame engine, kwin/aurorae). A change is either
 an exact text replacement ("old" -> "new", for example "the hidden tray
-icons have no labels") or a whole file replaced by a VeltOS file
+icons have no labels"), a whole file replaced by a VeltOS file
 ("replace_with", from the files/ folder next to the specs), allowed only
-while Plasma's file has the recorded "upstream_sha256". This script
+while Plasma's file has the recorded "upstream_sha256", or a VeltOS file
+added to the package ("add", a file Plasma does not have: the desktop's
+Windows 11 menus live in one such QML file). This script
 copies the installed package to --out, applies the changes and checks that
 every replacement matched exactly as often as expected. The Plasma session
 puts /var/lib/veltos/xdg first in XDG_DATA_DIRS, so Plasma (and KWin)
@@ -62,6 +64,13 @@ def apply_spec(spec, source_root, out_root, files_dir):
     shutil.copytree(src, tmp, symlinks=True)
     for number, change in enumerate(spec["replacements"], 1):
         path = tmp / change["file"]
+        if "add" in change:
+            if path.exists():
+                return give_up(f"change {number} ({change['why']}): Plasma now has {change['file']} itself; "
+                               "using Plasma's own version")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(files_dir / change["add"], path)
+            continue
         try:
             data = path.read_bytes()
         except OSError:

@@ -288,7 +288,8 @@ class Tab(QObject):
     changed = Signal()
     crumbsChanged = Signal()            # also when the drives change (names in the address bar)
     loadingChanged = Signal()
-    renameRequested = Signal(str)       # path of a new item to rename at once
+    renameRequested = Signal(str)       # path of a new item to rename at once (it is listed)
+    refreshed = Signal()                # Refresh (F5): the view blinks like Windows
 
     def __init__(self, backend, location, parent=None, select=""):
         super().__init__(parent)
@@ -308,6 +309,7 @@ class Tab(QObject):
         self._query = ""
         self._generation = 0
         self._select_after = ""
+        self._rename_after = ""
         self.watcher = QFileSystemWatcher(self)
         self.watcher.directoryChanged.connect(lambda _p: self._reload_soon.start())
         # Setters, not QTimer(interval=...): PySide6 maps keyword arguments to
@@ -483,6 +485,7 @@ class Tab(QObject):
     def refresh(self):
         if self._location == THIS_PC:
             self.backend.refreshDrives()
+        self.refreshed.emit()
         self.load(keep_selection=True)
 
     def load(self, keep_selection=False):
@@ -520,6 +523,13 @@ class Tab(QObject):
                 self.model.selectPath(self._select_after)
                 self._select_after = ""
             self._set_loading(False, "")
+            if self._rename_after:
+                # Only now is the new item in the list: the name box opens
+                # on it (createNew). Asked before the listing was done, the
+                # view found no row and the item kept its stock name
+                # (product owner, 2026-10-22).
+                path, self._rename_after = self._rename_after, ""
+                self.renameRequested.emit(path)
             self.backend.make_thumbnails(self, result, generation)
 
         self._set_loading(True, "")
@@ -583,7 +593,12 @@ class Tab(QObject):
         return self.model
 
     def request_rename(self, path):
-        self.renameRequested.emit(path)
+        """Open the name box on `path` as soon as the listing shows it
+        (Windows: a new folder or file waits for its name)."""
+        if self._loading:
+            self._rename_after = path
+        else:
+            self.renameRequested.emit(path)
 
 
 def deleted_text(stamp, model):

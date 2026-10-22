@@ -1,8 +1,37 @@
 {
   "plugin": "org.kde.plasma.desktop",
   "type": "shells",
-  "about": "Plasma's desktop shell package holds the lock screen (kscreenlocker loads lockscreen/LockScreen.qml from it) and CompactApplet.qml, which opens every panel applet's popup. Its LockScreenUi.qml is replaced by the Windows 11 lock screen in files/lockscreen/ while Plasma's file is the one of plasma-workspace 6.3.6 (Debian 13); CompactApplet.qml (plasma-desktop-data 6.3.6) places the Start menu's popup over the middle of the taskbar; everything else in the shell stays Plasma's.",
+  "about": "Plasma's desktop shell package holds the lock screen (kscreenlocker loads lockscreen/LockScreen.qml from it), CompactApplet.qml, which opens every panel applet's popup, and the on-screen display (plasmashell loads osd/Osd.qml from here, not from the global theme). Its LockScreenUi.qml is replaced by the Windows 11 lock screen in files/lockscreen/ while Plasma's file is the one of plasma-workspace 6.3.6 (Debian 13); CompactApplet.qml (plasma-desktop-data 6.3.6) places the Start menu's popup over the middle of the taskbar; the OSD (files/osd/) is Windows 11's volume flyout at the bottom of the screen; views/Panel.qml (plasma-desktop-data 6.3.6, sha of the test copy 62077494...) draws the taskbar's accent glow and colour wave (files/shell/TaskbarTint.qml) and shows its focus box only for keyboard navigation; everything else in the shell stays Plasma's.",
   "replacements": [
+    {
+      "file": "contents/views/TaskbarTint.qml",
+      "why": "the taskbar's accent glow and colour wave (Windows 11's taskbar in the theme and accent colour)",
+      "add": "shell/TaskbarTint.qml"
+    },
+    {
+      "file": "contents/views/Panel.qml",
+      "why": "the panel draws TaskbarTint over its background, under the applets",
+      "old": "        imagePath: containment?.plasmoid?.backgroundHints === PlasmaCore.Types.NoBackground ? \"\" : \"solid/widgets/panel-background\"\n    }\n\n    Keys.onEscapePressed: {\n",
+      "new": "        imagePath: containment?.plasmoid?.backgroundHints === PlasmaCore.Types.NoBackground ? \"\" : \"solid/widgets/panel-background\"\n    }\n\n    // VeltOS: the taskbar in the theme and accent colour (TaskbarTint.qml).\n    TaskbarTint {\n        anchors.fill: floatingTranslucentItem\n        visible: !root.verticalPanel && containment?.plasmoid?.backgroundHints !== PlasmaCore.Types.NoBackground\n    }\n\n    Keys.onEscapePressed: {\n"
+    },
+    {
+      "file": "contents/views/Panel.qml",
+      "why": "no focus box around a taskbar button clicked with the mouse (the search box got one); it still shows while moving through the taskbar with Tab, as Windows does",
+      "old": "        visible: panel.active && panel.activeFocusItem\n\n        imagePath: \"widgets/tabbar\"\n",
+      "new": "        // VeltOS: only for keyboard navigation (Tab), like Windows 11's focus rectangles.\n        visible: panel.active && panel.activeFocusItem\n                 && (panel.activeFocusItem.focusReason === Qt.TabFocusReason\n                     || panel.activeFocusItem.focusReason === Qt.BacktabFocusReason)\n\n        imagePath: \"widgets/tabbar\"\n"
+    },
+    {
+      "file": "contents/osd/Osd.qml",
+      "why": "Windows 11's volume/brightness flyout at the bottom of the screen: the OSD window is tall enough for its bottom edge (KWin centres OSDs at two thirds of the screen) to end just above the taskbar",
+      "replace_with": "osd/Osd.qml",
+      "upstream_sha256": "d692bd80bc069e422667a37c46c7da8f6c9b0326ea73a379bb6939bf1c1ca5ce"
+    },
+    {
+      "file": "contents/osd/OsdItem.qml",
+      "why": "the flyout itself: a rounded card with the icon, a Windows 11 slider and the percentage, gliding up and fading in",
+      "replace_with": "osd/OsdItem.qml",
+      "upstream_sha256": "9ddd24bf2ff240c1cb6ff0dd0f405a1b01ce798dba9ad525c7725d3dcd84e510"
+    },
     {
       "file": "contents/lockscreen/LockScreenUi.qml",
       "why": "Windows 11 lock screen: time and date, then account picture and password box",
@@ -20,6 +49,12 @@
       "why": "the Start menu uses the centred item as its popup's visual parent",
       "old": "        visualParent: root.compactRepresentation\n",
       "new": "        visualParent: [\"org.veltos.startmenu\", \"org.veltos.search\"].includes(Plasmoid.pluginName) && startCentre.parent\n                      ? startCentre : root.compactRepresentation\n"
+    },
+    {
+      "file": "contents/applet/CompactApplet.qml",
+      "why": "no box behind the taskbar's search box while the search window is open (Windows 11 draws none; Start, the clock and quick settings keep theirs, as on Windows)",
+      "old": "        opacity: plasmoidItem && plasmoidItem.expanded ? 1 : 0\n",
+      "new": "        // VeltOS: no box behind the taskbar's search box while its window is open.\n        opacity: plasmoidItem && plasmoidItem.expanded && Plasmoid.pluginName !== \"org.veltos.search\" ? 1 : 0\n"
     },
     {
       "file": "contents/applet/CompactApplet.qml",

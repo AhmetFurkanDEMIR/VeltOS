@@ -1,0 +1,79 @@
+# Turkish translation of the texts VeltOS adds to Plasma's own components
+# (message catalog veltos-desktop): the desktop's Windows 11 menus in
+# plasma-overrides/files/desktop/VeltOSDesktop.qml. The words are those of
+# Windows 11 in Turkish.
+# SPDX-License-Identifier: GPL-3.0-or-later
+msgid ""
+msgstr ""
+"Project-Id-Version: veltos-desktop 0.1\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "View"
+msgstr "Görünüm"
+
+msgid "Large icons"
+msgstr "Büyük simgeler"
+
+msgid "Medium icons"
+msgstr "Orta simgeler"
+
+msgid "Small icons"
+msgstr "Küçük simgeler"
+
+msgid "Auto arrange icons"
+msgstr "Simgeleri otomatik düzenle"
+
+msgid "Sort by"
+msgstr "Sıralama ölçütü"
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Size"
+msgstr "Boyut"
+
+msgid "Item type"
+msgstr "Öğe türü"
+
+msgid "Date modified"
+msgstr "Değiştirme tarihi"
+
+msgid "Refresh"
+msgstr "Yenile"
+
+msgid "New"
+msgstr "Yeni"
+
+msgid "Folder"
+msgstr "Klasör"
+
+msgid "Text Document"
+msgstr "Metin Belgesi"
+
+msgid "Display settings"
+msgstr "Görüntü ayarları"
+
+msgid "Personalize"
+msgstr "Kişiselleştir"
+
+msgid "Open in Terminal"
+msgstr "Terminalde aç"
+
+msgid "Open"
+msgstr "Aç"
+
+msgid "Empty Recycle Bin"
+msgstr "Geri Dönüşüm Kutusu'nu boşalt"
+
+msgid "Properties"
+msgstr "Özellikler"
+
+msgid "New folder"
+msgstr "Yeni klasör"
+
+msgid "New Text Document.txt"
+msgstr "Yeni Metin Belgesi.txt"

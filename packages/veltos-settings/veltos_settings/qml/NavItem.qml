@@ -18,7 +18,11 @@ Rectangle {
     implicitHeight: 40
     radius: 6
     color: selected ? Theme.navSelected : (hover.hovered ? Theme.navHover : "transparent")
-    activeFocusOnTab: true
+    // Not a Tab stop: Tab from a field on a page moves to the page's next
+    // field, as in Windows' Settings, not into the page list on the left
+    // (product owner, 2026-10-22). The list is reached with the mouse or
+    // from the search field.
+    activeFocusOnTab: false
     Accessible.role: Accessible.Button
     Accessible.name: text
     Accessible.onPressAction: clicked()

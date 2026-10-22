@@ -51,9 +51,14 @@ Numbers from the boot test describe **a live session in a VM**:
 The ISO can be booted headless in a throw-away VirtualBox VM on the
 developer host with the scripts in `out/vbox/` (`boot-probe.sh NAME [ISO]
 [VRAM]`, `boot-probe2.sh NAME CONTROLLER 3D [VRAM]`, `diag-probe.sh` for a
-journal dump over a serial port). They mirror the product owner's VM
-(BIOS, PIIX3, VMSVGA, 3D off) and keep their own VMs under
-`out/vbox/vms`. See AGENTS.md for the VBoxManage calls.
+journal dump over a serial port; since 2026-10-22 `vbox-boot.sh NAME ISO
+[3D] [VRAM]` boots and waits for the desktop and `vbox-act.sh NAME
+"rclick:X,Y shot:NAME key:esc type:text ..."` drives it — clicks go
+through VirtualBox's COM API from PowerShell (`vbmouse.ps1`, needs the
+VM's USB tablet), keys through `VBoxManage keyboardputscancode`). They
+mirror the product owner's VM (BIOS, PIIX3, VMSVGA, 3D off) and keep
+their own VMs under `out/vbox/vms`. See AGENTS.md for the VBoxManage
+calls.
 
 When the desktop comes late or stays black there (2026-10-22):
 

@@ -60,7 +60,7 @@ owner sets priorities; agents act as the engineering team.
 | `build/scripts/` | In-container scripts: package build, ISO build |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus), master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start) |
+| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start) |
 | `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy); diverts `systemsettings`/`kcmshell6`/`kinfocenter` to itself so KDE's settings window never opens |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`) |
 | `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
@@ -79,6 +79,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook) |
 | `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding, partition layout (BitLocker-like encryption), installer jobs, live welcome window (Try/Install), live session settings |
+| `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format, delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
@@ -521,6 +522,78 @@ owner sets priorities; agents act as the engineering team.
   slow every boot down (a desktop at 4 min instead of 1.5).
 - Qt 6.8 `Rectangle` has `topLeftRadius` & co. (per-corner radii); the
   Office start screen's page area uses it against the coloured rail.
+- Plasma's folder view (the desktop) cannot write files from QML; commands
+  run through `org.kde.plasma.plasma5support`'s `DataSource { engine:
+  "executable" }` (`connectSource(command)`, stdout in `onNewData`), as
+  VeltOS' plasmoids already do. The override adds a whole QML file to
+  Plasma's package (`"add"` in `update-plasma-overrides`).
+  `Plasmoid.configuration.sortMode` is KDirModel's column (0 name, 1 size,
+  2 modified, 6 type; -1 unsorted), not the config XML's stale comment.
+  Learned in the VM (2026-10-22): the desktop's `url` and `resolvedUrl`
+  stay `desktop:/` (resolve it from user-dirs.dirs yourself);
+  `FolderModel.urlForIndex` is in the qmltypes but "not a function" from
+  QML (read the roles through the delegate: `model.fileName`/`model.url`);
+  the folder view's `acceptedButtons` leaves the right button to the
+  containment on empty desktop space (its menu opened, not ours) until
+  the override adds `Qt.RightButton` there; a new item becomes the
+  current delegate only after the GridView has made it, so select it and
+  wait until `gridView.currentItem` is that delegate before `rename()`
+  (an immediate rename() edited the previously current item); a
+  `PlasmaExtras.MenuItem` has no default property, a submenu is declared
+  as `readonly property PlasmaExtras.Menu submenu: PlasmaExtras.Menu {
+  visualParent: item.action ... }` (Plasma's task manager does the same).
+- plasmashell 6.3 loads the on-screen display (volume, brightness) from
+  the desktop *shell* package (`plasma/shells/org.kde.plasma.desktop/
+  contents/osd/`), not from the global theme's `contents/osd` (a copy
+  there is never read). KWin places OSD windows with their centre at two
+  thirds of the screen (`Placement::placeOnScreenDisplay`); a bottom
+  flyout is a window tall enough for its bottom edge to end above the
+  taskbar (measure with a KWin script: `workspace.windowAdded` +
+  `w.onScreenDisplay`, `w.frameGeometry`). `Screen.height` is 0 while
+  the dialog's item is first sized; read `dialog.screen`.
+- `kioclient --interactive remove trash:/` returns 0 and leaves the trash
+  as it was; `ktrash6 --empty` empties it.
+- A Plasma theme with its own `colors` file pins plasmashell's colours
+  (Kirigami.Theme, and even `SystemPalette` there) to that file: the
+  user's accent never reached the taskbar or Start. The VeltOS themes
+  have none since 2026-10-22. After `plasma-apply-colorscheme
+  --accent-color` plasmashell keeps the old colours until it hears
+  `dbus-send --session --type=signal /KGlobalSettings
+  org.kde.KGlobalSettings.notifyChange int32:0 int32:0` (PaletteChanged).
+- The box around a taskbar applet while its popup is open is Plasma's
+  `expandedItem` (`widgets/tabbar` active tab) in the shell's
+  `applet/CompactApplet.qml`; the box around the focused applet is the
+  "Panel Focus Indicator" in `views/Panel.qml` (shown whenever the panel
+  window is active, also after a mouse click). Both are in the shell
+  package override.
+- Qt window flags (`Qt.Dialog`, `WindowCloseButtonHint`) do not reach
+  KWin on Wayland: a parentless dialog still gets minimize and maximize.
+  A fixed size (minimum = maximum) disables maximize; minimize stays.
+- A Qt Quick `ScrollView` with `contentWidth: availableWidth` and a child
+  bound to its width loops ("Binding loop detected for rightPadding"
+  through the scroll bar); use a `Flickable` with an explicit
+  `contentHeight`.
+- A user's `PATH` has no `/usr/sbin`: `shutil.which("mkfs.ntfs")` finds
+  nothing in a session (Disk Management offered no file system); pass
+  `path="/usr/sbin:/sbin:..."`. UDisks2 runs the mkfs programs as root
+  anyway.
+- The desktop's Recycle Bin launcher keeps a fixed old date (@2) for the
+  date order; `touch` without a date moved it to the end of the desktop.
+  `trash-icon` alternates @2 / @2.5 (still before This PC's @3).
+- Qt Quick `ListView` rows overlapped in the search window when the
+  model's rows changed (results arriving); a `Column` + `Repeater` cannot
+  overlap. `Kirigami.Icon`'s `color` takes no `undefined` ("Unable to
+  assign [undefined] to QColor"); "transparent" is its "no colour".
+- QMP key names (`vm do key:`): `esc`, `ret`, `meta_l`; `escape` is
+  refused.
+- A QML engine deleted with `deleteLater()` after a test function
+  returned re-reads its bindings from a dead backend ("Cannot call method
+  'text' of null"): flush the deferred delete inside the test
+  (`QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)`).
+- The desktop `.desktop` launchers (`/usr/share/veltos/desktop`) all come
+  back at sign-in now (Store included, product owner 2026-10-22); the
+  session fixup writes the desktop's date order once (`veltosDateOrder`)
+  so "Sort by" in the desktop's menu sticks.
 - LibreOffice configuration: VeltOS adds `share/registry/veltos-office.xcd`
   (all `.xcd` files there are read; users' changes win). A toolbar mode is
   selected by its `CommandArg` (`notebookbar.ui` = Tabbed), not by its
@@ -548,7 +621,11 @@ owner sets priorities; agents act as the engineering team.
   ksmserver and plasmashell each waited 25 s: plasmashell after ~95 s
   instead of ~18 s from the 2026-10-21 evening ISO until 2026-10-22.
   Plasma's user services get `Environment=QT_QPA_PLATFORMTHEME=kde`
-  drop-ins (`PLASMA_SERVICES`, veltos-desktop). What found it: the
+  drop-ins (`PLASMA_SERVICES`, veltos-desktop) — all but plasmashell:
+  programs started from Start inherit plasmashell's environment (KIO's
+  launcher hands it to their transient unit), so a drop-in there takes
+  the portal theme, and the Windows 11 file dialogs, away from every
+  program (LibreOffice got KDE's dialog, 2026-10-22). What found it: the
   boot-test reports' "plasmashell running ... after N s" across ISOs, and
   in a VM `systemd-analyze --user blame` / `critical-chain
   plasma-workspace.target` and `journalctl -b | grep -iE

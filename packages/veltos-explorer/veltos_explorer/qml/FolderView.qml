@@ -99,24 +99,37 @@ FocusScope {
 
     Connections {
         target: root.tab
+        // A new folder or file: the backend asks once the listing shows it
+        // (models.Tab.request_rename), so the row is there; the timer is
+        // for a view that is still laying out.
         function onRenameRequested(path) {
             renameLater.path = path;
-            renameLater.restart();
+            if (!renameLater.tryNow())
+                renameLater.restart();
         }
         function onChanged() { root.renameRow = -1; }
+        // Refresh blinks the items, as Windows 11's File Explorer does.
+        function onRefreshed() { blink.restart(); }
+    }
+    SequentialAnimation {
+        id: blink
+        NumberAnimation { target: root.view; property: "opacity"; to: 0; duration: 60 }
+        NumberAnimation { target: root.view; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
     }
     Timer {
         id: renameLater
         property string path
         interval: 150
-        onTriggered: {
+        function tryNow() {
             for (let r = 0; r < root.model.count; ++r) {
                 if (root.model.get(r).path === path) {
                     root.startRename(r);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
+        onTriggered: tryNow()
     }
     Timer {
         id: typeAhead

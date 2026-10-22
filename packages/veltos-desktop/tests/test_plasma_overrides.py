@@ -29,6 +29,7 @@ class OverrideTests(unittest.TestCase):
         shutil.copytree(PKG / "tests/data/notifications", applets / "org.kde.plasma.notifications")
         shutil.copytree(PKG / "tests/data/devicenotifier", applets / "org.kde.plasma.devicenotifier")
         shutil.copytree(PKG / "tests/data/taskmanager", applets / "org.kde.plasma.taskmanager")
+        shutil.copytree(PKG / "tests/data/desktopcontainment", applets / "org.kde.desktopcontainment")
         shutil.copytree(PKG / "tests/data/shell", self.source / "plasma/shells/org.kde.plasma.desktop")
         shutil.copytree(PKG / "tests/data/aurorae", self.source / "kwin/aurorae")
         self.out = self.tmp / "out"
@@ -105,6 +106,26 @@ class OverrideTests(unittest.TestCase):
         self.assertEqual(self.run_tool(), 1)
         self.assertFalse(shell.exists())        # Plasma's own lock screen is used
 
+    def test_taskbar_takes_the_accent_and_no_mouse_focus_box(self):
+        self.assertEqual(self.run_tool(), 0)
+        views = self.out / "plasma/shells/org.kde.plasma.desktop/contents/views"
+        panel = (views / "Panel.qml").read_text(encoding="utf-8")
+        self.assertIn("    TaskbarTint {\n        anchors.fill: floatingTranslucentItem\n", panel)
+        self.assertIn("panel.activeFocusItem.focusReason === Qt.TabFocusReason", panel)
+        self.assertNotIn("        visible: panel.active && panel.activeFocusItem\n\n", panel)
+        tint = (views / "TaskbarTint.qml").read_text(encoding="utf-8")
+        self.assertIn("Kirigami.Theme.highlightColor", tint)
+        self.assertIn("ColorAnimation", tint)
+
+    def test_osd_is_the_windows_flyout_at_the_bottom(self):
+        self.assertEqual(self.run_tool(), 0)
+        osd = self.out / "plasma/shells/org.kde.plasma.desktop/contents/osd"
+        self.assertIn("windowScreenHeight: dialog.screen", (osd / "Osd.qml").read_text(encoding="utf-8"))
+        item = (osd / "OsdItem.qml").read_text(encoding="utf-8")
+        self.assertIn("anchors.bottom: parent.bottom", item)
+        self.assertIn("Math.round(screenHeight * 2 / 3) - bottomBand * 2", item)
+        self.assertIn('i18ndc("plasma_shell_org.kde.plasma.desktop"', item)
+
     def test_start_popup_is_centred_on_the_taskbar(self):
         self.assertEqual(self.run_tool(), 0)
         applet = (self.out / "plasma/shells/org.kde.plasma.desktop/contents/applet/CompactApplet.qml")
@@ -112,6 +133,8 @@ class OverrideTests(unittest.TestCase):
         self.assertIn("id: startCentre", text)
         self.assertIn('["org.veltos.startmenu", "org.veltos.search"].includes(Plasmoid.pluginName)', text)
         self.assertNotIn("        visualParent: root.compactRepresentation\n", text)
+        # No box behind the search box while its window is open.
+        self.assertIn('plasmoidItem.expanded && Plasmoid.pluginName !== "org.veltos.search" ? 1 : 0', text)
 
     def test_window_frame_buttons_have_maximised_pictures(self):
         self.assertEqual(self.run_tool(), 0)
@@ -135,6 +158,34 @@ class OverrideTests(unittest.TestCase):
         self.assertIn('prefix: "hover" + buttonSvg.maximizedSuffix + buttonSvg.tintSuffix', button)
         self.assertIn('hasElementPrefix("active-ondark")', button)
 
+    def test_desktop_gets_windows_menus_and_protected_icons(self):
+        self.assertEqual(self.run_tool(), 0)
+        ui = self.applets / "org.kde.desktopcontainment/contents/ui"
+        added = (ui / "VeltOSDesktop.qml").read_text(encoding="utf-8")
+        self.assertIn('i18nd(domain, text)', added)
+        self.assertIn('"recycle-bin.desktop", "this-pc.desktop", "veltos-store.desktop"', added)
+        self.assertIn("/usr/libexec/veltos/desktop-new ", added)
+        self.assertIn("veltos-explorer --empty-recycle-bin", added)
+        view = (ui / "FolderView.qml").read_text(encoding="utf-8")
+        self.assertIn("VeltOSDesktop {\n            id: veltos\n", view)
+        self.assertIn("veltos.desktopMenu(listener.mapToItem(main, mouse.x, mouse.y));", view)
+        self.assertIn("(dir.usedByContainment ? (Qt.LeftButton | Qt.RightButton) : Qt.LeftButton)", view)
+        self.assertEqual(view.count("if (!veltos.itemMenu(hoveredItem, listener.mapToItem(main, mouse.x, mouse.y)))"), 2)
+        self.assertEqual(view.count("veltos.selectionProtected()"), 4)     # Delete, trash, cut, rename
+        self.assertNotIn("                        dir.refresh();\n", view)
+        editor = (ui / "RenameEditor.qml").read_text(encoding="utf-8")
+        self.assertIn("radius: 2\n", editor)
+        self.assertIn("(Plasmoid.configuration.textLines + 8)", editor)
+        self.assertNotIn("ScrollBar.vertical.policy = Qt.ScrollBarAlwaysOn;", editor)
+        self.assertIn("readonly property string veltosFileName:", (ui / "FolderItemDelegate.qml").read_text(encoding="utf-8"))
+        # Plasma's containment menu is reached from nowhere on the desktop.
+        self.assertNotIn("if (!dir.usedByContainment) {\n                        dir.openContextMenu(main", view)
+        # A file Plasma gained itself is not overwritten: the whole change is dropped.
+        (self.source / "plasma/plasmoids/org.kde.desktopcontainment/contents/ui/VeltOSDesktop.qml").write_text(
+            "// Plasma's own\n", encoding="utf-8")
+        self.assertEqual(self.run_tool(), 1)
+        self.assertFalse((self.applets / "org.kde.desktopcontainment").exists())
+
     def test_specs_are_complete(self):
         for path in sorted((PKG / "plasma-overrides").glob("*.json")):
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -145,6 +196,8 @@ class OverrideTests(unittest.TestCase):
                 if "replace_with" in change:
                     self.assertTrue((PKG / "plasma-overrides/files" / change["replace_with"]).is_file())
                     self.assertRegex(change["upstream_sha256"], r"^[0-9a-f]{64}$")
+                elif "add" in change:
+                    self.assertTrue((PKG / "plasma-overrides/files" / change["add"]).is_file())
                 else:
                     self.assertNotEqual(change["old"], change["new"])
 

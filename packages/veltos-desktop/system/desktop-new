@@ -1,0 +1,61 @@
+#!/bin/sh
+# Make a new, empty folder or text document with the next free Windows
+# name ("New folder", "New folder (2)", ..., "New Text Document.txt",
+# "New Text Document (2).txt") and print its path. The desktop's "New"
+# menu (plasma-overrides/files/desktop/VeltOSDesktop.qml) runs it, then
+# selects the item and opens the name for editing, as Windows does.
+#
+#   desktop-new DIR folder|text NAME
+#   desktop-new DIR path            (only print the folder's path)
+#
+# DIR is a local path, a file:// URL or "desktop:/" (Plasma's folder view
+# keeps the desktop as desktop:/ and resolves it itself; here it is the
+# user's desktop folder from user-dirs.dirs). NAME is the (translated)
+# base name; a text document's NAME carries its extension. The caller may
+# not create the file itself: Plasma's folder view only runs commands
+# (plasma5support), it cannot write files.
+set -eu
+
+dir="$1"
+kind="$2"
+name="${3:-}"
+
+case "$dir" in
+    desktop:*)
+        dir="$( . "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" 2>/dev/null
+                printf '%s' "${XDG_DESKTOP_DIR:-$HOME/Desktop}" )" ;;
+    file://*)
+        dir="${dir#file://}" ;;
+esac
+[ -d "$dir" ] || { echo "desktop-new: no folder $dir" >&2; exit 2; }
+
+if [ "$kind" = "path" ]; then
+    printf '%s\n' "$dir"
+    exit 0
+fi
+
+case "$name" in
+    */*|.|..|"") echo "desktop-new: bad name" >&2; exit 2 ;;
+esac
+
+stem="$name"
+ext=""
+if [ "$kind" = "text" ]; then
+    case "$name" in
+        *.*) ext=".${name##*.}"; stem="${name%.*}" ;;
+    esac
+fi
+
+candidate="$dir/$name"
+n=2
+while [ -e "$candidate" ]; do
+    candidate="$dir/$stem ($n)$ext"
+    n=$((n + 1))
+done
+
+if [ "$kind" = "folder" ]; then
+    mkdir -- "$candidate"
+else
+    : > "$candidate"
+fi
+printf '%s\n' "$candidate"

@@ -364,7 +364,14 @@ def set_background_opacity(svg, opacity, name="svg"):
     return result
 
 
-def build_desktoptheme(upstream, root, name, variant, colors_text):
+def build_desktoptheme(upstream, root, name, variant):
+    """The VeltOS Plasma theme (taskbar, Start, flyouts) from Fluent-kde.
+
+    Without a `colors` file of its own (Fluent ships one): Plasma then takes
+    its colours from the system colour scheme, the same VeltOS Light/Dark
+    scheme the global theme selects, and with it the accent colour the user
+    chooses in Settings. With the file, the taskbar, Start and the flyouts
+    kept VeltOS blue whatever accent was chosen (VM, 2026-10-22)."""
     base = upstream / "plasma/desktoptheme/Fluent-round"
     dest = root / "usr/share/plasma/desktoptheme" / name
     shutil.copytree(base, dest, ignore=shutil.ignore_patterns("metadata.desktop"))
@@ -392,7 +399,7 @@ def build_desktoptheme(upstream, root, name, variant, colors_text):
             text = recolour(text, variant, str(path))
             recoloured += 1
         write_svgz(path, text)
-    (dest / "colors").write_text(colors_text, encoding="utf-8")
+    (dest / "colors").unlink(missing_ok=True)       # follow the system scheme (docstring)
     for rel, opacity in PANEL_OPACITY.items():
         write_svgz(dest / rel, set_background_opacity(read_svgz(dest / rel), opacity, rel))
 

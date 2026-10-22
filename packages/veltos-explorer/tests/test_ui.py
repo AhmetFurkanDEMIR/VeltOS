@@ -170,6 +170,12 @@ class ExplorerWindowTests(unittest.TestCase):
         self.app.processEvents()
         new_folder = self.home / "Documents" / self.backend.text("new_folder_name")
         self.assertTrue(new_folder.is_dir())
+        # Like Windows, the new folder waits for its name: the name box is
+        # open on its row (the backend asks once the listing shows it).
+        from PySide6.QtCore import QObject
+        view = self.window.findChild(QObject, "folderView")
+        rows = {tab.items.get(r)["path"]: r for r in range(tab.items.count)}
+        self.assertEqual(view.property("renameRow"), rows[str(new_folder)])
         self.assertEqual(self.backend.rename(str(new_folder), "Old"), self.backend.text("rename_exists"))
         self.assertEqual(self.backend.rename(str(new_folder), "Trip " + self.lang), "")
         tab.items.selectPath(str(self.home / "Documents" / "report.txt"))
@@ -181,6 +187,59 @@ class ExplorerWindowTests(unittest.TestCase):
         self.app.processEvents()
         self.assertEqual(tab.kind, "search")
         self.assertEqual(self.problems(), [])
+
+    def test_rename_waits_for_the_listing(self):
+        # A listing in progress: the request is kept until the item is
+        # listed (a slow folder found no row before, 2026-10-22).
+        tab = self.backend.current
+        tab.navigate(str(self.home / "Documents"))
+        self.app.processEvents()
+        asked = []
+        tab.renameRequested.connect(asked.append)
+        tab._loading = True
+        tab.request_rename(str(self.home / "Documents" / "Old"))
+        self.assertEqual(asked, [])
+        tab.load()
+        self.assertEqual(asked, [str(self.home / "Documents" / "Old")])
+        tab.request_rename(str(self.home / "Documents" / "report.txt"))      # nothing loading: at once
+        self.assertEqual(asked[-1], str(self.home / "Documents" / "report.txt"))
+        blinks = []
+        tab.refreshed.connect(lambda: blinks.append(1))
+        tab.refresh()
+        self.assertEqual(blinks, [1])
+        self.assertEqual(self.problems(), [])
+
+    def test_empty_recycle_bin_window(self):
+        # `veltos-explorer --empty-recycle-bin` (the desktop's Recycle Bin
+        # menu): Windows 11's question in a window of its own.
+        from PySide6.QtCore import QObject
+        from veltos_explorer import app as explorer
+        emptied = []
+
+        class Operations:
+            def empty_trash(self):
+                emptied.append(True)
+
+        backend = explorer.EmptyBinBackend(lang=self.lang, operations=Operations())
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", backend)
+        engine.load(QUrl.fromLocalFile(str(explorer.QML_DIR / "EmptyBin.qml")))
+        self.app.processEvents()
+        self.assertTrue(engine.rootObjects(), self.messages)
+        window = engine.rootObjects()[0]
+        self.assertEqual(window.property("title"), backend.text("empty_recycle_bin"))
+        self.assertEqual(window.findChild(QObject, "yesButton").property("label"), backend.text("yes"))
+        self.assertIsNotNone(window.findChild(QObject, "noButton"))
+        self.assertIsInstance(backend.property("darkMode"), bool)
+        backend.empty()
+        self.assertEqual(emptied, [True])
+        self.assertEqual(self.problems(), [])
+        # Delete the window now, while its backend is still alive (a
+        # deferred delete after the test re-read bindings from a dead one).
+        from PySide6.QtCore import QCoreApplication, QEvent
+        engine.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        self.app.processEvents()
 
 
 class TurkishExplorerTests(ExplorerWindowTests):

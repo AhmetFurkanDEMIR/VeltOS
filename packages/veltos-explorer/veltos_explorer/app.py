@@ -628,7 +628,7 @@ class Backend(QObject):
         path = str(Path(folder) / name)
         tab._select_after = path
         tab.load()
-        tab.request_rename(path)
+        tab.request_rename(path)      # after the listing (the load above is in progress)
 
     @Slot()
     def compress(self):
@@ -755,6 +755,8 @@ def main(argv=None):
     if "--open-with" in argv[1:]:
         from . import openwith
         return openwith.run(argv)
+    if "--empty-recycle-bin" in argv[1:]:
+        return empty_recycle_bin(argv)
     app = prepare_application(argv, "veltos-explorer")
     backend = Backend(open_paths=argv[1:])
     engine = QQmlApplicationEngine()
@@ -771,6 +773,47 @@ def main(argv=None):
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(code)
+
+
+class EmptyBinBackend(QObject):
+    """Behind EmptyBin.qml: the texts, the theme values Theme.qml reads
+    from `backend`, and the emptying itself."""
+
+    def __init__(self, lang=None, operations=None, parent=None):
+        super().__init__(parent)
+        self.lang = lang or strings.language()
+        self.operations = operations or ops.Operations()
+
+    @Slot(str, result=str)
+    def text(self, key):
+        return strings.text(self.lang, key)
+
+    @Property(bool, constant=True)
+    def darkMode(self):
+        return Backend.read_dark_mode()
+
+    @Property(float, constant=True)
+    def textScale(self):
+        return Backend.read_text_scale()
+
+    @Slot()
+    def empty(self):
+        self.operations.empty_trash()
+
+
+def empty_recycle_bin(argv):
+    """`veltos-explorer --empty-recycle-bin`: the desktop's "Empty Recycle
+    Bin" (veltos-desktop's menu of the Recycle Bin icon) asks Windows 11's
+    question in a small window of its own, then empties the bin."""
+    app = prepare_application([a for a in argv if a != "--empty-recycle-bin"], "veltos-explorer",
+                              "empty_recycle_bin")
+    backend = EmptyBinBackend()
+    engine = QQmlApplicationEngine()
+    engine.rootContext().setContextProperty("backend", backend)
+    engine.load(QUrl.fromLocalFile(str(QML_DIR / "EmptyBin.qml")))
+    if not engine.rootObjects():
+        return 1
+    return app.exec()
 
 
 def icon_theme():

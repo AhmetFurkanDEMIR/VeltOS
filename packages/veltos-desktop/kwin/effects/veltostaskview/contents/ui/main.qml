@@ -296,9 +296,23 @@ KWin.SceneEffect {
                         width: Math.round(Kirigami.Units.gridUnit * 9)
                         height: Math.round(width * view.height / view.width) + Kirigami.Units.gridUnit * 1.6
                         hoverEnabled: true
-                        onClicked: {
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        function switchTo() {
                             view.previewDesktop = null;
                             KWin.Workspace.currentDesktop = modelData;
+                        }
+                        // A click selects the desktop; a double click or a right
+                        // click goes to it and closes Task View (product owner,
+                        // 2026-10-22).
+                        onClicked: mouse => {
+                            switchTo();
+                            if (mouse.button === Qt.RightButton) {
+                                effect.close();
+                            }
+                        }
+                        onDoubleClicked: {
+                            switchTo();
+                            effect.close();
                         }
                         onContainsMouseChanged: {
                             if (containsMouse) {
@@ -314,16 +328,42 @@ KWin.SceneEffect {
                             height: parent.width * view.height / view.width
                             radius: 6
                             color: "transparent"
-                            border.width: card.current ? 2 : (card.containsMouse ? 1 : 0)
-                            border.color: card.current ? Kirigami.Theme.highlightColor : Qt.rgba(1, 1, 1, 0.6)
                             clip: true
 
+                            // The desktop as it is: its wallpaper and the windows
+                            // on it, scaled down, as Windows 11's desktop thumbnails.
                             KWin.DesktopBackground {
                                 anchors.fill: parent
-                                anchors.margins: frame.border.width
                                 activity: KWin.Workspace.currentActivity
                                 desktop: card.modelData
                                 outputName: view.screen.name
+                            }
+                            Repeater {
+                                model: KWin.Workspace.stackingOrder
+                                delegate: KWin.WindowThumbnail {
+                                    required property QtObject modelData
+                                    // (A closing window's entry is null for a moment.)
+                                    readonly property bool onThisDesktop: !!modelData && modelData.normalWindow
+                                        && !modelData.minimized && !modelData.skipSwitcher && !modelData.deleted
+                                        && (modelData.onAllDesktops || modelData.desktops.indexOf(card.modelData) >= 0)
+                                    readonly property real factor: frame.width / Math.max(1, view.screen.geometry.width)
+                                    readonly property rect geometry: modelData ? modelData.frameGeometry : Qt.rect(0, 0, 1, 1)
+                                    visible: onThisDesktop
+                                    wId: modelData ? modelData.internalId : wId
+                                    x: Math.round((geometry.x - view.screen.geometry.x) * factor)
+                                    y: Math.round((geometry.y - view.screen.geometry.y) * factor)
+                                    width: Math.max(1, Math.round(geometry.width * factor))
+                                    height: Math.max(1, Math.round(geometry.height * factor))
+                                }
+                            }
+                            // The selection frame on the thumbnail's own edge, not
+                            // around it (it stood out from the picture before).
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: parent.radius
+                                color: "transparent"
+                                border.width: card.current ? 2 : (card.containsMouse ? 1 : 0)
+                                border.color: card.current ? Kirigami.Theme.highlightColor : Qt.rgba(1, 1, 1, 0.6)
                             }
                         }
                         Text {

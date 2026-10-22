@@ -136,7 +136,7 @@ PlasmoidItem {
             }
             PlasmaExtras.MenuItem {
                 text: i18n("Disk Management")
-                onClicked: root.run("partitionmanager")
+                onClicked: root.run("veltos-disks")
             }
             PlasmaExtras.MenuItem {
                 text: i18n("Terminal")

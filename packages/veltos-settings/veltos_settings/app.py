@@ -280,7 +280,7 @@ class Backend(QObject):
         elif action == "updates":
             self._start(["veltos-store", "--updates"])
         elif action == "disk-management":
-            self._start(["partitionmanager"])
+            self._start(["veltos-disks"])      # VeltOS Disk Management (Windows 11 layout)
         elif action == "uninstall-windows":
             try:
                 from veltos_winapps.winenv import Environment, wine_tool

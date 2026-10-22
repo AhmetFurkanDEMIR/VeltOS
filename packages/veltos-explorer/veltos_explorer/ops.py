@@ -58,7 +58,10 @@ class Operations:
             self.start(["kioclient", "--interactive", "remove", *sources])
 
     def empty_trash(self):
-        self.start(["kioclient", "--interactive", "remove", "trash:/"])
+        # ktrash6 empties the trash; `kioclient remove trash:/` returned 0
+        # and left everything in it (VM, 2026-10-22). The question was asked
+        # by the caller (Windows 11 dialog) already.
+        self.start(["ktrash6", "--empty"])
 
     def open(self, path):
         """Open with the default app (folders are handled by the caller)."""

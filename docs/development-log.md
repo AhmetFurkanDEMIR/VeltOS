@@ -3,6 +3,180 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-22 (17:00) — Windows 11 polish batch: desktop menus, Disk Management, search, taskbar colour
+
+The product owner's list of 24 items (in Turkish, 2026-10-22 midday),
+what was done for each and how it was checked:
+
+- **Office Save/Open dialogs, Photos "Add folder", VeltOS dialog
+  everywhere (1, 23)**: the regression of ISO 093321 (plasmashell's
+  drop-in took the portal theme from every program started from Start,
+  see the 13:30 entry below) is fixed in the source; the boot test's
+  check is back to its original form (`xdgdesktopportal` in plasmashell's
+  environment).
+- **"LibreOffice" flashing on the taskbar (2)**: `/etc/xdg/kwinrulesrc`
+  (veltos-desktop) keeps windows of class `soffice` (LibreOffice's
+  start-up window, before the module sets its own class) off the taskbar.
+  Seen by the owner in VirtualBox. In QEMU a KWin script logging every new
+  window saw only the start screen (`libreoffice-writer`, "Word") and
+  Writer's own window (`libreoffice-writer`, "Untitled 1 — VeltOS Office
+  Writer"): no extra window there; what QEMU shows is the Word button
+  leaving the taskbar for a moment between the start screen closing and
+  Writer's window appearing. The rule is unit-tested only.
+- **File Explorer's Home icon in the accent colour (3)**: `NavPane.qml`,
+  the Home row's icon is a mask in `Theme.accent`.
+- **Personalization icons (4, 5)**: Fluent's `preferences-color` and
+  `preferences-desktop-theme` symbolic icons and a VeltOS
+  `veltos-colour-mode` icon (half sun / half moon) in veltos-fluent-icons;
+  Settings' Home and Personalization rows use them.
+- **Colour mode on Settings' Home jumped to "Browse themes" (5)**: the
+  drop-down's popup was not modal, so the press that closed it also hit
+  the row underneath (TapHandlers take a passive grab); `VComboBox`'s popup
+  is modal (no dim) and the rows' TapHandlers use `ReleaseWithinBounds`.
+- **Volume OSD at the bottom (6)**: `plasma-overrides/files/osd/` (a
+  shell-package override — plasmashell 6.3 loads the OSD from the desktop
+  shell package, not from the global theme, where a first version sat
+  unused): a rounded card above the taskbar, icon, Windows 11 slider and
+  percentage, rising in with a fade. KWin centres OSD windows at two
+  thirds of the screen (Placement::placeOnScreenDisplay), so the window
+  is 2/3 of the screen minus 80 px tall and its bottom edge, where the
+  card sits, ends 24 px above the taskbar (KWin script measured the
+  window at 342 × 640 px, bottom at 1008 of 1080).
+- **Disk Management (7)**: new package `veltos-disks` (see
+  `docs/architecture.md` 2.14): the volume list over the disk map, menus
+  and dialogs of Windows' Disk Management on UDisks2; KDE Partition
+  Manager hidden and out of the image; Settings > Storage and Win+X open
+  it.
+- **Task View (8)**: desktop cards show the windows on that desktop
+  (`KWin.WindowThumbnail` per window, scaled from `frameGeometry`),
+  right-click or double-click switches to the desktop, the selection
+  frame wraps the card.
+- **Add keyboard (9)**: 50 layouts with Turkish first (Q, F, Alt-Q) and
+  the most common ones after; the dialog opens on Turkish.
+- **Tab in Settings (11)**: the navigation items are not in the Tab chain
+  (`activeFocusOnTab: false`), so Tab moves to the next control of the page.
+- **Desktop refresh, new items, protected icons (12, 16, 17, 18)**: Plasma's
+  folder view gets `VeltOSDesktop.qml` (override `org.kde.desktopcontainment`,
+  `docs/architecture.md` 2.3.8a): Windows 11's desktop menu (View, Sort by,
+  Refresh, Paste, New, Display settings, Personalize, Open in Terminal),
+  New > Folder / Text Document made at once with Windows' names
+  (`desktop-new`) and the name box open, Refresh/F5 blink the icons, the
+  Recycle Bin, This PC and the Store have their own small menu (no
+  Delete/Rename/Cut; Empty Recycle Bin asks File Explorer's Windows 11
+  question in a window of its own, `veltos-explorer --empty-recycle-bin`)
+  and the Delete key, F2 and Ctrl+X skip them; the Store comes back at
+  sign-in like the other two. File Explorer's New > Folder opens the name
+  box once the listing shows the item (before, a slow folder found no row
+  and kept "New folder"); F5 blinks the view.
+- **Recycle Bin icon (13)**: a systemd user path unit watches the trash
+  and touches the desktop launcher, so the desktop re-reads its icon
+  (full/empty).
+- **Nested grey boxes around menus (14)**: not reproduced in QEMU (every
+  menu is one rounded box); left open in `docs/status.md` with what is
+  needed (a screenshot from the owner's VM).
+- **Search window (15)**: a plain field with the accent line under it
+  (the blue frame is gone), results in a Column (rows overlapped in the
+  ListView when results arrived), only Windows' kinds of results
+  (`runners` without KDE's settings modules), the best-match card filled
+  again (it stayed empty: `best` read `Repeater.itemAt()` once and kept a
+  destroyed row after the model reset), the window still slides up from
+  the taskbar (KWin's sliding popups, `animated: true`). The box the owner
+  saw around the taskbar's search box was Plasma's "expanded applet"
+  highlight (`CompactApplet.qml`, `widgets/tabbar` active tab): off for
+  the search box. Plasma's panel focus box (`Panel.qml`, "Panel Focus
+  Indicator") now shows only when moving through the taskbar with Tab.
+- **Dialogs (19)**: moving to the Recycle Bin asks nothing (`kiorc`
+  `ConfirmTrash=false`, like Windows); Empty Recycle Bin from the desktop
+  is VeltOS'; the rest is listed under known gaps.
+- **App icons for .desktop files in Explorer (20)**: `files.desktop_entry`
+  reads Name/Name[tr]/Icon; the type reads "Shortcut".
+- **Media Player's category (21), Office and PDF in their own (24)**:
+  `start-categories` maps Office;WordProcessor/Spreadsheet/Presentation
+  and Office;Viewer to "Office"; Start shows every non-empty category
+  (Entertainment with Media Player alone, before: three or more only).
+- **Old KDE Settings / file manager never reachable (22)**: the search
+  window's runners no longer list KDE's settings modules; KDE Partition
+  Manager and the crash viewer are hidden; what the owner saw as "the old
+  file manager" was most likely KDE's file dialog of ISO 093321 (item 1).
+- **Taskbar colour transition (10)**, read as: the taskbar takes on the
+  theme and the accent colour, with a smooth change. `TaskbarTint.qml`
+  (added to Plasma's panel view, `Panel.qml`): a soft glow of the accent
+  behind the centred icons over the light or dark background, a 0.6 s
+  cross-fade and one band of colour sweeping across the bar when the
+  accent or the mode changes; nothing moves at rest. On the way: the
+  VeltOS Plasma themes carried their own `colors` file (Fluent's), so the
+  taskbar, Start and the flyouts never followed the accent the user chose
+  (Start's search field stayed VeltOS blue with a red accent); the themes
+  now have none and Plasma follows the system scheme. And
+  `plasma-apply-colorscheme --accent-color` does not tell plasmashell:
+  Settings now sends KDE's PaletteChanged signal
+  (`org.kde.KGlobalSettings.notifyChange 0 0`, as KDE's colours module
+  does), and the change shows at once.
+
+Verification in the live VM (QEMU/KVM, UEFI, no 3D, ISO 093321 with the
+rebuilt packages installed; `tests/results/2026-10-22-windows11-polish/`):
+
+- Desktop: the Windows 11 menu with its View and New submenus; New >
+  Folder made "New folder (2)" with the name box open, "Photos" typed
+  and entered renamed it; New > Text Document the same ("Notes.txt");
+  the Recycle Bin's menu (Open, Empty Recycle Bin, Properties); Empty
+  Recycle Bin opened File Explorer's question and Yes emptied the trash
+  (0 files, the icon back to empty and the icon still second on the
+  desktop). Found and fixed on the way: Plasma's folder view leaves
+  right-clicks on empty desktop space to the containment (the override
+  now accepts them), `urlForIndex` is not callable from QML (the item's
+  file name comes from the delegate), `desktop:/` is never resolved to a
+  path by the model (`desktop-new` resolves it), an immediate `rename()`
+  edited the previously current item (the override waits until the new
+  delegate is current), a plain `touch` moved the Recycle Bin to the end
+  of the desktop (the date now alternates @2/@2.5), and
+  `kioclient remove trash:/` does nothing (`ktrash6 --empty`).
+- OSD: the volume flyout above the taskbar at 70 %, after moving the
+  override from the global theme (never read) to the desktop shell
+  package and sizing the window for KWin's placement.
+- Settings: Colour mode Dark then Light on Home, the page staying on
+  Home both times (the first fix, a modal popup, was not enough: the
+  option rows' TapHandlers needed `ReleaseWithinBounds` too).
+- Start: the Office category with Word, Excel, PowerPoint and PDF Reader;
+  Entertainment with Media Player alone.
+- File Explorer: the Desktop folder with the launchers as "Shortcut"
+  with their icons; New > Folder with the name box open at once.
+- Photos > Add a folder: the VeltOS Select Folder dialog.
+- Disk Management on the VM's blank 40 GB virtio disk: "Not
+  Initialized" with Initialize Disk…, initialized as GPT, New Simple
+  Volume (NTFS "Data", 40 GB) made by UDisks2, its menu, Format as ext4
+  through the warning, Delete Volume: `lsblk` confirmed each step
+  (gpt → vda1 ntfs Data → no partition). Found on the way: the file
+  system list was empty because the session's PATH has no `/usr/sbin`
+  (fixed), the blank disk's menu lacked Initialize (`table` is
+  undefined, not null, in QML), a ScrollView binding loop in the map.
+- After a session restart (KWin and the panel read their QML at start):
+  Task View's "Desktop 1" card with the File Explorer window on it, the
+  frame on the card's edge, "New desktop", a right-click on "Desktop 2"
+  switching to it and a double-click on "Desktop 1" switching back; the
+  search window's best-match card filled in and no box around the
+  taskbar's search box; Word started from Start, Blank document, Ctrl+S:
+  the VeltOS Save dialog with "Word 2007 (.docx)"; Add a keyboard opening
+  on Turkish Q; a long new name ("New Text Document (2).txt") in a box
+  without a scroll bar; the taskbar's glow red with a red accent and the
+  band crossing the bar when the accent changed from green to blue
+  (frames); the Empty Recycle Bin window fixed-size with maximize
+  disabled (Wayland ignores the window flags; minimize stays). Settings >
+  Colours, a click on orange: the taskbar turned orange at once.
+- ISO `veltos-0.1.0-dev-20261022-134251` (sha256 8b82b9a7443298b0…,
+  3 621 720 064 bytes; verify hook: all checks passed): QEMU boot tests
+  18/18 UEFI (`out/test-results/20261022-140957-uefi`, plasmashell after
+  18.8 s, idle 1537 MiB) and 17/17 BIOS (`20261022-141158-bios`, 18.9 s),
+  including "portal file dialogs" in plasmashell's environment, which the
+  093321 ISO failed. Start in the test's screenshot shows the Office and
+  Entertainment categories. VirtualBox: not run by me — the product
+  owner attached this ISO to their own VM ("fdsa": BIOS, VMSVGA, 3D off,
+  128 MB, 7 CPUs) four minutes after it was written, and an extra VM
+  would have slowed the test they were judging. Earlier the same
+  afternoon a throw-away VM booted the previous ISO in 7.5 minutes while
+  Docker builds and the QEMU dev VM loaded the host (VirtualBox in
+  Hyper-V/NEM mode); measure VirtualBox boots on an idle host.
+
 ## 2026-10-22 (12:30) — Session start +75 s since the 2026-10-21 evening: the portal platform theme
 
 - The product owner: "it used to come at once". It did: the QEMU boot
@@ -65,6 +239,16 @@ went wrong, so the next person can trust the state of the repository.
   user manager's environment (`systemctl --user show-environment`), which
   is what programs the user starts inherit — this changed check has not
   been run yet (usage limit); the rest passed (17/18, 16/17).
+- That check was right and the change wrong (13:30): in the VM, Writer's
+  Ctrl+S opened KDE's file dialog and `soffice.bin` had
+  `QT_QPA_PLATFORMTHEME=kde` — programs started from Start inherit
+  **plasmashell's** environment (KIO's launcher hands it to the transient
+  unit), so the plasmashell drop-in took the Windows 11 file dialogs away
+  from every program (ISO 093321 has this; Photos' "Add a folder" showed
+  KDE's folder dialog too). plasmashell is out of `PLASMA_SERVICES` again
+  and keeps the portal theme; by the time it starts, the portal and its
+  backends come up without the chain above. `vmtest.py` checks
+  plasmashell's environment as before.
 
 ## 2026-10-22 (11:45) — VirtualBox: llvmpipe alone, and only without 3D acceleration
 

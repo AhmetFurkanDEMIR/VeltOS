@@ -4,7 +4,11 @@ ICONS = $(CURDIR)/debian/veltos-fluent-icons/usr/share/icons
 # VeltOS's own icons in branding/ that replace Fluent's of the same name.
 VELTOS_ICONS = computer user-trash user-trash-full folder inode-directory user-desktop \
 	folder-download folder-documents folder-pictures folder-music folder-videos drive-harddisk \
-	utilities-terminal org.kde.konsole konsole terminal
+	utilities-terminal org.kde.konsole konsole terminal \
+	preferences-color-symbolic preferences-desktop-theme-symbolic
+# Symbolic icons of VeltOS Settings drawn in the look of Windows 11 (Colours,
+# Themes, the colour mode), also in hicolor for names Fluent does not have.
+VELTOS_SYMBOLIC = preferences-color-symbolic preferences-desktop-theme-symbolic veltos-colour-mode-symbolic
 
 %:
 	dh $@
@@ -66,6 +70,13 @@ override_dh_auto_install:
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/drive-harddisk-windows.svg
 	install -D -m 644 branding/small/drive-harddisk-windows.svg \
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/devices/drive-harddisk-windows.svg
+	for name in $(VELTOS_SYMBOLIC); do \
+		install -D -m 644 branding/$$name.svg \
+			debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/categories/$$name.svg; \
+		install -D -m 644 branding/$$name.svg \
+			debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/categories/$$name.svg; \
+		for d in $$(find $(ICONS) -type d -path '*/symbolic/categories'); do cp branding/$$name.svg $$d/$$name.svg; done; \
+	done
 	# App icons as one Windows 11 style family (VeltOS artwork, branding/apps/,
 	# tools/app-icons.py): VeltOS apps and the KDE apps they stand for. All
 	# Fluent themes share .Fluent-base/scalable; a symbolic link of that name

@@ -16,7 +16,7 @@ ColumnLayout {
 
     SettingRow {
         Layout.fillWidth: true
-        icon: "applications-graphics-symbolic"
+        icon: "veltos-colour-mode-symbolic"
         title: backend.text("choose_mode")
         description: backend.text("choose_mode_desc")
         VComboBox {

@@ -27,7 +27,9 @@ built in, and `systemsettings` / `kcmshell6` / `kinfocenter` open VeltOS Setting
     dark mode and an accent colour (VeltOS light/dark, Lake, Nebula, Ember,
     Tide, Dawn, Flow), applied in order (global theme, wallpaper, accent,
     which is also recorded as `AccentColor` because
-    `plasma-apply-colorscheme` does not), with the current theme's
+    `plasma-apply-colorscheme` does not, followed by KDE's PaletteChanged
+    signal so the taskbar, Start and the flyouts change at once), with the
+    current theme's
     background/colour/sounds/cursor and "Custom" for own mixes; Background
     lists the installed wallpapers (VeltOS's first, KDE's "Next" left out);
   - **Bluetooth > Add a device**: VeltOS' own dialog (scan with

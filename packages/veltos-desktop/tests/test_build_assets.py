@@ -410,10 +410,28 @@ class FullBuildTest(unittest.TestCase):
 
     def check_session_files(self, root, kdeglobals):
         self.assertTrue((root / "etc/xdg/plasma-workspace/env/veltos-session.sh").is_file())
+        # The Recycle Bin icon's watch: a path unit started with the session.
+        units = root / "usr/lib/systemd/user"
+        self.assertIn("PathChanged=%h/.local/share/Trash/files\n", (units / "veltos-trash-icon.path").read_text())
+        self.assertIn("ExecStart=/usr/libexec/veltos/trash-icon\n", (units / "veltos-trash-icon.service").read_text())
+        self.assertTrue((units / "plasma-workspace.target.wants/veltos-trash-icon.path").is_symlink())
         for helper in ("session-defaults", "update-app-names", "start-categories", "greeter-compositor",
-                       "sddm-virtualbox-env", "needs-software-rendering"):
+                       "sddm-virtualbox-env", "needs-software-rendering", "trash-icon", "desktop-new"):
             path = root / "usr/libexec/veltos" / helper
             self.assertTrue(path.stat().st_mode & 0o111, f"{helper} is not executable")
+        # The desktop's Windows 11 menus (plasma override) read their texts
+        # from VeltOS' own catalog, so KDE's stay untouched.
+        catalog = root / "usr/share/locale/tr/LC_MESSAGES/veltos-desktop.mo"
+        self.assertIn("Yeni Metin Belgesi.txt".encode(), catalog.read_bytes())
+        self.assertIn("Simgeleri otomatik d".encode(), catalog.read_bytes())
+        # LibreOffice's start-up window ("soffice") stays off the taskbar
+        # while Word & co. open from the Office start screen.
+        rules = (root / "etc/xdg/kwinrulesrc").read_text()
+        self.assertIn("rules=veltos-office-startup\n", rules)
+        self.assertIn("[veltos-office-startup]\n", rules)
+        self.assertIn("skiptaskbar=true\nskiptaskbarrule=2\nwmclass=soffice\n", rules)
+        # Moving files to the Recycle Bin asks nothing, like Windows.
+        self.assertIn("ConfirmTrash=false\n", (root / "etc/xdg/kiorc").read_text())
         # The sign-in screen runs KWin through the wrapper (software rendering
         # in VirtualBox); its own environment is the plain vendor line, and
         # sddm-virtualbox-env (ExecStartPre) adds llvmpipe only in VirtualBox.
@@ -425,10 +443,13 @@ class FullBuildTest(unittest.TestCase):
         self.assertIn("ExecStartPre=-/usr/libexec/veltos/sddm-virtualbox-env\n", dropin)
         # Plasma's own services do not use the portal platform theme (each
         # blocked 25 s on the portal at session start, 2026-10-22).
-        for unit in ("plasma-kwin_wayland", "plasma-ksplash", "plasma-plasmashell", "plasma-kded6",
+        for unit in ("plasma-kwin_wayland", "plasma-ksplash", "plasma-kded6", "plasma-ksmserver",
                      "plasma-xdg-desktop-portal-kde"):
             conf = (root / "usr/lib/systemd/user" / f"{unit}.service.d" / "veltos-portal-theme.conf").read_text()
             self.assertIn("[Service]\nEnvironment=QT_QPA_PLATFORMTHEME=kde\n", conf, unit)
+        # plasmashell keeps the portal theme: programs started from Start
+        # inherit its environment and need the theme for their file dialogs.
+        self.assertFalse((root / "usr/lib/systemd/user/plasma-plasmashell.service.d/veltos-portal-theme.conf").exists())
         # The session renders the whole stack in software in VirtualBox.
         session = (root / "etc/xdg/plasma-workspace/env/veltos-session.sh").read_text()
         self.assertIn("if /usr/libexec/veltos/needs-software-rendering; then", session)   # one rule, shared
@@ -441,6 +462,14 @@ class FullBuildTest(unittest.TestCase):
         greeter = (root / "usr/libexec/veltos/greeter-compositor").read_text()
         self.assertIn("LIBGL_ALWAYS_SOFTWARE", greeter)
         self.assertNotIn("KWIN_COMPOSE", greeter)
+        # The on-screen display (volume ...) is Windows 11's flyout at the
+        # bottom of the screen: a shell-package override (plasmashell loads
+        # it from there, not from the global theme).
+        osd = root / "usr/share/veltos/plasma-overrides/files/osd"
+        self.assertIn("mainItem: OsdItem", (osd / "Osd.qml").read_text())
+        self.assertIn("anchors.bottom: parent.bottom", (osd / "OsdItem.qml").read_text())
+        for lnf in ("org.veltos.light", "org.veltos.dark"):
+            self.assertFalse((root / "usr/share/plasma/look-and-feel" / lnf / "contents/osd").exists(), lnf)
         # Default account picture: new accounts (skel), sign-in screen (FacesDir).
         picture = (root / "usr/share/veltos/faces/default.png").read_bytes()
         self.assertTrue(picture.startswith(b"\x89PNG"))
@@ -501,7 +530,9 @@ class FullBuildTest(unittest.TestCase):
             meta = json.loads((theme / "metadata.json").read_text())
             self.assertEqual(meta["KPlugin"]["Id"], name)
             self.assertTrue((theme / "widgets/panel-background.svgz").is_file())
-            self.assertIn("[Colors:Window]", (theme / "colors").read_text())
+            # No colours of its own: Plasma follows the system scheme and the
+            # user's accent (with them the taskbar and Start kept VeltOS blue).
+            self.assertFalse((theme / "colors").exists())
             # Other brands' logos are not shipped.
             for rel in fluent.DESKTOPTHEME_DROP:
                 self.assertFalse((theme / rel).exists(), rel)

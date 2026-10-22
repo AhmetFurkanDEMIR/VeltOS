@@ -117,6 +117,7 @@ HIDE = [
     "vim.desktop",
     "winetricks.desktop",               # Windows programs install via double-click
     "org.kde.spectacle.desktop",        # VeltOS Snipping Tool (veltos-snip) replaces it
+    "org.kde.partitionmanager.desktop", # VeltOS Disk Management (veltos-disks) replaces it
     # KDE windows Windows 11 does not show in Start; renamed all the same.
     "org.kde.kinfocenter.desktop",      # opens VeltOS Settings > About (veltos-settings)
     "org.kde.plasma-systemmonitor.desktop",  # VeltOS Task Manager is the monitor

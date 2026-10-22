@@ -67,7 +67,9 @@ ColumnLayout {
             Layout.preferredWidth: 240
             accessibleName: backend.text("add_keyboard")
             options: backend.layoutOptions.filter(o => !page.layouts.includes(o.value))
-            currentValue: ""
+            // Turkish is offered first, as the product owner asked (2026-10-22);
+            // choosing an entry adds it.
+            currentValue: options.length > 0 ? (options.some(o => o.value === "tr") ? "tr" : options[0].value) : ""
             onActivated: value => backend.setLayouts(page.layouts.concat([value]))
         }
     }

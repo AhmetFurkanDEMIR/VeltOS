@@ -27,8 +27,17 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   `~/.config/mimeapps.list`) and Just once. Explorer's "Open with" menu
   ends with "Choose another app", and a file no app claims opens this
   window instead of KDE's dialog.
+- `veltos-explorer --empty-recycle-bin` (`app.empty_recycle_bin`,
+  `qml/EmptyBin.qml`): Windows 11's "permanently delete all items?"
+  question in a small window of its own, then the bin is emptied; the
+  desktop's Recycle Bin menu (veltos-desktop) runs it.
 - Typing `cmd`, `terminal`, `powershell` or `wt` into the address box
   opens the Terminal at the folder, as Windows 11 does.
+- New > Folder / Text Document make the item and open its name for
+  editing once the listing shows it (`models.Tab.request_rename`; asked
+  before the listing was done, a slow folder found no row and the item
+  kept "New folder", 2026-10-22). Refresh (F5) blinks the view like
+  Windows 11's File Explorer (`Tab.refreshed`).
 
 ## What it shows
 

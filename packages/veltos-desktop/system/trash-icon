@@ -1,0 +1,25 @@
+#!/bin/sh
+# Touches the desktop's Recycle Bin launcher so the desktop re-reads its
+# icon. The launcher is a link to trash:/ with an Icon (full) and an
+# EmptyIcon; KDE picks one by the trash's state when the item is
+# refreshed, and nothing refreshed it when files went in or out (the icon
+# stayed "empty" with files in the bin; product owner, 2026-10-22). Run by
+# veltos-trash-icon.path (a systemd user path unit: no process of its own)
+# on every change of the trash. The desktop folder may be localised.
+#
+# The desktop lists its icons by date and the Recycle Bin keeps a fixed
+# old one (veltos-session.sh: @2) so it stays second, before This PC (@3).
+# A plain touch moved it to the end (VM, 2026-10-22); the folder view
+# refreshes an item only when something it compares (the date) changed,
+# so the date alternates between @2 and @2.5: both before This PC.
+. "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" 2>/dev/null
+desktop="${XDG_DESKTOP_DIR:-$HOME/Desktop}"
+launcher="$desktop/recycle-bin.desktop"
+if [ -e "$launcher" ]; then
+    if [ "$(stat -c %.1Y "$launcher" 2>/dev/null)" = "2.0" ]; then
+        touch -d @2.5 "$launcher"
+    else
+        touch -d @2 "$launcher"
+    fi
+fi
+exit 0

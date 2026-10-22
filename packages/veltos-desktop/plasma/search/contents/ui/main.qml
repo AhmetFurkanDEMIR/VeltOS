@@ -1,10 +1,10 @@
 /*
     VeltOS Search: the search box of the Windows 11 taskbar. Clicking it
     opens Windows 11's search window (not Start): a search field at the
-    top, the pinned apps as "Top apps" while it is empty, and while typing
-    the results on the left with the best match on the right ("Open").
-    Results come from Plasma's runners (apps, settings, documents, the
-    calculator), as in Start.
+    top, the most used apps as "Top apps" while it is empty, and while
+    typing the results on the left with the best match on the right
+    ("Open"). Results come from Plasma's runners (apps, documents, the
+    calculator, ...; not KDE's settings modules), as in Start.
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -54,6 +54,14 @@ PlasmoidItem {
         favoritesModel: rootModel.favoritesModel
         mergeResults: true
         query: ""
+        // What Windows' search finds: apps, documents, folders, the web, a
+        // calculation, sessions and power. Not KDE's System Settings modules
+        // (krunner_systemsettings: the product owner must never see KDE's
+        // settings, 2026-10-22), nor shell commands, process killing, KWin
+        // commands or activities. KF6 runner ids are the plugin file names.
+        runners: ["krunner_services", "krunner_recentdocuments", "krunner_placesrunner", "baloosearch",
+                  "locations", "krunner_webshortcuts", "calculator", "windows", "krunner_sessions",
+                  "krunner_powerdevil"]
     }
 
     // --- The taskbar box ---------------------------------------------------
@@ -71,6 +79,8 @@ PlasmoidItem {
         Accessible.role: Accessible.Button
         Accessible.name: i18n("Search")
 
+        // Windows 11's taskbar search box: it looks the same while its
+        // window is open; only the pointer over it brightens it a little.
         Rectangle {
             id: pill
             anchors.centerIn: parent
@@ -79,10 +89,10 @@ PlasmoidItem {
             height: Math.min(parent.height - Kirigami.Units.smallSpacing * 3, Kirigami.Units.gridUnit * 2)
             radius: height / 2
             color: Kirigami.Theme.backgroundColor
-            opacity: box.containsMouse || root.expanded ? 1 : 0.82
+            opacity: box.containsMouse ? 1 : 0.85
             border.width: 1
             border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g,
-                                  Kirigami.Theme.textColor.b, box.containsMouse || root.expanded ? 0.18 : 0.1)
+                                  Kirigami.Theme.textColor.b, 0.1)
             Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
         }
 
@@ -115,7 +125,22 @@ PlasmoidItem {
 
         readonly property bool searching: searchField.text.length > 0
         readonly property var results: runnerModel.count > 0 ? runnerModel.modelForRow(0) : null
-        readonly property int bestIndex: resultList.count > 0 ? Math.max(0, resultList.currentIndex) : -1
+        // Windows lists a handful of results; the rest would need scrolling.
+        readonly property int maxResults: 12
+        readonly property int resultCount: results ? Math.min(results.count, maxResults) : 0
+        // The highlighted result (keyboard or pointer); 0 is the best match.
+        property int current: 0
+        // Counts every row the Repeater makes or drops: the model is reset
+        // on every keystroke and its rows are made anew with the same
+        // count, so `best` must be re-read then (it held a dead row and the
+        // card stayed empty, VM 2026-10-22).
+        property int rowsGeneration: 0
+        readonly property var best: {
+            const generation = rowsGeneration;
+            if (resultCount <= 0 || resultRows.count <= 0)
+                return null;
+            return resultRows.itemAt(Math.min(current, resultCount - 1, resultRows.count - 1));
+        }
 
         Layout.minimumWidth: Kirigami.Units.gridUnit * 40
         Layout.minimumHeight: Kirigami.Units.gridUnit * 32
@@ -129,16 +154,21 @@ PlasmoidItem {
                 root.expanded = false;
             }
         }
+        function launchCurrent() {
+            if (panel.resultCount > 0)
+                launch(panel.results, Math.min(panel.current, panel.resultCount - 1));
+        }
+
+        onResultsChanged: current = 0
+        onResultCountChanged: current = Math.min(current, Math.max(0, resultCount - 1))
 
         Connections {
             target: root
             function onExpandedChanged() {
-                if (root.expanded) {
-                    searchField.text = "";
+                searchField.text = "";
+                panel.current = 0;
+                if (root.expanded)
                     searchField.forceActiveFocus();
-                } else {
-                    searchField.text = "";
-                }
             }
         }
 
@@ -147,37 +177,36 @@ PlasmoidItem {
             anchors.margins: Kirigami.Units.gridUnit * 1.5
             spacing: Kirigami.Units.largeSpacing
 
-            // The search field, a rounded pill as in Windows 11.
+            // The search field of Windows 11's search window: a plain
+            // rounded box with the accent line along its bottom edge while
+            // it has the focus (no frame around it).
             PlasmaExtras.SearchField {
                 id: searchField
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
                 placeholderText: i18n("Search for apps, settings and documents")
                 background: Rectangle {
-                    radius: height / 2
+                    radius: 4
                     color: Kirigami.Theme.backgroundColor
-                    border.width: searchField.activeFocus ? 2 : 1
-                    border.color: searchField.activeFocus ? Kirigami.Theme.highlightColor
-                                                          : Qt.alpha(Kirigami.Theme.textColor, 0.15)
-                    // The accent line under the field, like Windows' focused fields.
+                    border.width: 1
+                    border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
                     Rectangle {
                         anchors.bottom: parent.bottom
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        width: parent.width - parent.radius
-                        height: 2
-                        radius: 1
-                        color: Kirigami.Theme.highlightColor
-                        visible: searchField.activeFocus
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: 1
+                        height: searchField.activeFocus ? 2 : 1
+                        color: searchField.activeFocus ? Kirigami.Theme.highlightColor
+                                                       : Qt.alpha(Kirigami.Theme.textColor, 0.3)
                     }
                 }
                 onTextChanged: runnerModel.query = text
-                onAccepted: panel.launch(panel.results, panel.bestIndex)
+                onAccepted: panel.launchCurrent()
                 Keys.onDownPressed: {
-                    if (resultList.count > 0) {
-                        resultList.forceActiveFocus();
-                        resultList.currentIndex = 0;
-                    }
+                    if (panel.resultCount > 0)
+                        panel.current = Math.min(panel.current + 1, panel.resultCount - 1);
                 }
+                Keys.onUpPressed: panel.current = Math.max(0, panel.current - 1)
                 Keys.onEscapePressed: {
                     if (text !== "")
                         text = "";
@@ -186,7 +215,7 @@ PlasmoidItem {
                 }
             }
 
-            // Empty field: the pinned apps as "Top apps".
+            // Empty field: the most used apps as "Top apps".
             ColumnLayout {
                 visible: !panel.searching
                 Layout.fillWidth: true
@@ -275,44 +304,42 @@ PlasmoidItem {
                         Layout.leftMargin: Kirigami.Units.largeSpacing
                         text: i18n("Best match")
                         font.weight: Font.DemiBold
-                        visible: resultList.count > 0
+                        visible: panel.resultCount > 0
                     }
-                    PC3.ScrollView {
+                    // One row under the other (a Column: rows cannot overlap,
+                    // as they did in a list view whose rows changed height,
+                    // 2026-10-22). The first row, the best match, is taller.
+                    Column {
                         Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        ListView {
-                            id: resultList
+                        spacing: 2
+                        Repeater {
+                            id: resultRows
                             model: panel.results
-                            currentIndex: 0
-                            keyNavigationEnabled: true
-                            boundsBehavior: Flickable.StopAtBounds
-                            onModelChanged: currentIndex = 0
-                            Keys.onReturnPressed: panel.launch(model, currentIndex)
-                            Keys.onEnterPressed: panel.launch(model, currentIndex)
-                            Keys.onEscapePressed: searchField.forceActiveFocus()
-                            Keys.onUpPressed: {
-                                if (currentIndex === 0)
-                                    searchField.forceActiveFocus();
-                                else
-                                    decrementCurrentIndex();
-                            }
+                            onItemAdded: (index, item) => panel.rowsGeneration++
+                            onItemRemoved: (index, item) => panel.rowsGeneration++
                             delegate: MouseArea {
                                 id: row
                                 required property int index
                                 required property var model
-                                width: resultList.width
-                                height: Kirigami.Units.gridUnit * (index === 0 ? 3.2 : 2.3)
+                                readonly property bool shown: index < panel.maxResults
+                                readonly property bool first: index === 0
+                                readonly property string title: model.display || ""
+                                readonly property string subtitle: model.description || ""
+                                readonly property var decoration: model.decoration
+                                visible: shown
+                                width: parent.width
+                                height: shown ? Kirigami.Units.gridUnit * (first ? 3.2 : 2.3) : 0
                                 hoverEnabled: true
                                 Accessible.role: Accessible.Button
-                                Accessible.name: model.display
-                                onClicked: panel.launch(resultList.model, index)
-                                onContainsMouseChanged: if (containsMouse) resultList.currentIndex = index
+                                Accessible.name: title
+                                onClicked: panel.launch(panel.results, index)
+                                onContainsMouseChanged: if (containsMouse) panel.current = index
                                 Rectangle {
                                     anchors.fill: parent
                                     anchors.margins: 1
                                     radius: 6
                                     color: Kirigami.Theme.textColor
-                                    opacity: row.pressed ? 0.14 : (resultList.currentIndex === row.index ? 0.1
+                                    opacity: row.pressed ? 0.14 : (panel.current === row.index ? 0.1
                                              : (row.containsMouse ? 0.07 : 0))
                                 }
                                 RowLayout {
@@ -321,23 +348,23 @@ PlasmoidItem {
                                     anchors.rightMargin: Kirigami.Units.largeSpacing
                                     spacing: Kirigami.Units.largeSpacing
                                     Kirigami.Icon {
-                                        implicitWidth: row.index === 0 ? Kirigami.Units.iconSizes.medium
-                                                                       : Kirigami.Units.iconSizes.smallMedium
+                                        implicitWidth: row.first ? Kirigami.Units.iconSizes.medium
+                                                                 : Kirigami.Units.iconSizes.smallMedium
                                         implicitHeight: implicitWidth
-                                        source: row.model.decoration
+                                        source: row.decoration
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 0
                                         PC3.Label {
                                             Layout.fillWidth: true
-                                            text: row.model.display
+                                            text: row.title
                                             elide: Text.ElideRight
                                         }
                                         PC3.Label {
                                             Layout.fillWidth: true
                                             visible: text !== ""
-                                            text: row.model.description || ""
+                                            text: row.subtitle
                                             opacity: 0.65
                                             elide: Text.ElideRight
                                             font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -345,15 +372,16 @@ PlasmoidItem {
                                     }
                                 }
                             }
-                            PlasmaExtras.PlaceholderMessage {
-                                anchors.centerIn: parent
-                                width: parent.width - Kirigami.Units.gridUnit * 2
-                                visible: resultList.count === 0 && panel.searching
-                                iconName: "edit-none"
-                                text: i18n("No results for “%1”", searchField.text)
-                            }
                         }
                     }
+                    PlasmaExtras.PlaceholderMessage {
+                        Layout.fillWidth: true
+                        Layout.topMargin: Kirigami.Units.gridUnit * 4
+                        visible: panel.resultCount === 0 && panel.searching
+                        iconName: "edit-none"
+                        text: i18n("No results for “%1”", searchField.text)
+                    }
+                    Item { Layout.fillHeight: true }
                 }
 
                 // The best match: big icon, name, kind and "Open".
@@ -361,12 +389,11 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     Layout.minimumWidth: Kirigami.Units.gridUnit * 12
                     Layout.fillHeight: true
-                    visible: resultList.count > 0
+                    visible: panel.resultCount > 0
                     radius: 8
                     color: Qt.alpha(Kirigami.Theme.textColor, 0.04)
                     border.width: 1
                     border.color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
-                    readonly property var best: resultList.currentItem ? resultList.currentItem.model : null
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -377,11 +404,11 @@ PlasmoidItem {
                             Layout.topMargin: Kirigami.Units.gridUnit
                             implicitWidth: Kirigami.Units.iconSizes.huge
                             implicitHeight: Kirigami.Units.iconSizes.huge
-                            source: parent.parent.best ? parent.parent.best.decoration : ""
+                            source: panel.best ? panel.best.decoration : ""
                         }
                         PC3.Label {
                             Layout.fillWidth: true
-                            text: parent.parent.best ? parent.parent.best.display : ""
+                            text: panel.best ? panel.best.title : ""
                             horizontalAlignment: Text.AlignHCenter
                             font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.3
                             font.weight: Font.DemiBold
@@ -389,7 +416,7 @@ PlasmoidItem {
                         }
                         PC3.Label {
                             Layout.fillWidth: true
-                            text: parent.parent.best ? (parent.parent.best.description || i18n("App")) : ""
+                            text: panel.best ? (panel.best.subtitle || i18n("App")) : ""
                             horizontalAlignment: Text.AlignHCenter
                             opacity: 0.65
                             elide: Text.ElideRight
@@ -399,7 +426,7 @@ PlasmoidItem {
                             Layout.alignment: Qt.AlignHCenter
                             icon.name: "window-new"
                             text: i18n("Open")
-                            onClicked: panel.launch(panel.results, panel.bestIndex)
+                            onClicked: panel.launchCurrent()
                         }
                     }
                 }
