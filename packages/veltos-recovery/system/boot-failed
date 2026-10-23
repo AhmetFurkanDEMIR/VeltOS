@@ -1,0 +1,21 @@
+#!/bin/sh
+# veltos-boot-failed.service: a normal start ended in emergency or rescue
+# mode, or the sign-in screen kept failing. Like Windows, VeltOS restarts
+# by itself; GRUB counts the starts, and after the second that did not
+# finish it opens Automatic Repair (veltos-recovery).
+set -u
+
+# Only right after starting: later problems of a running system are not
+# start-up failures.
+uptime="$(cut -d. -f1 /proc/uptime)"
+[ "$uptime" -lt "${VELTOS_FAILED_WINDOW:-300}" ] || exit 0
+
+lang="$(sed -n 's/^LANG=//p' /etc/default/locale 2>/dev/null | tr -d '"')"
+case "$lang" in
+    tr*) msg="VeltOS başlatılamadı. Bilgisayar 20 saniye içinde yeniden başlayacak; sorun sürerse VeltOS Otomatik Onarım'ı açacak." ;;
+    *) msg="VeltOS couldn't start. The PC restarts in 20 seconds; if the problem stays, VeltOS opens Automatic Repair." ;;
+esac
+plymouth display-message --text="$msg" 2>/dev/null || true
+printf '\n\n  %s\n\n' "$msg" > /dev/console 2>/dev/null || true
+sleep 20
+systemctl reboot

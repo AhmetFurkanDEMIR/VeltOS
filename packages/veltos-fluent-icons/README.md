@@ -22,11 +22,16 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   "this operating system"); the Wine/Windows icons are removed so Breeze's
   neutral icons are used.
 - **App icons as one family** (`branding/apps/`, drawn by
-  `tools/app-icons.py`): Calculator, Camera, Mail, Snipping Tool, Store,
-  Settings, Task Manager, File Explorer, Notepad, Photos, Document Viewer,
-  Archive, Media Player and Disk Management in the look of Windows 11's
-  app icons (VeltOS drawings, no Microsoft files or logos), installed under
-  the VeltOS apps' names and the KDE/Debian apps they stand for. The
+  `tools/app-icons.py`): Calculator, Camera, Mail, Calendar, Snipping
+  Tool, Store, Settings, Task Manager, File Explorer, Notepad, Photos,
+  Document Viewer, Archive, Media Player and Disk Management in the look
+  of Windows 11's app icons (VeltOS drawings, no Microsoft files or
+  logos), installed under the VeltOS apps' names and the KDE/Debian apps
+  they stand for (Calendar also as `office-calendar`,
+  `x-office-calendar`, KOrganizer and GNOME Calendar). Camera is a wide
+  body (about 3:2, like Windows 11's) with a large lens: the first, nearly
+  square drawing looked squeezed next to the other icons (product owner,
+  2026-10-22). The
   Office apps (Word, Excel, PowerPoint: LibreOffice under the names the
   product owner chose on 2026-10-22) follow the composition of Microsoft
   365's Windows 11 icons: a tile in the app's colour (Word blue, Excel
@@ -34,9 +39,22 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   sheet or slide; the same drawings stand for the Office file types.
 - **Firefox** shows its own logo (the firefox-esr package's hicolor
   icons), as on Windows 11: Fluent's flat redrawings of it are removed.
+  Its logo fills the whole square, while the VeltOS icons around it leave
+  about an eighth free on each side, so next to them it looked too big
+  (product owner, 2026-10-22): `/usr/libexec/veltos/pad-app-icon`
+  (`tools/pad-app-icon`) embeds the program's largest hicolor PNG
+  unchanged, drawn at 84 % in the middle of an SVG of the same icon name
+  in `.Fluent-base/scalable/apps/` (`firefox-esr.svg`, `firefox.svg`),
+  which the Fluent themes find before hicolor. The postinst makes these
+  files on the target system and again whenever Firefox installs new
+  icons (dpkg trigger on `/usr/share/icons/hicolor/128x128/apps`,
+  `debian/veltos-fluent-icons.triggers`); the prerm removes them. Files of
+  that name the tool did not write are left alone.
 - **Special folders** coloured like Windows 11's (Desktop, Downloads,
   Documents, Pictures, Music, Videos) with 16 px drawings, and File
-  Explorer's orange Home (`veltos-home`).
+  Explorer's orange Home (`veltos-home`; File Explorer's own windows now
+  draw its house in the accent colour, veltos-explorer
+  `LocationIcon.qml`).
 - **"This PC" and Recycle Bin** (`branding/computer.svg`, `user-trash.svg`,
   `user-trash-full.svg`, drawn by `tools/draw-icons.py`): VeltOS artwork in
   the look of Windows 11's icons (a monitor with a cyan-to-blue screen on a
@@ -58,3 +76,8 @@ Checks run during the build (`execute_after_dh_auto_install` in
 `debian/rules`): Breeze fallback, no dangling links, key app icons exist,
 cursors present, `start-here` is the VeltOS logo, no `wine.svg` left,
 folders recoloured.
+
+Tests (`tests/test_pad_app_icon.py`, run by `override_dh_auto_test`):
+`pad-app-icon` takes the largest PNG, embeds it unchanged with the
+margin, removes its own file when the program's icons are gone and leaves
+a file it did not write alone. The tool needs `python3` (Depends).

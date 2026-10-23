@@ -98,9 +98,11 @@ def main():
 
         time.sleep(15)
         qmp.screenshot(out / "05-result.png")
+        # find -exec, not xargs: the shortcuts' file names contain spaces
+        # ("7-Zip File Manager.desktop").
         _, shortcuts, _ = agent.run(
-            f"grep -rl 'WINEPREFIX' {HOME}/.local/share/applications/wine 2>/dev/null | "
-            f"xargs -r grep -h '^Name=' | sort -u")
+            f"find {HOME}/.local/share/applications/wine -name '*.desktop' "
+            f"-exec grep -h '^Name=' {{}} + 2>/dev/null | sort -u")
         check(f"Start menu shortcut '{args.expect_shortcut}' created",
               args.expect_shortcut in shortcuts, shortcuts.replace("\n", "; "))
         _, record, _ = agent.run(f"cat {WINDOWS}/records/*.json")

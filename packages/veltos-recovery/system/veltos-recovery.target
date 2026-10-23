@@ -1,0 +1,11 @@
+[Unit]
+Description=VeltOS Automatic Repair
+Documentation=file:///usr/share/doc/veltos-recovery/README.md
+# Started by the boot menu's recovery entry (systemd.unit=veltos-recovery.target):
+# the system without the sign-in screen, Automatic Repair on the first
+# console and a text login on the second.
+Requires=multi-user.target
+After=multi-user.target
+Wants=veltos-recovery.service getty@tty2.service
+Conflicts=display-manager.service rescue.service rescue.target emergency.service
+AllowIsolate=yes

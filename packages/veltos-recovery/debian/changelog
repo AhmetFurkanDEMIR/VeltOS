@@ -1,0 +1,6 @@
+veltos-recovery (0.1.0~dev1) unstable; urgency=medium
+
+  * Automatic Repair after starts that did not finish, in the layout of
+    Windows 11's recovery screens.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Thu, 22 Oct 2026 23:30:00 +0300

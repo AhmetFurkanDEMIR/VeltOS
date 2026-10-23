@@ -1,0 +1,40 @@
+#!/bin/sh
+# Compile the AppArmor profile cache at build time, for the kernel the ISO
+# boots.
+#
+# Debian 13 ships about a hundred AppArmor profiles. Without a cache,
+# apparmor.service compiles all of them while the system starts: 11 s on
+# the critical path of every live boot and of the first boot of an
+# installed system, in QEMU with KVM (2026-10-22), more on slower machines
+# and in VirtualBox. With a cache it takes 0.1 s.
+#
+# The cache directory is named after the running kernel's AppArmor
+# features, which a build container cannot see. They were exported from
+# the image's kernel in a VM (`aa-features-abi -x -w FILE`, kernel version
+# in kernel-features.version) and come with the image
+# (config/includes.chroot_after_packages). Compiling against that file gave
+# the same directory name (979b3ac6.0) and the same 101 files as the kernel
+# itself at boot. Cache files take the time stamp of their newest source,
+# which the squashfs keeps, so they stay valid on the live medium and on
+# systems installed from it. Another kernel with other features simply
+# compiles again at boot, as before; the boot test reports how long
+# apparmor.service took.
+set -e
+
+features=/usr/share/veltos/apparmor/kernel-features.abi
+expected="$(cat /usr/share/veltos/apparmor/kernel-features.version)"
+installed="$(ls /lib/modules | sort -V | tail -n 1)"
+if [ "$installed" != "$expected" ]; then
+    echo "W: veltos-apparmor-cache: features were exported from $expected, the image has $installed;" \
+         "the cache is still compiled (features rarely change within a kernel series)" >&2
+fi
+
+if [ ! -x /usr/sbin/apparmor_parser ] && [ ! -x /sbin/apparmor_parser ]; then
+    echo "I: veltos-apparmor-cache: AppArmor is not installed, nothing to do"
+    exit 0
+fi
+
+apparmor_parser --features-file "$features" --skip-kernel-load --write-cache \
+    --cache-loc /var/cache/apparmor --quiet /etc/apparmor.d/
+echo "I: veltos-apparmor-cache: $(find /var/cache/apparmor -type f | wc -l) cached profiles in" \
+     "$(ls /var/cache/apparmor)"

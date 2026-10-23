@@ -1,3 +1,4 @@
 os-release usr/lib/
 issue usr/share/veltos-base/
 issue.net usr/share/veltos-base/
+motd usr/share/veltos-base/

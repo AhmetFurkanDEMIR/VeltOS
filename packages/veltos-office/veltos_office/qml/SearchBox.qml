@@ -43,11 +43,17 @@ Rectangle {
 
     TextInput {
         id: input
+        // Like a Windows text box: in the Tab order, the text cursor over it and
+        // (in a layout) the full height of its box. A plain TextInput has neither.
+        activeFocusOnTab: true
+        HoverHandler { cursorShape: Qt.IBeamCursor }
         anchors.left: icon.right
         anchors.right: clear.visible ? clear.left : parent.right
         anchors.leftMargin: 8
         anchors.rightMargin: 8
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        verticalAlignment: TextInput.AlignVCenter
         color: Theme.text
         font.pixelSize: Theme.fontSize
         selectByMouse: true

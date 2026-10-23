@@ -31,3 +31,8 @@ execute_after_dh_install:
 	# Password screen font and texts (initramfs hook).
 	test -x $(CURDIR)/debian/veltos-boot/usr/share/initramfs-tools/hooks/veltos-boot
 	test -x $(CURDIR)/debian/veltos-boot/usr/lib/veltos-boot/unlock-texts
+	# Start-up screen at the screen's resolution.
+	test -x $(CURDIR)/debian/veltos-boot/usr/libexec/veltos-boot/boot-resolution
+	test -x $(CURDIR)/debian/veltos-boot/usr/libexec/veltos-boot/boot-resolution-sync
+	test -L $(CURDIR)/debian/veltos-boot/usr/lib/systemd/user/plasma-workspace.target.wants/veltos-boot-resolution.service
+	test -f $(CURDIR)/debian/veltos-boot/usr/share/polkit-1/actions/org.veltos.boot.policy

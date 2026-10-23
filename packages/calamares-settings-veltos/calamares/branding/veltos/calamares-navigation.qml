@@ -1,21 +1,29 @@
 /*
     VeltOS installer buttons (Calamares "navigation: qml"): Back, Next (the
     accent-coloured main action, as in Windows 11 Setup) and Cancel, at the
-    bottom right.
+    bottom right. While VeltOS is being installed there are none (Windows
+    Setup shows none either; settings.conf hides Back/Next and disables
+    Cancel then), and the last page has buttons of its own (finishedq.qml).
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
 import io.calamares.ui 1.0
 import io.calamares.core 1.0
 
-import QtQuick 2.15
-import QtQuick.Layouts 1.15
+import QtQuick
+import QtQuick.Layouts
+
+import "VeltTheme.js" as Theme
 
 Rectangle {
     id: navigationBar
 
-    color: "#F3F5FA"
+    color: Theme.c.window
     height: 64
+
+    // Calamares marks the very last page by its Done button's icon.
+    readonly property bool atEnd: ViewManager.quitIcon === "dialog-ok-apply"
+    readonly property bool installing: !ViewManager.backAndNextVisible && !atEnd
 
     component SetupButton: Rectangle {
         id: button
@@ -29,10 +37,10 @@ Rectangle {
         implicitHeight: 34
         radius: 6
         opacity: active ? 1 : 0.45
-        color: primary ? (mouse.pressed ? "#264DC0" : mouse.containsMouse ? "#4570EC" : "#2F5EE6")
-                       : (mouse.pressed ? "#EEF1F7" : mouse.containsMouse ? "#F7F8FC" : "#FFFFFF")
+        color: primary ? (mouse.pressed ? Theme.accentPressed : mouse.containsMouse ? Theme.accentHover : Theme.accent)
+                       : (mouse.pressed ? Theme.c.cardPressed : mouse.containsMouse ? Theme.c.cardHover : Theme.c.card)
         border.width: primary ? 0 : 1
-        border.color: "#D5DAE5"
+        border.color: Theme.c.control
         activeFocusOnTab: active
         Keys.onReturnPressed: if (active) activated()
         Keys.onSpacePressed: if (active) activated()
@@ -43,7 +51,7 @@ Rectangle {
             radius: 9
             color: "transparent"
             border.width: 2
-            border.color: "#1B1D24"
+            border.color: Theme.c.focus
             visible: button.activeFocus
         }
         Text {
@@ -51,7 +59,7 @@ Rectangle {
             anchors.centerIn: parent
             // Calamares labels carry "&" mnemonics.
             text: button.label.replace("&", "")
-            color: button.primary ? "#FFFFFF" : "#1B1D24"
+            color: button.primary ? Theme.onAccent : Theme.c.text
             font.family: "Inter"
             font.pixelSize: 13
         }
@@ -75,21 +83,21 @@ Rectangle {
         SetupButton {
             label: ViewManager.backLabel
             active: ViewManager.backEnabled
-            visible: ViewManager.backAndNextVisible
+            visible: ViewManager.backAndNextVisible && !navigationBar.atEnd
             onActivated: ViewManager.back()
         }
         SetupButton {
             primary: true
             label: ViewManager.nextLabel
             active: ViewManager.nextEnabled
-            visible: ViewManager.backAndNextVisible
+            visible: ViewManager.backAndNextVisible && !navigationBar.atEnd
             onActivated: ViewManager.next()
         }
         SetupButton {
             Layout.leftMargin: 8
             label: ViewManager.quitLabel
             active: ViewManager.quitEnabled
-            visible: ViewManager.quitVisible
+            visible: ViewManager.quitVisible && !navigationBar.atEnd && !navigationBar.installing
             onActivated: ViewManager.quit()
         }
     }

@@ -57,13 +57,17 @@ panel.addWidget("org.veltos.taskview");
 
 var tasks = panel.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
-// Pinned like a fresh Windows 11 PC: File Explorer, browser, Settings,
-// Store.
+// Pinned like a fresh Windows 11 PC, left to right (product owner,
+// 2026-10-22): File Explorer, the browser, Settings, the Store, Camera,
+// Photos and Media Player. Users pin and unpin apps themselves later.
 tasks.writeConfig("launchers", [
     "applications:veltos-explorer.desktop",
     "applications:firefox-esr.desktop",
     "applications:veltos-settings.desktop",
-    "applications:veltos-store.desktop"
+    "applications:veltos-store.desktop",
+    "applications:veltos-camera.desktop",
+    "applications:veltos-photos.desktop",
+    "applications:veltos-media.desktop"
 ]);
 // Each virtual desktop shows only its own windows, as on Windows.
 tasks.writeConfig("showOnlyCurrentDesktop", true);

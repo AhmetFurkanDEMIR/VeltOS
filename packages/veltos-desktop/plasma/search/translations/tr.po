@@ -33,3 +33,6 @@ msgstr "Aç"
 
 msgid "Start typing to search for apps, settings and documents."
 msgstr "Uygulama, ayar ve belge aramak için yazmaya başlayın."
+
+msgid "Check the spelling or try a different search."
+msgstr "Yazımı denetleyin veya farklı bir arama deneyin."

@@ -1,0 +1,11 @@
+[Unit]
+Description=VeltOS: start-up screen at the screen's resolution
+Documentation=file:///usr/share/doc/veltos-boot/README.md
+PartOf=graphical-session.target
+After=plasma-kwin_wayland.service
+
+[Service]
+# simple, not oneshot: the session does not wait for it.
+Type=simple
+ExecStart=/usr/libexec/veltos-boot/boot-resolution-sync
+Nice=19

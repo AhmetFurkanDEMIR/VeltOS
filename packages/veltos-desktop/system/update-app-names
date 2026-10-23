@@ -47,8 +47,10 @@ APPS = {
                                  "Spreadsheet;Hesap Tablosu;Office;Table;Tablo;Calc;"),
     "libreoffice-impress.desktop": ("PowerPoint", "PowerPoint",
                                     "Presentation;Sunu;Office;Slides;Slayt;Sunum;Impress;"),
-    # Windows' e-mail app is "Mail" ("Posta"); VeltOS uses Thunderbird.
-    "thunderbird.desktop": ("Mail", "Posta", "Email;E-mail;Outlook;E-posta;"),
+    # Thunderbird in Outlook's look (mail.css) is "VeltOS Mail" in every
+    # language (product owner, 2026-10-22); "Mail" and "Posta" stay search
+    # words.
+    "thunderbird.desktop": ("VeltOS Mail", "VeltOS Mail", "Mail;Posta;Email;E-mail;Outlook;E-posta;"),
 }
 
 # Options added to every Exec line of an application. Konsole draws its
@@ -79,6 +81,8 @@ REPLACE_PROGRAM = "/usr/bin/veltos-office"
 # to VeltOS Snipping Tool (veltos-snip), not to Spectacle.
 DROP_KEYS = {
     "org.kde.spectacle.desktop": ("X-KDE-Shortcuts",),
+    # Draw is not offered for any file either ("Open with", PDFs).
+    "libreoffice-draw.desktop": ("MimeType",),
 }
 
 # Programs whose default global shortcuts are switched off: kglobalaccel
@@ -124,6 +128,10 @@ HIDE = [
     "org.kde.plasma.emojier.desktop",   # Windows + . opens it, like Windows' emoji panel
     "libreoffice-startcenter.desktop",  # the three Office apps are in Start themselves
     "libreoffice-math.desktop",         # formula editor; opens from the word processor
+    # Drawing app: Windows has none of that kind in Start; it stays installed
+    # because PowerPoint (libreoffice-impress) depends on it (Debian), but
+    # is shown nowhere (product owner, 2026-10-22: "remove LibreOffice Draw").
+    "libreoffice-draw.desktop",
 ]
 
 

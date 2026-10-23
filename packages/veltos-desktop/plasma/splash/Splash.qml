@@ -25,10 +25,15 @@ Rectangle {
         asynchronous: false
         visible: false
     }
+    // Blurred once: without the cache the spinner's every frame blurred the
+    // whole screen again, which on software rendering (VMs without 3D) kept
+    // two CPU cores busy while the session started (ksplashqml: 58 s of CPU
+    // in 30 s, QEMU 2026-10-22).
     FastBlur {
         anchors.fill: parent
         source: wallpaper
         radius: 64
+        cached: true
         visible: wallpaper.status === Image.Ready
     }
     Rectangle {

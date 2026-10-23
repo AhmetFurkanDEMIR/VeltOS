@@ -24,6 +24,29 @@ class PortalThemeTests(unittest.TestCase):
         app.portal_platform_theme(environ)
         self.assertEqual(environ, {"QT_QPA_PLATFORMTHEME": "kde"})
 
+    def test_dialogs_speak_the_session_language(self):
+        from veltos_explorer import portal
+
+        class Done:
+            stdout = "HOME=/home/velt\nLANG=tr_TR.UTF-8\nLANGUAGE=tr@veltos:tr\nPATH=/usr/bin\n"
+
+        calls = []
+
+        def runner(command, **kwargs):
+            calls.append(command)
+            return Done()
+
+        env = portal.session_environment(runner, {"LANG": "en_US.UTF-8", "QT_QPA_PLATFORMTHEME": "kde"})
+        self.assertEqual(calls, [["systemctl", "--user", "show-environment"]])
+        self.assertEqual((env["LANG"], env["LANGUAGE"]), ("tr_TR.UTF-8", "tr@veltos:tr"))
+        self.assertEqual(env["QT_QPA_PLATFORMTHEME"], "kde")
+        self.assertNotIn("PATH", env)                       # only the language is taken
+
+        def broken(command, **kwargs):
+            raise OSError("no systemctl")
+
+        self.assertEqual(portal.session_environment(broken, {"LANG": "C"}), {"LANG": "C"})
+
     def test_default_is_the_process_environment(self):
         before = os.environ.get("QT_QPA_PLATFORMTHEME")
         try:

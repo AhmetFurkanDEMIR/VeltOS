@@ -81,8 +81,11 @@ ApplicationWindow {
     MediaPlayer {
         id: player
         audioOutput: AudioOutput {
-            volume: QtAudio.convertVolume(backend.volume / 100, QtAudio.LogarithmicVolumeScale,
-                                          QtAudio.LinearVolumeScale)
+            // The slider is the loudness people hear (logarithmic), as in
+            // Windows: Qt's QAudio::convertVolume(Logarithmic -> Linear),
+            // written out because Qt 6.8 does not offer it to QML (the old
+            // QtAudio.convertVolume call failed and the volume stayed at 100 %).
+            volume: backend.volume >= 100 ? 1 : -Math.log(1 - backend.volume / 100) / Math.log(100)
             muted: backend.muted
         }
         videoOutput: nowPlayingView.videoOutput

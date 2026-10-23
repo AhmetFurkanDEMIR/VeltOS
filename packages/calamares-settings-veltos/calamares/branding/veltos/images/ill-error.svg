@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS installer: something went wrong (a warning sign). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="sign" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF8A6B"/>
+      <stop offset="1" stop-color="#D9381E"/>
+    </linearGradient>
+  </defs>
+  <path d="M 128 34 Q 140 34 146 46 L 232 196 Q 238 208 232 218 Q 226 228 212 228 H 44 Q 30 228 24 218 Q 18 208 24 196 L 110 46 Q 116 34 128 34 Z" fill="#000000" opacity="0.12" transform="translate(0 6)"/>
+  <path d="M 128 34 Q 140 34 146 46 L 232 196 Q 238 208 232 218 Q 226 228 212 228 H 44 Q 30 228 24 218 Q 18 208 24 196 L 110 46 Q 116 34 128 34 Z" fill="url(#sign)"/>
+  <path d="M 128 96 V 158" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="128" cy="192" r="11" fill="#FFFFFF"/>
+</svg>

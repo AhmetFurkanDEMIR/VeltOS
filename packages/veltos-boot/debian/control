@@ -19,9 +19,12 @@ Architecture: all
 Pre-Depends: grub-common,
              ${misc:Pre-Depends}
 Depends: fonts-inter,
+         pkexec,
          plymouth,
          plymouth-themes,
+         python3,
          ${misc:Depends}
+Recommends: libkscreen-bin
 Description: VeltOS boot experience
  Makes start-up look like VeltOS from the first second:
   * "veltos" Plymouth theme (logo with a spinner, like Windows), made the
@@ -31,4 +34,7 @@ Description: VeltOS boot experience
     menu entries, quiet boot with the splash, Windows and other systems
     detected for the boot menu.
   * the disk encryption password screen in the VeltOS style (font and
-    Windows-like texts, set in the initramfs).
+    Windows-like texts, set in the initramfs);
+  * the boot menu and start-up screen at the screen's resolution: detected
+    when VeltOS is installed, then kept at the resolution the screen is
+    set to.

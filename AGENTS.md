@@ -60,11 +60,12 @@ owner sets priorities; agents act as the engineering team.
 | `build/scripts/` | In-container scripts: package build, ISO build |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start) |
-| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy); diverts `systemsettings`/`kcmshell6`/`kinfocenter` to itself so KDE's settings window never opens |
-| `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`) |
+| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin script `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop); VeltOS Mail (Thunderbird in Outlook's look: `mail/mail.css`, autoconfig in `tools/firefox.py`) |
+| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`) |
+| `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`), and the Windows 11 Properties window (`--properties`, also from the desktop) |
 | `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
-| `packages/veltos-clock/` | VeltOS Clock: Windows 11 Clock (Focus sessions, Timer, Alarm, Stopwatch, World clock); `veltos-clock-agent` rings alarms and timers while the app is closed |
+| `packages/veltos-clock/` | VeltOS Clock: Windows 11 Clock (Focus sessions, Timer, Alarm, Stopwatch, World clock); `veltos-clock-agent` rings alarms and timers while the app is closed, and VeltOS Calendar's reminders |
+| `packages/veltos-calendar/` | VeltOS Calendar: Windows 11 Calendar (day, work week, week, month, year views; quick event card and full editor; repeats and reminders) on one iCalendar file (`~/.local/share/veltos-calendar/calendar.ics`) |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
 | `packages/veltos-calculator/` | VeltOS Calculator: Windows 11 Calculator (Standard and Scientific modes, memory, history, keep on top, app theme); decimal engine in `engine.py` |
 | `packages/veltos-notepad/` | VeltOS Notepad: Windows 11 Notepad layout (tabs in the title bar, File/Edit/View, find and replace, status bar with encoding and line ending), keeps encodings/line endings, restores unsaved tabs; default for text files |
@@ -77,10 +78,11 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
 | `packages/veltos-store/` | VeltOS Store: Microsoft Store layout (Home, Apps, Gaming, Library, app pages) on AppStream (gir1.2-appstream-1.0) and PackageKit (pkcon); replaces Discover |
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
-| `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook) |
-| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding, partition layout (BitLocker-like encryption), installer jobs, live welcome window (Try/Install), live session settings |
+| `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook), start-up screen at the screen's resolution (`resolution/`: set at installation, kept in step at sign-in), GRUB start counting with the Recovery and safe-graphics entries (`grub.d/10_linux`) |
+| `packages/veltos-recovery/` | VeltOS Automatic Repair: after two starts that did not finish, GRUB starts `veltos-recovery.target`, a full-screen Windows 11 style recovery window on Qt's linuxfb (Restart, Startup Repair, Safe mode, Command Prompt as a console sign-in, last start's problems, Turn off); the services that clear the count or restart after a failed start; `veltos-safe-graphics` (starts without a graphics driver sign in to Plasma on X11); persistent journal |
+| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), live welcome window (Try/Install), live session settings |
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format, delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
-| `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window |
+| `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window; `programs.py` reads installed Windows programs from Wine's registry files (Settings' Windows programs page) |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
 | `tests/boot/vmtest.py` | QEMU/KVM boot test with screenshots, checks and measurements (`build/run.sh test`) |
@@ -661,3 +663,185 @@ owner sets priorities; agents act as the engineering team.
   the moment they were edited (2026-10-22), the QEMU step never ran and
   the jobs gated on their "done" line waited forever. Copy a script to a
   new name before changing it, or wait for the run to end.
+- Calamares 3.3.14 QML steps (`welcomeq`, `localeq`, `keyboardq`,
+  `usersq`, `finishedq`; `qmlSearch: both` loads
+  `<branding>/<module>.qml`): every step has its own QML engine and only
+  the slideshow is retranslated when the language changes (read texts
+  when the page is shown, `VeltPage.t()`); `KeyboardQmlViewStep` never
+  calls the page's `onActivate` (the layout list stayed empty: VeltPage
+  emits `activated()` when its window becomes visible); the installer
+  runs with `-style kvantum`, so `import QtQuick.Controls` looked for a
+  QML style "kvantum" and the page did not load: use
+  `QtQuick.Controls.Basic` and versionless imports (`uniformCellSizes`
+  is not in `QtQuick.Layouts 1.15`). After a failed job the queue
+  emits "failed" and then "finished": the finished page gets
+  `config.failed`. The users module ignores "nonempty"; libpwquality
+  wants 6 characters and no dictionary word (VeltOS: `minLength: 1`
+  without libpwquality, as Windows allows any password).
+- Calamares' error dialog has no parent, so the branding style sheet
+  (set on the main window) does not reach it; `install-veltos` passes
+  Qt's own `-stylesheet FILE`. In that QSS a namespaced class is written
+  with `--` (`Calamares--Widgets--ClickableLabel`), message box buttons
+  go right with `QDialogButtonBox { qproperty-centerButtons: false; }`,
+  and a `font-size` on `qt_msgbox_label` broke QMessageBox's size
+  calculation (the text was cut off).
+- xdg-desktop-portal 1.20 uses the GTK backend "as a last resort" for an
+  interface no configured backend has (Lockdown: KDE's has none); the
+  GTK backend waits for `graphical-session.target`, which made sign-in
+  take 25 s more. `kde-portals.conf` says `Lockdown=none` and
+  `Settings=kde`. plasmashell started with the portal platform theme
+  waited for the KDE portal, which waits for plasmashell: its unit
+  starts it with `-platformtheme kde` (the argument wins over
+  `QT_QPA_PLATFORMTHEME`, which programs started from Start still
+  inherit).
+- AppArmor's boot-time cache directory is named after a hash of the
+  kernel's feature set; without a cache every boot compiled all profiles
+  (11 s). `aa-features-abi -x -w FILE` records the features in a VM;
+  `apparmor_parser --features-file FILE --skip-kernel-load --write-cache
+  --cache-loc /var/cache/apparmor /etc/apparmor.d/` builds the same
+  directory in the image (hook 8500). Cache files get the newest source's
+  mtime and squashfs keeps mtimes, so the cache stays valid.
+- Thunderbird (VeltOS Mail): a user style sheet with a default
+  `@namespace` (XUL) does not match HTML elements such as
+  `#unifiedToolbarContainer` (mail-header.css did nothing); generated
+  `file://` URLs must use "/" (`Path.as_posix()`: a file generated on
+  Windows had backslashes and no Mail style sheet loaded). Its settings
+  store (xulstore) can be preset from autoconfig at "final-ui-startup":
+  the toolbar (`messenger.xhtml` / `unifiedToolbar` / `state`), the
+  message header (`messageHeader` / `layout`) and any persisted XUL
+  attribute (the compose menu bar's `autohide`). Sender names in the
+  message list are cached in each folder's `.msf`: a changed
+  `mail.addressDisplayFormat` shows only after the index is rebuilt
+  (delete the `.msf` while Thunderbird is closed) or in a new profile. The
+  compose window's hidden menu bar keeps its padding and its labels
+  peeked out (mail.css sets it to 0). Read Thunderbird's own markup and
+  CSS in the VM with Python's `zipfile` on `/usr/lib/thunderbird/omni.ja`.
+  `pkill -x thunderbird` stops it.
+- QML: a property named `state` clashes with Item's; a property name
+  must start with a lower-case letter (the devices flyout did not load);
+  `visible: a && b` with an undefined `a` assigns undefined to a bool
+  ("Unable to assign [undefined] to bool"): write `!!a && b`.
+- Fluent names its icons the other way round: `view-more-symbolic` is the
+  horizontal "…" (Windows 11's "More options").
+- A package's offscreen window test must not need files from other
+  packages (`/usr/share/icons/...` is empty in the build container): the
+  recovery window's logo is the package's own copy (`branding/`, checked
+  by `tests/repo`) given to QML by the backend, which the test points at
+  the source tree. SVG pictures need `qt6-svg-plugins` in
+  Build-Depends too ("Unsupported image format").
+- `vm do type:` sends US key codes through QMP: "@" is refused ("does
+  not accept value '@'") and the guest's Turkish layout turns some keys
+  into other letters (type "i" as `key:apostrophe` on a Turkish Q
+  console). The installed dev VM locks its session when idle; typed text
+  then goes into the lock screen's password field. `vm do` clicks are in
+  1920x1080 coordinates, scaled to whatever mode the guest shows (the
+  recovery start's frame buffer is 1024x768).
+- Debian 13's kernel has no simpledrm (`CONFIG_DRM_SIMPLEDRM` unset): with
+  `nomodeset` there is only efifb/vesafb (`/dev/fb0`) and no `/dev/dri`,
+  so KWin, the Wayland sign-in screen and Plasma cannot start (black
+  screen). Xorg with the fbdev driver works (veltos-recovery's
+  `safe-graphics` switches SDDM to X11 for such starts).
+- Qt's `linuxfb` puts its console in graphics mode (KD_GRAPHICS), and Linux
+  ignores every console switch then (`openvt -s -w` waited for ever,
+  `fgconsole` stayed 1): end the Qt program before showing a text console.
+  A console's font comes from console-setup; one opened later by `openvt`
+  had the kernel's font without "ı"/"İ" until `setupcon --current-tty`.
+  Debian's `login` gives up after 60 s without input.
+- `chmod` follows symlinks: Plasma's `/usr/bin/kinfocenter` is a symlink
+  to `systemsettings`, so after VeltOS diverted both, `chmod 0700
+  kinfocenter.kde` locked VeltOS' own redirect and `systemsettings` said
+  "Permission denied" (VM, 2026-10-23). Test `[ -L ]` before changing
+  modes in maintainer scripts.
+- polkit keeps an `auth_admin_keep` answer only for the process that got
+  it: every `gdbus call` is a new process, so two AccountsService calls
+  asked for the password twice. Make related privileged calls from one
+  process (`veltos_settings/admin_calls.py`, Gio with
+  `ALLOW_INTERACTIVE_AUTHORIZATION`).
+- Qt Quick layouts: a `ColumnLayout`/`RowLayout` whose children have
+  `Layout.fillWidth: true` expands itself, whatever its
+  `Layout.preferredWidth`; give a fixed side pane `Layout.fillWidth:
+  false` and a `Layout.maximumWidth` (Calendar's pane took the whole
+  window). Offscreen tests: `grabWindow()` lays the window out, then
+  check item widths.
+- Do not edit files under `packages/` while `build/run.sh packages` or
+  `iso` runs: each package is copied with `tar` when its turn comes, and a
+  README saved at that moment stopped the ISO build ("tar: .: file
+  changed as we read it", 2026-10-23). Edits to packages built later are
+  picked up, edits to packages already built are not.
+- PySide6 returns `engine.rootObjects()[0]` as a plain `QWindow` (no
+  `contentItem()`) unless `PySide6.QtQuick` was imported first. Repeater
+  delegates and items declared in a `Window` are found by walking
+  `contentItem().childItems()`, not with `findChild`.
+- Qt's `QLocale` has no two-letter weekday format (Long "Pazartesi",
+  Short "Pzt", Narrow "P"): cutting the short Turkish names to two letters
+  labelled Monday "Pz", which Turkish readers take for Pazar (Sunday).
+  Use the CLDR two-letter forms the taskbar clock uses ("Pt Sa Ça Pe Cu
+  Ct Pa"; Calendar `TWO_LETTER_DAYS`).
+- Calamares runs through pkexec: its jobs inherit `PKEXEC_UID`, and a
+  helper that refuses pkexec callers refuses the installer too (the
+  boot-resolution job failed every installation at its end, VirtualBox
+  2026-10-23; unit tests had passed). Run every installer job in a real
+  installation before shipping it.
+- pkexec clears the environment (`QT_QUICK_BACKEND` too); `pkexec env
+  VAR=… calamares` lost the display, because only an action with
+  `org.freedesktop.policykit.exec.allow_gui` keeps DISPLAY. Calamares is
+  started by `start-calamares` with its own policy (calamares-settings-
+  veltos). Calamares ignores arguments that are not options; QML reads
+  them with `Qt.application.arguments` (VeltTheme.js).
+- Calamares applies the branding's `stylesheet.qss` to its main window
+  itself, besides Qt's `-stylesheet` for the other windows: a different
+  sheet passed with `-stylesheet` left the main window (and its C++
+  partition page) in the branding sheet's colours.
+- Calamares loads the slideshow QML when it starts and its first slide is
+  `visible` from then on: an endless animation there redrew the whole
+  installer 60 times a second behind every page (140 % CPU in VirtualBox
+  without 3D). In Calamares QML, run endless animations only where they
+  are shown (`activatedInCalamares`, the page's window being visible).
+  In a QML welcome page `config.isNextEnabled` stays false; the Next
+  button's state is `ViewManager.nextEnabled`.
+- Root's QML cache (`/root/.cache/calamares/qmlcache`) kept an old page
+  after `dpkg -i` of a rebuilt package (same file times); delete it before
+  checking installer QML in a VM.
+- live-config runs every component in `/usr/lib/live/config/` with the
+  boot option `components` (~90 ms each warm, 11 s of a VirtualBox live
+  start); `nocomponents=a,b` leaves some out (auto/config). The live image
+  had no `/etc/.updated`, so ldconfig.service rebuilt the linker cache at
+  every live start (10.6 s in VirtualBox): hook 8900 stamps it.
+- live-build: `config/rootfs/excludes` (mksquashfs wildcards, relative
+  paths) leaves files out of the squashfs only; `MKSQUASHFS_OPTIONS` in
+  the environment of `lb build` reaches mksquashfs (block size);
+  `config/includes.chroot_before_packages/` is copied before the package
+  installation (dpkg `path-exclude` files there take effect for every
+  package but debootstrap's).
+- Debian 13's Wine is not a WoW64 build (its amd64 package has no
+  i386-windows DLLs): 32-bit Windows programs need wine32:i386 and the
+  i386 libraries. Its PE DLLs carry DWARF debug information (more than
+  half their size); `strip --strip-debug` keeps the "Wine builtin DLL"
+  mark (veltos-winapps strips them).
+- In VirtualBox the product owner opens throw-away VMs in their window
+  (a `VBoxUI.log` appears within seconds) and may click through them
+  themselves; ask before driving such a VM (`VBOX_OWNER_WATCHING=NAME`
+  lets `out/vbox` scripts send input after they said so), and expect
+  their clicks between yours.
+- live-tools diverts `update-initramfs` to a wrapper that does nothing
+  while the system runs from a live medium (`boot=live` in
+  `/proc/cmdline`, read-only medium: "I: update-initramfs is disabled"),
+  and inside Calamares' target chroot `/proc/cmdline` is the live one. So
+  an installer job that makes an initramfs before live-tools is removed
+  makes nothing. Since the ISO leaves the live initramfs out of its file
+  system, installed systems then stopped at "Unable to mount root fs"
+  (QEMU, 2026-10-23); the live packages are removed first now and the
+  `boot-check` job stops such an installation. Boot an installed system
+  after any change to the image's contents or the installer's jobs.
+- VirtualBox 7.2 on a host with Hyper-V active (Docker Desktop/WSL2) runs
+  VMs in NEM mode, and there VMs stopped for 60-232 s at a time until a
+  key was pressed (VBox.log: "TM: Giving up catch-up attempt", "Guest
+  seems to be unresponsive"), even in GRUB's menu before Linux ran
+  (2026-10-23; upstream: github.com/VirtualBox/virtualbox/issues/722).
+  Grep VBox.log for those lines before trusting a VirtualBox timing,
+  "stutter" or a screenshot (a stalled VM's screenshots repeat byte for
+  byte); measure in QEMU.
+- Wine's Start shortcuts have spaces in their file names ("7-Zip File
+  Manager.desktop"): pipe file lists with `-print0`/`-0` or use `find
+  -exec`, never plain `xargs` (the Windows program test reported a
+  missing shortcut that existed).

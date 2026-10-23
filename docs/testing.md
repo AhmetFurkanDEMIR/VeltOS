@@ -58,7 +58,25 @@ through VirtualBox's COM API from PowerShell (`vbmouse.ps1`, needs the
 VM's USB tablet), keys through `VBoxManage keyboardputscancode`). They
 mirror the product owner's VM (BIOS, PIIX3, VMSVGA, 3D off) and keep
 their own VMs under `out/vbox/vms`. See AGENTS.md for the VBoxManage
-calls.
+calls. For an installation (2026-10-23): `vbox-install-vm.sh NAME ISO`
+makes such a VM with an empty 25 GB disk first in the boot order (empty,
+it falls through to the DVD; installed, it starts the new system without
+detaching the DVD), 4 GB and 4 CPUs, and a serial port written to
+`out/vbox/NAME/serial.log`; the installer is then driven with
+`vbox-act.sh`. Run it with Docker idle (no ISO build or QEMU test): in
+VirtualBox's Hyper-V mode a busy host makes every step several times
+slower.
+
+On this host VirtualBox (7.2.20) runs in NEM mode because Hyper-V is
+active, and there VMs stop for 60-232 s at a time until a key is pressed
+(2026-10-23; upstream VirtualBox issue 722). Before trusting a time, a
+"stutter" or a screenshot from a VirtualBox VM, grep its
+`Logs/VBox.log` for "Giving up catch-up attempt" and "Guest seems to be
+unresponsive": either line means the VM itself was stopped. Identical
+screenshot bytes over a minute (the taskbar clock does not move) show the
+same. Measure speed and smoothness in QEMU (`build/run.sh test`, the dev
+VM); use VirtualBox to check what only VirtualBox shows (VMSVGA, its
+BIOS), and say in reports which stalls the log had.
 
 When the desktop comes late or stays black there (2026-10-22):
 
@@ -107,6 +125,19 @@ Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):
   then put the file back. The session restarts; redo any set-environment.
 - Keys for `vm do`: QEMU qcodes (`esc`, `ret`, `ctrl+o`, `meta_l`); `type:`
   for text.
+- Automatic Repair (installed system, 2026-10-22): `grub-editenv
+  /boot/grub/grubenv list` shows `veltos_failed=1` right after a start and
+  nothing once `veltos-boot-ok` ran (10 s after the sign-in screen);
+  `grub-editenv /boot/grub/grubenv set veltos_failed=2` and `systemctl
+  reboot` start the repair screen (1024x768 frame buffer under OVMF;
+  `vm do` clicks stay in 1920x1080 coordinates, so scale them). Safe mode:
+  `grub-reboot veltos-safe` (or the tile) and check `/proc/cmdline` for
+  `nomodeset` and `/etc/sddm.conf.d/zz-veltos-safe-graphics.conf`.
+  Typing on the guest's Turkish console: "i" is `key:apostrophe`.
+- Mail (Thunderbird) test data without a mail server: a POP3 account that
+  never connects (`user.js` with `mail.server.serverN.login_at_startup
+  false`) and an mbox `Inbox` in the profile's `Mail/<host>/`; delete a
+  folder's `.msf` (Thunderbird closed) after changing how names are shown.
 
 ## Result records
 

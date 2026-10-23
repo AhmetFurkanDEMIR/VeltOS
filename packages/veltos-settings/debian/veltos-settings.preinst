@@ -4,7 +4,7 @@ set -e
 # KDE's settings programs are replaced by a redirect to VeltOS Settings
 # (bin/veltos-settings-redirect); KDE's files stay at *.kde.
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
-    for f in /usr/bin/systemsettings /usr/bin/kcmshell6 /usr/bin/kinfocenter; do
+    for f in /usr/bin/systemsettings /usr/bin/kcmshell6 /usr/bin/kinfocenter /usr/bin/keditfiletype; do
         dpkg-divert --package veltos-settings --add --rename --divert "$f.kde" "$f"
     done
 fi

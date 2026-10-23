@@ -53,7 +53,9 @@ ApplicationWindow {
         property string iconName
         property string label
         readonly property bool selected: window.page === pageId && window.openApp === ""
-        Layout.preferredWidth: 68
+        // Wide enough for "Uygulamalar" in bold beside the selection bar
+        // (product owner, 2026-10-22: the bar covered its first letter).
+        Layout.preferredWidth: 84
         Layout.preferredHeight: 60
         Layout.alignment: Qt.AlignHCenter
         hoverEnabled: true
@@ -66,19 +68,24 @@ ApplicationWindow {
             radius: Theme.radius
             color: nav.selected ? Theme.navSelected : (nav.containsMouse ? Theme.navHover : "transparent")
         }
+        // The selection bar, as the Microsoft Store draws it: a short pill
+        // at the left edge, level with the icon; the label keeps clear of it.
         Rectangle {
             visible: nav.selected
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
+            x: 2
+            y: navContent.y + navIcon.y + (navIcon.height - height) / 2
             width: 3
-            height: 18
+            height: 16
             radius: 1.5
             color: Theme.accent
         }
         ColumnLayout {
+            id: navContent
             anchors.centerIn: parent
+            width: nav.width - 16
             spacing: 4
             Kirigami.Icon {
+                id: navIcon
                 Layout.alignment: Qt.AlignHCenter
                 implicitWidth: 20
                 implicitHeight: 20
@@ -87,11 +94,13 @@ ApplicationWindow {
                 color: nav.selected ? Theme.accent : Theme.text
             }
             Text {
-                Layout.alignment: Qt.AlignHCenter
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
                 text: nav.label
                 color: Theme.text
                 font.pixelSize: 11
                 font.weight: nav.selected ? Font.DemiBold : Font.Normal
+                elide: Text.ElideRight
             }
         }
     }
@@ -102,7 +111,7 @@ ApplicationWindow {
 
         // Navigation rail.
         ColumnLayout {
-            Layout.preferredWidth: 84
+            Layout.preferredWidth: 96
             Layout.fillHeight: true
             Layout.topMargin: 12
             Layout.bottomMargin: 12
@@ -153,9 +162,15 @@ ApplicationWindow {
                     }
                     TextInput {
                         id: search
+                        // Like a Windows text box: in the Tab order, the text cursor over it and
+                        // (in a layout) the full height of its box. A plain TextInput has neither.
+                        activeFocusOnTab: true
+                        HoverHandler { cursorShape: Qt.IBeamCursor }
                         anchors.left: parent.left
                         anchors.right: searchIcon.left
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        verticalAlignment: TextInput.AlignVCenter
                         anchors.leftMargin: 12
                         anchors.rightMargin: 8
                         color: Theme.text

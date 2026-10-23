@@ -68,10 +68,10 @@ Rectangle {
                     anchors.rightMargin: 6
                     anchors.bottomMargin: tabItem.current ? 0 : 4
                     spacing: 8
-                    Kirigami.Icon {
+                    LocationIcon {
                         Layout.preferredWidth: 16
                         Layout.preferredHeight: 16
-                        source: tabItem.modelData.icon
+                        name: tabItem.modelData.icon
                     }
                     Text {
                         Layout.fillWidth: true

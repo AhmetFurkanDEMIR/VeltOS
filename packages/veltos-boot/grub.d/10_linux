@@ -8,9 +8,20 @@
 #     "6.12.113+deb13-amd64"); entry IDs and file names are unchanged;
 #   * no "Loading Linux ..." / "Loading initial ramdisk ..." messages, so
 #     nothing technical flashes up before the VeltOS boot screen.
+#
+# With veltos-recovery installed, like Windows' Automatic Repair: every
+# start of a VeltOS entry counts in GRUB's environment (veltos_failed),
+# veltos-boot-ok.service clears the count once the sign-in screen is up,
+# and after two starts that did not finish GRUB starts "VeltOS Recovery"
+# (Automatic Repair, systemd.unit=veltos-recovery.target) by itself. It
+# also gets "VeltOS (safe graphics)" (nomodeset), which Automatic Repair's
+# Safe mode starts once. Only where GRUB can write its environment file
+# (not on Btrfs/ZFS, LVM, RAID or an encrypted /boot), as Debian's
+# recordfail.
 set -e
 
 original=/etc/grub.d/10_linux.dpkg-veltos
+recovery_unit="${VELTOS_RECOVERY_UNIT:-/usr/lib/systemd/system/veltos-recovery.target}"   # test hook
 if [ ! -x "$original" ]; then
     # Without it the menu would have no VeltOS entry and the PC would not
     # start: fail update-grub (and the installer) loudly instead.
@@ -21,7 +32,80 @@ fi
 distributor="${GRUB_DISTRIBUTOR:-VeltOS}"
 # A failure of Debian's script must fail update-grub, not drop the entries.
 entries="$("$original")"
-printf '%s\n' "$entries" | sed \
+entries="$(printf '%s\n' "$entries" | sed \
     -e "s|${distributor} GNU/Linux|${distributor}|g" \
     -e "s/^\([[:space:]]*\(menuentry\|submenu\) '[^']*\)+deb[0-9]*-[a-z0-9]*/\1/" \
-    -e '/^[[:space:]]*echo[[:space:]]/d'
+    -e '/^[[:space:]]*echo[[:space:]]/d')"
+
+grubenv_writable() {
+    fs="$(grub-probe --target=fs /boot/grub 2>/dev/null || true)"
+    case "$fs" in
+        btrfs|zfs|cpiofs|newc|odc|romfs|squash4|tarfs) return 1 ;;
+    esac
+    abstraction="$(grub-probe --target=abstraction /boot/grub 2>/dev/null || true)"
+    [ -z "$abstraction" ]
+}
+
+if [ ! -e "$recovery_unit" ] || ! grubenv_writable; then
+    printf '%s\n' "$entries"
+    exit 0
+fi
+
+cat <<'GRUB'
+function veltos_count_start {
+  if [ -n "${have_grubenv}" ]; then
+    if [ -n "${veltos_failed}" ]; then set veltos_failed=2; else set veltos_failed=1; fi
+    save_env veltos_failed
+  fi
+}
+GRUB
+
+# Count the start in every VeltOS entry except Debian's recovery mode; copy
+# the first (default) entry as "VeltOS Recovery" and "VeltOS (safe graphics)".
+printf '%s\n' "$entries" | awk -v name="$distributor" '
+    function emit(title, id, args, count,    i, line, n) {
+        for (i = 1; i <= nfirst; i++) {
+            line = first[i]
+            if (i == 1) {
+                sub(/^menuentry \047[^\047]*\047/, "menuentry \047" title "\047", line)
+                sub(/\$menuentry_id_option \047[^\047]*\047/, "$menuentry_id_option \047" id "\047", line)
+            } else if (line ~ /veltos_count_start/ && !count) {
+                continue
+            } else if (line ~ /^[[:space:]]*linux[[:space:]]/) {
+                n = index(line " ", " ro ")
+                if (args == "nomodeset") {
+                    line = line " nomodeset"
+                } else if (n) {
+                    line = substr(line, 1, n + 2) " " args
+                }
+            }
+            print line
+        }
+    }
+    {
+        print
+        if ($0 ~ /^[[:space:]]*menuentry \047/ && $0 ~ /\{[[:space:]]*$/ && $0 !~ /\(recovery mode\)/) {
+            match($0, /^[[:space:]]*/)
+            counted = substr($0, 1, RLENGTH) "\tveltos_count_start"
+            print counted
+        }
+        if (!done && $0 ~ /^menuentry \047/) { capturing = 1 }
+        if (capturing) {
+            first[++nfirst] = $0
+            if ($0 ~ /^menuentry \047/) first[++nfirst] = counted
+            if ($0 ~ /^\}/) { capturing = 0; done = 1 }
+        }
+    }
+    END {
+        if (!done) exit
+        emit(name " Recovery", "veltos-recovery", "quiet splash nomodeset systemd.unit=veltos-recovery.target", 0)
+        emit(name " (safe graphics)", "veltos-safe", "nomodeset", 1)
+    }
+'
+
+cat <<'GRUB'
+# Two starts in a row did not finish: Automatic Repair.
+if [ "${veltos_failed}" = 2 ]; then
+  set default="veltos-recovery"
+fi
+GRUB

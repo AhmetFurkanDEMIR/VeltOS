@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-calendar
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-calendar/usr/lib/python3/dist-packages
+	cp -r veltos_calendar debian/veltos-calendar/usr/lib/python3/dist-packages/
+	find debian/veltos-calendar -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-calendar debian/veltos-calendar/usr/bin/veltos-calendar
+	install -D -m 644 data/veltos-calendar.desktop debian/veltos-calendar/usr/share/applications/veltos-calendar.desktop
+	# App icon (VeltOS artwork, Windows 11 style).
+	install -D -m 644 data/veltos-calendar.svg \
+		debian/veltos-calendar/usr/share/icons/hicolor/scalable/apps/veltos-calendar.svg
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

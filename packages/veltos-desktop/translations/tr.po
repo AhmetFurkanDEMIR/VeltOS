@@ -77,3 +77,63 @@ msgstr "Yeni klasör"
 
 msgid "New Text Document.txt"
 msgstr "Yeni Metin Belgesi.txt"
+
+msgid "Task Manager"
+msgstr "Görev Yöneticisi"
+
+msgid "Taskbar settings"
+msgstr "Görev çubuğu ayarları"
+
+msgid "More options"
+msgstr "Diğer seçenekler"
+
+msgid "Turn off all notifications for %1"
+msgstr "%1 için tüm bildirimleri kapat"
+
+msgid "Go to notification settings"
+msgstr "Bildirim ayarlarına git"
+
+msgid "Clipboard history"
+msgstr "Pano geçmişi"
+
+msgid "Clear all"
+msgstr "Tümünü temizle"
+
+msgid "Nothing copied yet"
+msgstr "Henüz bir şey kopyalanmadı"
+
+msgid "Text and pictures you copy appear here, so you can use them again."
+msgstr "Kopyaladığınız metin ve resimler burada görünür; onları yeniden kullanabilirsiniz."
+
+msgid "Picture"
+msgstr "Resim"
+
+msgid "Delete"
+msgstr "Sil"
+
+msgid "Open with"
+msgstr "Birlikte aç"
+
+msgid "Cut"
+msgstr "Kes"
+
+msgid "Copy"
+msgstr "Kopyala"
+
+msgid "Rename"
+msgstr "Yeniden adlandır"
+
+msgid "Compress to ZIP file"
+msgstr "ZIP dosyasına sıkıştır"
+
+#: plasma-overrides/files/notifications/JobItem.qml
+msgid "Paused"
+msgstr "Duraklatıldı"
+
+#: plasma-overrides/files/notifications/JobItem.qml
+msgid "Open file"
+msgstr "Dosyayı aç"
+
+#: plasma-overrides/files/notifications/JobItem.qml
+msgid "Open folder"
+msgstr "Klasörü aç"

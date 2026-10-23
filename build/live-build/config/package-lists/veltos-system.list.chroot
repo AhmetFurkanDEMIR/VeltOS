@@ -1,6 +1,8 @@
 # VeltOS system identity and boot experience
 veltos-base
 veltos-boot
+# Automatic Repair after starts that did not finish (installed systems).
+veltos-recovery
 plymouth
 plymouth-themes
 

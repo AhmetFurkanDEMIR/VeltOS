@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS installer: all done (a check mark and sparkles). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="disc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4FD18B"/>
+      <stop offset="1" stop-color="#1E9E5A"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="132" r="90" fill="#000000" opacity="0.12" transform="translate(0 6)"/>
+  <circle cx="128" cy="132" r="90" fill="url(#disc)"/>
+  <circle cx="128" cy="132" r="72" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.35"/>
+  <path d="M 88 134 L 116 162 L 172 104" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#4F7CFF">
+    <path d="M 212 40 L 218 56 L 234 62 L 218 68 L 212 84 L 206 68 L 190 62 L 206 56 Z"/>
+    <path d="M 40 52 L 44 62 L 54 66 L 44 70 L 40 80 L 36 70 L 26 66 L 36 62 Z" opacity="0.8"/>
+    <path d="M 222 196 L 226 206 L 236 210 L 226 214 L 222 224 L 218 214 L 208 210 L 218 206 Z" opacity="0.7"/>
+  </g>
+</svg>

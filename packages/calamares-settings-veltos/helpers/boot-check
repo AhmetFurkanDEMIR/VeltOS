@@ -1,0 +1,33 @@
+#!/bin/sh
+# Stop the installation with a message when the installed system could not
+# start, instead of finishing with a PC that stops at "Unable to mount root
+# fs": every installed kernel needs its initramfs, and the boot menu has to
+# load it (update-grub writes an initrd line only for a file that exists).
+# Runs after the bootloader jobs. The first ISO without the live system's
+# own initramfs made installations without one (QEMU, 2026-10-23): live-tools'
+# update-initramfs wrapper did nothing while the installer ran from the
+# live medium.
+set -u
+. /usr/libexec/veltos-installer/common.sh
+
+grub_cfg="$CHROOT/boot/grub/grub.cfg"
+status=0
+found=0
+for kernel in "$CHROOT"/boot/vmlinuz-*; do
+    [ -e "$kernel" ] || continue
+    found=1
+    version="${kernel##*/vmlinuz-}"
+    if [ ! -s "$CHROOT/boot/initrd.img-$version" ]; then
+        echo "boot-check: there is no initramfs for Linux $version" >&2
+        status=1
+    elif ! grep -E '^[[:space:]]*initrd[[:space:]]' "$grub_cfg" 2>/dev/null | grep -qF "initrd.img-$version"; then
+        echo "boot-check: the boot menu does not load the initramfs of Linux $version" >&2
+        status=1
+    fi
+done
+if [ "$found" = 0 ]; then
+    echo "boot-check: no Linux kernel was installed" >&2
+    status=1
+fi
+[ "$status" = 0 ] && echo "boot-check: every kernel has its initramfs in the boot menu"
+exit "$status"

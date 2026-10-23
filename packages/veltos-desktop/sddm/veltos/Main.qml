@@ -2,8 +2,9 @@
     VeltOS sign-in screen (SDDM theme), laid out like Windows 11:
     a lock screen with the time and date; any key or click shows the
     sign-in view (picture, name, password). Power options bottom right,
-    other users bottom left. No session or desktop names are shown: the
-    session SDDM used last (Plasma) is started.
+    other users bottom left. No session or desktop names are shown: Plasma
+    on Wayland is started, or Plasma on X11 at a start without a graphics
+    driver (sessionIndex).
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -53,7 +54,33 @@ Item {
             return;
         busy = true;
         message.text = "";
-        sddm.login(userName, passwordField.text, sessionModel.lastIndex);
+        sddm.login(userName, passwordField.text, sessionIndex);
+    }
+
+    // Which Plasma to start. Without a graphics driver (VeltOS (safe
+    // graphics), nomodeset) Linux has no DRM device and Wayland cannot run:
+    // veltos-recovery's safe-graphics service then starts this screen on
+    // X11 (fbdev), and the X11 Plasma session is the one that works. At
+    // every other start Plasma on Wayland, also after a safe start made
+    // SDDM remember the X11 session (VM, 2026-10-22).
+    property int waylandSession: -1
+    property int x11Session: -1
+    property bool onX11: Qt.platform.pluginName === "xcb"
+    readonly property int sessionIndex: onX11
+        ? (x11Session >= 0 ? x11Session : sessionModel.lastIndex)
+        : (waylandSession >= 0 ? waylandSession : sessionModel.lastIndex)
+    Repeater {
+        model: sessionModel
+        delegate: Item {
+            required property int index
+            required property string file
+            Component.onCompleted: {
+                if (/(^|\/)plasma\.desktop$/.test(file))
+                    root.waylandSession = index;
+                else if (/(^|\/)plasmax11\.desktop$/.test(file))
+                    root.x11Session = index;
+            }
+        }
     }
 
     // Users: keep the selected user's details in properties.

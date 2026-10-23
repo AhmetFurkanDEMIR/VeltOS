@@ -10,5 +10,9 @@ override_dh_auto_build:
 override_dh_auto_test:
 	python3 -m unittest discover -s tests -v
 
+# The desktop guard is started by D-Bus when a session asks for it.
+override_dh_installsystemd:
+	dh_installsystemd --no-start
+
 override_dh_auto_clean:
 	rm -rf build-assets

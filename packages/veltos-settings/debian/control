@@ -4,7 +4,9 @@ Priority: optional
 Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
+               gir1.2-glib-2.0,
                python3,
+               python3-gi,
                python3-pyside6.qtqml,
                python3-pyside6.qtquick,
                qml6-module-org-kde-kirigami,
@@ -21,6 +23,8 @@ Architecture: all
 Depends: ${python3:Depends},
          accountsservice,
          dbus-bin,
+         gir1.2-glib-2.0,
+         python3-gi,
          kde-cli-tools,
          kdialog,
          libglib2.0-bin,

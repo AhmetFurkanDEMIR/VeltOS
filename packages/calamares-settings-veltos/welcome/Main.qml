@@ -183,6 +183,22 @@ ApplicationWindow {
             font.pixelSize: 13
             color: root.subtle
         }
+        // The operating system's website (product owner, 2026-10-22).
+        Label {
+            Layout.fillWidth: true
+            Layout.topMargin: 4
+            horizontalAlignment: Text.AlignHCenter
+            textFormat: Text.StyledText
+            text: welcome.text("website") + " <a href=\"https://veltos.ahmetfurkandemir.com/\">veltos.ahmetfurkandemir.com</a>"
+            linkColor: root.palette.highlight
+            font.pixelSize: 13
+            color: root.subtle
+            onLinkActivated: link => Qt.openUrlExternally(link)
+            HoverHandler {
+                enabled: parent.hoveredLink !== ""
+                cursorShape: Qt.PointingHandCursor
+            }
+        }
     }
 
     Component.onCompleted: installCard.forceActiveFocus()

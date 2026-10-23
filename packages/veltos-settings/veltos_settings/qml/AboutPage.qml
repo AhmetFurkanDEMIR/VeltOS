@@ -27,7 +27,8 @@ ColumnLayout {
         [backend.text("os_build"), about.build || backend.text("unknown")],
         [backend.text("developer"), "Ahmet Furkan Demir"],
         [backend.text("email"), "1ahmetfurkandemir@gmail.com"],
-        [backend.text("website"), "https://ahmetfurkandemir.com/"]
+        [backend.text("website"), "https://ahmetfurkandemir.com/"],
+        [backend.text("veltos_website"), backend.veltosWebsite]
     ]
 
     function rowsText(rows) {

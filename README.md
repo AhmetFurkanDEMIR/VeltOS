@@ -7,6 +7,8 @@ Windows 11-inspired KDE Plasma desktop. Its goals are automatic, safe
 hardware and driver management, and the broadest *practical* compatibility
 with Windows applications and games through Wine and Proton.
 
+Website: <https://veltos.ahmetfurkandemir.com/>
+
 > **Project status: pre-alpha.** VeltOS builds as a bootable live ISO with
 > the VeltOS desktop and has only been tested in virtual machines. It is
 > not ready for daily use. The hardware manager, gaming support and a
@@ -23,10 +25,21 @@ with Windows applications and games through Wine and Proton.
   …), a Windows 11 style Settings app, sign-in screen, boot screen (logo
   and spinner, no visible boot menu) and a live-system welcome window
   ("Try VeltOS" / "Install VeltOS", English / Türkçe).
+- VeltOS apps in the layout of their Windows 11 counterparts (PySide6/QML
+  on Debian's components): File Explorer and the file dialog of every
+  program, Settings, Task Manager, Disk Management, Store, Notepad,
+  Calculator, Clock, Calendar, Photos, Media Player, Camera, Snipping
+  Tool, PDF Reader, an archive manager, the administrator password prompt,
+  Microsoft 365's start screen in front of LibreOffice (Word, Excel,
+  PowerPoint) and Thunderbird restyled as "VeltOS Mail" in Outlook's look.
 - Double-clicking a Windows `.exe`/`.msi` (or a `.bat`/`.cmd` batch file) installs or runs it through Wine
   (VeltOS runner); Wine is not a security sandbox, and not every Windows
   program works.
-- A VeltOS installer (Calamares) with VeltOS branding.
+- A VeltOS installer (Calamares) whose pages follow Windows 11's setup;
+  the installation log is shown only when a step fails.
+- Automatic Repair: after two starts that did not finish, the PC starts a
+  Windows 11 style recovery screen (restart, startup repair, safe mode,
+  command prompt).
 - System identity (`os-release` says VeltOS while staying Debian-compatible).
 - Hardware diagnostic tools on the ISO (lspci, lsusb, lshw, inxi, hwinfo,
   vulkaninfo, glxinfo, vainfo, smartctl, nvme, sensors, mokutil) and
@@ -71,7 +84,7 @@ rules — the full text is in [AGENTS.md](AGENTS.md):
 |---|---|
 | [AGENTS.md](AGENTS.md) | Rules and handoff guide for contributors and AI agents |
 | [build/](build/) | Build entry point, builder container, live-build configuration |
-| [packages/](packages/) | VeltOS Debian packages (`veltos-base`, `veltos-desktop`, `veltos-settings`, `veltos-boot`, `veltos-fluent-icons`, `calamares-settings-veltos`, `veltos-winapps`, `veltos-wine-addons`) |
+| [packages/](packages/) | VeltOS Debian packages, one per directory (`veltos-base`, `veltos-desktop`, `veltos-settings`, `veltos-explorer`, `veltos-boot`, `veltos-recovery`, `veltos-fluent-icons`, `calamares-settings-veltos`, the VeltOS apps, `veltos-winapps`, `veltos-wine-addons`); [AGENTS.md](AGENTS.md) has the full map |
 | [tests/](tests/) | VM boot test and committed test evidence |
 | [docs/architecture.md](docs/architecture.md) | Technical decisions, trade-offs, risks |
 | [docs/build-guide.md](docs/build-guide.md) | How to build and test |

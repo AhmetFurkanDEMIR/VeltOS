@@ -56,7 +56,7 @@ class ConfigTests(unittest.TestCase):
         shown = [m for step in self.settings["sequence"] for m in step.get("show", [])]
         self.assertNotIn("summary", shown)          # it listed partition commands
         self.assertTrue(self.settings["prompt-install"])   # still asks before changing the disk
-        qss = (CALAMARES / "branding/veltos/stylesheet.qss").read_text(encoding="utf-8")
+        qss = (CALAMARES / "branding/veltos/stylesheet-light.qss").read_text(encoding="utf-8")
         self.assertRegex(qss, r"QLabel#exec-message \{[^}]*max-height: 0px")
         self.assertRegex(qss, r"QToolBar \{[^}]*max-height: 0px")
 
@@ -73,6 +73,94 @@ class ConfigTests(unittest.TestCase):
                 script = desc["command"].split()[0]
                 self.assertTrue(script.startswith("/usr/libexec/veltos-installer/"))
                 self.assertTrue((PKG / "helpers" / Path(script).name).is_file())
+
+    def test_pages_are_veltos_qml(self):
+        # Every page except partitioning (a C++ page, styled by the QSS) is a
+        # Calamares QML module whose QML comes from the VeltOS branding.
+        shown = [m for step in self.settings["sequence"] for m in step.get("show", [])]
+        self.assertEqual(shown, ["welcomeq", "localeq", "keyboardq", "partition", "usersq", "finishedq"])
+        executed = [m for step in self.settings["sequence"] for m in step.get("exec", [])]
+        for name in ("localeq", "keyboardq", "usersq"):
+            self.assertIn(name, executed)
+        for name in ("locale", "keyboard", "users", "welcome", "finished"):
+            self.assertNotIn(name, shown + executed)
+            self.assertFalse((CALAMARES / "modules" / f"{name}.conf").exists(), name)
+        for name in [m for m in shown if m.endswith("q")]:
+            with self.subTest(page=name):
+                conf = load(CALAMARES / "modules" / f"{name}.conf")
+                self.assertEqual(conf["qmlSearch"], "both")
+                self.assertTrue((CALAMARES / "branding/veltos" / f"{name}.qml").is_file())
+
+    def test_qml_pictures_are_shipped(self):
+        branding = CALAMARES / "branding/veltos"
+        for path in branding.glob("*.qml"):
+            for name in re.findall(r'"(images/[A-Za-z0-9_.-]+)"', path.read_text(encoding="utf-8")):
+                with self.subTest(qml=path.name, picture=name):
+                    self.assertTrue((branding / name).is_file())
+            for name in re.findall(r'picture: "([A-Za-z0-9_.-]+\.svg)"', path.read_text(encoding="utf-8")):
+                with self.subTest(qml=path.name, picture=name):
+                    self.assertTrue((branding / "images" / name).is_file())
+
+    def test_install_screen_like_windows_setup(self):
+        # While installing: slideshow and progress only, no buttons.
+        self.assertTrue(self.settings["hide-back-and-next-during-exec"])
+        self.assertTrue(self.settings["disable-cancel-during-exec"])
+
+    def test_any_nonempty_password(self):
+        # libpwquality refused anything under 6 characters and dictionary
+        # words even with minlen=0; VeltOS accepts any non-empty password.
+        users = load(CALAMARES / "modules/usersq.conf")
+        self.assertEqual(users["passwordRequirements"], {"minLength": 1, "maxLength": -1})
+        self.assertFalse(users["allowWeakPasswords"])
+        self.assertFalse(users["setRootPassword"])
+
+    def test_no_kurdish_keyboard_variants(self):
+        # Product owner, 2026-10-22: the keyboard page does not offer them.
+        qml = (CALAMARES / "branding/veltos/keyboardq.qml").read_text(encoding="utf-8")
+        self.assertIn('return key !== "ku" && !key.startsWith("ku_");', qml)
+        self.assertIn("if (!isOffered(key))", qml)
+        self.assertIn("model: variantList", qml)
+
+    def test_error_window_gets_the_style_sheet(self):
+        # Calamares styles only its main window; its parentless error
+        # window gets the sheet through Qt's -stylesheet option, which
+        # start-calamares passes (run by install-veltos through pkexec).
+        launcher = (PKG / "bin/install-veltos").read_text(encoding="utf-8")
+        self.assertIn("pkexec /usr/libexec/veltos-installer/start-calamares $theme", launcher)
+        start = (PKG / "helpers/start-calamares").read_text(encoding="utf-8")
+        self.assertIn('-style kvantum -stylesheet "$run_dir/stylesheet.qss"', start)
+        # Calamares also applies the branding's stylesheet.qss to its main
+        # window: a link to the same generated sheet (light or dark).
+        links = (PKG / "debian/calamares-settings-veltos.links").read_text(encoding="utf-8").splitlines()
+        self.assertIn("run/veltos-installer/stylesheet.qss etc/calamares/branding/veltos/stylesheet.qss", links)
+        self.assertFalse((CALAMARES / "branding/veltos/stylesheet.qss").exists())
+        qss = (CALAMARES / "branding/veltos/stylesheet-light.qss").read_text(encoding="utf-8")
+        self.assertRegex(qss, r'QDialog#ErrorDialog QTextBrowser#detailsBrowser \{[^}]*font-family: "Cascadia Mono"')
+
+    def test_old_loading_spinner_is_hidden(self):
+        # The first page draws Windows 11's ring in the middle instead.
+        qss = (CALAMARES / "branding/veltos/stylesheet-light.qss").read_text(encoding="utf-8")
+        self.assertRegex(qss, r"\.QWidget > WaitingSpinnerWidget \{\s*color: transparent;")
+        welcome = (CALAMARES / "branding/veltos/welcomeq.qml").read_text(encoding="utf-8")
+        self.assertIn('source: "WelcomePage.qml"', welcome)
+        self.assertIn("asynchronous: true", welcome)
+
+    def test_side_bar_names_every_step(self):
+        # The side bar names the steps itself (Calamares' names were never
+        # translated there), in the order of the sequence: each page, and
+        # the installation as one step.
+        names = {"welcomeq": "Welcome", "localeq": "Location", "keyboardq": "Keyboard",
+                 "partition": "Disk", "usersq": "Account", "finishedq": "Finish"}
+        expected = []
+        for step in self.settings["sequence"]:
+            if "show" in step:
+                expected += [names[m] for m in step["show"]]
+            else:
+                expected.append("Install")
+        sidebar = (CALAMARES / "branding/veltos/calamares-sidebar.qml").read_text(encoding="utf-8")
+        steps = re.findall(r'\["([^"]+)", "([^"]+)"\]', sidebar)
+        self.assertEqual([english for english, _turkish in steps], expected)
+        self.assertEqual([turkish for _english, turkish in steps][:2], ["Hoş geldiniz", "Konum"])
 
     def test_secure_boot_keeps_debian_efi_directory(self):
         bootloader = load(CALAMARES / "modules/bootloader.conf")
@@ -105,6 +193,9 @@ class UserVisibleTextTests(unittest.TestCase):
 class ScriptTests(unittest.TestCase):
     def test_shell_syntax(self):
         for path in list((PKG / "helpers").iterdir()) + list((PKG / "bin").iterdir()):
+            if path.read_text(encoding="utf-8").startswith("#!/usr/bin/python3"):
+                compile(path.read_text(encoding="utf-8"), str(path), "exec")
+                continue
             with self.subTest(script=path.name):
                 subprocess.run(["sh", "-n", str(path)], check=True)
 

@@ -8,6 +8,8 @@ PKG = debian/calamares-settings-veltos
 override_dh_auto_build:
 	mkdir -p build-assets
 	rsvg-convert --width 256 --height 256 branding/veltos-logo.svg --output build-assets/logo.png
+	# The installer's dark look, made from the light style sheet.
+	python3 tools/dark-stylesheet.py calamares/branding/veltos/stylesheet-light.qss build-assets/stylesheet-dark.qss
 
 override_dh_auto_test:
 	python3 -m unittest discover -s tests -v

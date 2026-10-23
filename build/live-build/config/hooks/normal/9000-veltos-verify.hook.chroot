@@ -14,7 +14,7 @@ installed() {
 
 # kde-plasma-desktop is spelled out in the package list (without Dolphin),
 # so its main parts are checked instead of the metapackage.
-for pkg in veltos-base veltos-desktop veltos-settings veltos-boot veltos-fluent-icons \
+for pkg in veltos-base veltos-desktop veltos-settings veltos-boot veltos-recovery veltos-calendar veltos-fluent-icons \
            veltos-explorer veltos-taskmanager veltos-disks veltos-store veltos-snip veltos-calculator veltos-archive \
            calamares-settings-veltos veltos-winapps veltos-wine-addons wine32 \
            plasma-desktop plasma-workspace kwin-wayland sddm calamares plymouth \
@@ -36,6 +36,11 @@ done
 for pkg in firmware-b43-installer firmware-b43legacy-installer; do
     installed "$pkg" && fail "$pkg must not be in the image (non-redistributable download)"
 done
+
+# AppArmor's profile cache for the image's kernel (8500-veltos-apparmor-cache):
+# without it every boot compiles all profiles first (11 s).
+[ "$(find /var/cache/apparmor -type f 2>/dev/null | wc -l)" -ge 50 ] || \
+    fail "AppArmor profile cache missing (8500-veltos-apparmor-cache)"
 
 # System identity.
 for f in /usr/lib/os-release /etc/os-release; do
@@ -87,11 +92,12 @@ grep -q '^X-KDE-Shortcuts=Print,Meta+Shift+S$' /usr/share/applications/veltos-sn
     || fail "Snipping Tool shortcuts missing"
 grep -q '^NoDisplay=true$' /var/lib/veltos/xdg/kglobalaccel/org.kde.spectacle.desktop \
     || fail "Spectacle's global shortcuts are not switched off"
-# Windows' e-mail app is "Mail": Thunderbird under that name, with the
-# VeltOS caption buttons (autoconfig beside the program).
-installed thunderbird || fail "Mail (thunderbird) is not installed"
-grep -q '^Name=Mail$' /var/lib/veltos/xdg/applications/thunderbird.desktop || fail "Thunderbird is not named Mail"
-[ -f /usr/lib/thunderbird/veltos.cfg ] || fail "Mail autoconfig missing"
+# The e-mail app is "VeltOS Mail" (product owner, 2026-10-22): Thunderbird
+# under that name, in Outlook's look (autoconfig beside the program).
+installed thunderbird || fail "VeltOS Mail (thunderbird) is not installed"
+grep -q '^Name=VeltOS Mail$' /var/lib/veltos/xdg/applications/thunderbird.desktop || fail "Thunderbird is not named VeltOS Mail"
+[ -f /usr/lib/thunderbird/veltos.cfg ] || fail "VeltOS Mail autoconfig missing"
+[ -f /usr/share/veltos/mail/mail-header.css ] || fail "VeltOS Mail title band style sheet missing"
 # Archives open in VeltOS Archive (KDE's Ark is not installed); RAR through 7zip-rar.
 installed ark && fail "Ark must not be installed (VeltOS Archive replaces it)"
 # Text files open in VeltOS Notepad (KWrite and Kate are not installed).
@@ -234,6 +240,25 @@ python3 -c 'import gi; gi.require_version("AppStream", "1.0"); from gi.repositor
 grep -q '^application/x-ms-dos-executable=veltos-run.desktop$' /etc/xdg/mimeapps.list \
     || fail ".exe files are not associated with veltos-run"
 [ -f /usr/share/wine/mono/wine-mono-9.4.0-x86.msi ] || fail "Wine Mono missing"
+
+# A smaller ISO without losing features (2026-10-23, docs/architecture.md
+# 2.23): Wine's DLLs without debug information (veltos-winapps'
+# strip-wine-dlls), no extra font weights, no documentation but the
+# licences, and /etc and /var stamped as up to date (no ldconfig at boot).
+if x86_64-w64-mingw32-objdump -h /usr/lib/x86_64-linux-gnu/wine/x86_64-windows/kernel32.dll | grep -q '\.debug_info'; then
+    fail "Wine's DLLs still carry debug information (strip-wine-dlls)"
+fi
+head -c 96 /usr/lib/x86_64-linux-gnu/wine/x86_64-windows/kernel32.dll | grep -q 'Wine builtin DLL' \
+    || fail "stripped Wine DLLs lost their builtin mark"
+for pkg in fonts-noto-extra fonts-noto-cjk-extra fonts-noto-ui-extra firmware-marvell-prestera plasma-vault; do
+    installed "$pkg" && fail "$pkg must not be in the image (veltos-lean.pref.chroot)"
+done
+for pkg in fonts-noto-core fonts-noto-ui-core fonts-noto-cjk fonts-noto-color-emoji; do
+    installed "$pkg" || fail "required font package $pkg is not installed"
+done
+[ -f /usr/share/doc/thunderbird/copyright ] || fail "licence files must stay in /usr/share/doc"
+[ ! -e /usr/share/doc/thunderbird/changelog.Debian.gz ] || fail "documentation is not left out (dpkg.cfg.d/veltos-lean)"
+[ -s /etc/.updated ] && [ -s /var/.updated ] || fail "/etc or /var not stamped (8900-veltos-update-done)"
 
 # User-visible text audit: no launcher in the menus may mention Debian.
 debian_launchers="$(grep -l -i -E '^(Name|GenericName|Comment)(\[[^]]*\])?=.*debian' \

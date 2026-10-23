@@ -1,0 +1,8 @@
+veltos-calendar (0.1.0~dev1) trixie; urgency=medium
+
+  * Initial package: Calendar in the layout of Windows 11's Calendar app
+    (day, work week, week, month and year views, quick new-event card,
+    full event editor with repeat and reminder), events in an iCalendar
+    file; reminders shown by VeltOS Clock's background agent.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Thu, 22 Oct 2026 21:00:00 +0300

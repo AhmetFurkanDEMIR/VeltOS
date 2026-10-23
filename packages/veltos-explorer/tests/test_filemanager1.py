@@ -26,8 +26,10 @@ class FileManager1Tests(unittest.TestCase):
         service.ShowItems(["file:///home/velt/Downloads/a.zip"], "")
         service.ShowFolders(["file:///home/velt/Music"], "")
         service.ShowItemProperties([], "")
+        service.ShowItemProperties(["file:///home/velt/Music/a.ogg"], "")
         self.assertEqual(started, [["veltos-explorer", "file:///home/velt/Downloads/a.zip"],
-                                   ["veltos-explorer", "file:///home/velt/Music"]])
+                                   ["veltos-explorer", "file:///home/velt/Music"],
+                                   ["veltos-explorer", "--properties", "file:///home/velt/Music/a.ogg"]])
 
     def test_file_argument_selects_the_file_in_its_folder(self):
         from veltos_explorer import app as explorer

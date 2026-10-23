@@ -92,7 +92,18 @@ class RequestTests(unittest.TestCase):
         self.assertEqual(request["cookie"], "c1")
         self.assertEqual(request["program"], "x")
         self.assertEqual(request["users"][0]["name"], "velt")
-        self.assertEqual(strings.text("tr", "yes"), "Evet")
+        # OK / Cancel, as the product owner asked (2026-10-22).
+        self.assertEqual((strings.text("tr", "yes"), strings.text("tr", "no")), ("Tamam", "İptal"))
+        self.assertEqual((strings.text("en", "yes"), strings.text("en", "no")), ("OK", "Cancel"))
+
+    def test_polkit_gets_the_session_locale(self):
+        # polkit translates its messages into the locale the agent gives it.
+        self.assertEqual(strings.polkit_locale({"LANG": "tr_TR.UTF-8", "LANGUAGE": "tr@veltos:tr"}, "tr"),
+                         "tr_TR.UTF-8")
+        self.assertEqual(strings.polkit_locale({"LANGUAGE": "tr@veltos:tr"}, "tr"), "tr_TR.UTF-8")
+        self.assertEqual(strings.polkit_locale({"LANG": "C.UTF-8"}, "en"), "en_US.UTF-8")
+        self.assertEqual(strings.polkit_locale({"LC_MESSAGES": "tr_TR.UTF-8", "LANG": "en_US.UTF-8"}, "tr"),
+                         "tr_TR.UTF-8")
 
 
 @unittest.skipUnless(HAVE_QT, "needs PySide6 (Build-Depends)")

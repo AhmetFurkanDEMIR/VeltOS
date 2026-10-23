@@ -148,6 +148,12 @@ Item {
                         anchors.rightMargin: 6
                         TextInput {
                             id: searchField
+                            // Like a Windows text box: in the Tab order, the text cursor over it and
+                            // (in a layout) the full height of its box. A plain TextInput has neither.
+                            activeFocusOnTab: true
+                            HoverHandler { cursorShape: Qt.IBeamCursor }
+                            Layout.fillHeight: true
+                            verticalAlignment: TextInput.AlignVCenter
                             Layout.fillWidth: true
                             color: Theme.text
                             font.pixelSize: Theme.fontSize
@@ -383,6 +389,10 @@ Item {
                                  label: backend.texts.previous_page; onClicked: pages.goToPage(Math.max(0, pages.currentPage - 1)) }
                     TextInput {
                         id: pageField
+                        // Like a Windows text box: in the Tab order, the text cursor over it and
+                        // (in a layout) the full height of its box. A plain TextInput has neither.
+                        activeFocusOnTab: true
+                        HoverHandler { cursorShape: Qt.IBeamCursor }
                         Layout.preferredWidth: 34
                         horizontalAlignment: Text.AlignRight
                         text: String(pages.currentPage + 1)

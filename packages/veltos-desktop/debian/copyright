@@ -28,18 +28,67 @@ Comment: Copies of plasma-workspace 6.3.6 QML and metadata (Debian 13), used
  to test plasma-overrides/*.json.
 
 Files: tests/data/aurorae/AuroraeButton.qml
+ tests/data/aurorae/AuroraeMaximizeButton.qml
 Copyright: 2012 Martin Gräßlin <mgraesslin@kde.org>
 License: GPL-2+
-Comment: Unchanged copy of KWin 6.3.6 (Debian 13) for the tests of
+Comment: Unchanged copies of KWin 6.3.6 (Debian 13) for the tests of
  update-plasma-overrides.
 
 Files: tests/data/taskmanager/contents/ui/ContextMenu.qml
  tests/data/taskmanager/contents/ui/Task.qml
  tests/data/taskmanager/contents/ui/GroupExpanderOverlay.qml
-Copyright: 2012-2016 Eike Hein, Kai Uwe Broulik and other KDE contributors
+ tests/data/taskmanager/contents/ui/AudioStream.qml
+ tests/data/taskmanager/contents/ui/code/tools.js
+Copyright: 2012-2020 Eike Hein, Kai Uwe Broulik, Nate Graham and other KDE contributors
 License: GPL-2+
 Comment: Copy of plasma-desktop 6.3.6 QML (Debian 13), used to test
  plasma-overrides/*.json.
+
+Files: tests/data/clipboard/*
+Copyright: 2014 Martin Gräßlin, Kai Uwe Broulik and other KDE contributors
+License: GPL-2+
+Comment: Copies of plasma-workspace 6.3.6's clipboard applet (Debian 13),
+ used to test plasma-overrides/*.json.
+
+Files: tests/data/panel/*
+Copyright: 2013-2023 Marco Martin, Niccolò Venerandi, ivan tkachenko and other KDE contributors
+License: GPL-2+
+Comment: Copies of plasma-desktop 6.3.6's panel containment (Debian 13),
+ used to test plasma-overrides/*.json.
+
+Files: tests/data/panel/contents/ui/LayoutManager.js
+Copyright: 2013 Marco Martin, 2022 Niccolò Venerandi
+License: LGPL-2+
+Comment: Copy of plasma-desktop 6.3.6 (Debian 13), used to test
+ plasma-overrides/*.json.
+
+Files: plasma-overrides/files/clipboard/main.qml
+Copyright: 2014 Martin Gräßlin, Kai Uwe Broulik and other KDE contributors
+ 2026 VeltOS Developers
+License: GPL-2+
+Comment: VeltOS' Windows 11 clipboard flyout, built on plasma-workspace
+ 6.3.6's clipboard applet QML (Debian 13).
+
+Files: plasma-overrides/files/devicenotifier/DeviceItem.qml
+Copyright: 2011-2016 Viranch Mehta, Jacopo De Simoi, Kai Uwe Broulik and other KDE contributors
+ 2026 VeltOS Developers
+License: LGPL-2+
+Comment: Changed copy of plasma-workspace 6.3.6 QML (Debian 13).
+
+Files: plasma-overrides/files/notifications/JobItem.qml
+Copyright: 2019 Kai Uwe Broulik, 2024 Marco Martin and other KDE contributors
+ 2026 VeltOS Developers
+License: GPL-2-or-3-KDE
+ GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL; on Debian systems
+ see /usr/share/common-licenses/GPL-2 and GPL-3.
+Comment: Changed copy of plasma-workspace 6.3.6 QML (Debian 13).
+
+Files: plasma-overrides/files/taskmanager/AudioStream.qml
+ plasma-overrides/files/taskmanager/TaskProgressOverlay.qml
+Copyright: 2016-2017 Kai Uwe Broulik and other KDE contributors
+ 2026 VeltOS Developers
+License: GPL-2+
+Comment: Changed copies of plasma-desktop 6.3.6 QML (Debian 13).
 
 Files: tests/data/taskmanager/contents/ui/ToolTipInstance.qml
 Copyright: 2013-2024 Sebastian Kügler, Martin Gräßlin, Kai Uwe Broulik, Roman Gilg,

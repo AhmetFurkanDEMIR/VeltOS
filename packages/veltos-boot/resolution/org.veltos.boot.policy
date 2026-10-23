@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!-- veltos-boot: the signed-in user's session keeps the start-up screen at
+     the screen's resolution (boot-resolution-sync). The helper only accepts
+     a screen mode and writes one GRUB setting. -->
+<policyconfig>
+  <vendor>VeltOS</vendor>
+  <action id="org.veltos.boot.resolution">
+    <description>Show the start-up screen at the screen's resolution</description>
+    <description xml:lang="tr">Başlangıç ekranını ekranın çözünürlüğünde göster</description>
+    <message>Authentication is required to change the resolution of the start-up screen</message>
+    <message xml:lang="tr">Başlangıç ekranının çözünürlüğünü değiştirmek için kimlik doğrulaması gerekiyor</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/veltos-boot/boot-resolution</annotate>
+  </action>
+</policyconfig>

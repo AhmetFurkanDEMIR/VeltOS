@@ -1,0 +1,7 @@
+# VeltOS installer job: the start-up screen at the screen's resolution
+---
+type:       "job"
+name:       "boot-resolution"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/boot-resolution"
+timeout:    60

@@ -18,6 +18,7 @@ lb config noauto \
 	--updates true \
 	--backports false \
 	--apt-recommends true \
+	--apt-source-archives false \
 	--debian-installer none \
 	--binary-images iso-hybrid \
 	--bootloaders "grub-pc,grub-efi" \
@@ -25,7 +26,7 @@ lb config noauto \
 	--firmware-chroot false \
 	--firmware-binary false \
 	--chroot-squashfs-compression-type zstd \
-	--chroot-squashfs-compression-level 15 \
+	--chroot-squashfs-compression-level 19 \
 	--memtest none \
 	--checksums sha256 \
 	--zsync false \
@@ -33,7 +34,7 @@ lb config noauto \
 	--iso-application "VeltOS" \
 	--iso-publisher "VeltOS Project" \
 	--iso-volume "VeltOS ${VELTOS_VERSION} amd64" \
-	--bootappend-live "boot=live components quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 rd.udev.log_level=3 vt.global_cursor_default=0 username=velt hostname=veltos user-fullname=Velt" \
+	--bootappend-live "boot=live nocomponents=tzdata,gdm3,kdm,lightdm,lxdm,nodm,slim,xinit,apport,gnome-panel-data,gnome-power-manager,gnome-screensaver,kaboom,ssl-cert,anacron,xserver-xorg,openssh-server,xfce4-panel,xscreensaver,broadcom-sta quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 rd.udev.log_level=3 vt.global_cursor_default=0 username=velt hostname=veltos user-fullname=Velt" \
 	--mirror-bootstrap "${DEBIAN_MIRROR}" \
 	--mirror-chroot "${DEBIAN_MIRROR}" \
 	--mirror-chroot-security "${SECURITY_MIRROR}" \

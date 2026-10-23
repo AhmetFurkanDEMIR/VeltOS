@@ -1,0 +1,43 @@
+{
+  "result": "PASS",
+  "exe": "7z2604-x64.exe",
+  "sha256": "d54bf805f9f3704d1e8db2fa3498ae7ef2df0312b40b558e7c71c734430a665d",
+  "duration_s": 152,
+  "checks": [
+    {
+      "name": "system booted",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "desktop running",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": ".exe opens with veltos-run by default",
+      "status": "PASS",
+      "detail": "veltos-run.desktop"
+    },
+    {
+      "name": "Windows environment prepared and installer started",
+      "status": "PASS",
+      "detail": "17s"
+    },
+    {
+      "name": "Start menu shortcut '7-Zip File Manager' created",
+      "status": "PASS",
+      "detail": "Name=7-Zip File Manager; Name=7-Zip Help; "
+    },
+    {
+      "name": "program recorded in the Windows environment",
+      "status": "PASS",
+      "detail": "{\n  \"publisher\": \"Igor Pavlov\",\n  \"version\": \"26.04\",\n  \"installer\": \"/home/velt/Downloads/7z2604-x64.exe\",\n  \"installed_at\": \"2026-10-23T06:41:34\",\n  \"shortcuts\": [\n    \"/home/velt/.local/share/applications/wine/Programs/7-Zip/7-Zip File Manager.desktop\",\n    \"/home/velt/.local/share/applications/w"
+    },
+    {
+      "name": "no crashed processes",
+      "status": "PASS",
+      "detail": ""
+    }
+  ]
+}

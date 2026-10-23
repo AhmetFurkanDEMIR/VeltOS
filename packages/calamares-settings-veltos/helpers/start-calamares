@@ -1,0 +1,71 @@
+#!/bin/sh
+# Start Calamares in the look of the signed-in user's theme. Run as root by
+# install-veltos through pkexec (polkit action org.veltos.installer.start,
+# which keeps the display, as Calamares' own action does):
+#
+#     start-calamares --light|--dark --accent #RRGGBB [--software]
+#
+# (options from installer-theme). It writes the installer's style sheet in
+# the light or dark variant with the user's accent colour (to
+# /run/veltos-installer/stylesheet.qss; the branding's stylesheet.qss, which
+# Calamares applies to its main window itself, is a link to it), gives
+# root the matching Kvantum style for Calamares' dialogs, and starts
+# Calamares with:
+#   -style kvantum -stylesheet FILE: Calamares applies the branding sheet to
+#     its main window only; its parentless error window stayed unstyled,
+#     and Qt's -stylesheet gives the sheet to every window;
+#   veltos-theme=...: one argument for the installer's QML (VeltTheme.js),
+#     which Calamares itself ignores (it parses only options);
+#   QT_QUICK_BACKEND=software with --software: in VMs without 3D Qt Quick's
+#     OpenGL went through Mesa's software rasterizer and redrew the whole
+#     window for every change; Qt's software renderer redraws only what
+#     changes. pkexec clears the environment, hence this script.
+# Only values of the expected form are used; anything else falls back to
+# the light VeltOS look.
+set -eu
+
+mode=light
+accent="#2F5EE6"
+software=0
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --light) mode=light ;;
+        --dark) mode=dark ;;
+        --accent) accent="${2:-}"; [ $# -gt 1 ] && shift ;;
+        --software) software=1 ;;
+        *) echo "start-calamares: unknown option $1" >&2; exit 2 ;;
+    esac
+    shift
+done
+echo "$accent" | grep -Eqx '#[0-9A-Fa-f]{6}' || accent="#2F5EE6"
+
+branding="${VELTOS_BRANDING:-/etc/calamares/branding/veltos}"     # test hooks
+run_dir="${VELTOS_RUN_DIR:-/run/veltos-installer}"
+root_config="${VELTOS_ROOT_CONFIG:-/root/.config}"
+
+# The accent's darker border (default buttons), as #2A55D4 is to #2F5EE6.
+r=$((0x$(echo "$accent" | cut -c2-3)))
+g=$((0x$(echo "$accent" | cut -c4-5)))
+b=$((0x$(echo "$accent" | cut -c6-7)))
+border="$(printf '#%02X%02X%02X' $((r * 89 / 100)) $((g * 89 / 100)) $((b * 89 / 100)))"
+
+sheet="$branding/stylesheet-light.qss"
+[ "$mode" = dark ] && sheet="$branding/stylesheet-dark.qss"
+mkdir -p "$run_dir"
+chmod 755 "$run_dir"
+sed -e "s/#2F5EE6/$accent/gI" -e "s/#2A55D4/$border/gI" "$sheet" > "$run_dir/stylesheet.qss.tmp"
+mv "$run_dir/stylesheet.qss.tmp" "$run_dir/stylesheet.qss"
+
+# Live system only: root's home is in memory.
+kvantum=VeltOS
+[ "$mode" = dark ] && kvantum=VeltOSDark
+mkdir -p "$root_config/Kvantum"
+printf '[General]\ntheme=%s\n' "$kvantum" > "$root_config/Kvantum/kvantum.kvconfig"
+
+dark=0
+[ "$mode" = dark ] && dark=1
+if [ "$software" = 1 ]; then
+    export QT_QUICK_BACKEND=software
+fi
+exec "${VELTOS_CALAMARES:-calamares}" -style kvantum -stylesheet "$run_dir/stylesheet.qss" \
+    "veltos-theme=dark=$dark;accent=$accent;software=$software"

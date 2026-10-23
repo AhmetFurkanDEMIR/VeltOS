@@ -30,6 +30,8 @@ class OverrideTests(unittest.TestCase):
         shutil.copytree(PKG / "tests/data/devicenotifier", applets / "org.kde.plasma.devicenotifier")
         shutil.copytree(PKG / "tests/data/taskmanager", applets / "org.kde.plasma.taskmanager")
         shutil.copytree(PKG / "tests/data/desktopcontainment", applets / "org.kde.desktopcontainment")
+        shutil.copytree(PKG / "tests/data/panel", applets / "org.kde.panel")
+        shutil.copytree(PKG / "tests/data/clipboard", applets / "org.kde.plasma.clipboard")
         shutil.copytree(PKG / "tests/data/shell", self.source / "plasma/shells/org.kde.plasma.desktop")
         shutil.copytree(PKG / "tests/data/aurorae", self.source / "kwin/aurorae")
         self.out = self.tmp / "out"
@@ -44,7 +46,7 @@ class OverrideTests(unittest.TestCase):
         ui = self.applets / TRAY / "contents/ui"
         self.assertIn("visible: false // VeltOS", (ui / "items/AbstractItem.qml").read_text())
         self.assertIn("Math.min(4, count)) // VeltOS", (ui / "HiddenItemsView.qml").read_text())
-        self.assertIn("visible: !!systemTrayState.activeApplet // VeltOS",
+        self.assertIn("visible: !!systemTrayState.activeApplet && !popup.veltosOwnHeading // VeltOS",
                       (ui / "ExpandedRepresentation.qml").read_text())
         self.assertTrue((self.applets / TRAY / overrides.MARKER).exists())
 
@@ -56,6 +58,12 @@ class OverrideTests(unittest.TestCase):
         ui = self.applets / "org.kde.plasma.notifications/contents/ui"
         self.assertIn("popupLocation: Qt.AlignBottom | Qt.AlignRight", (ui / "global/Globals.qml").read_text())
         self.assertIn("equal widths filling the row", (ui / "components/ActionContainer.qml").read_text())
+        # Downloads and copies: Windows 11 progress and buttons, no Details/file menu.
+        job = (ui / "components/JobItem.qml").read_text(encoding="utf-8")
+        self.assertIn('i18nd("veltos-desktop", "Open folder")', job)
+        self.assertIn("uniformCellSizes: true", job)
+        self.assertNotIn("expandButton", job)
+        self.assertNotIn("FileMenu", job)
         self.assertIn("uniformCellSizes: true", (ui / "components/ActionContainer.qml").read_text())
         self.assertIn("objectAt(popupInstantiator.count - 1 - i)", (ui / "global/Globals.qml").read_text())
         self.assertIn("effectiveStatus: PlasmaCore.Types.HiddenStatus", (ui / "main.qml").read_text())
@@ -87,6 +95,50 @@ class OverrideTests(unittest.TestCase):
             encoding="utf-8")
         self.assertIn("thin bar under the icon", progress)
         self.assertIn("task.smartLauncherItem.progress", progress)
+
+    def test_recycle_bin_shows_when_it_is_full(self):
+        self.assertEqual(self.run_tool(), 0)
+        ui = self.applets / "org.kde.desktopcontainment/contents/ui"
+        delegate = (ui / "FolderItemDelegate.qml").read_text(encoding="utf-8")
+        self.assertIn('(veltos.trashFull ? "user-trash-full" : "user-trash") : model.decoration', delegate)
+        desktop = (ui / "VeltOSDesktop.qml").read_text(encoding="utf-8")
+        self.assertIn('url: veltos.onDesktop ? "trash:/" : ""', desktop)
+
+    def test_window_previews_come_from_kwin(self):
+        self.assertEqual(self.run_tool(), 0)
+        ui = self.applets / "org.kde.plasma.taskmanager/contents/ui"
+        task = (ui / "Task.qml").read_text(encoding="utf-8")
+        # Plasma's tooltip only for pinned apps that are not running.
+        self.assertIn("&& !model.IsWindow // VeltOS: KWin's veltostaskbarpreview shows the windows", task)
+        # The stack edge is drawn beside the plate only, in its colours.
+        self.assertIn("x: frame.x + frame.width - frame.fixedMargins.right", task)
+        self.assertIn("clip: true", task)
+        self.assertNotIn("color: Qt.alpha(Kirigami.Theme.textColor, 0.05)", task)
+        tools = (ui / "code/tools.js").read_text(encoding="utf-8")
+        start = tools.index("if (model.IsGroupParent && modifiers !== null) {")
+        self.assertLess(start, tools.index("Option 1 (default): Cycle through this group's tasks"))
+        self.assertIn("return;", tools[start:start + 400])
+        instance = (ui / "ToolTipInstance.qml").read_text(encoding="utf-8")
+        self.assertIn('return ""; // VeltOS: Windows 11 names a pinned app, nothing more', instance)
+
+    def test_playing_app_gets_a_round_speaker_badge(self):
+        self.assertEqual(self.run_tool(), 0)
+        badge = (self.applets / "org.kde.plasma.taskmanager/contents/ui/AudioStream.qml").read_text(encoding="utf-8")
+        self.assertIn("radius: width / 2", badge)
+        self.assertIn("toggleMuted()", badge)
+        self.assertIn("loops: Animation.Infinite", badge)
+        self.assertNotIn("audio-volume-high-symbolic", badge)
+
+    def test_taskbar_menu_and_show_desktop_at_the_edge(self):
+        self.assertEqual(self.run_tool(), 0)
+        ui = self.applets / "org.kde.panel/contents/ui"
+        main = (ui / "main.qml").read_text(encoding="utf-8")
+        self.assertIn("    VeltOSTaskbarMenu {\n        anchors.fill: parent\n    }\n\n    DragDrop.DropArea {", main)
+        self.assertIn("rightMargin: 0 // VeltOS", main)
+        menu = (ui / "VeltOSTaskbarMenu.qml").read_text(encoding="utf-8")
+        self.assertIn('shell.connectSource("veltos-taskmanager")', menu)
+        self.assertIn('shell.connectSource("veltos-settings taskbar")', menu)
+        self.assertIn("acceptedButtons: Qt.RightButton", menu)
 
     def test_changed_upstream_falls_back_to_plasma(self):
         self.run_tool()
@@ -157,6 +209,15 @@ class OverrideTests(unittest.TestCase):
         self.assertIn('prefix: "active" + buttonSvg.tintSuffix', button)
         self.assertIn('prefix: "hover" + buttonSvg.maximizedSuffix + buttonSvg.tintSuffix', button)
         self.assertIn('hasElementPrefix("active-ondark")', button)
+
+    def test_modal_dialogs_have_only_close(self):
+        # Windows 11 message boxes have no Minimise/Maximise buttons.
+        self.assertEqual(self.run_tool(), 0)
+        button = (self.out / "kwin/aurorae/AuroraeButton.qml").read_text(encoding="utf-8")
+        self.assertIn("visible = Qt.binding(() => buttonSvg.imagePath != \"\" && !(decoration.client.modal\n"
+                      "                && buttonType == DecorationOptions.DecorationButtonMinimize));", button)
+        maximize = (self.out / "kwin/aurorae/AuroraeMaximizeButton.qml").read_text(encoding="utf-8")
+        self.assertIn("    visible: !decoration.client.modal\n    AuroraeButton {", maximize)
 
     def test_desktop_gets_windows_menus_and_protected_icons(self):
         self.assertEqual(self.run_tool(), 0)

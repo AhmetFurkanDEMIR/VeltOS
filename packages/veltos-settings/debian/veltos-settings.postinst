@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+
+# Only root may run KDE's own settings programs (diverted to *.kde in the
+# preinst): users reach VeltOS Settings only, also from a terminal
+# (product owner, 2026-10-22). dpkg-statoverride keeps the mode when KDE's
+# packages are updated; chmod applies it now.
+#
+# Only real programs: kinfocenter.kde is KDE's symlink to "systemsettings",
+# which is VeltOS' redirect now. chmod followed it and made the redirect
+# root's only, so "systemsettings" and "kcmshell6" answered users with
+# "Permission denied" instead of opening VeltOS Settings (VM, 2026-10-23).
+if [ "$1" = configure ]; then
+    for f in /usr/bin/systemsettings.kde /usr/bin/kcmshell6.kde /usr/bin/kinfocenter.kde \
+             /usr/bin/keditfiletype.kde; do
+        if [ -L "$f" ]; then
+            if dpkg-statoverride --list "$f" >/dev/null 2>&1; then
+                dpkg-statoverride --remove "$f"
+            fi
+            continue
+        fi
+        if ! dpkg-statoverride --list "$f" >/dev/null 2>&1; then
+            dpkg-statoverride --add root root 0700 "$f"
+        fi
+        if [ -e "$f" ]; then
+            chmod 0700 "$f"
+        fi
+    done
+    # The redirect is for everybody (and repairs systems the old loop hit).
+    chmod 0755 /usr/libexec/veltos/settings-redirect
+fi
+
+#DEBHELPER#

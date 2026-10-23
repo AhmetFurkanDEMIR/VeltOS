@@ -32,6 +32,7 @@ TEXTS = {
                         "You choose where before anything is changed.",
         "later": "You can also start the installation later with the "
                  "“Install VeltOS” icon on the desktop.",
+        "website": "More about VeltOS:",
     },
     "tr": {
         "title": "VeltOS'a hoş geldiniz",
@@ -44,6 +45,7 @@ TEXTS = {
                         "Hiçbir şey değişmeden önce nereye kurulacağını siz seçersiniz.",
         "later": "Kurulumu daha sonra masaüstündeki “VeltOS'u Kur” "
                  "simgesiyle de başlatabilirsiniz.",
+        "website": "VeltOS hakkında daha fazlası:",
     },
 }
 

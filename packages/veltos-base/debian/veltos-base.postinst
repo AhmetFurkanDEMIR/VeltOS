@@ -6,6 +6,13 @@ if [ "$1" = configure ]; then
     # files were diverted in preinst.
     install -m 644 /usr/share/veltos-base/issue /etc/issue
     install -m 644 /usr/share/veltos-base/issue.net /etc/issue.net
+    # The message after a console sign-in (Automatic Repair's Command
+    # Prompt, Ctrl+Alt+F2): base-files copies Debian's text there when the
+    # file is missing and owns no /etc/motd; it is replaced only while it
+    # is still that text, so a message an administrator wrote stays.
+    if [ ! -e /etc/motd ] || cmp -s /etc/motd /usr/share/base-files/motd; then
+        install -m 644 /usr/share/veltos-base/motd /etc/motd
+    fi
 fi
 
 #DEBHELPER#

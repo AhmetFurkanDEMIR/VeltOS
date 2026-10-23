@@ -3,6 +3,394 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-23 (day) — Tests of the smaller ISO: installed systems without initramfs (fixed), VirtualBox stalls, website pictures
+
+The ISO of the morning's work (`20261023-045821`, sha256
+`8e705fa4594a55d1b95e154ec05b978c86c33fa9ffd1552d4a384efe60d3cdaf`) is
+2,445,506,560 bytes: 2.45 GB instead of 3.62 GB (−32 %), with nothing
+removed (architecture 2.23). Its build's 25 package runs ran 688 unit
+tests, and the image check passed.
+
+- **Boot tests** (`build/run.sh test`, QEMU/KVM, 4 vCPU, 4 GB, no 3D):
+  UEFI, BIOS and — for the first time — Secure Boot (OVMF with Microsoft's
+  keys, "SecureBoot enabled" in the guest) passed every check. Live
+  start (`systemd-analyze`): UEFI 6.2 s (8.3 s with the previous ISO),
+  BIOS 5.6 s (6.4 s), Secure Boot 5.7 s; plasmashell after 20.0 / 18.8 /
+  16.2 s; 1.5 GB in use when idle, as before.
+- **Windows programs** (`build/run.sh test-winapps`): 7-Zip 26.04
+  installed through `veltos-run` with the stripped Wine libraries and was
+  recorded; the check for its Start shortcut failed because the test
+  itself passed the shortcut file names, which contain spaces, through
+  `xargs` (it now uses `find -exec`). Start's search showed both
+  shortcuts; right after the installation the File Manager's icon was a
+  "?" in that live session. On the installed system below the same
+  installation showed the icon in Start; not reproduced since.
+- **VirtualBox** (a throw-away VM with the product owner's settings):
+  the live desktop was up 80 s after the VM started and the installer
+  opened in two seconds, but then the whole VM stopped for 60–232 s at a
+  time and went on only when a key was pressed (VBox.log: "TM: Giving up
+  catch-up attempt at a 123 317 370 647 ns lag", "Guest seems to be
+  unresponsive"). A second VM stopped in GRUB's menu, before Linux ran
+  (`debugvm info cpumguest`: real mode, interrupts off, the same
+  instruction for minutes, 0 % CPU), and pausing/resuming did not help.
+  The throw-away VMs of 2026-10-22 have the same 60 s stalls in their
+  logs. VirtualBox 7.2.20 runs in NEM mode on this host (VT-x is taken by
+  Hyper-V, which Docker Desktop/WSL2 use); upstream reports the same
+  behaviour for other guests, Windows 11 included
+  (https://github.com/VirtualBox/virtualbox/issues/722, open: "guest
+  constantly hangs until clicking mouse"; Whonix forum: Debian 13 guests
+  hang with 7.2.10 in NEM mode). Not a VeltOS fault, and most likely what
+  the product owner saw as slow starts and stutter in VirtualBox; nothing
+  in the guest can fix a VM that the hypervisor does not run. The
+  installation test moved to QEMU (BIOS, like the owner's VM).
+- **Installed systems did not start** (QEMU, BIOS): the installation
+  finished in about two minutes ("VeltOS is ready"), and the installed
+  system stopped at "Kernel panic — not syncing: VFS: Unable to mount root
+  fs on unknown-block(0,0)": `/boot` had no initrd.img and grub.cfg no
+  initrd line. The ISO no longer carries the live system's initramfs in
+  its file system (architecture 2.23), and the installer's `initramfs`
+  job made nothing: while Calamares runs from the live medium, the
+  target's `update-initramfs` is live-tools' wrapper, which sees
+  `boot=live` in `/proc/cmdline` and a read-only medium and exits with "I:
+  update-initramfs is disabled". Earlier ISOs copied the live initramfs
+  into the installed system, so this never showed. Fixes
+  (calamares-settings-veltos): the live packages (live-tools among them)
+  are removed before the initramfs job, and a new `boot-check` job stops
+  an installation whose kernel has no initramfs or whose boot menu does
+  not load it (unit tests: 53 OK). Checked in the VM with the rebuilt
+  package: the initramfs job took about 16 s, boot-check passed, and the
+  installed system started — `systemd-analyze` 4.09 s (kernel 2.27 s +
+  userspace 1.82 s), the sign-in screen about 13 s after the VM started
+  (BIOS and GRUB's 2 s included), the desktop 2.9 s after signing in. The
+  boot-resolution job, which failed every installation in VirtualBox this
+  morning, recorded `GRUB_GFXMODE=1920x1080,…` through pkexec.
+- **The ISO with the fix** (`20261023-061442`, sha256 `9d8afa18…`,
+  2,445,506,560 bytes; copy on the owner's Desktop as
+  `VeltOS-20261023-061442.iso`): 694 unit tests and the image check
+  passed; boot tests UEFI 19/19, BIOS 18/18, Secure Boot 20/20
+  (`systemd-analyze` 7.0 / 5.6 / 5.7 s), `test-winapps` 7/7 (Start's
+  search showed 7-Zip File Manager with its icon this time). A BIOS
+  installation from it in QEMU took about 110 s, the initramfs job 12 s,
+  boot-check passed, and the installed system started (`systemd-analyze`
+  3.98 s, plasmashell 2.9 s after signing in, no failed units, no core
+  dumps). Evidence: `tests/results/2026-10-23-installation-bios/`.
+- **Website pictures**: taken in that installed system (English, 1920x1080,
+  a test account "Jordan Lee" with sample documents, pictures and a
+  sample mailbox, all VM-only test data): Start, File Explorer with two tabs,
+  Settings, Store (after `apt update`), Word's start screen, VeltOS Mail,
+  dark mode with the Nebula theme, Automatic Repair's options (the repair
+  window started in the session); the installer's first page from the
+  live session. Not kept in the repository as test evidence; they are
+  the website's pictures.
+
+## 2026-10-23 (morning) — VirtualBox: the installation failed at its end; a lighter, themed installer; faster live start; a smaller ISO
+
+The 38-item ISO (`20261022-214526`) installed in a throw-away VirtualBox
+VM with the product owner's settings (BIOS, PIIX3, VMSVGA, 3D off, 16 MB,
+4 GB, 4 CPUs; `out/vbox/vbox-install-vm.sh`). The product owner opened it
+in their VirtualBox window five seconds after it started and, asked in
+chat, said "you drive, I watch" — then went through the installer pages
+themselves; the installation ran with their choices.
+
+- **The installation failed at its end**: "boot-resolution: --root is for
+  the installer only". Calamares runs through pkexec, so `PKEXEC_UID` is
+  in the environment of its jobs, and veltos-boot's helper refuses `--root`
+  to callers that came through pkexec. The job had only been run by unit
+  tests, never by Calamares. It now calls the helper without that
+  variable and can no longer fail an installation (tests with
+  `PKEXEC_UID` set and a failing helper).
+- While waiting for the owner's answer the owner wrote: fix the installer
+  link (clickable), centre a Windows 11 loading animation on the first
+  page, steps in the chosen language, the system's theme and colours in
+  the installer; the system still starts slowly and stutters; can the
+  ISO go under 2 GB (1.8–1.9) — without compromising quality, graphics or
+  animation.
+- **Stutter**: measured over the VM's serial port (top), the desktop with
+  the welcome window was 99 % idle; Calamares on its first page took
+  140 % CPU and KWin 110 %. Disabling animations one by one in the live
+  VM found the cause: the slideshow's first slide floats from the moment
+  Calamares starts (it is loaded at start and visible behind the pages),
+  redrawing the window 60 times a second with Mesa's software rasterizer.
+  With the fixes in architecture 2.23 (animations only where shown, Qt
+  Quick's software renderer where Mesa draws in software, slow motions at
+  20 steps a second there): Calamares 24 % with every animation running
+  (VirtualBox), 6 % and KWin 19 % (QEMU).
+- **Installer look** (calamares-settings-veltos README, "The session's
+  look"): light or dark with the user's accent everywhere (QML through
+  `VeltTheme.js`, C++ pages through a generated style sheet; Calamares
+  applies the branding's `stylesheet.qss` to its main window itself, so
+  that file is now a link to the generated one — the first try left a
+  light frame around the dark pages), the side bar's steps in English or
+  Turkish and switching at once, the website on two lines and a link
+  (opened as the user by a 127.0.0.1 helper), the first page's Windows 11
+  progress ring in the middle while the page loads, "Checking this PC…"
+  while Calamares checks, Qt's own buttons ("Close") in Turkish. Seen in
+  the QEMU dev VM with the rebuilt package: light, dark with a red accent
+  (welcome, location, keyboard, disk), the Turkish side bar. Found there:
+  `config.isNextEnabled` stays false in a QML welcome page (the status
+  line never went away); it follows `ViewManager.nextEnabled` now; and
+  root's QML cache kept the old page after `dpkg -i` (same file times).
+- **Live start** in that VM: kernel 14.1 s + userspace 18.2 s; blame:
+  live-config 11.1 s (on the critical chain), `ldconfig.service` 10.6 s
+  (no `/etc/.updated` in the image), console-setup 3.2 s, sddm 2.9 s.
+  live-config's components timed warm in the VM: user-setup 1.1 s, tzdata
+  0.8 s, ~30 others ~90 ms each. Fixes in architecture 2.23.
+- **ISO size**: analysed in the builder (package sizes from the image's
+  dpkg status, files from `unsquashfs -lls`, each candidate's
+  zstd-compressed share, compression settings on 3.9 GB of the image).
+  The owner was offered the measured trade-offs and chose "lossless only";
+  the lossless savings are listed in architecture 2.23 (about 1 GB of the
+  3.62 GB ISO). Not done because they would remove something: xz, Wine
+  Mono/Gecko on demand, translations other than English/Turkish, and
+  anything under 2 GB.
+- Also: `/etc/motd` says VeltOS (veltos-base; the Command Prompt and
+  text consoles showed Debian's text).
+
+## 2026-10-23 (night) — The product owner's 38 items: installer, start-up, Automatic Repair, Calendar, VeltOS Mail
+
+The product owner's second list of 2026-10-22 (38 items, in Turkish,
+"do every item, skip nothing"), plus three messages during the work
+(remove the Kurdish keyboard layouts; add the VeltOS website
+https://veltos.ahmetfurkandemir.com/ next to ahmetfurkandemir.com and in
+a few more places such as updates). What was done for each item; "VM"
+means seen in the QEMU dev VM (UEFI, no 3D) with the rebuilt packages,
+"unit" means only package tests cover it.
+
+1. **Taskbar previews like Windows 11**: a KWin script
+   (`veltos-desktop/kwin/scripts/veltostaskbarpreview`, architecture 2.19)
+   draws one card per window (icon, title, close button, live picture)
+   with KWin's own thumbnails, which work in software rendering; pointing
+   at a card shows that window alone (Peek). VM: cards and Peek; two File
+   Explorer windows gave two cards with live pictures.
+2. **Show desktop** wider and flush with the screen's right edge (the
+   panel's right margin removed, `org.kde.panel.json`). VM: about 17 px
+   at the very edge (hover).
+3. **Tray tooltip** "Close popup" stayed over the open tray flyout:
+   the expander arrow's tooltip is off while the flyout is open
+   (`org.kde.plasma.private.systemtray.json`). VM: no tooltip over the
+   open flyout.
+4. **LibreOffice Draw** hidden from Start, search and "Open with"
+   (`update-app-names`: NoDisplay and no MIME types); it stays installed
+   because Impress (PowerPoint) depends on it. Unit.
+5. **Save dialog**: the file type box no longer runs off the window and
+   the portal dialog follows the session language ("Dosya adı", "Kayıt
+   türü", "Kaydet", "İptal"). VM.
+6. **Installer** in the Windows 11 setup look (architecture 2.15): VeltOS
+   QML for the welcome, location, keyboard, users and finished steps
+   (illustrations, sliding pages), the partition page restyled, message
+   boxes and the error dialog styled (`-stylesheet`), a new slideshow
+   with screenshots of VeltOS apps, Back/Next/Cancel hidden while
+   installing; the log appears only on the finished page of a failed
+   installation. Kurdish keyboard layouts are not offered. VM: every page,
+   a full installation (about 3.5 min, "VeltOS hazır"), and a deliberately
+   failing job showing the styled error and the log box.
+7. **Notifications** in Windows 11 style: toasts slide in from the right
+   (KWin effect `veltostoast`), the "…" menu turns the app's
+   notifications off or opens Settings. VM: a toast with the app's name,
+   "…" and close, its menu ("Bildirim ayarlarına git"; turning off needs
+   a sending app, the test toast had none). On the way: Fluent's
+   `view-more-symbolic` is the horizontal "…".
+8. **Firefox icon** smaller, like the other icons: `pad-app-icon`
+   (veltos-fluent-icons) wraps Firefox's own icon with Windows-like
+   margins at installation and, through a dpkg trigger, whenever Firefox
+   updates it. VM.
+9. **Start-up screen size** (architecture 2.16): the installer writes the
+   screen's preferred mode for GRUB and the splash; at sign-in the mode
+   the screen is set to is kept in step (pkexec helper, polkit action).
+   Unit (7 tests and the installer job's test); VM (installed, UEFI):
+   after signing in at 1920x1080 the next start's frame buffer was
+   1920x1080 (it was 1024x768 before). VirtualBox: see the next entry
+   (2026-10-23, morning).
+10. **Faster start and sign-in** (architecture 2.17): AppArmor's profile
+    cache built into the image (11 s → none at boot); xdg-desktop-portal's
+    GTK "last resort" for Lockdown (25 s) and plasmashell's wait for the
+    portal removed. VM (installed system): `systemd-analyze` 3.85 s
+    (kernel 2.1 s + userspace 1.7 s); the desktop about 2 s after signing
+    in (was about 30 s).
+11. **Properties** of files and folders in File Explorer and on the
+    desktop: a Windows 11 Properties window (General, Security, Details;
+    OK, Cancel, Apply), and Windows' menu for files on the desktop. VM.
+12. **Recycle Bin**: the desktop icon shows full and empty again (the
+    desktop watches the trash itself), "Restore all items", Cut and
+    Properties in its menus. VM: full, then empty after emptying.
+13. **Automatic Repair** (new package `veltos-recovery`, architecture
+    2.18): GRUB counts starts, two unfinished starts open a Windows 11
+    style repair screen on the frame buffer with Restart, Startup Repair,
+    Safe mode, Command Prompt, Problem details, Continue and Turn off.
+    VM: see the verification below; three faults found there and fixed.
+14. **KDE's old settings and file manager** cannot be opened by users:
+    KDE's settings programs are root-only (dpkg-statoverride) and
+    redirect to VeltOS Settings, `keditfiletype` included; Dolphin is not
+    in the image. VM: the `*.kde` programs root-only. Found there: the
+    redirect itself was root-only too, so `systemsettings` and
+    `kcmshell6` said "Permission denied" to users instead of opening
+    VeltOS Settings — `kinfocenter.kde` is KDE's symlink to
+    `systemsettings` (now the redirect) and the postinst's chmod followed
+    it. The postinst skips symlinks and restores the redirect's mode (with
+    a test running it in a sandbox); after that `systemsettings` opened
+    VeltOS Settings.
+15. **Search "no results"**: icon and text centred in the window,
+    Windows 11 style. Unit; in the VM every query also gets the web
+    search result, so the message did not appear.
+16. **Nested grey boxes** around menus: Kvantum's menu was drawn as a
+    square body inside a rounded frame; VeltOS' Kvantum theme now draws
+    one rounded box (`tools/fluent.py`). VM: the desktop menu, light and
+    dark.
+17. **Tab in Settings** jumped to the navigation: the text fields were not
+    in the Tab chain. Fixed in Settings, File Explorer and its dialogs,
+    Store, Media Player, Clock, Office, Photos, PDF Reader, Disk
+    Management and the password prompt. VM: reproduced before the fix;
+    after it Tab went Full name → User name → Password in Add account.
+18. **Text pointer** (I-beam) over the text fields of the same apps. Unit
+    (the VM's screenshots do not show the pointer under Wayland).
+19. **User Account Control** in the session language with OK/Cancel
+    ("Tamam"/"İptal"): the agent passes the full locale to polkit, the
+    VeltOS shield stands in for programs without an icon. VM: polkit's
+    message in Turkish, "Tamam"/"İptal", the shield for AccountsService.
+20. **Adding a user failed** on installed systems: the calls lacked
+    D-Bus' interactive flag, so AccountsService answered "Authentication
+    is required" without asking; now the VeltOS password prompt appears
+    (5 minutes to answer). Names are taken as typed, as on Windows
+    ("Ayşe Yılmaz" → login name `ayseyilmaz`, full name kept). VM: a user
+    created with the password prompt (live system without its allow-all
+    rule), then on the installed system — where it asked twice (create,
+    then set the password: each `gdbus` call is a new process, and polkit
+    keeps an administrator answer only for the process that got it). Both
+    calls now run in one helper process (`veltos_settings/admin_calls.py`,
+    the hash through standard input, not the command line): VM, one
+    prompt, the account created with its password (`passwd -S`: P).
+21. **Task View icon** no longer filled black (drawn as outlines). VM.
+22. **Windows programs** in Settings at once and in the Windows 11
+    "Installed apps" layout: read from Wine's registry files (architecture
+    2.21) instead of starting Wine's uninstaller window. Unit (registry
+    fixture); VM: the page at once, with its empty state (no Windows
+    program installed in that VM).
+23. **Firefox downloads**: Windows 11 style download toast (progress,
+    Open file / Open folder) replacing Plasma's job item. VM: during and
+    after a large download.
+24. **Store**: the Apps tab's selection line no longer covers the label.
+    VM.
+25. **File Explorer's Home icon** in the accent colour (tab, navigation
+    pane, address bar). VM.
+26. **This PC, Recycle Bin and Store** on the desktop cannot be deleted,
+    cut or renamed, not even from a terminal (architecture 2.20). VM:
+    `rm` refused for the three, the user's own files deletable.
+27. **Camera icon** redrawn wider, in the proportions of the others.
+    Rendered and compared.
+28. **Taskbar right-click**: "Taskbar settings" and "Task Manager", and a
+    new Settings > Personalization > Taskbar page (search box style,
+    Task View, alignment, Show desktop). VM: the menu, and the page
+    showing the taskbar's current settings.
+29. **Default taskbar pins**: File Explorer, Firefox, Settings, Store,
+    Camera, Photos, Media Player (for new users; Plasma's layout script).
+    VM: a user added in Settings signed in to exactly these seven, in
+    this order.
+30. **Sound indicator** on taskbar buttons: a round badge with a Fluent
+    speaker, for every app playing sound (Firefox too). VM: the badge on
+    Media Player while it played a tone.
+31. **Several windows of one app**: the stacked button shows only a
+    second plate's edge in the plate's own colours (the first version
+    looked like two different boxes). VM: two File Explorer windows.
+32. **Brightness bar** at the bottom like the volume one, also when the
+    brightness changes in Quick Settings. VM.
+33. **Media Player full screen**: the control bar stays centred (both
+    sides of the bar equally wide); the volume slider works again (the
+    logarithmic conversion is done in QML). VM: in full screen the
+    buttons and the time bar in the middle of the screen (with a sound
+    file; the VM has no video encoder to make a test video).
+34. **File dialog drop-down** in the wrong place when first opened: the
+    menu's position was computed from its size before the new items were
+    laid out; it now follows the size (and is never wider than the
+    window, long file types shortened). VM: Notepad's Save As, the type
+    list on the first click right above the box, as wide as it.
+35. **Clipboard and devices flyouts** in Windows 11 style: "Clipboard
+    history" with Clear all and the copied items as cards (a click pastes
+    it back, "…" deletes it), the device list as Windows-like rows. VM:
+    the clipboard flyout (a doubled heading fixed afterwards) and the
+    devices flyout ("Donanımı Güvenle Kaldır" with the VM's disc; a QML
+    error that kept it from loading was fixed on the way).
+36. **Calendar app** (new package `veltos-calendar`): Windows 11 Calendar
+    layout (day, work week, week, month, year; quick event card and
+    editor; repeats; reminders rung by VeltOS Clock's agent, no new
+    resident process); one iCalendar file. Unit (store and window). VM:
+    the first start showed the left pane across the window and the
+    calendar as a strip at its edge — a layout whose children fill their
+    width expands itself unless told not to; the pane now has a fixed
+    width and a test checks both widths. After the fix: the month view,
+    a click on a day opening the quick card, an event saved and shown and
+    written to the `.ics` file. Seen afterwards in that screenshot: the
+    small month calendar labelled Monday "Pz" (Qt's "Pzt" cut to two
+    letters, which reads as Pazar, Sunday); it now uses the taskbar
+    clock's two-letter names ("Pt Sa Ça Pe Cu Ct Pa"), with a test.
+37. **VeltOS Mail** like Outlook (architecture 2.22): Thunderbird named
+    "VeltOS Mail" everywhere it is listed, Outlook's blue title band with
+    the name and a centred search box, the simplified ribbon below it
+    (New mail filled), the reading pane with the subject first and a
+    round sender picture, the new message window without a menu bar and
+    with a filled Send button, the add-account card naming VeltOS Mail,
+    the account page without Thunderbird's story, donation request and
+    links, names only in the message list. VM (installed, a test account
+    with three messages): every one of these. Found on the way: a
+    `mail-header.css` with a default XUL namespace matched nothing; file
+    URLs generated on Windows had backslashes (no Mail style sheet
+    loaded); the compose window's hidden menu bar left a strip of labels.
+38. **Store in a second desktop**: a second Store window opens on the
+    current desktop. VM.
+
+Also: modal dialogs (those with a parent window, like message boxes)
+have only a Close button (Aurorae; unit — a parentless `kdialog` question
+in the VM still had Minimise, see known gaps), the VeltOS website in
+Settings' About and Windows Update pages, the installer's side bar, the
+live welcome window, `os-release` (`HOME_URL`, `SUPPORT_URL`) and the
+README.
+
+Automatic Repair in the VM (installed system, packages of this change):
+a normal start set `veltos_failed=1` and `veltos-boot-ok` cleared it 10 s
+after the sign-in screen; with the count at 2 GRUB started "VeltOS
+Recovery" and the screen came up in Turkish at 1024x768; Advanced
+options, Problem details (the previous start's error), Startup Repair
+(all six steps, then "Başlangıç Onarımı tamamlandı") and Restart (normal
+start) worked. Fixed after the VM showed them:
+
+- "Choose an option" did not fit 1024x768 (one column; Back over a tile,
+  the last tile off the screen): two columns whenever two tiles fit,
+  narrower margins on small screens, and a test at 1024x768 and 800x600.
+- Command Prompt never appeared and the screen waited for ever: Qt's
+  linuxfb keeps its console in graphics mode and Linux ignores console
+  switches then. The window now ends (status 3), `run-recovery` opens a
+  sign-in on the next console with the system's console font (the
+  kernel's font had no "ı"/"İ") and a hint, and brings the window back on
+  the options after `exit`. VM: signed in, `exit`, back on the options.
+- Safe mode stayed black: Debian's kernel has no simpledrm, so with
+  `nomodeset` there is no DRM device and Wayland cannot run.
+  `veltos-safe-graphics` switches SDDM to X11 for such starts and the
+  sign-in screen starts Plasma on X11 (fbdev). The first packaged version
+  still showed a black screen: Plymouth's frame-buffer renderer leaves
+  the console in graphics mode, so Linux ignored the switch to SDDM's
+  console and Xorg waited in `vt_waitactive`; the service now runs after
+  Plymouth and sets the console back to text mode. VM: a safe start from
+  the boot entry (`nomodeset`), the X11 sign-in screen by itself, the
+  desktop as an X11 session at 1920x1080 (GRUB's mode, see item 9); the
+  next normal start without the setting and on Wayland, although SDDM
+  remembered the X11 session.
+- Item 9 seen in passing: after a sign-in at 1920x1080 the safe start's
+  frame buffer was 1920x1080 too (GRUB took the mode the sign-in sync
+  wrote), where the first recovery start had 1024x768.
+- After the repair finished, Enter went to the options page's hidden Back
+  button; the keyboard now starts on the shown page's own button.
+
+ISO of this work: `veltos-0.1.0-dev-20261022-214526` (sha256 e25a55c2…,
+3.62 GB). Every package's tests passed in its build (644 tests in 24
+packages, and the 7 repository tests); the verify hook: "all checks
+passed". QEMU boot tests: UEFI 19/19 (the AppArmor cache check is new),
+plasmashell after 19.0 s (18.8 s with the previous ISO), AppArmor 0.0 s;
+BIOS 18/18, plasmashell after 16.4 s (18.9 s). Afterwards, from the VM
+screenshots and a review: the Calendar weekday letters (item 36) and the
+desktop guard, which had no tests and made the desktop writable for the
+user's group even when that group is shared with other accounts (now only
+for user private groups, Debian's default; 15 tests on a fake account's
+home, those that change owners run as root in the package build).
+
 ## 2026-10-22 (17:00) — Windows 11 polish batch: desktop menus, Disk Management, search, taskbar colour
 
 The product owner's list of 24 items (in Turkish, 2026-10-22 midday),

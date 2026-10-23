@@ -99,6 +99,13 @@ Rectangle {
         IconButton {
             visible: bar.inTrash
             icon: "edit-undo"
+            text: backend.text("restore_all")
+            enabledState: bar.model.count > 0 && !bar.hasSelection
+            onClicked: backend.restoreAll()
+        }
+        IconButton {
+            visible: bar.inTrash
+            icon: "edit-undo"
             text: backend.text("restore")
             enabledState: bar.hasSelection
             onClicked: backend.restoreSelection()

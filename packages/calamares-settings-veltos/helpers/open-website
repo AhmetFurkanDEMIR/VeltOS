@@ -1,0 +1,61 @@
+#!/usr/bin/python3
+"""Open the VeltOS website for the installer's side bar.
+
+Calamares runs as root, and a web browser must not run as root; Qt's own
+"open link" would start one as root. install-veltos starts this helper as
+the signed-in user before the installer and ends it afterwards; the side
+bar's link asks it, on 127.0.0.1 only, to open the page in the user's
+browser (product owner, 2026-10-23: the installer's link should be
+clickable).
+
+It opens only VeltOS' own website, whatever is asked, and at most once in
+two seconds, so another local program can do no more with it than open
+that page.
+"""
+import http.server
+import os
+import subprocess
+import sys
+import time
+
+URL = "https://veltos.ahmetfurkandemir.com/"
+PORT = int(os.environ.get("VELTOS_WEBSITE_PORT", "47823"))      # test hook
+OPEN = os.environ.get("VELTOS_XDG_OPEN", "xdg-open")            # test hook
+QUIET_SECONDS = 2.0
+
+
+class Handler(http.server.BaseHTTPRequestHandler):
+    last = 0.0
+
+    def do_GET(self):
+        if self.path != "/website":
+            self.send_response(404)
+            self.end_headers()
+            return
+        now = time.monotonic()
+        if now - Handler.last >= QUIET_SECONDS:
+            Handler.last = now
+            subprocess.Popen([OPEN, URL], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL, start_new_session=True)
+        self.send_response(204)
+        self.end_headers()
+
+    def log_message(self, *_args):
+        pass
+
+
+def main():
+    try:
+        server = http.server.HTTPServer(("127.0.0.1", PORT), Handler)
+    except OSError as error:            # the port is taken: the link does nothing
+        print(f"open-website: {error}", file=sys.stderr)
+        return 1
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

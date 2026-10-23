@@ -1,0 +1,20 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "Window Management",
+        "Description": "Windows 11 window previews above the taskbar",
+        "Description[tr]": "Görev çubuğunun üzerinde Windows 11 pencere önizlemeleri",
+        "EnabledByDefault": true,
+        "Id": "veltostaskbarpreview",
+        "License": "GPL-3.0-or-later",
+        "Name": "Taskbar previews",
+        "Name[tr]": "Görev çubuğu önizlemeleri"
+    },
+    "X-Plasma-API": "declarativescript",
+    "X-Plasma-MainScript": "ui/main.qml"
+}

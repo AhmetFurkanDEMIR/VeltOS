@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""VeltOS Automatic Repair (the recovery start's full-screen window)."""
+import sys
+
+from veltos_recovery.app import main
+
+sys.exit(main(sys.argv))

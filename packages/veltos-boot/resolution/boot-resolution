@@ -1,0 +1,99 @@
+#!/bin/sh
+# Start-up at the screen's resolution (product owner, 2026-10-22: the boot
+# screen was small; detect the screen at installation, afterwards use the
+# resolution the screen is set to).
+#
+#   boot-resolution detect
+#       The connected screen's preferred mode (WxH) from the kernel's DRM
+#       connectors, the built-in panel first. Used by the installer.
+#   boot-resolution current
+#       The mode the boot menu and start-up screen use now (WxH), if set.
+#   boot-resolution set WxH [--root DIR] [--no-update]
+#       Writes GRUB_GFXMODE (that mode first, then the safe ones) to
+#       DIR/etc/default/grub.d/veltos_resolution.cfg and runs update-grub
+#       (not with --root or --no-update). GRUB passes the mode on to Linux
+#       (GRUB_GFXPAYLOAD_LINUX=keep, veltos.cfg), so the VeltOS start-up
+#       screen is drawn at it too. Run through pkexec at sign-in
+#       (boot-resolution-sync; org.veltos.boot.policy).
+#
+# The file sorts after veltos.cfg and before a user's zz-local.cfg, in the
+# C locale and in others. Modes the firmware cannot show are skipped by
+# GRUB, which then uses 1024x768.
+set -eu
+
+sysfs="${VELTOS_SYSFS:-/sys}"      # test hook
+CONF_REL="etc/default/grub.d/veltos_resolution.cfg"
+
+detect() {
+    first=""
+    for status in "$sysfs"/class/drm/card*-*/status; do
+        [ -r "$status" ] || continue
+        [ "$(cat "$status")" = connected ] || continue
+        dir="${status%/status}"
+        mode="$(head -n 1 "$dir/modes" 2>/dev/null || true)"
+        valid "$mode" || continue
+        case "${dir##*/}" in
+            *-eDP-*|*-LVDS-*|*-DSI-*) echo "$mode"; return 0 ;;    # built-in panel
+        esac
+        [ -n "$first" ] || first="$mode"
+    done
+    [ -n "$first" ] || return 1
+    echo "$first"
+}
+
+# WxH with sizes a screen can have (no interlaced "i" modes).
+valid() {
+    echo "$1" | grep -Eq '^[0-9]{3,4}x[0-9]{3,4}$' || return 1
+    w="${1%x*}"
+    h="${1#*x}"
+    [ "$w" -ge 640 ] && [ "$w" -le 7680 ] && [ "$h" -ge 480 ] && [ "$h" -le 4320 ]
+}
+
+current() {
+    sed -n 's/^GRUB_GFXMODE=\([0-9]*x[0-9]*\),.*/\1/p' "/$CONF_REL" 2>/dev/null | head -n 1
+}
+
+set_mode() {
+    mode="$1"
+    shift
+    root=""
+    update=yes
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --root) root="${2:?--root needs a directory}"; update=no; shift 2 ;;
+            --no-update) update=no; shift ;;
+            *) echo "boot-resolution: unknown option $1" >&2; exit 2 ;;
+        esac
+    done
+    if ! valid "$mode"; then
+        echo "boot-resolution: not a screen mode: $mode" >&2
+        exit 2
+    fi
+    # Through pkexec (any signed-in user) only the system's own file.
+    if [ -n "${PKEXEC_UID:-}" ] && [ -n "$root" ]; then
+        echo "boot-resolution: --root is for the installer only" >&2
+        exit 2
+    fi
+    list="$mode,1024x768,800x600,auto"
+    [ "$mode" = 1024x768 ] && list="1024x768,800x600,auto"
+    conf="${root%/}/$CONF_REL"
+    mkdir -p "$(dirname "$conf")"
+    {
+        echo "# Written by veltos-boot (boot-resolution): the screen's resolution for"
+        echo "# the boot menu and the VeltOS start-up screen. Rewritten at sign-in when"
+        echo "# the screen is set to another resolution; zz-local.cfg overrides it."
+        echo "GRUB_GFXMODE=$list"
+    } > "$conf.tmp"
+    mv "$conf.tmp" "$conf"
+    echo "boot-resolution: start-up screen at $mode"
+    if [ "$update" = yes ] && command -v update-grub >/dev/null 2>&1; then
+        update-grub >/dev/null 2>&1 || echo "boot-resolution: update-grub failed" >&2
+    fi
+}
+
+case "${1:-}" in
+    detect) detect ;;
+    current) current ;;
+    set) shift; set_mode "$@" ;;
+    *) echo "usage: boot-resolution detect | current | set WxH [--root DIR] [--no-update]" >&2; exit 2 ;;
+esac

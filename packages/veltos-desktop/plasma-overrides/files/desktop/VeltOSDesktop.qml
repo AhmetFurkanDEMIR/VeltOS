@@ -13,7 +13,11 @@
     - the Recycle Bin, This PC and the VeltOS Store cannot be deleted,
       renamed or cut: their menu has Open (the Bin also Empty Recycle
       Bin), Properties where it makes sense, and nothing else; the Delete
-      key, F2 and Ctrl+X skip them.
+      key, F2 and Ctrl+X skip them;
+    - every other file and folder gets Windows 11's menu (Open, Open with,
+      Cut, Copy, Rename, Delete, Compress to ZIP file, Properties); its
+      Properties is VeltOS' window (veltos-explorer --properties), never
+      KDE's dialog.
 
     Texts come from the veltos-desktop catalog (i18nd), not from the
     containment's, so KDE's own translations stay untouched.
@@ -24,6 +28,7 @@ import QtQuick
 import org.kde.plasma.plasmoid
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.plasma5support as Plasma5Support
+import org.kde.private.desktopcontainment.folder as Folder
 
 Item {
     id: veltos
@@ -41,6 +46,23 @@ Item {
 
     function tr(text) {
         return i18nd(domain, text);
+    }
+
+    // --- The Recycle Bin's fill -------------------------------------------
+
+    // Whether the bin holds anything: the desktop's Recycle Bin icon shows
+    // it (FolderItemDelegate.qml reads trashFull), as on Windows. KIO's
+    // own way (EmptyIcon in the launcher, trashrc) was not re-read by the
+    // desktop when files went in or out (product owner, 2026-10-22). The
+    // trash is watched like a folder; only its count is used.
+    property bool trashFull: false
+    Folder.FolderModel {
+        id: trashModel
+        url: veltos.onDesktop ? "trash:/" : ""
+        onRowsInserted: veltos.trashFull = rowCount() > 0
+        onRowsRemoved: veltos.trashFull = rowCount() > 0
+        onModelReset: veltos.trashFull = rowCount() > 0
+        onListingCompleted: veltos.trashFull = rowCount() > 0
     }
 
     // --- Protected icons --------------------------------------------------
@@ -74,17 +96,53 @@ Item {
     // Returns false when Plasma's own menu is the right one (every
     // ordinary file).
     function itemMenu(item, point) {
-        if (!item || !onDesktop || !isProtectedItem(item))
+        if (!item || !onDesktop)
             return false;
-        itemMenuObject.protectedName = fileNameOf(item);
-        if (point) {
-            itemMenuObject.visualParent = view;
-            itemMenuObject.open(Math.round(point.x), Math.round(point.y));
+        let menu = itemMenuObject;
+        if (isProtectedItem(item)) {
+            itemMenuObject.protectedName = fileNameOf(item);
         } else {
-            itemMenuObject.visualParent = item;
-            itemMenuObject.openRelative();
+            // Every other file and folder: Windows 11's menu, whose
+            // Properties is VeltOS' window, not KDE's dialog.
+            fileMenuObject.names = selectedNames(fileNameOf(item));
+            fileMenuObject.isDir = item.isDir === true;
+            menu = fileMenuObject;
+        }
+        if (point) {
+            menu.visualParent = view;
+            menu.open(Math.round(point.x), Math.round(point.y));
+        } else {
+            menu.visualParent = item;
+            menu.openRelative();
         }
         return true;
+    }
+
+    // The names of the selected icons; `clicked` first, and alone when it
+    // is not selected (a right-click on an unselected icon).
+    function selectedNames(clicked) {
+        const names = [];
+        if (grid && mapper) {
+            for (let i = 0; i < grid.count; ++i) {
+                const modelIndex = mapper.map(i);
+                const item = grid.itemAtIndex(i);
+                if (modelIndex >= 0 && item && folderModel.isSelected(modelIndex)) {
+                    const name = fileNameOf(item);
+                    if (name !== "" && protectedNames.indexOf(name) < 0)
+                        names.push(name);
+                }
+            }
+        }
+        if (names.indexOf(clicked) < 0)
+            return [clicked];
+        return [clicked].concat(names.filter(name => name !== clicked));
+    }
+
+    // The items as shell words: "$(desktop folder)/name" (the desktop is
+    // desktop:/ to Plasma; desktop-new knows its real path).
+    function itemArguments(names) {
+        const folder = "\"$(/usr/libexec/veltos/desktop-new " + quoted(folderArgument()) + " path)\"/";
+        return names.map(name => folder + quoted(name)).join(" ");
     }
 
     // --- The desktop's menu ----------------------------------------------
@@ -320,6 +378,66 @@ Item {
         }
     }
 
+    // Windows 11's menu of a file or folder on the desktop.
+    PlasmaExtras.Menu {
+        id: fileMenuObject
+        property var names: []
+        property bool isDir: false
+        readonly property bool single: names.length === 1
+        placement: PlasmaExtras.Menu.BottomPosedRightAlignedPopup
+
+        PlasmaExtras.MenuItem {
+            text: veltos.tr("Open")
+            icon: fileMenuObject.isDir ? "folder-open" : "document-open"
+            onClicked: veltos.folderModel.runSelected()
+        }
+        PlasmaExtras.MenuItem {
+            visible: fileMenuObject.single && !fileMenuObject.isDir
+            text: veltos.tr("Open with")
+            icon: "document-open"
+            // Windows 11's "Select an app" window (File Explorer).
+            onClicked: shell.connectSource("veltos-explorer --open-with " + veltos.itemArguments(fileMenuObject.names))
+        }
+        PlasmaExtras.MenuItem { separator: true }
+        PlasmaExtras.MenuItem {
+            text: veltos.tr("Cut")
+            icon: "edit-cut"
+            onClicked: veltos.folderModel.cut()
+        }
+        PlasmaExtras.MenuItem {
+            text: veltos.tr("Copy")
+            icon: "edit-copy"
+            onClicked: veltos.folderModel.copy()
+        }
+        PlasmaExtras.MenuItem {
+            visible: fileMenuObject.single
+            text: veltos.tr("Rename")
+            icon: "edit-rename"
+            onClicked: veltos.view.rename()
+        }
+        PlasmaExtras.MenuItem {
+            text: veltos.tr("Delete")
+            icon: "edit-delete"
+            onClicked: {
+                const action = veltos.folderModel.action("trash");
+                if (action && action.enabled)
+                    action.trigger();
+            }
+        }
+        PlasmaExtras.MenuItem { separator: true }
+        PlasmaExtras.MenuItem {
+            text: veltos.tr("Compress to ZIP file")
+            icon: "archive-insert"
+            onClicked: shell.connectSource("veltos-explorer --compress " + veltos.itemArguments(fileMenuObject.names))
+        }
+        PlasmaExtras.MenuItem { separator: true }
+        PlasmaExtras.MenuItem {
+            text: veltos.tr("Properties")
+            icon: "document-properties"
+            onClicked: shell.connectSource("veltos-explorer --properties " + veltos.itemArguments(fileMenuObject.names))
+        }
+    }
+
     // The menu of the Recycle Bin, This PC and the Store: no Delete, no
     // Rename, no Cut.
     PlasmaExtras.Menu {
@@ -354,7 +472,8 @@ Item {
             visible: itemMenuObject.protectedName === "recycle-bin.desktop"
             text: veltos.tr("Properties")
             icon: "document-properties"
-            onClicked: veltos.folderModel.openPropertiesDialog()
+            // VeltOS' Properties window for the bin (what is in it), not KDE's dialog.
+            onClicked: shell.connectSource("veltos-explorer --properties \"${XDG_DATA_HOME:-$HOME/.local/share}/Trash/files\"")
         }
     }
 }

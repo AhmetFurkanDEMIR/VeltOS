@@ -251,6 +251,23 @@ def eject(device, runner=run):
     return True
 
 
+# --- The desktop's system icons ----------------------------------------------------------
+
+# "This PC", the Recycle Bin and the VeltOS Store on the desktop stay, like
+# Windows' system icons (veltos-desktop: the session puts them there and
+# its desktop guard makes them root's, so not even a terminal removes them).
+DESKTOP_SYSTEM_ICONS = ("recycle-bin.desktop", "this-pc.desktop", "veltos-store.desktop")
+
+
+def desktop_dir():
+    return next((path for key, path, _icon in user_dirs() if key == "DESKTOP"), str(HOME / "Desktop"))
+
+
+def is_desktop_system_icon(path, desktop=None):
+    path = Path(path)
+    return path.name in DESKTOP_SYSTEM_ICONS and str(path.parent) == str(desktop or desktop_dir())
+
+
 # --- Recycle Bin ----------------------------------------------------------------------
 
 def trash_dir():
@@ -379,10 +396,12 @@ def applications_for(mime, lang="en"):
         for path in files:
             if path.name in seen:
                 continue
+            # The first file of a name wins, a hidden one too (VeltOS'
+            # NoDisplay copies hide the originals behind them, as in Start).
+            seen.add(path.name)
             entry = read_desktop_entry(path)
             if entry is None:
                 continue
-            seen.add(path.name)
             types = [t for t in entry.get("MimeType", "").split(";") if t]
             if mime in types:
                 name = entry.get(f"Name[{lang}]") or entry.get("Name", path.stem)

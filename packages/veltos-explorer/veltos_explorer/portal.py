@@ -155,6 +155,29 @@ def picker_command():
     return [sys.executable, "-m", "veltos_explorer", "--pick"]
 
 
+LANGUAGE_VARIABLES = ("LANGUAGE", "LANG", "LC_ALL", "LC_MESSAGES")
+
+
+def session_environment(runner=subprocess.run, environ=None):
+    """The environment for a dialog: this service's, with the language of
+    the session as it is now. D-Bus may have started the service before
+    Plasma passed the session's language on, and the dialog then spoke
+    English in a Turkish session ("File name", "Save as type"; product
+    owner, 2026-10-22). systemd's user manager has the session's values
+    (Plasma updates it at sign-in)."""
+    env = dict(os.environ if environ is None else environ)
+    try:
+        out = runner(["systemctl", "--user", "show-environment"], capture_output=True, text=True,
+                     timeout=3).stdout
+    except Exception:  # no systemd, no session: the service's own environment
+        return env
+    for line in out.splitlines():
+        name, _, value = line.partition("=")
+        if name in LANGUAGE_VARIABLES and value:
+            env[name] = value
+    return env
+
+
 # A second, identical request from the same window within this time joins
 # the first dialog instead of opening another (LibreOffice's Qt file
 # picker asks twice for one Ctrl+O: two dialogs appeared, VM 2026-10-21).
@@ -206,7 +229,7 @@ class Service:
         if dialog is None:
             try:
                 process = subprocess.Popen(picker_command(), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                           stderr=subprocess.DEVNULL, text=True)
+                                           stderr=subprocess.DEVNULL, text=True, env=session_environment())
             except OSError:
                 invocation.return_value(self.GLib.Variant("(ua{sv})", (OTHER, {})))
                 return

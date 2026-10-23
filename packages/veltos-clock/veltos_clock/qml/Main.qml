@@ -162,6 +162,10 @@ ApplicationWindow {
         border.color: input.activeFocus ? theme.accent : theme.fieldBorder
         TextInput {
             id: input
+            // Like a Windows text box: in the Tab order, the text cursor over it and
+            // (in a layout) the full height of its box. A plain TextInput has neither.
+            activeFocusOnTab: true
+            HoverHandler { cursorShape: Qt.IBeamCursor }
             anchors.fill: parent
             anchors.leftMargin: 10
             anchors.rightMargin: 10

@@ -103,6 +103,16 @@ class AppNameTests(unittest.TestCase):
         self.assertIn("\nExec=libreoffice --nologo --writer %U\n", text)
         self.assertIn("\nExec=libreoffice --nologo --writer\n", text)
 
+    def test_mail_is_veltos_mail(self):
+        # The product owner's name for Thunderbird (2026-10-22), also in Turkish.
+        thunderbird = "[Desktop Entry]\nName=Thunderbird\nExec=thunderbird %u\n"
+        text = app_names.rewrite(thunderbird, "thunderbird", app_names.APPS["thunderbird.desktop"])
+        self.assertIn("\nName=VeltOS Mail\n", text)
+        self.assertIn("\nName[tr]=VeltOS Mail\n", text)
+        keywords = text.split("Keywords=", 1)[1].splitlines()[0]
+        for word in ("Mail;", "Posta;", "Outlook;", "Thunderbird;"):
+            self.assertIn(word, keywords)
+
     def test_spectacle_loses_its_shortcuts(self):
         spectacle = ("[Desktop Entry]\nName=Spectacle\nExec=/usr/bin/spectacle\nX-KDE-Shortcuts=Print,Meta+Shift+S\n"
                      "\n[Desktop Action FullScreenScreenShot]\nExec=/usr/bin/spectacle -f\nX-KDE-Shortcuts=Shift+Print\n")
@@ -169,6 +179,10 @@ class AppNameTests(unittest.TestCase):
         # KDE Info Center is hidden like Windows' (Settings > About opens
         # instead) but keeps its Windows name where it still shows.
         self.assertIn("org.kde.kinfocenter.desktop", app_names.HIDE)
+        # LibreOffice Draw stays installed (PowerPoint needs it) but is shown
+        # nowhere and offered for no file type.
+        self.assertIn("libreoffice-draw.desktop", app_names.HIDE)
+        self.assertEqual(app_names.DROP_KEYS["libreoffice-draw.desktop"], ("MimeType",))
         with tempfile.TemporaryDirectory() as tmp:
             src, out = Path(tmp) / "src", Path(tmp) / "out"
             src.mkdir()

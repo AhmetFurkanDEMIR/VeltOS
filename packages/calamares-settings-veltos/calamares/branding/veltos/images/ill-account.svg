@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS installer: who will use this PC (a person and a key). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="disc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5A85FF"/>
+      <stop offset="1" stop-color="#2F4FD6"/>
+    </linearGradient>
+    <linearGradient id="person" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCE5FA"/>
+    </linearGradient>
+    <linearGradient id="key" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC94D"/>
+      <stop offset="1" stop-color="#F29A1F"/>
+    </linearGradient>
+  </defs>
+  <circle cx="118" cy="122" r="96" fill="#000000" opacity="0.12" transform="translate(0 6)"/>
+  <circle cx="118" cy="122" r="96" fill="url(#disc)"/>
+  <circle cx="118" cy="98" r="36" fill="url(#person)"/>
+  <path d="M 52 190 Q 60 142 118 142 Q 176 142 184 190 Q 154 218 118 218 Q 82 218 52 190 Z" fill="url(#person)"/>
+  <g transform="translate(176 166) rotate(-35)">
+    <circle cx="0" cy="0" r="26" fill="#000000" opacity="0.12" transform="translate(0 5)"/>
+    <circle cx="0" cy="0" r="26" fill="url(#key)"/>
+    <circle cx="-6" cy="0" r="9" fill="#FFFFFF" opacity="0.85"/>
+    <path d="M 24 -7 H 66 V 7 H 58 V 18 H 46 V 7 H 24 Z" fill="url(#key)"/>
+  </g>
+</svg>

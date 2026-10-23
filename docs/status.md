@@ -1,6 +1,6 @@
 # VeltOS Status
 
-Last updated: 2026-10-22. Every "Implemented" item names the
+Last updated: 2026-10-23. Every "Implemented" item names the
 evidence that shows it working. "Untested" means nobody has observed it
 working yet. All observations so far are from QEMU/KVM virtual machines (no
 3D acceleration) and one VirtualBox VM of the product owner; **VeltOS has
@@ -15,7 +15,7 @@ not been run on real hardware yet.**
 | `veltos-desktop`: Windows 11 look from Fluent-kde (Kvantum style, window frames with VeltOS-drawn 46×32 caption buttons, Plasma theme, colour schemes), 48 px see-through taskbar with VeltOS Start (layout of Windows 11's 2025 Start: Pinned, Recommended and "All" with Category/Grid/List views on one scrolling page), Search box, Task View, Quick Settings, two-line clock, show-desktop corner; flyouts float with rounded corners; clock flyout = Windows 11's two cards (notification centre grouped by app with do-not-disturb, Clear all, "+N notifications" and per-card chevrons, above the calendar card with folding month and a focus session timer that turns on do-not-disturb), also on Win+N, unread count on the clock; hidden-icons flyout with icons only, "Safely Remove Hardware" flyout (Plasma override mechanism); Windows 11 toasts (bottom-right, picture left, equal buttons); Ctrl+Alt+Del security options screen with Task Manager; power key shuts down; locked taskbar without KDE widget editing, Windows wording in taskbar menus, plain desktop menu, no spinner on starting apps, Store pinned; Terminal like Windows Terminal following light/dark (One Half Light / Campbell, rounded tabs, Cascadia Mono, no toolbars); Task View shows a desktop's windows on hover; Mica-like title bars, square close-button hover on maximised windows (KWin Aurorae override); Windows 11 lock screen; VeltOS default account picture (sign-in screen, Start, Settings, set at first sign-in); 25 % display scale steps; four wallpapers (Bloom default, Flow, Glow, Lake), light and dark; "Welcome" splash; This PC / Recycle Bin / Store on the desktop in Windows' order; Windows 11 search window from the taskbar's search box (top apps, best match; 2026-10-22: plain field with the accent line, results in a column, no KDE settings modules among the results); Start's Office category (Word, Excel, PowerPoint, PDF Reader) and every non-empty category shown; the taskbar, Start and the flyouts follow the accent colour the user chooses (the Plasma themes have no colours of their own since 2026-10-22) and the taskbar glows in it, with a colour wave when it changes; no box around the taskbar's search box while its window is open; Task View desktop cards with their windows, switched by right- or double-click; LibreOffice's start-up window kept off the taskbar (KWin rule); moving to the Recycle Bin without a question; download/copy progress as a thin bar under the taskbar icon (untested on screen); Firefox's downloads panel restyled (untested on screen); sign-in screen in KWin on Wayland like the session (VM, 2026-10-21 evening: full-screen greeter, sign-in works); softer sounds (unheard); session environment for the portal file dialogs; file indexing off by default; VeltOS GTK theme and Firefox caption buttons; no launch icon at the pointer; no on-screen keyboard at sign-in; window previews off with software rendering; Windows-familiar app names; sign-in screen; wallpaper without logo; KDE Wallet off | 76 unit tests (incl. full asset build, Start categories, Start centring override, terminal files, overrides against Plasma 6.3.6 and KWin 6.3.6 QML, menus, scale steps, wallpapers, session scripts); VM (installed system, 2026-10-20): screenshots of each item, dark taskbar on first switch, Firefox hover states; VM (live, 2026-10-20 late): Ctrl+Alt+Del screen and its Task Manager, menus, toasts, flyouts, 100 % scale, wallpaper, lock screen; VM (2026-10-20 night): maximised close hover, desktop order, Store pin, no start-up spinner, Terminal, Task View desktops; VM (2026-10-20, 23:45): new Start with categories, Grid and List views; VM (2026-10-21): Start centred on the screen like Windows 11; VM (live, 2026-10-21): clock flyout cards light and dark, grouping, unfolding, do-not-disturb, folding the month, focus session start/stop and its end notification, Win+N |
 | Desktop (2026-10-22, veltos-desktop's override of Plasma's folder view): Windows 11's right-click menu (View, Sort by, Refresh, Paste, New, Display settings, Personalize, Open in Terminal) — Plasma's containment menu never opens; New > Folder / Text Document made at once with Windows' names and the name box open; Refresh/F5 blink the icons; Recycle Bin, This PC and the Store with their own menu (Open, Empty Recycle Bin via File Explorer's Windows 11 question, Properties), no Delete/Rename/Cut, the Delete key, F2 and Ctrl+X skip them, all three come back at sign-in; the Recycle Bin's icon follows the trash (path unit); volume OSD at the bottom of the screen (shell-package override) | Unit tests (override applied to plasma-desktop 6.3.6's QML, the helper, the trash watch); live VM (QEMU, 2026-10-22, `tests/results/2026-10-22-windows11-polish/`): the menu and its submenus, a folder and a text document created and named in place, the Recycle Bin's menu, emptying through the dialog, the bin icon back in its place, the OSD above the taskbar |
 | `veltos-explorer` (new): File Explorer in the Windows 11 layout — tabs in the title bar, command bar, address and search boxes, navigation pane, Home (Quick access, Recent), This PC, Recycle Bin, Details/Tiles/icon views with thumbnails, context menus, drag and drop, rename in place; copy/move/delete through KIO; answers "show in folder" (`org.freedesktop.FileManager1`); the only file manager (Dolphin left out of the image); Windows (NTFS) drives with their own icon, opened without a password for administrators, through ntfs-3g with Windows file names, read only with an explanation when Windows did not shut down; **the Windows 11 file dialog of every program** (`--pick`: Open / Save As / Select Folder from Explorer's parts; `--portal`: the xdg-desktop-portal FileChooser backend, chosen for Plasma sessions; Qt/KDE/LibreOffice through Qt's portal theme, GTK/Firefox/Mail through the portal); "Select an app to open this file" window (`--open-with`, Always / Just once; used by Explorer's "Choose another app" and for files no app claims); `cmd`/`terminal` in the address box opens the Terminal; New > Folder / Text Document open the name box once the listing shows the item, F5 blinks the view, `.desktop` launchers show their own name and icon as "Shortcut", the Home row's icon in the accent colour, `--empty-recycle-bin` (the desktop's Recycle Bin menu) | 55 unit tests (incl. the dialog and the open-with window offscreen EN/TR, the portal's request/answer mapping); VM (live, 2026-10-21 evening): the dialog alone (Open, filters, Esc), Firefox's Ctrl+O arriving in it through the portal, Konsole's Save As and LibreOffice Writer's Open through Qt's portal theme (LibreOffice's duplicate request merged; the chosen file opened); `tests/results/2026-10-21-windows-dialogs/`; 31 unit tests (incl. the real window offscreen, EN/TR, Turkish C locale); VM: opened from the taskbar, Home, Documents in Details view, item and background menus; **starts in a Turkish locale** (did not before 2026-10-20); VM (2026-10-20 night): wheel scrolling, `ShowItems` opens the folder with the file selected |
-| `veltos-settings`: Windows 11 Settings, every page built in (no KDE settings window: `systemsettings`/`kcmshell6` redirect to it) — Wi-Fi, Bluetooth, Sound, Display, Night light, Notifications, Power, Multitasking, Mouse, Touchpad, Typing, Background, Colours, Lock screen, Default apps, Startup, Your info, Sign-in options, Other users, Date & time, Language & region, Accessibility, Searching files, About (OS build, developer), search, EN/TR, monochrome Windows 11 icons; Home in Windows 11 24H2's layout; Themes (eight wallpaper + mode + accent themes); own Add a device dialog; colour mode on Home switches in place (2026-10-22: the drop-down's press no longer reaches the row beneath), Tab moves between a page's controls (the navigation pane is out of the Tab chain), Add a keyboard opens on Turkish with 50 layouts, Windows 11 style icons for the Personalization rows, Disk Management opens VeltOS' | 78 unit tests (parsers with recorded tool output, KDE config files, accounts with a fake `passwd`, input devices, default/startup apps, redirect, offscreen window with every page, Turkish C locale); VM (2026-10-21): Start "Change account settings" and `systemsettings kcm_users` open Your info; VM: every page; dark mode switches the taskbar on the first switch; fixes of 2026-10-21 evening: the "Change" password button (double tap; VM: the panel opens) and the change itself (passwd conversation; VM: password changed), "Never" for the lock timeout, Default apps filled (mimeinfo.cache + VeltOS' kde-mimeapps.list), Searching files read from its setting (baloo6 in the image), text size scaling VeltOS apps, pictures chosen in the VeltOS dialog; adding a user verified in the live VM session (created with its password); **Wi-Fi tested end to end on simulated hardware** (mac80211_hwsim + hostapd WPA2: wrong key refused without extra prompts, correct key connects and gets an address, disconnect, reconnect, forget) |
+| `veltos-settings`: Windows 11 Settings, every page built in (no KDE settings window: `systemsettings`/`kcmshell6` redirect to it) — Wi-Fi, Bluetooth, Sound, Display, Night light, Notifications, Power, Multitasking, Mouse, Touchpad, Typing, Background, Colours, Lock screen, Default apps, Startup, Your info, Sign-in options, Other users, Date & time, Language & region, Accessibility, Searching files, About (OS build, developer), search, EN/TR, monochrome Windows 11 icons; Home in Windows 11 24H2's layout; Themes (eight wallpaper + mode + accent themes); own Add a device dialog; colour mode on Home switches in place (2026-10-22: the drop-down's press no longer reaches the row beneath), Tab moves between a page's controls (the navigation pane is out of the Tab chain), Add a keyboard opens on Turkish with 50 layouts, Windows 11 style icons for the Personalization rows, Disk Management opens VeltOS' | 78 unit tests (parsers with recorded tool output, KDE config files, accounts with a fake `passwd`, input devices, default/startup apps, redirect, offscreen window with every page, Turkish C locale); VM (2026-10-21): Start "Change account settings" and `systemsettings kcm_users` open Your info; VM: every page; dark mode switches the taskbar on the first switch; fixes of 2026-10-21 evening: the "Change" password button (double tap; VM: the panel opens) and the change itself (passwd conversation; VM: password changed), "Never" for the lock timeout, Default apps filled (mimeinfo.cache + VeltOS' kde-mimeapps.list), Searching files read from its setting (baloo6 in the image), text size scaling VeltOS apps, pictures chosen in the VeltOS dialog; adding a user verified in the live VM session (created with its password) and on an installed system with one administrator prompt (2026-10-23; it asked twice before), the new user signing in to the default pins; `systemsettings` opening VeltOS Settings for users (the postinst had locked the redirect through a symlink; fixed 2026-10-23); Personalization > Taskbar, Windows programs, Tab order in Add account (VM); **Wi-Fi tested end to end on simulated hardware** (mac80211_hwsim + hostapd WPA2: wrong key refused without extra prompts, correct key connects and gets an address, disconnect, reconnect, forget) |
 | `veltos-disks` (new, 2026-10-22): Disk Management in the Windows 11 layout — volume list (Volume, Layout, Type, File System, Status, Capacity, Free Space, % Free) over the disk map (Disk 0 …, CD-ROM 0, partitions and unallocated space to scale with Disk Management's colours), right-click menus (Open/Explore, Mount/Unmount, Eject, Change Volume Label, Format, Delete Volume, New Simple Volume, Initialize Disk, Properties) and Windows 11 dialogs; UDisks2 through busctl (polkit asks through the VeltOS prompt); the running system's volumes, EFI/reserved partitions, optical and read-only devices protected, a disk with a table never initialized again; replaces KDE Partition Manager (hidden; Settings > Storage and Win+X open VeltOS') | Unit tests (recorded UDisks2 objects → Windows' disks/volumes, the calls, permissions EN/TR, the window offscreen with every menu and dialog); VM (live, 2026-10-22): see the development log |
 | `veltos-taskmanager` (new): Task Manager in the Windows 11 layout — Processes (Apps / Background / System, summed per app, busy cells tinted, search, End task), Performance (60-second CPU/memory/disk/network graphs and figures), Startup apps (enable/disable); Ctrl+Shift+Esc, one instance; KDE System Monitor kept as "Resource Monitor" | 19 unit tests (fake psutil; window offscreen EN/TR, Turkish locale); VM: opened with Ctrl+Shift+Esc, Firefox grouped with its 11 processes, second Ctrl+Shift+Esc does not open a second window, all three pages |
 | `veltos-media` (new): Media Player in the Windows 11 layout — Home with recent media, music library (songs, albums with covers, artists, shuffle and play), video library with frames, play queue (shuffle, repeat, play next), playlists, search, player bar, now playing (video or album picture), full screen; Qt Multimedia (FFmpeg); default for audio and video | 11 unit tests (queue logic, tags of real WAV files, window offscreen EN/TR); VM (live, 2026-10-21): albums with embedded covers, an album played (position advancing), video library thumbnails, an MJPEG AVI played to its end. No MPRIS yet; sound output itself not heard (VM) |
@@ -25,15 +25,19 @@ not been run on real hardware yet.**
 | `veltos-notepad` (new): Notepad in the Windows 11 layout — tabs in the title bar, File/Edit/View menus, find and replace panel, go to line, time/date, zoom, word wrap, status bar (line/column, characters, zoom, line ending, encoding), Settings page (theme, font, word wrap, opening, session); keeps UTF-8/UTF-8 BOM/UTF-16/ANSI and CRLF/LF/CR; unsaved tabs come back (Windows 11 session); default for text files; replaces KWrite | 19 unit tests (encodings, line endings, the real window offscreen EN/TR); VM (live, 2026-10-21): opened a CRLF file from xdg-open, File menu, typing, find panel, Ctrl+S kept CRLF, Settings page. Printing untested |
 | `veltos-archive` (new): archive manager in WinRAR's layout with Windows 11 controls — open ZIP/RAR (all versions, 7zip-rar)/7Z/TAR/GZ/ISO/CAB…, folders inside, Extract To, Add (ZIP/7Z/TAR.*; RAR creation not possible without RARLAB's program), Test, View, Delete, Find, Info, passwords; File Explorer's Extract All/Extract here/Compress/Add to archive; replaces Ark | 21 unit tests (real 7-Zip and bsdtar; window offscreen EN/TR); VM (installed, 2026-10-21): RAR5 and password RAR, extract, add, Explorer commands. File dialog is Qt's own |
 | `veltos-camera` (new): Camera in the Windows 11 layout — picture over the whole window, Photo/Video switch, shutter, last capture, change camera, photo timer, framing grid, sound with videos, Pictures > Camera Roll; "We can't find your camera" without one | 10 unit tests (files, texts; window offscreen EN/TR without a camera); VM (installed, 2026-10-21) with a virtual webcam (v4l2loopback + ffmpeg test picture): preview, photo (JPEG), video (H.264 MP4). Not yet tested with a real camera or microphone |
-| Mail: Debian's Thunderbird 140 ESR named "Mail"/"Posta" (veltos-desktop `update-app-names`), restyled like Windows 11's Outlook (`mail/mail.css`: Mica background, white list and reading pane cards, accent selections, accent "New message"), VeltOS caption buttons and quiet defaults through Thunderbird autoconfig (veltos-desktop `tools/firefox.py`) | veltos-desktop unit test for the autoconfig files; verify hook; VM (installed, 2026-10-21): found in Start as "Mail", opens on account setup without privacy tab; later the same day the add-account page as one centred "Add your account" card (VeltOS texts EN/TR, no Thunderbird illustrations or Mozilla links), the cancel question naming Mail, the main window in the system accent. Sending and receiving mail with a real account untested |
+| **VeltOS Mail**: Debian's Thunderbird 140 ESR named "VeltOS Mail" in every language (veltos-desktop `update-app-names`) and in window titles, in Outlook's look (`mail/mail.css`, generated `mail-header.css`, autoconfig in `tools/firefox.py`; architecture 2.22): blue title band with the name, centred search box and white window buttons; the simplified ribbon below it (New mail filled, Delete, Archive, Report, Move, Reply, Reply all, Forward, Read/Unread, Tag, Get messages) as the default of Thunderbird's own toolbar setting; white list and reading pane, the subject first in the reading pane with a round accent sender picture and icon-only actions; names only in the message list; one tab without a tab bar, Windows 11 tabs when there are more; the new message window without a menu bar (Alt shows it) and with a filled Send button; the add-account card with "VeltOS Mail" over "Add your account" and a full-width Continue; the account page without Thunderbird's story, donation request, links and watermark | veltos-desktop unit tests for the autoconfig files and the generated style sheets; verify hook (name, band style sheet); VM (installed, 2026-10-22 night, a test account with three messages): every part listed, after fixing three faults found there (a default XUL namespace in `mail-header.css`, backslashes in file URLs generated on Windows, the hidden menu bar's labels). Untested: sending and receiving with a real account, dark mode, Thunderbird's own dialogs (they keep Thunderbird's look and, in some places, its name) |
 | `veltos-calculator` (new): Calculator in the Windows 11 layout — Standard (order of entry, running result above, %, 1/x, x², √x, memory row) and Scientific (precedence, parentheses, 2nd, π, e, exp, mod, n!, DEG/RAD/GRAD, F-E, Trigonometry and Function flyouts), History and Memory beside the keypad (wide) or over it (narrow), navigation pane, Settings (app theme), Keep on top (KWin keep-above), keyboard keys and the calculator key; decimal arithmetic (0.1 + 0.2 = 0.3, 1 ÷ 3 × 3 = 1); pinned in Start | 42 unit tests (engine against Windows behaviour; window offscreen EN/TR); VM (live, 2026-10-20): opened from Start, 12 + 7 × 3 = 57 (Standard), 2 + 3 × 4 = 14 (Scientific), Trigonometry flyout, Keep on top stays above an active window. Not yet: Graphing, Programmer, Date calculation, converters |
 | `veltos-snip` (new): Snipping Tool in the Windows 11 layout — Print Screen / Windows + Shift + S dim the screen with the snipping bar (Rectangle, Window, Full screen, Freeform), snip to clipboard + Pictures/Screenshots + notification with the picture; Windows + Print Screen saves the whole screen; window with New, mode, delay, pen, highlighter, eraser, crop, undo/redo, Save, Copy; Spectacle's shortcuts off and hidden | 20 unit tests (window and overlay offscreen EN/TR, crop, freeform, strokes, eraser, notification); VM (live, 2026-10-20): Print, rectangle snip, saved file, notification, markup window, pen and highlighter |
 | `veltos-store` (new): VeltOS Store in the Microsoft Store layout — Home (featured banner, rows), Apps with categories, Gaming, search, app pages (screenshots, description, details), Library (updates, installed apps); AppStream catalogue, PackageKit installs, refuses uninstalls that would remove part of VeltOS; replaces Discover in Start and Settings; a failed install says why (permission, not in the catalogue, download, busy, PackageKit's text) and old/missing package lists are refreshed first | 22 unit tests (window offscreen EN/TR without QML warnings, jobs with a stand-in pkcon); VM (live, 2026-10-20): Home, VLC installed and opened from its page, Library, Firefox uninstall refused |
 | `veltos-auth` (new): administrator password prompt in the layout of Windows 11's User Account Control (blue band with the VeltOS shield-and-padlock icon, the question, program and details, the administrator's picture, password, Yes/No; EN/TR) as the session's polkit agent; the password checked by polkit's own helper; KDE's agent service masked | 8 unit tests (helper protocol, request mapping, the window offscreen with a stand-in helper: wrong then right password, cancel); VM (live, 2026-10-21 evening): `pkexec` from the session showed the prompt, wrong password refused with the message, right password accepted (polkit journal), agent registered for the session |
-| `veltos-clock` (new): Clock in the Windows 11 layout (Focus sessions, Timer with progress rings, Alarm cards with repeat days and snooze, Stopwatch with laps, World clock) and `veltos-clock-agent`, which rings alarms and finished timers while the app is closed (notification with Snooze/Dismiss, VeltOS alarm sound) | Unit tests (when alarms ring, timers, file format, the window offscreen EN/TR); **not yet seen on screen** |
+| `veltos-clock` (new): Clock in the Windows 11 layout (Focus sessions, Timer with progress rings, Alarm cards with repeat days and snooze, Stopwatch with laps, World clock) and `veltos-clock-agent`, which rings alarms and finished timers while the app is closed (notification with Snooze/Dismiss, VeltOS alarm sound), and since 2026-10-22 VeltOS Calendar's reminders | Unit tests (when alarms ring, timers, file format, calendar reminders, the window offscreen EN/TR); VM (2026-10-21): an alarm rang with the app closed |
+| `veltos-calendar` (new, 2026-10-22): Calendar in the Windows 11 layout — day, work week, week, month and year views, Today and arrows, small month calendar, quick event card (name, time, all day, place, reminder) and full editor (repeat daily/weekly/monthly/yearly, description), events in one iCalendar file (`~/.local/share/veltos-calendar/calendar.ics`); reminders rung by VeltOS Clock's agent (no new resident process) | 16 unit tests (iCalendar round trip, repeats, reminders, the window offscreen EN/TR, the left pane's width); VM (2026-10-23): month view, quick card, an event saved to the file — after fixing the left pane, which took the window's width |
+| `veltos-recovery` (new, 2026-10-22): Automatic Repair — after two VeltOS starts that did not finish GRUB starts "VeltOS Recovery", a Windows 11 style screen on the frame buffer (Qt linuxfb, no graphics driver): Restart, Advanced options (Startup Repair, Safe mode, Command Prompt, Problem details, Continue, Turn off), English/Turkish; the counter cleared 10 s after the sign-in screen; a start ending in emergency/rescue mode or with a failing sign-in screen restarts the PC; persistent journal (200 MB); Safe mode starts Plasma on X11 on the frame buffer (Debian's kernel has no simpledrm) | 18 unit tests; VM (installed, UEFI, 2026-10-22 night): GRUB counted a start and the counter was cleared; a count of two started the repair screen; Advanced options, Problem details, Startup Repair (6 steps), Command Prompt (sign-in, `exit`, back), Restart and Safe mode (X11 desktop at 1024x768) worked — after fixing the options layout at 1024x768, Command Prompt (it never appeared), Safe mode (black) and the keyboard focus after a repair. Untested: Turn off, BIOS, real failures on real hardware |
 | `veltos-fluent-icons`: Fluent icons/cursors (pinned, verified; Microsoft logos removed), yellow Windows 11 folders, coloured place icons at all sizes, VeltOS "This PC" (cyan screen), Recycle Bin (glass bin with blue recycling arrows, empty/full), folder, Local Disk and Terminal icons drawn in the look of Windows 11 (`tools/draw-icons.py`, separate 16 px drawings for small sizes), thin monochrome "Close" cross, Fluent cursors as the system default pointer | Package checks; VM screenshots; `x-cursor-theme` points to Fluent-cursors (VM) |
-| `veltos-boot`: Plymouth splash, GRUB theme, hidden menu, fixed video mode (VirtualBox/Hyper-V fix), kernel titles without the Debian build suffix, keyboard layout in the initramfs, disk-encryption password screen (Inter font, Windows-like texts, box below the logo) | 22 unit tests; boot screenshots; encrypted install screenshots; quiet kernel/systemd options in the installed grub.cfg (VM) |
-| `calamares-settings-veltos`: installer with Windows 11 style side bar, buttons and controls (QML + style sheet, Kvantum for its dialogs), live welcome window (English/Türkçe switch signs the live session in again in that language, any number of times; the window comes back when the installer is closed), animated slideshow with screenshots of Start, Settings, File Explorer and the Store and feature texts in the installer's language (QML loads with Calamares' module in the VM; not yet watched during an installation), BitLocker-like encryption (unencrypted /boot, password asked by the boot screen, unlimited tries), firmware entry "VeltOS" | 21 unit tests; VM (2026-10-20, 23:05): English → Türkçe → English with the installer opened and cancelled in between; **encrypted installation tested end to end in a VM (UEFI)** on ISO 20261019-174700: install, firmware entry, boot menu, password screen (wrong and right password), sign-in, desktop — `tests/results/2026-10-19-encrypted-install-uefi/` |
+| `veltos-boot`: Plymouth splash, GRUB theme, hidden menu, fixed video mode (VirtualBox/Hyper-V fix), kernel titles without the Debian build suffix, keyboard layout in the initramfs, disk-encryption password screen (Inter font, Windows-like texts, box below the logo); since 2026-10-22 the start-up screen at the screen's resolution (detected by the installer, kept in step with the screen's setting at sign-in; architecture 2.16) and GRUB's start counting with the "VeltOS Recovery" and "VeltOS (safe graphics)" entries (only where GRUB can write its environment block) | 30 unit tests; boot screenshots; encrypted install screenshots; quiet kernel/systemd options in the installed grub.cfg (VM); VM (2026-10-22 night): the new entries and counting in the installed system's grub.cfg, counting and the recovery start (see veltos-recovery). Start-up resolution: unit tests only, **not yet seen in VirtualBox** |
+| `calamares-settings-veltos` (2026-10-23 morning): the installer in the session's light or dark theme and accent colour (`installer-theme` as the user, `start-calamares` as root with its own polkit action; QML colours from `VeltTheme.js`, C++ pages from a style sheet generated light or dark at build time); Qt Quick's software renderer where Mesa draws in software, endless animations only where shown (the hidden slideshow had kept two cores busy); side bar steps in English/Turkish switching at once; the website whole and clickable (opened as the user); Windows 11's progress ring in the middle while the first page loads, "Checking this PC…" meanwhile; Qt's own buttons in Turkish; the boot-resolution job no longer fails installations; the initramfs made after the live packages are removed and before update-grub (the ISO carries none in its squashfs; live-tools' update-initramfs wrapper does nothing from a live medium) and a `boot-check` job that stops an installation that could not start | 53 unit tests; QEMU dev VM (live, rebuilt package): light, dark with a red accent (welcome, location, keyboard, disk), the Turkish side bar, CPU 6 %; QEMU (BIOS, 2026-10-23 day): a plain installation from ISO 20261023-061442 whose system started (`systemd-analyze` 3.98 s, desktop 2.9 s after signing in; `tests/results/2026-10-23-installation-bios/`) — the ISO before it installed systems without initramfs; VirtualBox: VMs stall in NEM mode (Known gaps) |
+| `calamares-settings-veltos` (2026-10-22 night): the installer's pages in the Windows 11 setup look — VeltOS QML for welcome, location, keyboard (no Kurdish layouts), user and finished (illustrations, sliding pages; Calamares' QML modules, architecture 2.15), the partition page restyled, styled message boxes and error dialog, a new slideshow with VeltOS app screenshots; Back/Next/Cancel hidden while installing; the log only on the finished page of a failed installation; the start-up screen's resolution written for the new system (`boot-resolution` job); the VeltOS website in the side bar and the live welcome window | 31 unit tests; VM (live, 2026-10-22): every page, a full installation (about 3.5 min) to "VeltOS hazır", a deliberately failing job (VM-only test script) showing the styled error and the log box, "Restart later" closing the installer |
+| `calamares-settings-veltos` (earlier): installer with Windows 11 style side bar, buttons and controls (QML + style sheet, Kvantum for its dialogs), live welcome window (English/Türkçe switch signs the live session in again in that language, any number of times; the window comes back when the installer is closed), animated slideshow with screenshots of Start, Settings, File Explorer and the Store and feature texts in the installer's language (QML loads with Calamares' module in the VM; not yet watched during an installation), BitLocker-like encryption (unencrypted /boot, password asked by the boot screen, unlimited tries), firmware entry "VeltOS" | 21 unit tests; VM (2026-10-20, 23:05): English → Türkçe → English with the installer opened and cancelled in between; **encrypted installation tested end to end in a VM (UEFI)** on ISO 20261019-174700: install, firmware entry, boot menu, password screen (wrong and right password), sign-in, desktop — `tests/results/2026-10-19-encrypted-install-uefi/` |
 | `veltos-winapps` + `veltos-wine-addons`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/run via Wine (Wine "Light" theme), runner window in the Windows 11 App Installer layout; the file starts at once (no question, like Windows); when Bottles/Lutris/PlayOnLinux are installed it asks which to use (none is in Debian 13); the Done page scrolls its program list; App Installer icon; Windows programs told the light/dark mode at every start | 21 unit tests (incl. the window offscreen); VM (2026-10-20, 23:00): 7-Zip installer started from File Explorer without a question and installed, Start entries found; the batch console window itself not yet observed |
 | live-build configuration, verify hook (also: Explorer default, Dolphin/System Settings hidden, OS build file, taskbar widgets, installer side bar, console banner) | Passes in every ISO build |
 | VM test tools: boot test (BIOS/UEFI/Secure Boot), Windows-program test, preview, long-running VM | See `docs/testing.md` |
@@ -45,6 +49,15 @@ checks that passed.
 
 ## Not yet tested
 
+- From the 2026-10-22 night work (development log, 2026-10-23 entry), not
+  yet seen on screen: the search window's "no results" (every query also
+  gets the web search result), the text pointer over text fields (not in
+  Wayland screenshots), a real video in Media Player's full screen (only
+  a sound file; no encoder in the VM), Windows programs listed in
+  Settings (none installed in the VM), VeltOS Mail in dark mode,
+  Automatic Repair's Turn off and any BIOS machine. Everything else in
+  that list was seen in the QEMU VM on an installed system with the
+  rebuilt packages.
 - VeltOS Office (2026-10-22): the start screen in dark mode, the
   spreadsheet templates opened in Calc, the entrance animations by eye
   (screenshots show the end state), Browse from the Open page.
@@ -68,9 +81,9 @@ checks that passed.
   and dark title bars on screen, "Switch user" and "Change a password" on
   the Ctrl+Alt+Del screen.
 
-- A plain (unencrypted) installation and any BIOS installation on the
-  latest ISO; an installation in VirtualBox (the product owner's setup).
-- Secure Boot boot test and `test-winapps` on the latest ISO.
+- An installation in VirtualBox (the product owner's setup): its VMs
+  stall on this host (Known gaps). A UEFI installation after the
+  2026-10-23 installer fix.
 - Bluetooth pages with a real adapter; Display page changes on real
   monitors; accent colour in all apps (Kvantum apps keep the theme's
   blue); blur/translucency with a real GPU.
@@ -81,11 +94,9 @@ checks that passed.
 ## Known gaps
 
 - Product owner's requests still open (2026-10-20 list): taskbar transparency/colour/animations closer
-  to Windows 11; taskbar hover previews with name and description (needs
-  working captures); Windows 11 style for the grey KDE/Qt window
+  to Windows 11; Windows 11 style for the grey KDE/Qt window
   backgrounds and for inputs, spin boxes and radio buttons in KDE
-  programs; "Your info" / "Other users" pages; a busy pointer while apps
-  start; a Windows 11 style "Run/Install Windows program" for
+  programs; a busy pointer while apps start; a Windows 11 style "Run/Install Windows program" for
   Bottles — **Bottles is not in Debian 13** (Flathub only), decision
   pending.
 - Settings left out until they have a VeltOS page: VPN and wired network
@@ -98,42 +109,68 @@ checks that passed.
   Office apps GTK-styled); closing the last document shows
   LibreOffice's Start Center instead of the VeltOS start screen.
 - Product owner's requests not done yet: Control Panel pages in the
-  Settings design; Windows 11 modern Wine dialogs; installer pages; a full check that no old KDE/Qt window is left (KDE's
-  own dialogs still open from some places, e.g. "Change a password" opens
-  KDE's Users page). Sounds untested by ear.
-- Right-clicking the empty taskbar shows nothing (Windows: "Taskbar
-  settings").
+  Settings design; Windows 11 modern Wine dialogs; a full check that no
+  old KDE/Qt window is left (KDE's settings programs open VeltOS Settings
+  since 2026-10-22, and "Change a password" on the Ctrl+Alt+Del screen
+  runs `veltos-settings signin`; KDE programs' own dialogs such as About
+  remain). Sounds untested by ear.
+- Automatic Repair's Command Prompt is a text console (with VeltOS' login
+  message since 2026-10-23; the kernel line under it names Debian's kernel
+  build). Safe mode's desktop is Plasma on X11 (no other way without a DRM
+  device on Debian's kernel); VeltOS is otherwise tested on Wayland only.
+- ISO size: 2.45 GB after the lossless savings of 2026-10-23 (3.62 GB
+  before; architecture 2.23); under 2 GB would need removing a feature
+  (the product owner chose lossless only). The live initrd stays 137 MB
+  (GPU firmware needed before the root filesystem is mounted).
+- VirtualBox 7.2 with Hyper-V active on the host (Docker Desktop/WSL2:
+  NEM mode, a green turtle in VirtualBox's status bar) stopped VeltOS VMs
+  for 60-232 s at a time until a key was pressed, even in GRUB's menu
+  before Linux ran (2026-10-23; upstream VirtualBox issue 722, open, also
+  for Windows 11 guests). Nothing in the guest fixes a VM the hypervisor
+  does not run: VirtualBox without Hyper-V, Hyper-V itself or QEMU/KVM
+  avoid it. Slow starts and stutter seen in VirtualBox on such a host are
+  not VeltOS measurements.
+- Wine's DLLs are stripped of debug information by veltos-winapps:
+  `dpkg --verify` reports them as changed, and Wine's own crash
+  backtraces have no symbols.
+- VeltOS Mail: Thunderbird's own dialogs and some menu entries ("About
+  Thunderbird", update texts) keep Thunderbird's look and name; only
+  windows, pages and texts listed in `mail.css` are changed, and they
+  must be checked again with each Thunderbird ESR.
 - KDE's "open with" dialog remains for programs that open files through
   KIO without a default app (not through File Explorer). Plasma's own
-  confirmation when deleting permanently (Shift+Delete) and KDE's
-  properties dialog are still KDE's.
+  confirmation when deleting permanently (Shift+Delete) is still KDE's;
+  File Explorer and the desktop show VeltOS' Properties window
+  (2026-10-23), but a KDE program that opens KDE's properties dialog
+  itself still gets KDE's.
 - The desktop's "Sort by" and icon sizes are kept per user, but the
   desktop's Windows 11 menu offers no "Align icons to grid" (Plasma's
   folder view always uses a grid).
-- Product owner's 2026-10-22 list, still open: the "nested grey boxes"
-  around menus seen in VirtualBox (not reproduced in QEMU: every VeltOS
-  menu is a plain rounded box there — needs a screenshot from the owner's
-  VM to go on). The taskbar colour request was read as "the taskbar takes
+- Product owner's 2026-10-22 list: the "nested grey boxes" around menus
+  were Kvantum drawing a square menu body inside its rounded frame; one
+  rounded box since 2026-10-23 (VM, light and dark). The taskbar colour
+  request was read as "the taskbar takes
   on the theme and accent colour with a smooth change" (TaskbarTint); if
   the owner meant something else (e.g. Windows' "Show accent colour on
   Start and taskbar" switch), that is still to do.
 - Word's taskbar button disappears for a moment between its start screen
   closing and Writer's window appearing (QEMU frames); the start screen
   and LibreOffice are separate programs.
-- The Empty Recycle Bin and file dialogs keep a minimize button (Wayland
-  passes no window flags; Windows' dialogs have only Close).
+- Dialogs that are not modal to a parent window keep a minimize button
+  (a parentless `kdialog` question in the VM, 2026-10-23): Wayland passes
+  no window flags, so the window frame only knows "modal". Modal dialogs
+  (message boxes) have only Close, as on Windows.
 - Bottles, Lutris and PlayOnLinux are not in Debian 13 (checked
   2026-10-21); the runner offers them only when the user installs them.
   Preinstalling them would need Flatpak/Flathub in the image: the
   product owner's decision.
 - The authentication prompt is not kept above other windows (KWin on
   Wayland has no secure desktop); the prompt's details are polkit's.
-- Taskbar previews: with software rendering the tooltip shows the window
-  title only.
 - A busy pointer while a program starts is not possible with KWin on
   Wayland (it only draws the app icon, which VeltOS turned off).
-- In VMs without 3D acceleration the taskbar shows window titles instead
-  of previews (KWin's captures are garbled with llvmpipe).
+- Taskbar previews come from KWin's own thumbnails (KWin script, works
+  with software rendering, 2026-10-23); Plasma's own previews stay off in
+  VMs without 3D acceleration (its captures are garbled with llvmpipe).
 - Start: for users who signed in before 2026-10-20, File Explorer replaces
   the pinned KDE file manager at the end of the list, not in its place.
 
@@ -147,27 +184,26 @@ checks that passed.
 
 ## Next steps
 
-1. Current ISO: `veltos-0.1.0-dev-20261022-134251` (sha256 8b82b9a7…;
-   copy on the owner's Desktop as `VeltOS-20261022-134251.iso`) with the
-   2026-10-22 polish batch (development log 17:00). QEMU boot tests:
-   18/18 (UEFI) and 17/17 (BIOS), plasmashell after 18.8 s / 18.9 s,
-   portal file dialogs in plasmashell's environment again. Not yet seen
-   in VirtualBox by me: the owner attached this ISO to their own VM the
-   moment it was written, and a second VM next to theirs would have
-   slowed the test they were judging. Still to check: the installer
-   slideshow, the sounds by ear, the power key and shutdown on screen,
-   Camera with a real webcam, Mail with a real account, and dark mode;
-   the "nested grey boxes" around menus and the "LibreOffice" taskbar
-   flash in VirtualBox (not reproduced in QEMU).
-2. Disk Management (`veltos-disks`, new 2026-10-22): format, new simple
-   volume, delete and initialize worked on a blank virtio disk in the
-   live VM (development log); still to try: MBR disks with logical
-   drives, USB sticks (mount/eject), and a disk with Windows on it.
-3. Listen to the VeltOS sounds on real hardware; measure animation CPU
+1. Current ISO: `veltos-0.1.0-dev-20261023-061442` (2.45 GB, sha256
+   `9d8afa183a94975fa43db82708bb095b6e23e40a527e5733b7c01cc196d32464`;
+   copy on the owner's Desktop as `VeltOS-20261023-061442.iso`) with the
+   owner's 38 items of 2026-10-22 and the installer, start-up and size
+   work of 2026-10-23 (development log). QEMU: boot tests UEFI 19/19, BIOS
+   18/18, Secure Boot 20/20, `test-winapps` 7/7, and a BIOS installation
+   that starts (`tests/results/2026-10-23-installation-bios/`).
+   Still to see on screen: the search window's "no results", the text
+   pointer, a real video in Media Player's full screen, Windows programs
+   listed in Settings, VeltOS Mail in dark mode, Automatic Repair's Turn
+   off, Camera with a real webcam, Mail with a real account, the sounds by
+   ear, a UEFI installation with the 2026-10-23 installer.
+2. VirtualBox: on the developer host its VMs stall in NEM mode (Known
+   gaps). Check VeltOS in VirtualBox on a host without Hyper-V, or after a
+   VirtualBox release that fixes issue 722; until then judge speed and
+   smoothness in QEMU.
+3. Disk Management (`veltos-disks`, 2026-10-22): MBR disks with logical
+   drives, USB sticks (mount/eject), a disk with Windows on it.
+4. Listen to the VeltOS sounds on real hardware; measure animation CPU
    cost with software rendering.
-4. Plain and BIOS installations; the product owner reinstalls in
-   VirtualBox.
-5. Installer pages (partitions, users) in Windows 11 style.
-6. The open requests listed under "Known gaps", in the product owner's
+5. The open requests listed under "Known gaps", in the product owner's
    order.
-7. First run on real hardware.
+6. First run on real hardware.

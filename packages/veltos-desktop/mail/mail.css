@@ -22,6 +22,9 @@
     --veltos-accent: AccentColor;
     --veltos-accent-text: AccentColorText;
     --veltos-hover: rgba(0, 0, 0, 0.045);
+    /* Outlook's blue title band (below). */
+    --veltos-band: #0F6CBD;
+    --veltos-band-height: 46px;
 
     --selected-item-color: var(--veltos-accent) !important;
     --selected-item-text-color: var(--veltos-accent-text) !important;
@@ -55,6 +58,8 @@
       --veltos-text: #F2F3F7;
       --veltos-subtext: #AEB3C5;
       --veltos-hover: rgba(255, 255, 255, 0.06);
+      /* Fluent's brand background for dark themes. */
+      --veltos-band: #115EA3;
     }
   }
 
@@ -192,13 +197,19 @@
     /* Downwards only: an upward shadow drew a line between the parts. */
     box-shadow: 0 16px 24px -14px rgba(0, 0, 0, 0.16) !important;
   }
+  /* The app's icon and name above the title, as Outlook's dialog shows
+     its own. */
   #accountSetup header::before {
-    content: "";
+    content: "VeltOS Mail";
     display: block;
-    width: 48px;
-    height: 48px;
-    margin-block-end: 16px;
-    background: url("file:///usr/share/icons/.Fluent-base/scalable/apps/veltos-mail.svg") center / contain no-repeat;
+    height: 32px;
+    line-height: 32px;
+    padding-inline-start: 42px;
+    margin-block-end: 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--veltos-text);
+    background: url("file:///usr/share/icons/.Fluent-base/scalable/apps/veltos-mail.svg") left center / 32px 32px no-repeat;
   }
   #accountSetup .second-column,
   #accountSetupDescriptionSecondary {
@@ -242,8 +253,8 @@
     margin-inline: 0 !important;
     padding-inline: 0 !important;
   }
-  /* "Cancel" asks whether to go on without an account; the app is "Mail"
-     in VeltOS, not Thunderbird. */
+  /* "Cancel" asks whether to go on without an account; the app is
+     "VeltOS Mail", not Thunderbird. */
   #confirmExitDialog [data-l10n-id="exit-dialog-description"],
   #confirmExitDialog [data-l10n-id="account-setup-no-account-checkbox"] {
     font-size: 0 !important;
@@ -260,16 +271,16 @@
     display: block;
   }
   #confirmExitDialog [data-l10n-id="exit-dialog-description"]::after {
-    content: "Are you sure you want to stop adding an account? Mail works without an email account too, but most of its features need one.";
+    content: "Are you sure you want to stop adding an account? VeltOS Mail works without an email account too, but most of its features need one.";
   }
   #confirmExitDialog [data-l10n-id="account-setup-no-account-checkbox"]::after {
-    content: "Use Mail without an email account";
+    content: "Use VeltOS Mail without an email account";
   }
   :root:lang(tr) #confirmExitDialog [data-l10n-id="exit-dialog-description"]::after {
-    content: "Hesap eklemeyi bırakmak istediğinizden emin misiniz? Posta e-posta hesabı olmadan da açılır, ancak çoğu özelliği için bir hesap gerekir.";
+    content: "Hesap eklemeyi bırakmak istediğinizden emin misiniz? VeltOS Mail e-posta hesabı olmadan da açılır, ancak çoğu özelliği için bir hesap gerekir.";
   }
   :root:lang(tr) #confirmExitDialog [data-l10n-id="account-setup-no-account-checkbox"]::after {
-    content: "Postayı e-posta hesabı olmadan kullan";
+    content: "VeltOS Mail'i e-posta hesabı olmadan kullan";
   }
   /* Windows 11 fields and buttons: 4 px corners, an accent line under the
      focused field, the main button filled with the accent. */
@@ -291,5 +302,322 @@
     background-color: var(--veltos-accent) !important;
     color: var(--veltos-accent-text) !important;
     border-color: transparent !important;
+  }
+  /* Outlook's "Continue": the main button across the card, the others
+     (Cancel, and the link buttons of the later steps) under it. */
+  #accountSetup .action-buttons-container {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+  }
+  #accountSetup .action-buttons-container > aside {
+    display: flex !important;
+    justify-content: center !important;
+    margin: 0 !important;
+  }
+  #accountSetup .action-buttons-container > aside:empty,
+  #accountSetup .action-buttons-container > aside:not(:has(> button:not([hidden]))) {
+    display: none !important;
+  }
+  #accountSetup .buttons-container-last {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  #accountSetup .buttons-container-last > button {
+    width: 100% !important;
+    min-height: 36px !important;
+    margin: 0 !important;
+  }
+
+  /* --- Reading pane like Outlook's: the subject first and large, the
+     sender with a round initial in the accent colour, the actions as
+     icons on the sender's line (veltos.cfg makes "icons only" and the big
+     picture the defaults of Thunderbird's header settings). Checked
+     against aboutMessage.xhtml and messageHeader.css of Thunderbird
+     140.17 ESR. */
+  #messagepanebox, #messageHeader {
+    background-color: var(--veltos-card) !important;
+  }
+  #messageHeader {
+    padding: 18px 20px 12px !important;
+    row-gap: 8px !important;
+    border-block-end: 1px solid var(--veltos-border) !important;
+    --recipient-avatar-color: var(--veltos-accent) !important;
+    --recipient-avatar-background-color: color-mix(in srgb, var(--veltos-accent) 15%, var(--veltos-card)) !important;
+  }
+  #headerSubjectSecurityContainer {
+    order: -1 !important;
+    margin-block-end: 8px !important;
+  }
+  #messageHeader #expandedsubjectBox {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+  }
+  #messageHeader .recipient-avatar {
+    font-weight: 600 !important;
+  }
+
+  /* --- New message window like Outlook's: no menu bar (Alt shows it;
+     veltos.cfg sets that default), "Send" filled with the accent at the
+     start of the toolbar, the header on white with Windows 11 fields.
+     Checked against messengercompose.xhtml and messengercompose.css of
+     Thunderbird 140.17 ESR. */
+  #compose-toolbox, #MsgHeadersToolbar, #FormatToolbox, #FormatToolbar {
+    background-color: var(--veltos-card) !important;
+    background-image: none !important;
+  }
+  #compose-toolbox {
+    border-block-end: 1px solid var(--veltos-border) !important;
+    padding-block: 4px !important;
+  }
+  /* The hidden menu bar kept its padding, and the bottom of its labels
+     showed in it (VM, 2026-10-22). */
+  #compose-toolbar-menubar2[autohide="true"][inactive="true"] {
+    padding: 0 !important;
+    border: none !important;
+  }
+  #FormatToolbox {
+    border-block: 1px solid var(--veltos-border) !important;
+  }
+  #button-send {
+    background-color: var(--veltos-accent) !important;
+    color: var(--veltos-accent-text) !important;
+    fill: var(--veltos-accent-text) !important;
+    stroke: var(--veltos-accent-text) !important;
+    border-color: transparent !important;
+    border-radius: 4px !important;
+    padding-inline: 12px 16px !important;
+    margin-inline-end: 8px !important;
+    font-weight: 600 !important;
+  }
+  #button-send:not([disabled]):hover {
+    background-color: color-mix(in srgb, var(--veltos-accent) 88%, black) !important;
+  }
+  #button-send[disabled] {
+    opacity: 0.5 !important;
+  }
+  #button-send[disabled] > :is(.toolbarbutton-icon, .toolbarbutton-text) {
+    opacity: 1 !important;
+  }
+  .address-container, #msgSubject {
+    border-color: var(--veltos-border) !important;
+    border-radius: 4px !important;
+    min-height: 32px !important;
+  }
+  .address-container[focused="true"], #msgSubject:focus {
+    outline: none !important;
+    border-color: var(--veltos-border) !important;
+    box-shadow: inset 0 -2px 0 var(--veltos-accent) !important;
+  }
+
+  /* --- The account page (Thunderbird's "Account Central"): Outlook has
+     none, so it keeps only the account's actions and the account and
+     import buttons, without Thunderbird's story, the donation request,
+     Mozilla's links, the version and the bird watermark. The first-start
+     header names VeltOS Mail. Checked against msgAccountCentral.xhtml of
+     Thunderbird 140.17 ESR. */
+  #accountCentral {
+    background-image: none !important;
+    background-color: var(--veltos-window) !important;
+  }
+  section.account-central-section:has(> h2[data-l10n-id="about-title"]),
+  section.account-central-section:has(> h2[data-l10n-id="resources-title"]),
+  .account-central-version {
+    display: none !important;
+  }
+  #brandLogo {
+    content: url("file:///usr/share/icons/.Fluent-base/scalable/apps/veltos-mail.svg") !important;
+  }
+  .account-central-title[data-l10n-id="account-central-title"],
+  [data-l10n-id="import-paragraph2"] {
+    font-size: 0 !important;
+  }
+  .account-central-title[data-l10n-id="account-central-title"]::after {
+    content: "Welcome to VeltOS Mail";
+    font-size: 24px;
+  }
+  [data-l10n-id="import-paragraph2"]::after {
+    content: "Bring your mail, contacts, calendars and settings over from another email program.";
+    font-size: 14px;
+  }
+  :root:lang(tr) .account-central-title[data-l10n-id="account-central-title"]::after {
+    content: "VeltOS Mail'e hoş geldiniz";
+  }
+  :root:lang(tr) [data-l10n-id="import-paragraph2"]::after {
+    content: "Başka bir e-posta programındaki iletilerinizi, kişilerinizi, takvimlerinizi ve ayarlarınızı VeltOS Mail'e aktarın.";
+  }
+
+  /* Tabs (shown only with more than one, mail.tabs.autoHide) in
+     Windows 11's look: the open tab joins the page under it, no
+     coloured line on top. */
+  #tabs-toolbar {
+    background: color-mix(in srgb, var(--veltos-window) 94%, #000000) !important;
+    box-shadow: none !important;
+    padding-block-start: 6px !important;
+    padding-inline: 8px !important;
+  }
+  .tabmail-tab {
+    border-radius: 8px 8px 0 0 !important;
+    margin-inline-end: 2px !important;
+  }
+  .tabmail-tab[selected="true"] {
+    background-color: var(--veltos-window) !important;
+    box-shadow: none !important;
+  }
+  .tabmail-tab:not([selected="true"]):hover {
+    background-color: var(--veltos-hover) !important;
+  }
+  .tab-line {
+    display: none !important;
+  }
+
+  /* --- Outlook's title band and simplified ribbon (product owner,
+     2026-10-22: "like Microsoft Outlook"). The toolbar's items wrap into
+     two rows: the search box alone in Outlook's blue band at the top, with
+     "VeltOS Mail" on its left and the window buttons on its right, and the
+     mail buttons on white below it, like Outlook's ribbon: New mail
+     (filled), Delete, Archive, Report, Move to, Reply, Reply all, Forward,
+     Read/Unread, Tag (the default set of veltos.cfg; the user can change
+     it with "Customize"). White window glyphs: mail-header.css. Checked
+     against unifiedToolbar.css and search-bar.css of Thunderbird 140. */
+  #unifiedToolbarContainer {
+    background: linear-gradient(to bottom, var(--veltos-band) 0 var(--veltos-band-height),
+                                var(--veltos-card) var(--veltos-band-height)) !important;
+    align-items: flex-start !important;
+    position: relative !important;
+  }
+  unified-toolbar {
+    border-block-end: 1px solid var(--veltos-border) !important;
+  }
+  /* The band runs over the app bar too, as in Outlook, whose app bar
+     starts below it. */
+  #spacesToolbar {
+    background-image: linear-gradient(to bottom, var(--veltos-band) 0 var(--veltos-band-height),
+                                      transparent var(--veltos-band-height)) !important;
+    padding-block-start: calc(var(--veltos-band-height) + var(--spaces-padding)) !important;
+  }
+  #unifiedToolbarContainer::before {
+    content: "VeltOS Mail";
+    position: absolute;
+    inset-inline-start: 16px;
+    top: 0;
+    height: var(--veltos-band-height);
+    line-height: var(--veltos-band-height);
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* The app bar's button takes the brand's place when the app bar is
+     hidden. */
+  #unifiedToolbarContainer:has(#spacesPinnedButton:not([hidden]))::before {
+    display: none;
+  }
+  #unifiedToolbar {
+    align-items: flex-start !important;
+    padding-block: 0 !important;
+    background: transparent !important;
+  }
+  #unifiedToolbarContent {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    padding-inline: 8px 3px !important;
+    padding-block: 0 !important;
+    row-gap: 0 !important;
+  }
+  /* Row 1: the search box, centred in the band. */
+  #unifiedToolbarContent > li:has(global-search-bar) {
+    order: -1 !important;
+    flex: 1 0 100% !important;
+    height: var(--veltos-band-height) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 !important;
+  }
+  /* Row 2 has height only while it has buttons (the account setup and
+     other tabs have none). */
+  #unifiedToolbarContent > li:not(:has(global-search-bar)) {
+    margin-block: 6px !important;
+  }
+  #unifiedToolbarContent global-search-bar {
+    width: min(640px, 50vw) !important;
+    max-width: none !important;
+    height: 32px !important;
+    --search-bar-background: var(--veltos-card);
+    --search-bar-focus-background: var(--veltos-card);
+    --search-bar-color: var(--veltos-text);
+    --search-bar-border-color: transparent;
+    --search-field-placeholder: var(--veltos-subtext);
+    --search-focus-outline-color: #FFFFFF;
+    --button-border-radius: 6px;
+  }
+  #unifiedToolbarContent > .spacer {
+    display: none !important;
+  }
+  /* The window buttons and the app menu sit in the band's right end, out
+     of the toolbar's flow, so the ribbon below has the window's whole
+     width. The window buttons' width (--veltos-caption-width) comes from
+     mail-header.css. */
+  #unifiedToolbarContainer > .titlebar-buttonbox-container {
+    position: absolute !important;
+    top: 0 !important;
+    inset-inline-end: 0 !important;
+    height: var(--veltos-band-height) !important;
+    z-index: 1;
+  }
+  #button-appmenu {
+    position: absolute !important;
+    top: 0 !important;
+    inset-inline-end: var(--veltos-caption-width, 0px) !important;
+    height: var(--veltos-band-height) !important;
+    margin: 0 !important;
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+    --button-hover-background-color: rgba(255, 255, 255, 0.14);
+    z-index: 1;
+  }
+  :root:is(:not([customtitlebar]), [sizemode="fullscreen"]) #button-appmenu {
+    inset-inline-end: 0 !important;
+  }
+  #button-appmenu:hover {
+    background-color: rgba(255, 255, 255, 0.14) !important;
+  }
+  /* Row 2: the ribbon's buttons, flat with their labels, like Outlook's. */
+  #unifiedToolbarContent .unified-toolbar-button {
+    border: none !important;
+    border-radius: 4px !important;
+    min-height: 32px !important;
+    padding-inline: 8px !important;
+    background-color: transparent !important;
+    color: var(--veltos-text) !important;
+    fill: var(--veltos-accent) !important;
+    stroke: var(--veltos-accent) !important;
+  }
+  #unifiedToolbarContent .unified-toolbar-button:not([disabled]):hover {
+    background-color: var(--veltos-hover) !important;
+  }
+  /* "New mail": Outlook's filled button at the start of the ribbon. */
+  #unifiedToolbarContent li[item-id="write-message"] .unified-toolbar-button {
+    background-color: var(--veltos-band) !important;
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+    font-weight: 600 !important;
+    padding-inline: 12px 14px !important;
+    margin-inline-end: 8px !important;
+  }
+  #unifiedToolbarContent li[item-id="write-message"] .unified-toolbar-button:not([disabled]):hover {
+    background-color: color-mix(in srgb, var(--veltos-band) 85%, black) !important;
+  }
+  /* The folder pane's own "New message" and "Get messages" repeat the
+     ribbon's. */
+  #folderPaneWriteMessage, #folderPaneGetMessages {
+    display: none !important;
   }
 }

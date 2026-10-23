@@ -5,4 +5,11 @@ if [ "$1" = remove ] || [ "$1" = deconfigure ]; then
     update-alternatives --remove x-cursor-theme /usr/share/icons/Fluent-cursors/cursor.theme
 fi
 
+# The padded program icons made by the postinst (not files of the package).
+if [ "$1" = remove ]; then
+    for f in /usr/share/icons/.Fluent-base/scalable/apps/firefox-esr.svg              /usr/share/icons/.Fluent-base/scalable/apps/firefox.svg; do
+        if [ -f "$f" ] && grep -q 'pad-app-icon' "$f"; then rm -f "$f"; fi
+    done
+fi
+
 #DEBHELPER#

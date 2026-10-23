@@ -1,7 +1,11 @@
 /*
     VeltOS Show desktop: the narrow area at the right end of the Windows 11
-    taskbar, after the clock. Clicking it shows the desktop; clicking again
-    brings the windows back (KWin's "Show Desktop", the same as Meta+D).
+    taskbar, after the clock, reaching the screen's edge (the panel
+    containment override drops Plasma's margin there). Clicking it shows
+    the desktop; clicking again brings the windows back (KWin's "Show
+    Desktop", the same as Meta+D). Settings > Personalization > Taskbar can
+    switch it off ("Select the far corner of the taskbar to show the
+    desktop"): a narrow empty end remains.
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -29,26 +33,35 @@ PlasmoidItem {
     }
 
     preferredRepresentation: fullRepresentation
-    toolTipMainText: i18n("Show desktop")
+    toolTipMainText: Plasmoid.configuration.enabled ? i18n("Show desktop") : ""
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
 
     fullRepresentation: MouseArea {
         id: area
 
         readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
-        Layout.minimumWidth: vertical ? -1 : Kirigami.Units.smallSpacing * 3
-        Layout.maximumWidth: vertical ? -1 : Kirigami.Units.smallSpacing * 3
-        Layout.minimumHeight: vertical ? Kirigami.Units.smallSpacing * 3 : -1
-        Layout.maximumHeight: vertical ? Kirigami.Units.smallSpacing * 3 : -1
+        readonly property bool active: Plasmoid.configuration.enabled
+        // A little wider than before (product owner, 2026-10-22), as easy
+        // to hit as Windows 11's corner.
+        readonly property int size: active ? Kirigami.Units.smallSpacing * 4 : Kirigami.Units.smallSpacing * 2
+        Layout.minimumWidth: vertical ? -1 : size
+        Layout.maximumWidth: vertical ? -1 : size
+        Layout.minimumHeight: vertical ? size : -1
+        Layout.maximumHeight: vertical ? size : -1
         Layout.fillHeight: !vertical
         Layout.fillWidth: vertical
-        hoverEnabled: true
-        onClicked: root.toggleDesktop()
+        hoverEnabled: active
+        onClicked: {
+            if (active) {
+                root.toggleDesktop();
+            }
+        }
         Accessible.role: Accessible.Button
         Accessible.name: i18n("Show desktop")
 
         // A thin line on the side facing the clock, as on Windows 11.
         Rectangle {
+            visible: area.active
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             width: area.vertical ? parent.width * 0.6 : 1
@@ -59,7 +72,7 @@ PlasmoidItem {
         Rectangle {
             anchors.fill: parent
             color: Kirigami.Theme.textColor
-            opacity: area.pressed ? 0.12 : (area.containsMouse ? 0.06 : 0)
+            opacity: !area.active ? 0 : area.pressed ? 0.12 : (area.containsMouse ? 0.06 : 0)
         }
     }
 }

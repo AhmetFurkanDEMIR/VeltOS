@@ -8,12 +8,14 @@ Changing one's own password runs `passwd` in a pseudo terminal, like
 Windows asks for the current password first.
 """
 
+import json
 import os
 import pwd
 import re
 import select
 import shutil
 import subprocess
+import sys
 import time
 
 from .devices import run
@@ -21,7 +23,7 @@ from .devices import run
 BUS = "org.freedesktop.Accounts"
 ROOT = "/org/freedesktop/Accounts"
 USER_IFACE = "org.freedesktop.Accounts.User"
-USERNAME_RE = re.compile(r"[a-z_][a-z0-9_-]{0,30}")
+USERNAME_RE = re.compile(r"[a-z_][a-z0-9_-]{0,31}")
 ADMIN_GROUPS = ("sudo",)
 # Shown for accounts without a picture (veltos-desktop; SDDM shows it too).
 DEFAULT_PICTURE = "/usr/share/veltos/faces/default.png"
@@ -29,6 +31,21 @@ DEFAULT_PICTURE = "/usr/share/veltos/faces/default.png"
 
 def gdbus(*args):
     return ["gdbus", "call", "--system", "--dest", BUS, *args]
+
+
+# How long a call that needs the administrator password may wait for it
+# (seconds): the person types it into the VeltOS prompt meanwhile.
+AUTH_TIMEOUT = 300
+
+
+def gdbus_admin(*args):
+    """A call that polkit may have to authorize. `--interactive` sets the
+    D-Bus flag that lets AccountsService ask for the password (the VeltOS
+    prompt); without it, an installed system answered "Authentication is
+    required" at once and adding a user failed (the live system allows
+    everything, so it worked there; VM 2026-10-22). gdbus' own timeout
+    (25 s by default) would also end the call while the person types."""
+    return ["gdbus", "call", "--system", "--interactive", "--timeout", str(AUTH_TIMEOUT), "--dest", BUS, *args]
 
 
 def gvariant_string(text):
@@ -119,8 +136,8 @@ class Accounts:
         path = self._path(self.me)
         if not name or not path or len(name) > 100:
             return False
-        return self.run(gdbus("--object-path", path, "--method", f"{USER_IFACE}.SetRealName",
-                              gvariant_string(name)))[0] == 0
+        return self.run(gdbus_admin("--object-path", path, "--method", f"{USER_IFACE}.SetRealName",
+                                    gvariant_string(name)), timeout=AUTH_TIMEOUT + 10)[0] == 0
 
     def set_picture(self, image):
         """AccountsService copies the picture; Plasma and the sign-in screen
@@ -128,27 +145,41 @@ class Accounts:
         path = self._path(self.me)
         if not path or not os.path.isfile(image):
             return False
-        return self.run(gdbus("--object-path", path, "--method", f"{USER_IFACE}.SetIconFile",
-                              gvariant_string(image)))[0] == 0
+        return self.run(gdbus_admin("--object-path", path, "--method", f"{USER_IFACE}.SetIconFile",
+                                    gvariant_string(image)), timeout=AUTH_TIMEOUT + 10)[0] == 0
 
     def add_user(self, username, real_name, password, admin):
         """Creates the account (polkit asks for the administrator password)
-        and sets its password. Returns "" or an error key."""
-        if not USERNAME_RE.fullmatch(username):
+        and sets its password. Returns "" or an error key.
+
+        Like Windows, the name may be typed as a person writes it ("Ayşe
+        Yılmaz", "Ahmet"): the login name is made from it (login_name) and
+        the typed name is kept as the full name. Only a name with nothing
+        usable in it is refused."""
+        typed = username.strip()
+        username = login_name(typed)
+        if not username:
             return "bad_username"
+        if not real_name.strip() and typed != username:
+            real_name = typed
         if len(password) < 1:
             return "password_missing"
-        code, _ = self.run(gdbus("--object-path", ROOT, "--method", f"{BUS}.CreateUser",
-                                 username, gvariant_string(real_name.strip() or username),
-                                 "1" if admin else "0"), timeout=300)
-        if code != 0:
-            return "add_failed"
+        if self._path(username) or user_exists(username):
+            return "user_exists"
         hashed = hash_password(password)
-        path = self._path(username)
-        if not hashed or not path:
+        if not hashed:
             return "add_failed"
-        code, _ = self.run(gdbus("--object-path", path, "--method", f"{USER_IFACE}.SetPassword",
-                                 gvariant_string(hashed), "''"), timeout=300)
+        # Both calls in one process (admin_calls): one password prompt, as
+        # on Windows; the hash goes through standard input, not the command
+        # line.
+        calls = [
+            {"path": ROOT, "interface": BUS, "method": "CreateUser", "signature": "(ssi)",
+             "args": [username, real_name.strip() or username, 1 if admin else 0]},
+            {"path": "@created", "interface": USER_IFACE, "method": "SetPassword", "signature": "(ss)",
+             "args": [hashed, ""]},
+        ]
+        code, _ = self.run([sys.executable or "python3", "-m", "veltos_settings.admin_calls"],
+                           timeout=AUTH_TIMEOUT + 10, input=json.dumps(calls))
         return "" if code == 0 else "add_failed"
 
     def remove_user(self, username, remove_files=True):
@@ -156,16 +187,44 @@ class Accounts:
         user = users.get(username)
         if user is None or user["me"]:
             return False
-        return self.run(gdbus("--object-path", ROOT, "--method", f"{BUS}.DeleteUser",
-                              str(user["uid"]), "true" if remove_files else "false"), timeout=300)[0] == 0
+        return self.run(gdbus_admin("--object-path", ROOT, "--method", f"{BUS}.DeleteUser",
+                                    str(user["uid"]), "true" if remove_files else "false"),
+                        timeout=AUTH_TIMEOUT + 10)[0] == 0
 
     def set_admin(self, username, admin):
         users = {u["name"]: u for u in self.users()}
         user = users.get(username)
         if user is None or user["me"] or not user["path"]:
             return False
-        return self.run(gdbus("--object-path", user["path"], "--method", f"{USER_IFACE}.SetAccountType",
-                              "1" if admin else "0"), timeout=300)[0] == 0
+        return self.run(gdbus_admin("--object-path", user["path"], "--method", f"{USER_IFACE}.SetAccountType",
+                                    "1" if admin else "0"), timeout=AUTH_TIMEOUT + 10)[0] == 0
+
+
+# Turkish (and a few other) letters a login name cannot hold, written the
+# way people spell them in plain Latin letters.
+LOGIN_LETTERS = str.maketrans({"ı": "i", "İ": "i", "ş": "s", "Ş": "s", "ğ": "g", "Ğ": "g", "ç": "c", "Ç": "c",
+                               "ö": "o", "Ö": "o", "ü": "u", "Ü": "u", "ß": "ss", "æ": "ae", "ø": "o", "å": "a"})
+
+
+def login_name(text):
+    """The login name for what a person typed as the user name: lower case,
+    Turkish letters in Latin ones, no spaces or other signs, starting with a
+    letter, at most 32 characters ("Ayşe Yılmaz" -> "ayseyilmaz"). "" when
+    nothing usable is left."""
+    import unicodedata
+    text = unicodedata.normalize("NFKD", text.strip().translate(LOGIN_LETTERS))
+    text = "".join(c for c in text if not unicodedata.combining(c)).lower()
+    text = re.sub(r"[^a-z0-9_-]", "", text)
+    text = re.sub(r"^[^a-z_]+", "", text)[:32]
+    return text if USERNAME_RE.fullmatch(text) else ""
+
+
+def user_exists(name):
+    try:
+        pwd.getpwnam(name)
+    except KeyError:
+        return False
+    return True
 
 
 def hash_password(password):

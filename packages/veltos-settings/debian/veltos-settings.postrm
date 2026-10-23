@@ -4,7 +4,13 @@ set -e
 #DEBHELPER#
 
 if [ "$1" = remove ] || [ "$1" = abort-install ] || [ "$1" = disappear ]; then
-    for f in /usr/bin/systemsettings /usr/bin/kcmshell6 /usr/bin/kinfocenter; do
+    for f in /usr/bin/systemsettings /usr/bin/kcmshell6 /usr/bin/kinfocenter /usr/bin/keditfiletype; do
+        if dpkg-statoverride --list "$f.kde" >/dev/null 2>&1; then
+            dpkg-statoverride --remove "$f.kde" || true
+            [ -e "$f.kde" ] && chmod 755 "$f.kde" || true
+        fi
+    done
+    for f in /usr/bin/systemsettings /usr/bin/kcmshell6 /usr/bin/kinfocenter /usr/bin/keditfiletype; do
         dpkg-divert --package veltos-settings --remove --rename --divert "$f.kde" "$f"
     done
 fi

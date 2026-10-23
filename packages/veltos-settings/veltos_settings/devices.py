@@ -24,12 +24,17 @@ except ImportError:  # pragma: no cover - Python < 3.9
     ZoneInfo = None
 
 
-def run(command, timeout=20):
+def run(command, timeout=20, input=None):
     """Run a command; return (exit code, stdout). Never raises for missing
-    tools or timeouts: Settings must keep working on any machine."""
+    tools or timeouts: Settings must keep working on any machine. `input`
+    goes to its standard input (data that must not show in `ps`)."""
     try:
-        result = subprocess.run(command, capture_output=True, text=True, timeout=timeout,
-                                stdin=subprocess.DEVNULL)
+        if input is None:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=timeout,
+                                    stdin=subprocess.DEVNULL)
+        else:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=timeout,
+                                    input=input)
         return result.returncode, result.stdout
     except (OSError, subprocess.TimeoutExpired):
         return 127, ""

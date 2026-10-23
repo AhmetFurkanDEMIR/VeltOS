@@ -1,0 +1,11 @@
+[Unit]
+Description=VeltOS: sign-in screen on X11 when there is no graphics driver
+Documentation=file:///usr/share/doc/veltos-recovery/README.md
+# Pulled in and ordered by the sddm drop-in of veltos-recovery; after
+# Plymouth, whose console mode it resets at a start without a driver.
+After=local-fs.target plymouth-quit.service plymouth-quit-wait.service
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/veltos-recovery/safe-graphics

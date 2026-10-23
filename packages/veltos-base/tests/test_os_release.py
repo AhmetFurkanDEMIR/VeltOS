@@ -28,6 +28,11 @@ class OsReleaseTests(unittest.TestCase):
         self.assertEqual(self.fields["ID_LIKE"], "debian")
         self.assertEqual(self.fields["NAME"], "VeltOS")
 
+    def test_links_to_the_veltos_website(self):
+        # Product owner, 2026-10-22: the operating system's site.
+        self.assertEqual(self.fields["HOME_URL"], "https://veltos.ahmetfurkandemir.com/")
+        self.assertEqual(self.fields["SUPPORT_URL"], "https://veltos.ahmetfurkandemir.com/")
+
     def test_keeps_debian_codename_for_third_party_repos(self):
         self.assertEqual(self.fields["VERSION_CODENAME"], "trixie")
 
@@ -53,6 +58,18 @@ class LoginBannerTests(unittest.TestCase):
     def test_banners_follow_the_version(self):
         version = parse_os_release((PKG / "os-release").read_text())["VERSION_ID"]
         self.assertIn(f"VeltOS {version} ", (PKG / "issue").read_text())
+
+    def test_message_after_signing_in(self):
+        # Replaces Debian's /etc/motd text (keeping its licence notice) only
+        # while it is unchanged; removal brings Debian's back.
+        motd = (PKG / "motd").read_text()
+        self.assertIn("VeltOS comes with ABSOLUTELY NO WARRANTY", motd)
+        self.assertIn("/usr/share/doc/*/copyright", motd)
+        self.assertNotIn("Debian", motd)
+        postinst = (PKG / "debian/veltos-base.postinst").read_text()
+        self.assertIn("cmp -s /etc/motd /usr/share/base-files/motd", postinst)
+        postrm = (PKG / "debian/veltos-base.postrm").read_text()
+        self.assertIn("install -m 644 /usr/share/base-files/motd /etc/motd", postrm)
 
 
 if __name__ == "__main__":

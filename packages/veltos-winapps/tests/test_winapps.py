@@ -151,6 +151,43 @@ class ShortcutTests(unittest.TestCase):
         self.assertEqual([e["name"] for e in found], ["Foo"])
 
 
+class ProgramListTests(unittest.TestCase):
+    """Settings > Apps lists the installed Windows programs from the
+    registry files, without starting Wine."""
+
+    def setUp(self):
+        from veltos_winapps import programs
+        self.programs = programs
+        self.root = Path(tempfile.mkdtemp())
+        self.env = winenv.Environment(self.root)
+        self.env.prefix.mkdir(parents=True)
+        data = Path(__file__).resolve().parent / "data" / "system.reg"
+        (self.env.prefix / "system.reg").write_bytes(data.read_bytes())
+        icon = self.env.prefix / "drive_c" / "Program Files" / "7-Zip" / "7zFM.exe"
+        icon.parent.mkdir(parents=True)
+        icon.write_bytes(b"MZ")
+
+    def test_lists_the_programs_users_installed(self):
+        found = self.programs.installed_programs(self.env)
+        self.assertEqual([p["key"] for p in found], ["Notepad++", "7-Zip"])     # newest first
+        notepad, seven = found
+        self.assertEqual(notepad["name"], "Notepad++ (32-bit) çalış")
+        self.assertEqual((notepad["publisher"], notepad["date"]), ("Notepad++ Team", "2026-10-22"))
+        self.assertEqual((seven["version"], seven["sizeKb"]), ("23.01", 0x16A8))
+        self.assertEqual(Path(seven["icon"]).parts[-4:], ("drive_c", "Program Files", "7-Zip", "7zFM.exe"))
+        self.assertEqual(notepad["icon"], "")
+
+    def test_no_environment_no_programs(self):
+        self.assertEqual(self.programs.installed_programs(winenv.Environment(self.root / "none")), [])
+
+    def test_uninstall_runs_the_programs_own_uninstaller(self):
+        command = self.programs.uninstall_command("7-Zip")
+        self.assertEqual(command[:4], ["sh", "-c", '"$1" uninstaller --remove "$2"; "$3" -w', "sh"])
+        self.assertEqual(command[5], "7-Zip")
+        self.assertIsNone(self.programs.uninstall_command("a\\b"))
+        self.assertIsNone(self.programs.uninstall_command(""))
+
+
 class StringTests(unittest.TestCase):
     def test_turkish_has_every_key(self):
         self.assertEqual(set(strings.TEXTS["tr"]), set(strings.TEXTS["en"]))
@@ -160,6 +197,54 @@ class StringTests(unittest.TestCase):
         for key, english in strings.TEXTS["en"].items():
             self.assertEqual(sorted(re.findall(r"{\w+}", english)),
                              sorted(re.findall(r"{\w+}", strings.TEXTS["tr"][key])), key)
+
+
+class StripWineDllsTests(unittest.TestCase):
+    """bin/strip-wine-dlls with stand-ins for MinGW's strip."""
+
+    def setUp(self):
+        import shutil
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.log = self.tmp / "stripped"
+        tools = self.tmp / "bin"
+        tools.mkdir()
+        tool = tools / "x86_64-w64-mingw32-strip"
+        tool.write_text(f'#!/bin/sh\nfor f in "$@"; do case "$f" in -*) ;; *) echo "$f" >> "{self.log}" ;; esac; done\n')
+        tool.chmod(0o755)
+        self.dlls = self.tmp / "x86_64-windows"
+        self.dlls.mkdir()
+        for name in ("kernel32.dll", "notepad.exe", "WINSPOOL.DRV", "stdole2.tlb", "readme.txt"):
+            (self.dlls / name).write_bytes(b"MZ")
+        self.env = {"PATH": f"{tools}:/usr/bin:/bin",
+                    "VELTOS_WINE_DLL_DIRS": f"{self.dlls}:x86_64-w64-mingw32-strip "
+                                            f"{self.tmp / 'i386-windows'}:i686-w64-mingw32-strip"}
+
+    def run_strip(self):
+        import subprocess
+        script = Path(__file__).resolve().parent.parent / "bin/strip-wine-dlls"
+        return subprocess.run(["sh", str(script)], env=self.env, capture_output=True, text=True)
+
+    def test_only_windows_programs_and_libraries(self):
+        result = self.run_strip()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        stripped = sorted(Path(line).name for line in self.log.read_text().splitlines())
+        self.assertEqual(stripped, ["WINSPOOL.DRV", "kernel32.dll", "notepad.exe", "stdole2.tlb"])
+
+    def test_missing_tool_or_folder_changes_nothing(self):
+        (self.tmp / "i386-windows").mkdir()
+        self.env["PATH"] = "/usr/bin:/bin"
+        result = self.run_strip()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(self.log.exists())
+        self.assertIn("is missing", result.stdout)
+
+    def test_runs_when_wine_changes(self):
+        debian = Path(__file__).resolve().parent.parent / "debian"
+        triggers = (debian / "veltos-winapps.triggers").read_text().split()
+        self.assertIn("/usr/lib/x86_64-linux-gnu/wine/x86_64-windows", triggers)
+        self.assertIn("/usr/lib/i386-linux-gnu/wine/i386-windows", triggers)
+        self.assertIn("configure|triggered)", (debian / "veltos-winapps.postinst").read_text())
 
 
 if __name__ == "__main__":

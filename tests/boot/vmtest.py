@@ -238,6 +238,20 @@ def run_checks(args, report, qmp, agent):
     # Measurements (live session; see docs/testing.md for caveats).
     _, out, _ = agent.run("systemd-analyze 2>&1 | head -n1")
     report.measurements["systemd_analyze"] = out.strip()
+    _, out, _ = agent.run("systemd-analyze blame --no-pager 2>/dev/null | head -n 10")
+    report.measurements["systemd_analyze_blame_top10"] = out
+    # The image carries AppArmor's profile cache for its kernel
+    # (8500-veltos-apparmor-cache); compiling at boot took 11 s.
+    _, out, _ = agent.run("systemctl show -p ExecMainStartTimestampMonotonic,ExecMainExitTimestampMonotonic "
+                          "apparmor.service")
+    stamps = dict(line.split("=", 1) for line in out.split() if "=" in line)
+    try:
+        took = (int(stamps["ExecMainExitTimestampMonotonic"]) -
+                int(stamps["ExecMainStartTimestampMonotonic"])) / 1e6
+    except (KeyError, ValueError):
+        took = None
+    report.check("AppArmor profiles loaded from the build-time cache",
+                 took is not None and 0 <= took < 3, f"apparmor.service took {took} s")
     _, out, _ = agent.run("free -m")
     report.measurements["free_m"] = out
     _, meminfo, _ = agent.run("grep -E '^(MemTotal|MemAvailable|Shmem|Cached):' /proc/meminfo")

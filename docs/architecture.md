@@ -504,8 +504,14 @@ firmware updates yet; the curated lists are package names in the code.
 - Boot splash: Plymouth `veltos` theme (`veltos-boot`): logo with a dot
   spinner on near-black, like Windows; GRUB theme and `GRUB_DISTRIBUTOR=VeltOS`
   on installed systems.
-- SquashFS: zstd level 15 instead of xz — slightly larger ISO but much faster
-  decompression, which shortens live boot and application start-up.
+- SquashFS: zstd instead of xz — a larger ISO but much faster
+  decompression, which shortens live boot, application start-up and the
+  installation's unpacking. Since 2026-10-23 level 19 with 1 MiB blocks
+  (`MKSQUASHFS_OPTIONS="-b 1M"`, build-iso.sh): 11 % smaller than level 15
+  with 128 KiB blocks and unpacking as fast (measured on 3.9 GB of the
+  image: 1372 → 1220 MB, 3 s to unpack either way); xz would save 20 % but
+  unpack twice as slowly, and the product owner chose "lossless only" for
+  the ISO size (see 2.23).
 
 ### 2.6 Build system
 
@@ -698,6 +704,266 @@ Snapshot-based rollback (e.g. Btrfs + snapper) is a candidate to evaluate.
   UDisks2 already is that helper).
 - No daemon: the window re-reads UDisks2 every 5 s only while it is
   open, and after each action.
+
+### 2.15 Installer pages: Calamares' QML modules with VeltOS QML (2026-10-22)
+
+- The product owner wants every installer step in the Windows 11 setup
+  look, with animations, and the log only when a step fails. Debian's
+  Calamares 3.3.14 ships QML variants of the welcome, location, keyboard,
+  users and finished steps (`welcomeq`, `localeq`, `keyboardq`, `usersq`,
+  `finishedq`); with `qmlSearch: both` Calamares loads
+  `<branding>/<module>.qml`, so VeltOS writes those pages itself
+  (illustration on the left, question and answers on the right, sliding
+  page changes; shared parts `VeltPage`/`VeltList`/`VeltField`/
+  `VeltButton`/`VeltToggle`/`VeltInfoBar`) and binds them to the modules'
+  own `config` objects. The modules' logic (locale lists, keyboard
+  preview, password rules, writing the configuration) stays Calamares'.
+  The partition step has no QML variant and stays Calamares' C++ page,
+  restyled by the branding style sheet (Windows-like texts, no
+  partition-table jargon, VeltOS disk picture).
+- While installing, Back/Next/Cancel are hidden
+  (`hide-back-and-next-during-exec`, `disable-cancel-during-exec`) and
+  the slideshow (`show.qml`, screenshots of VeltOS apps) runs; the
+  finished page shows the failing step's message and details in a
+  terminal-style box only when the job queue failed (`config.failed`),
+  otherwise a "ready" page. Calamares' error dialog has no parent and
+  so no branding style sheet: `install-veltos` passes the style sheet to
+  Qt itself (`-stylesheet`), which styles every window of the process.
+- Each QML step has its own engine and only the slideshow is
+  retranslated when the language changes, so the pages pick their text
+  each time they are shown (`VeltPage.t()`), not at load time. The
+  installer runs with `-style kvantum`; the pages use
+  `QtQuick.Controls.Basic` so Qt does not look for a QML style of that
+  name.
+- Alternatives: a VeltOS installer of its own (partitioning, bootloader
+  and user setup are exactly what Calamares already does safely);
+  patching Calamares' C++ pages (a fork to carry). Trade-off: the
+  partition page keeps Calamares' structure.
+
+### 2.16 Start-up screen resolution (2026-10-22)
+
+- GRUB drew the boot menu and passed Linux a small mode, so the start-up
+  screen was small. `boot-resolution` (veltos-boot) writes
+  `GRUB_GFXMODE=<mode>,1024x768,800x600,auto` to
+  `/etc/default/grub.d/veltos_resolution.cfg`; with
+  `GRUB_GFXPAYLOAD_LINUX=keep` the splash is drawn at that mode too.
+- At installation a Calamares job (`boot-resolution` module, before the
+  bootloader step) takes the screen's preferred mode from the kernel's DRM
+  connectors (built-in panel first) and writes it into the target. At
+  each sign-in a user service (`veltos-boot-resolution.service`) reads the
+  mode the primary screen is set to (`kscreen-doctor -j`) and, when it
+  differs, has the root helper rewrite the file and run `update-grub`
+  (`pkexec`; polkit action `org.veltos.boot.resolution`, allowed for the
+  active local user without a password; `--root` is refused under
+  pkexec). Live media are left alone.
+- Risk: VirtualBox with Hyper-V stopped with a triple fault when GRUB
+  chose `auto` on BIOS (AGENTS.md). The list puts the detected mode
+  first and safe modes before `auto`; it must be checked in VirtualBox
+  BIOS before relying on it there.
+
+### 2.17 Start-up and sign-in time (2026-10-22)
+
+- Boot: Debian compiles every AppArmor profile at boot when no cache for
+  the running kernel's feature set exists (11 s in the VM). The image
+  ships the cache: hook `8500-veltos-apparmor-cache` compiles it at build
+  time against the kernel features recorded from a VeltOS VM
+  (`/usr/share/veltos/apparmor/kernel-features.abi`, made with
+  `aa-features-abi -x -w`), into the same hash directory the boot would
+  use; the verify hook and the boot test (AppArmor < 3 s) check it.
+  Alternative: disabling AppArmor (less security; rejected).
+- Sign-in: xdg-desktop-portal 1.20 looks for a Lockdown backend and, as
+  KDE's has none, starts the GTK backend "as a last resort", which waits
+  for `graphical-session.target` — 25 s; and plasmashell started with the
+  portal platform theme waited for the KDE portal, which waits for
+  plasmashell. `kde-portals.conf` (veltos-explorer) sets `Lockdown=none`
+  and `Settings=kde`, and plasmashell's unit starts it with
+  `-platformtheme kde` (a Qt argument wins over the environment), so the
+  programs it launches keep the portal theme and VeltOS' file dialogs.
+  Desktop about 2 s after signing in in the VM (was about 30 s).
+
+### 2.18 Automatic Repair (2026-10-22)
+
+- Windows starts Automatic Repair after two starts that did not finish.
+  VeltOS does the same without new boot software: veltos-boot's
+  `/etc/grub.d/10_linux` counts each VeltOS start in GRUB's environment
+  block (`veltos_failed`, `save_env`); `veltos-boot-ok.service`
+  (veltos-recovery) clears the count once the sign-in screen is up; a
+  start that ends in emergency or rescue mode, or a sign-in screen that
+  keeps failing (`OnFailure=` on sddm), restarts the PC. At a count of
+  two GRUB's default becomes the "VeltOS Recovery" entry
+  (`systemd.unit=veltos-recovery.target nomodeset`), which runs the
+  repair window: PySide6/QML on Qt's `linuxfb` platform on the first
+  console, so it needs neither the compositor nor a graphics driver.
+- The window offers Restart, Startup Repair (dpkg/apt repair from the
+  disk only, free space, initramfs, GRUB, failed units — no network),
+  Safe mode (a one-time `grub-reboot` into the entry with `nomodeset`),
+  Command Prompt (the window closes and a sign-in opens on the next
+  console: while Qt draws on the frame buffer its console is in graphics
+  mode, and Linux ignores console switches then), the last start's
+  problems (the journal is kept on disk, at most 200 MB) and Turn off,
+  in English and Turkish.
+- Safe mode needs X11: Debian's kernel has no simpledrm, so a start with
+  `nomodeset` has only the firmware's frame buffer (efifb/vesafb) and no
+  DRM device, and KWin (Wayland) cannot start. `veltos-safe-graphics`
+  switches SDDM to X11 for such starts only and the VeltOS sign-in screen
+  then starts Plasma on X11 (Xorg's fbdev driver); every start with a
+  graphics driver gets Wayland again.
+- GRUB can write its environment block only on plain file systems:
+  `10_linux` adds the counting only when `/boot/grub` is on one
+  (`grub-probe` file system and abstraction checks); on Btrfs, LVM, RAID
+  or encrypted `/boot` VeltOS starts without it (no false repair loops).
+  Alternatives: systemd-boot's boot counting (`boot-complete.target`,
+  needs systemd-boot and UEFI; VeltOS uses GRUB for BIOS too); a repair
+  mode inside the Plasma session (cannot help when the session is what
+  fails).
+
+### 2.19 Taskbar window previews from KWin (2026-10-22)
+
+- Plasma's window tooltips capture windows through the screen-cast
+  service, which gives garbled pictures with software rendering (most
+  VMs), and they do not look like Windows 11's cards. A KWin script
+  (`kwin/scripts/veltostaskbarpreview`, QML, KWin's public API only)
+  draws the cards itself with `WindowThumbnail`, which works with every
+  renderer: icon, title, close button, live picture, a click switches,
+  pointing at a card for a moment shows that window alone (Peek: the
+  other windows fade; KWin's Highlight effect is not reachable from a
+  script). The script finds the pointed-at button through the windows'
+  `iconGeometry`, which Plasma's task manager already reports to KWin for
+  the minimize animation; the task manager's own tooltips are off for
+  running apps.
+- Notification pop-ups slide in from the right like Windows 11 toasts:
+  a KWin effect (`kwin/effects/veltostoast`) animates the pop-up windows
+  (QML inside the pop-up cannot move its window); it takes the animation
+  over from KWin's Fading Popups.
+
+### 2.20 Desktop system icons that cannot be deleted (2026-10-22)
+
+- This PC, the Recycle Bin and the Store must stay on the desktop, also
+  against a terminal. Files in a folder the user owns can always be
+  deleted by the user, and `chattr +i` would stop root too (deleting the
+  account would fail). `veltos-desktop-guard`, a D-Bus system service
+  (`org.veltos.DesktopGuard`, activated on demand, gone after a minute),
+  makes the three launchers root's files and the user's desktop folder
+  root's with the user's group, group-writable and sticky (1775, like
+  `/tmp`): the user keeps creating and deleting their own files, but not
+  root's. It acts only on the caller's own desktop (the caller's uid from
+  the bus, folders opened one name at a time without following links).
+  File Explorer and the desktop refuse to delete, cut or rename them
+  with Windows' message.
+- Trade-off: a group-writable desktop is only private while the group is
+  the user's alone. The guard therefore acts only for a user private group
+  (Debian's default: named after the user, no other members, nobody
+  else's primary group) and leaves a shared group's desktop alone, where
+  the icons stay deletable copies (2026-10-23, with unit tests on a fake
+  account's home).
+
+### 2.21 Installed Windows programs from Wine's registry files (2026-10-22)
+
+- Settings' list of Windows programs used Wine's own uninstaller window
+  and took many seconds. Wine keeps its registry as text
+  (`system.reg`, `user.reg`), so `veltos_winapps/programs.py` reads the
+  Uninstall keys (also `Wow6432Node`) directly: name, publisher,
+  version, size, date, in milliseconds. Removing still runs the
+  program's own uninstaller through Wine (`uninstaller --remove`), as
+  Windows does.
+
+### 2.22 VeltOS Mail: Thunderbird in Outlook's look (2026-10-22)
+
+- The product owner wants the mail app "exactly like Outlook", named
+  VeltOS Mail. Writing a mail client is out of scope (IMAP, SMTP,
+  OAuth and encryption are security-critical), and Evolution is a GTK
+  program with its own layout; VeltOS keeps Debian's Thunderbird 140 ESR
+  and changes its look and defaults from outside the program:
+  - autoconfig (`/usr/lib/thunderbird/veltos.cfg`, `tools/firefox.py`)
+    registers user style sheets for every profile (`mail.css` and the
+    generated `mail-header.css`), renames window titles ("VeltOS Mail")
+    and writes Outlook's defaults into Thunderbird's own settings store
+    (xulstore) only where the user has none: the simplified ribbon
+    (New mail, Delete, Archive, Report, Move, Reply, Reply all, Forward,
+    Read/Unread, Tag), the reading pane header (big sender picture,
+    icon-only actions) and no menu bar in the new message window (Alt
+    shows it);
+  - `mail.css` draws Outlook's blue title band (name, centred search,
+    window buttons) over the toolbar wrapped into two rows, the ribbon,
+    the reading pane (subject first), the new message window, the
+    add-account card and an account page without Thunderbird's story,
+    donation request and links;
+  - default preferences: one tab without a tab bar, names only in the
+    message list.
+- Alternatives: `userChrome.css` (needs a per-profile file and a legacy
+  preference in every profile); a WebExtension theme (colours only).
+  Trade-off: the selectors are matched against Thunderbird 140.17's
+  markup and must be checked again with each ESR (they are listed with
+  the files they were checked against); menus and dialogs Thunderbird
+  builds from its brand strings ("About Thunderbird") keep the name.
+
+### 2.23 A lighter installer, a faster start, a smaller ISO (2026-10-23)
+
+The product owner's first VirtualBox installation of the 38-item ISO
+(VMSVGA, no 3D) failed at its end, stuttered, and the live start was
+slow; they also asked for an ISO under 2 GB "without giving up quality,
+graphics or animation", and chose "lossless only" when the trade-offs
+were measured (below).
+
+- **Installer load.** Measured in that VM: Calamares 140 % CPU and KWin
+  110 % on the welcome page, 99 % idle without it. Cause: Calamares loads
+  the slideshow at start, and its first slide's endless float animation
+  redrew the whole window 60 times a second behind the other pages (with
+  Mesa's software rasterizer). Fixes, keeping every animation: slides
+  animate only while the slideshow is shown, the pages' ambient motion
+  only on the shown page; where Mesa draws in software the installer runs
+  on Qt Quick's software renderer (`QT_QUICK_BACKEND=software`, which
+  repaints only what changed; our QML uses no shaders or layers) and the
+  slow motions advance 20 (zoom: 10) times a second. After: Calamares
+  24 % with the animations running (VirtualBox), 6 % (QEMU).
+  Alternative: turning the ambient animations off in VMs (rejected: the
+  owner's "no compromise on animation").
+- **Installer theme.** The installer follows the session's light/dark
+  mode and accent like the rest of VeltOS. Calamares runs as root and
+  sees nothing of the user's settings, and pkexec clears the environment,
+  so `install-veltos` reads the theme as the user (`installer-theme`)
+  and hands it to a root wrapper (`start-calamares`, its own polkit action
+  with `allow_gui`), which writes the style sheet (light or a dark twin
+  generated at build time, accent put in) and passes one argument the QML
+  reads (`veltos-theme=…`; Calamares parses only options). Alternatives:
+  reading the user's kdeglobals from root's QML (needs XMLHttpRequest file
+  access, root reading user files), a generated QML file in /etc
+  (conffile edits at run time).
+- **Live start.** `ldconfig.service` took 10.6 s of the live start in
+  VirtualBox (3.2 s in QEMU) because the image had no `/etc/.updated`
+  (systemd's ConditionNeedsUpdate): a late chroot hook runs
+  `systemd-update-done`, which also spares installed systems that work at
+  their first start. live-config ran 35 components (~90 ms each warm, 11 s
+  cold in VirtualBox); the boot line lists the 21 a VeltOS live session
+  never needs (`nocomponents=`, other display managers, GNOME/Xfce bits,
+  apport, ssh keys, X11 config, time zone).
+- **ISO size: lossless only** (3.62 GB before; each saving measured on
+  the 2026-10-23 image as its zstd-compressed share):
+  Wine's PE DLLs without DWARF debug information (235 MB; veltos-winapps
+  strips them on install and Wine updates — Debian builds them with
+  `-g`, the code is unchanged), no initramfs copy inside the squashfs
+  (127 MB; the installer makes the target's after removing the live
+  packages — live-tools' update-initramfs wrapper does nothing from a
+  live medium, which first gave installed systems without one — and
+  before update-grub; a `boot-check` job stops an installation whose
+  kernel has no initramfs in the boot menu),
+  Noto's extra weights (113 MB; regular and bold of every script stay,
+  CJK included), package changelogs (64 MB; the copyright files stay),
+  apt's package caches and source indices (63 MB; regenerated by apt),
+  firmware for Marvell network-switch chips (58 MB), KDE's unused "Next"
+  wallpaper (41 MB), an English speech model (27 MB), and zstd level 19
+  with 1 MiB blocks instead of level 15 with 128 KiB (11 %, unpacking as
+  fast). Result: 2.45 GB (2,445,506,560 bytes, ISO 20261023-045821).
+- **Rejected for size** (offered to the owner with their measured share,
+  not chosen): xz compression (−20 % more, unpacking twice as slow),
+  downloading Wine Mono/Gecko on first use (184 MB; .NET programs would
+  need the internet once), dropping translations other than English and
+  Turkish (88 MB), and anything under 2 GB, which would need removing a
+  feature (32-bit Windows programs need Wine's i386 stack: Debian 13's
+  Wine is not a WoW64 build; or Office/Mail). The initrd's 137 MB is
+  mostly AMD and NVIDIA firmware the kernel needs before the root
+  filesystem is mounted; leaving it out risks a black screen on those
+  GPUs.
 
 ## 3. Licensing and redistribution
 

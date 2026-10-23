@@ -1,0 +1,37 @@
+#!/bin/sh
+# veltos-recovery.service: show Automatic Repair on the first console.
+#
+# After two VeltOS starts that did not finish GRUB starts the recovery
+# entry by itself (veltos_failed=2 in its environment); then the screen
+# says that VeltOS couldn't start. Chosen by hand from the boot menu, it
+# opens on "Choose an option".
+set -u
+
+mode=--manual
+if grub-editenv /boot/grub/grubenv list 2>/dev/null | grep -qx 'veltos_failed=2'; then
+    mode=--automatic
+fi
+
+# The recovery entry starts Linux with nomodeset: no GPU driver, the
+# firmware's frame buffer. Qt draws on it directly, in software.
+export QT_QPA_PLATFORM=linuxfb
+export QT_QUICK_BACKEND=software
+export QML_DISABLE_DISK_CACHE=1
+export XDG_RUNTIME_DIR=/run/veltos-recovery
+
+# Command Prompt: the window ends with status 3, because Linux ignores
+# switches to another console while the window's console is in graphics
+# mode. Then a sign-in on the next free console (the window wrote the
+# hint above it), and after it the window again, on "Choose an option".
+# The new console first gets the system's console font and keyboard: the
+# kernel's own font has no "ı" or "İ" (VM, 2026-10-22).
+options=""
+while :; do
+    # shellcheck disable=SC2086
+    /usr/bin/veltos-recovery "$mode" $options
+    status=$?
+    [ "$status" -eq 3 ] || exit "$status"
+    openvt -s -w -- sh -c 'setupcon --current-tty >/dev/null 2>&1; cat /run/veltos-recovery/terminal-hint 2>/dev/null; exec /bin/login'
+    chvt 1
+    options=--options
+done

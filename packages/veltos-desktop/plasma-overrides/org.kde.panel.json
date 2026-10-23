@@ -1,0 +1,23 @@
+{
+  "plugin": "org.kde.panel",
+  "about": "Plasma's panel containment (the taskbar), plasma-desktop-data 6.3.6 (Debian 13). Right-clicking the taskbar's empty space opens Windows 11's taskbar menu (Task Manager, Taskbar settings; files/panel/VeltOSTaskbarMenu.qml) and the last item (Show desktop) reaches the screen's right edge, as on Windows 11. Everything else stays Plasma's.",
+  "replacements": [
+    {
+      "file": "contents/ui/VeltOSTaskbarMenu.qml",
+      "why": "Windows 11's taskbar menu in a file of its own (product owner, 2026-10-22: right-clicking the taskbar should offer Taskbar settings and Task Manager)",
+      "add": "panel/VeltOSTaskbarMenu.qml"
+    },
+    {
+      "file": "contents/ui/main.qml",
+      "why": "the menu lies under the applets, so their own menus come first",
+      "old": "    DragDrop.DropArea {\n        id: dropArea\n        anchors.fill: parent\n",
+      "new": "    // VeltOS: Windows 11's taskbar menu on the taskbar's empty space.\n    VeltOSTaskbarMenu {\n        anchors.fill: parent\n    }\n\n    DragDrop.DropArea {\n        id: dropArea\n        anchors.fill: parent\n"
+    },
+    {
+      "file": "contents/ui/main.qml",
+      "why": "Show desktop at the very right edge of the screen, without Plasma's margin (product owner, 2026-10-22: there was a gap)",
+      "old": "            rightMargin: isHorizontal ? Math.min(dropArea.spacingAtMinSize, panelSvg.fixedMargins.right + currentLayout.rowSpacing) : 0\n",
+      "new": "            rightMargin: 0 // VeltOS: Show desktop reaches the screen's right edge, as on Windows 11\n"
+    }
+  ]
+}

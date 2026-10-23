@@ -147,6 +147,9 @@ ApplicationWindow {
                     Layout.preferredWidth: 32
                     Layout.preferredHeight: 32
                     source: auth.icon
+                    // Policies name icons the icon theme may not have
+                    // ("system-users"): the VeltOS shield, not a "?".
+                    fallback: "veltos-auth"
                 }
                 Text {
                     Layout.fillWidth: true
@@ -312,6 +315,10 @@ ApplicationWindow {
                 }
                 TextInput {
                     id: passwordField
+                    // Like a Windows text box: in the Tab order, the text cursor over it and
+                    // (in a layout) the full height of its box. A plain TextInput has neither.
+                    activeFocusOnTab: true
+                    HoverHandler { cursorShape: Qt.IBeamCursor }
                     objectName: "password"
                     anchors.fill: parent
                     anchors.leftMargin: 10

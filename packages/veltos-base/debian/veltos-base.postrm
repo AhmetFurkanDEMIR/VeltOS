@@ -4,6 +4,9 @@ set -e
 #DEBHELPER#
 
 if [ "$1" = remove ] || [ "$1" = abort-install ] || [ "$1" = disappear ]; then
+    if [ -e /usr/share/base-files/motd ] && cmp -s /etc/motd /usr/share/veltos-base/motd 2>/dev/null; then
+        install -m 644 /usr/share/base-files/motd /etc/motd
+    fi
     for f in /etc/issue /etc/issue.net; do
         if [ -e "$f.debian" ]; then
             rm -f "$f"

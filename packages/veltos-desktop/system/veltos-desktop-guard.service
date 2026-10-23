@@ -1,0 +1,21 @@
+[Unit]
+Description=VeltOS desktop guard (This PC, Recycle Bin and Store stay on users' desktops)
+Documentation=file:///usr/libexec/veltos/veltos-desktop-guard
+
+[Service]
+# Started by D-Bus on demand (org.veltos.DesktopGuard), ends when idle.
+Type=dbus
+BusName=org.veltos.DesktopGuard
+ExecStart=/usr/libexec/veltos/veltos-desktop-guard
+# It changes files below /home only, and keeps just the capabilities it uses.
+ProtectSystem=strict
+ReadWritePaths=/home
+PrivateTmp=yes
+PrivateNetwork=yes
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+SystemCallArchitectures=native
+CapabilityBoundingSet=CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE CAP_DAC_READ_SEARCH

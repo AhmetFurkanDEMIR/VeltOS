@@ -235,6 +235,10 @@ ApplicationWindow {
                     border.color: nameField.activeFocus ? Theme.accent : Theme.fieldBorder
                     TextInput {
                         id: nameField
+                        // Like a Windows text box: in the Tab order, the text cursor over it and
+                        // (in a layout) the full height of its box. A plain TextInput has neither.
+                        activeFocusOnTab: true
+                        HoverHandler { cursorShape: Qt.IBeamCursor }
                         anchors.fill: parent
                         anchors.leftMargin: 10
                         anchors.rightMargin: 10
@@ -269,11 +273,12 @@ ApplicationWindow {
                     color: Theme.text
                     font.pixelSize: Theme.fontSize
                 }
+                // As wide as the name box, like Windows' "Save as type": long
+                // type names (LibreOffice's) were cut off at 300 px.
                 FilterBox {
                     visible: window.saving
                     Layout.columnSpan: 2
-                    Layout.preferredWidth: 300
-                    Layout.alignment: Qt.AlignLeft
+                    Layout.fillWidth: true
                 }
                 Item {
                     Layout.columnSpan: 3

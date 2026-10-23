@@ -86,9 +86,12 @@ class FakeSystem:
         self.outputs.update(outputs or {})
         self.fail = set(fail)          # command names (first words) that fail
         self.commands = []
+        self.inputs = []               # (command, standard input) when there was one
 
-    def __call__(self, command, timeout=20):
+    def __call__(self, command, timeout=20, input=None):
         self.commands.append(list(command))
+        if input is not None:
+            self.inputs.append((list(command), input))
         key = tuple(command)
         if command[0] in self.fail or " ".join(command[:3]) in self.fail:
             return 1, ""

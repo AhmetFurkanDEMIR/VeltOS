@@ -221,10 +221,28 @@ ApplicationWindow {
         if (chosen.length === 0)
             return;
         const one = chosen.length === 1 ? chosen[0] : null;
+        // The desktop's system icons (This PC, Recycle Bin, Store): Open and
+        // Properties only.
+        const fixed = chosen.every(i => backend.isSystemIcon(i.path));
+        if (fixed) {
+            showMenu([
+                { text: backend.text("open"), icon: "document-open", action: "open", shortcut: "Enter" },
+                { separator: true },
+                { text: backend.text("properties"), icon: "document-properties", action: "properties",
+                  shortcut: "Alt+Enter" }
+            ], one ? one.path : null, item, x, y);
+            return;
+        }
         if (tab.kind === "trash") {
+            // Windows 11's menu of a Recycle Bin item.
             showMenu([
                 { text: backend.text("restore"), icon: "edit-undo", action: "restore" },
-                { text: backend.text("delete"), icon: "edit-delete", action: "delete", shortcut: "Delete" }
+                { separator: true },
+                { text: backend.text("cut"), icon: "edit-cut", action: "cut", shortcut: "Ctrl+X" },
+                { text: backend.text("delete"), icon: "edit-delete", action: "delete", shortcut: "Delete" },
+                { separator: true },
+                { text: backend.text("properties"), icon: "document-properties", action: "properties",
+                  shortcut: "Alt+Enter" }
             ], null, item, x, y);
             return;
         }
@@ -276,11 +294,6 @@ ApplicationWindow {
     }
 
     function backgroundMenu(item, x, y) {
-        if (tab.kind === "trash") {
-            showMenu([{ text: backend.text("empty_recycle_bin"), icon: "trash-empty", action: "empty-trash",
-                        enabled: tab.items.count > 0 }], null, item, x, y);
-            return;
-        }
         const views = [["xlarge", "extra_large_icons"], ["large", "large_icons"], ["medium", "medium_icons"],
                        ["small", "small_icons"], ["details", "details"], ["tiles", "tiles"]]
             .map(v => ({ text: backend.text(v[1]), action: "view:" + v[0], checked: tab.viewMode === v[0] }));
@@ -290,6 +303,20 @@ ApplicationWindow {
         sorts.push({ text: backend.text("ascending"), action: "order:asc", checked: !tab.sortDescending });
         sorts.push({ text: backend.text("descending"), action: "order:desc", checked: tab.sortDescending });
         const folder = tab.kind === "folder";
+        if (tab.kind === "trash") {
+            // The Recycle Bin's own menu, as on Windows 11.
+            showMenu([
+                { text: backend.text("view"), icon: "view-list-icons", submenu: views },
+                { text: backend.text("sort"), icon: "view-sort", submenu: sorts },
+                { text: backend.text("refresh"), icon: "view-refresh", action: "refresh", shortcut: "F5" },
+                { separator: true },
+                { text: backend.text("empty_recycle_bin"), icon: "trash-empty", action: "empty-trash",
+                  enabled: tab.items.count > 0 },
+                { text: backend.text("restore_all"), icon: "edit-undo", action: "restore-all",
+                  enabled: tab.items.count > 0 }
+            ], null, item, x, y);
+            return;
+        }
         showMenu([
             { text: backend.text("view"), icon: "view-list-icons", submenu: views },
             { text: backend.text("sort"), icon: "view-sort", submenu: sorts },
@@ -386,6 +413,7 @@ ApplicationWindow {
         else if (action === "terminal") backend.openTerminal();
         else if (action === "terminal-item") backend.terminalAt(context);
         else if (action === "restore") backend.restoreSelection();
+        else if (action === "restore-all") backend.restoreAll();
         else if (action === "empty-trash")
             dialog.ask(backend.text("empty_recycle_bin"), backend.text("empty_bin_question"),
                        backend.text("yes"), backend.text("no"), () => backend.emptyTrash());

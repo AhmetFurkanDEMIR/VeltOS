@@ -60,10 +60,10 @@ Rectangle {
                 }
                 TapHandler { enabled: row.expandable; onTapped: row.toggled() }
             }
-            Kirigami.Icon {
+            LocationIcon {
                 Layout.preferredWidth: 18
                 Layout.preferredHeight: 18
-                source: row.icon
+                name: row.icon
                 isMask: row.accent
                 // (Transparent = Kirigami's "no colour"; undefined cannot be assigned.)
             color: row.accent ? Theme.accent : "transparent"

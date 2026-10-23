@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS installer: choose your language (two speech bubbles). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4F7CFF"/>
+      <stop offset="1" stop-color="#2F4FD6"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E4EBFA"/>
+    </linearGradient>
+  </defs>
+  <path d="M 40 52 H 160 Q 180 52 180 72 V 132 Q 180 152 160 152 H 92 L 64 176 V 152 H 40 Q 20 152 20 132 V 72 Q 20 52 40 52 Z" fill="#000000" opacity="0.12" transform="translate(0 6)"/>
+  <path d="M 40 52 H 160 Q 180 52 180 72 V 132 Q 180 152 160 152 H 92 L 64 176 V 152 H 40 Q 20 152 20 132 V 72 Q 20 52 40 52 Z" fill="url(#back)"/>
+  <path d="M 74 128 L 100 70 L 126 128 M 84 108 H 116" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 120 108 H 216 Q 236 108 236 128 V 182 Q 236 202 216 202 H 200 V 224 L 174 202 H 120 Q 100 202 100 182 V 128 Q 100 108 120 108 Z" fill="#000000" opacity="0.12" transform="translate(0 6)"/>
+  <path d="M 120 108 H 216 Q 236 108 236 128 V 182 Q 236 202 216 202 H 200 V 224 L 174 202 H 120 Q 100 202 100 182 V 128 Q 100 108 120 108 Z" fill="url(#front)"/>
+  <path d="M 188 136 Q 176 128 164 132 Q 150 138 150 156 Q 150 174 164 180 Q 176 184 188 176" fill="none" stroke="#2F4FD6" stroke-width="10" stroke-linecap="round"/>
+  <path d="M 168 184 Q 172 192 166 196" fill="none" stroke="#2F4FD6" stroke-width="7" stroke-linecap="round"/>
+</svg>

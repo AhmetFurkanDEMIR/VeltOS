@@ -1,0 +1,22 @@
+# Packages that only Recommends bring in and that no VeltOS feature uses
+# (product owner, 2026-10-23: the ISO should be smaller, without giving up
+# quality; sizes are their share of the compressed ISO, measured on the
+# 2026-10-23 ISO; reverse dependencies checked in its dpkg status):
+#  * fonts-noto (recommended by plasma-desktop) and the extra weights it
+#    brings: fonts-noto-extra, fonts-noto-cjk-extra, fonts-noto-ui-extra
+#    (113 MB). The regular and bold faces stay (fonts-noto-core,
+#    fonts-noto-ui-core, fonts-noto-cjk, fonts-noto-color-emoji);
+#  * firmware-marvell-prestera (recommended by firmware-libertas): firmware
+#    for Marvell's Prestera network switch chips, not for PCs (58 MB);
+#  * pocketsphinx-en-us (recommended by libpocketsphinx3, which FFmpeg's
+#    speech-recognition filter uses): an English speech model (27 MB);
+#  * plasma-vault (recommended by plasma-desktop) and its cryfs backend:
+#    KDE's encrypted folders, which VeltOS shows nowhere.
+# If a hard dependency ever requires one of them, the build fails and shows why.
+Package: fonts-noto fonts-noto-extra fonts-noto-cjk-extra fonts-noto-ui-extra
+Pin: release a=*
+Pin-Priority: -1
+
+Package: firmware-marvell-prestera pocketsphinx-en-us plasma-vault cryfs
+Pin: release a=*
+Pin-Priority: -1

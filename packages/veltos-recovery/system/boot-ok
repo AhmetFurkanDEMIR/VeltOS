@@ -1,0 +1,9 @@
+#!/bin/sh
+# veltos-boot-ok.service: this start worked. Once the sign-in screen (or
+# the signed-in desktop) has stayed up for a while, the start-up counter
+# GRUB keeps is cleared, so the next failed start is the first again.
+set -u
+
+sleep "${VELTOS_OK_DELAY:-10}"
+systemctl is-active --quiet display-manager.service || exit 0
+grub-editenv /boot/grub/grubenv unset veltos_failed

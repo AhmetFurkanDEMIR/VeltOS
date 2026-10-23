@@ -1,0 +1,31 @@
+#!/bin/sh
+# veltos-safe-graphics.service, before the sign-in screen: a start without
+# a graphics driver ("VeltOS (safe graphics)" and Automatic Repair's Safe
+# mode start Linux with nomodeset) has no DRM device, because Debian's
+# kernel has no simpledrm, only the firmware's frame buffer (efifb, vesafb).
+# KWin and so the Wayland sign-in screen and Plasma cannot run then (black
+# screen, VM 2026-10-22); X11 can, with the fbdev driver. So on such a start
+# SDDM runs on X11 (and the VeltOS sign-in screen starts Plasma on X11), and
+# at every other start the setting is removed again.
+set -u
+
+cmdline="${VELTOS_CMDLINE:-/proc/cmdline}"                          # test hooks
+conf="${VELTOS_SDDM_CONF:-/etc/sddm.conf.d/zz-veltos-safe-graphics.conf}"
+
+if grep -qw nomodeset "$cmdline"; then
+    mkdir -p "$(dirname "$conf")"
+    {
+        echo "# Written by veltos-recovery (safe-graphics) at a start without a graphics"
+        echo "# driver (nomodeset); removed again at the next start with one."
+        echo "[General]"
+        echo "DisplayServer=x11"
+    } > "$conf.tmp"
+    mv "$conf.tmp" "$conf"
+    # Plymouth (frame-buffer renderer) leaves the console in graphics mode,
+    # and Linux ignores console switches then: Xorg waited for ever for
+    # SDDM's console (VM, 2026-10-23). Back to text mode (KDSETMODE,
+    # KD_TEXT) on the active console; Plymouth has quit by now.
+    [ -n "${VELTOS_CMDLINE:-}" ] || python3 -c 'import fcntl, os; fcntl.ioctl(os.open("/dev/tty0", os.O_RDWR | os.O_NOCTTY), 0x4B3A, 0)' 2>/dev/null || true
+else
+    rm -f "$conf"
+fi
