@@ -229,17 +229,6 @@ the full text is in [AGENTS.md](AGENTS.md).
 | [Testing](docs/dev/testing.md) | Test strategy, measurements and their limits |
 | [Development log](docs/dev/development-log.md) | Everything that was done, in order, with results |
 
-## Roadmap
-
-| Milestone | Scope | State |
-|---|---|---|
-| Foundation | Debian base, desktop, driver and compatibility strategy | Done |
-| A bootable, installable ISO | Live system, installer, VeltOS' desktop and apps, VM tests | Done in virtual machines |
-| Windows programs | The runner, one Windows environment, programs in Start and Settings | In progress |
-| Releases and updates | Tests on real hardware, update channels, public releases | In progress |
-| Hardware manager | Recognise devices and recommend drivers (NVIDIA's, for example) from signed archives | Planned |
-| Gaming | Steam with Proton, DXVK and VKD3D-Proton, game profiles, measured benchmarks | Planned |
-
 ## Contributing
 
 Bug reports and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md)

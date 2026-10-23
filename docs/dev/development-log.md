@@ -40,6 +40,8 @@ the top.
   which is always "in view", so the browser did not scroll. The id is gone
   (HTML scrolls `#top` to the top of the document) and a click handler
   scrolls smoothly and keeps `#top` out of the address.
+- **README**: its roadmap table removed as well (product owner, after the
+  website's); plans live in `docs/dev/status.md` ("Next steps").
 - Checked in headless Edge: both logo links return to the top at 1440 and
   375 px; the menu fits or folds at 1000-1440 px in both languages; seven
   widths without overlaps or sideways scrolling; counters "4,0 sn"/"3 sn"
