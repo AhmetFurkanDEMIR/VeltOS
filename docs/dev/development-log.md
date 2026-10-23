@@ -3,6 +3,49 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-23 (late evening) — Website: minimum requirements, both languages proofread, opaque header, logo link
+
+The product owner on the website: put the minimum system requirements where
+the "In a virtual machine" card was; check the English and Turkish texts
+("especially the Turkish is broken: no inverted or broken sentences");
+the page slides visibly behind the top bar; the logo does not go back to
+the top.
+
+- **Minimum system requirements** card next to "Build the ISO" (the
+  separate requirements box below the cards is gone): 64-bit x86, 4 GB of
+  memory, 20 GB of storage, UEFI (Secure Boot) or BIOS, any graphics,
+  "tested in virtual machines only". Memory says 4 GB, not the installer's
+  own 2 GB limit: every test so far ran with 4 GB or more, and the live
+  desktop uses about 1.5 GB at rest. The virtual machine tips (4 GB, 25 GB,
+  3D acceleration, the VirtualBox freeze with Hyper-V) moved to a new FAQ
+  entry.
+- **Languages**: all 192 texts read again in both languages. Turkish was
+  rewritten as Turkish rather than word by word (for example "oturum
+  açmadan masaüstüne", which reads as "without signing in", is now
+  "oturum açılışından masaüstüne"; "Kaputun altında" is "Perde arkası"),
+  with the names the OS itself shows: VeltOS Mail (not "Posta"), VeltOS
+  Mağaza, Bu bilgisayar, Görev Görünümü, Başlangıç Onarımı, Komut İstemi,
+  and "üretici yazılımı" for firmware as in Windows. English: awkward
+  sentences fixed ("The download link is published here soon", a dangling
+  "saving"), gallery tabs shortened. New keys: the firmware badge and the
+  accessibility labels of the menu, the numbers, the gallery tabs, the
+  footer and the picture viewer, which were English in both languages.
+  Turkish numbers use a decimal comma and "sn" ("4,0 sn"), also after
+  switching languages. The 404 page's texts were rewritten too.
+- **Top bar**: opaque (it was 92 % opaque after its blur was removed for
+  smoother scrolling, so the page showed through). The menu turns into the
+  drop-down at 1120 px instead of 1080 px: the Turkish names did not fit on
+  one line at 1081 px and the page scrolled sideways.
+- **Logo**: its link pointed at `#top`, the id of the sticky header itself,
+  which is always "in view", so the browser did not scroll. The id is gone
+  (HTML scrolls `#top` to the top of the document) and a click handler
+  scrolls smoothly and keeps `#top` out of the address.
+- Checked in headless Edge: both logo links return to the top at 1440 and
+  375 px; the menu fits or folds at 1000-1440 px in both languages; seven
+  widths without overlaps or sideways scrolling; counters "4,0 sn"/"3 sn"
+  in Turkish and "4.0 s"/"3 s" after switching; no script errors; every
+  text has its Turkish version.
+
 ## 2026-10-23 (evening) — Website: download section, no roadmap, smoother scrolling; encrypted installation
 
 - **Encrypted installation** of ISO `20261023-061442` (QEMU, UEFI): "Erase

@@ -48,13 +48,13 @@
   <div class="grid"></div>
 </div>
 
-<header class="nav" id="top">
+<header class="nav">
   <div class="nav-inner">
     <a class="brand" href="#top" aria-label="VeltOS">
       <img decoding="async" src="assets/icons/veltos-logo.svg" alt="" width="30" height="30">
       <span>VeltOS</span>
     </a>
-    <nav class="links" id="nav-links" aria-label="Main">
+    <nav class="links" id="nav-links" data-i18n-attr="aria-label:aria.main" aria-label="Main">
       <a href="#features" data-i18n="nav.features">Features</a>
       <a href="#apps" data-i18n="nav.apps">Apps</a>
       <a href="#gallery" data-i18n="nav.gallery">Screenshots</a>
@@ -89,14 +89,14 @@
   <div class="hero-text">
     <p class="eyebrow reveal"><span class="dot"></span><span data-i18n="hero.eyebrow">Version 0.1 · pre-alpha · built on Debian 13</span></p>
     <h1 class="reveal"><span data-i18n="hero.title1">Your PC.</span> <span class="gradient-text" data-i18n="hero.title2">No Limits.</span></h1>
-    <p class="lead reveal" data-i18n="hero.lead">VeltOS is a desktop operating system that works the way Windows 11 users already know — Start, the taskbar, File Explorer, Settings and a Store — with its own apps, a modern installer and support for Windows programs through Wine. Free, open source and built on Debian.</p>
+    <p class="lead reveal" data-i18n="hero.lead">VeltOS is a desktop operating system that works the way Windows 11 users are used to: Start, the taskbar, File Explorer, Settings and an app store, right where you expect them. It brings its own apps, a modern installer and support for Windows programs through Wine. Free, open source and built on Debian.</p>
     <div class="cta reveal">
       <a class="btn btn-primary" href="#download" data-iso-link><span data-i18n="hero.get">Download VeltOS</span>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg></a>
       <a class="btn btn-ghost" href="https://github.com/AhmetFurkanDEMIR/VeltOS" target="_blank" rel="noopener"><span data-i18n="hero.source">Source code</span>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
     </div>
-    <ul class="chips reveal" aria-label="Highlights">
+    <ul class="chips reveal" data-i18n-attr="aria-label:aria.highlights" aria-label="Highlights">
       <li>Debian 13 “trixie”</li>
       <li>KDE Plasma 6.3</li>
       <li>Linux 6.12</li>
@@ -124,12 +124,12 @@
 </section>
 
 <!-- Numbers -->
-<section class="stats" aria-label="VeltOS in numbers">
+<section class="stats" data-i18n-attr="aria-label:aria.numbers" aria-label="VeltOS in numbers">
   <div class="stat reveal"><span class="num" data-count="25">0</span><span class="label" data-i18n="stats.packages">VeltOS packages and apps</span></div>
   <div class="stat reveal"><span class="num" data-count="690" data-suffix="+">0</span><span class="label" data-i18n="stats.tests">automated tests in every build</span></div>
-  <div class="stat reveal"><span class="num" data-count="4.0" data-decimals="1" data-suffix=" s">0</span><span class="label" data-i18n="stats.boot">system start-up*</span></div>
-  <div class="stat reveal"><span class="num" data-count="3" data-suffix=" s">0</span><span class="label" data-i18n="stats.signin">sign-in to desktop*</span></div>
-  <p class="footnote" data-i18n="stats.note">* Measured on an installed system in a QEMU/KVM virtual machine (4 cores, no 3D acceleration). Start-up is kernel and userspace as systemd-analyze reports them, without firmware and the boot menu. Your hardware will differ.</p>
+  <div class="stat reveal"><span class="num" data-count="4.0" data-decimals="1" data-suffix=" s" data-suffix-tr=" sn">0</span><span class="label" data-i18n="stats.boot">system start-up*</span></div>
+  <div class="stat reveal"><span class="num" data-count="3" data-suffix=" s" data-suffix-tr=" sn">0</span><span class="label" data-i18n="stats.signin">sign-in to desktop*</span></div>
+  <p class="footnote" data-i18n="stats.note">* Measured on an installed system in a QEMU/KVM virtual machine (4 cores, no 3D acceleration). Start-up is the kernel and user-space time reported by systemd-analyze, without the firmware and the boot menu. Results on your hardware will differ.</p>
 </section>
 
 <!-- Features -->
@@ -163,26 +163,26 @@
     <article class="card reveal">
       <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div>
       <h3 data-i18n="f.office.t">Office and Mail</h3>
-      <p data-i18n="f.office.d">Word, Excel and PowerPoint start screens on LibreOffice, saving in Microsoft's formats by default, and VeltOS Mail in the look of Outlook.</p>
+      <p data-i18n="f.office.d">Word, Excel and PowerPoint start screens on LibreOffice, with Microsoft's file formats by default, and VeltOS Mail in the look of Outlook.</p>
     </article>
     <article class="card reveal">
       <div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
       <h3 data-i18n="f.windows.t">Windows programs</h3>
-      <p data-i18n="f.windows.d">Double-click an .exe or .msi: VeltOS installs it with Wine and adds it to Start and Settings. Not every program works yet — VeltOS tells you.</p>
+      <p data-i18n="f.windows.d">Double-click an .exe or .msi: VeltOS installs it with Wine and adds it to Start and Settings. Not every program works, and VeltOS tells you when one does not.</p>
     </article>
     <article class="card reveal">
       <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></div>
       <h3 data-i18n="f.repair.t">Automatic Repair</h3>
-      <p data-i18n="f.repair.d">If VeltOS does not start twice in a row, a repair screen offers Startup Repair, Safe mode, Command Prompt and the last start's problems.</p>
+      <p data-i18n="f.repair.d">If VeltOS fails to start twice in a row, a repair screen opens by itself, with Startup Repair, Safe mode, Command Prompt and the details of what went wrong.</p>
     </article>
     <article class="card reveal">
       <div class="card-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
       <h3 data-i18n="f.secure.t">Secure by default</h3>
-      <p data-i18n="f.secure.d">Software only from signed Debian archives or built from VeltOS' own sources, Secure Boot, AppArmor, and disk encryption that asks for the password at start-up, like BitLocker.</p>
+      <p data-i18n="f.secure.d">Software comes only from signed Debian archives or is built from VeltOS' own sources, with Secure Boot, AppArmor and disk encryption that asks for the password at start-up, like BitLocker.</p>
     </article>
     <article class="card reveal">
       <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-1-1-1.5-2-1.5h-2a2 2 0 0 1-2-2V7c0-1-.5-2-1.5-2z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="11" cy="7.5" r="1.2"/><circle cx="8.5" cy="15.5" r="1.2"/></svg></div>
-      <h3 data-i18n="f.style.t">Your look</h3>
+      <h3 data-i18n="f.style.t">Make it yours</h3>
       <p data-i18n="f.style.d">Light and dark mode, eight themes with their own wallpapers, an accent colour that follows you into every VeltOS app — and Windows 11's animations.</p>
     </article>
   </div>
@@ -193,16 +193,16 @@
   <div class="section-head reveal">
     <p class="kicker" data-i18n="apps.kicker">Built for VeltOS</p>
     <h2 data-i18n="apps.title">The apps you reach for every day</h2>
-    <p data-i18n="apps.lead">Written for VeltOS in the layout of their Windows 11 counterparts, in English and Turkish, light and dark.</p>
+    <p data-i18n="apps.lead">Written for VeltOS in the layout of their Windows 11 counterparts, all in English and Turkish, light and dark.</p>
   </div>
   <div class="app-grid">
     <div class="app reveal"><img decoding="async" src="assets/icons/veltos-explorer.svg" alt="" width="56" height="56"><strong data-i18n="a.explorer">File Explorer</strong></div>
     <div class="app reveal"><img decoding="async" src="assets/icons/veltos-settings.svg" alt="" width="56" height="56"><strong data-i18n="a.settings">Settings</strong></div>
-    <div class="app reveal"><img decoding="async" src="assets/icons/veltos-store.svg" alt="" width="56" height="56"><strong data-i18n="a.store">Store</strong></div>
+    <div class="app reveal"><img decoding="async" src="assets/icons/veltos-store.svg" alt="" width="56" height="56"><strong data-i18n="a.store">VeltOS Store</strong></div>
     <div class="app reveal"><img decoding="async" src="assets/icons/libreoffice-writer.svg" alt="" width="56" height="56"><strong>Word</strong></div>
     <div class="app reveal"><img decoding="async" src="assets/icons/libreoffice-calc.svg" alt="" width="56" height="56"><strong>Excel</strong></div>
     <div class="app reveal"><img decoding="async" src="assets/icons/libreoffice-impress.svg" alt="" width="56" height="56"><strong>PowerPoint</strong></div>
-    <div class="app reveal"><img decoding="async" src="assets/icons/veltos-mail.svg" alt="" width="56" height="56"><strong data-i18n="a.mail">Mail</strong></div>
+    <div class="app reveal"><img decoding="async" src="assets/icons/veltos-mail.svg" alt="" width="56" height="56"><strong data-i18n="a.mail">VeltOS Mail</strong></div>
     <div class="app reveal"><img decoding="async" src="assets/icons/veltos-calendar.svg" alt="" width="56" height="56"><strong data-i18n="a.calendar">Calendar</strong></div>
     <div class="app reveal"><img decoding="async" src="assets/icons/veltos-photos.svg" alt="" width="56" height="56"><strong data-i18n="a.photos">Photos</strong></div>
     <div class="app reveal"><img decoding="async" src="assets/icons/veltos-media.svg" alt="" width="56" height="56"><strong data-i18n="a.media">Media Player</strong></div>
@@ -222,11 +222,11 @@
 <!-- Gallery -->
 <section class="section" id="gallery">
   <div class="section-head reveal">
-    <p class="kicker" data-i18n="gallery.kicker">See it</p>
+    <p class="kicker" data-i18n="gallery.kicker">Take a look</p>
     <h2 data-i18n="gallery.title">Screenshots from VeltOS</h2>
-    <p data-i18n="gallery.lead">Taken on VeltOS itself, in a virtual machine. Select a picture to see it larger.</p>
+    <p data-i18n="gallery.lead">All taken on VeltOS itself, running in a virtual machine. Select a picture to see it larger.</p>
   </div>
-  <div class="tabs reveal" role="tablist" aria-label="Screenshots">
+  <div class="tabs reveal" role="tablist" data-i18n-attr="aria-label:aria.shots" aria-label="Screenshots">
     <button role="tab" aria-selected="true" data-shot="0" data-i18n="g.desktop">Desktop</button>
     <button role="tab" aria-selected="false" data-shot="1" data-i18n="g.explorer">File Explorer</button>
     <button role="tab" aria-selected="false" data-shot="2" data-i18n="g.settings">Settings</button>
@@ -239,14 +239,14 @@
   </div>
   <div class="showcase reveal">
     <div class="showcase-track" id="showcase-track">
-      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/desktop.webp"><img decoding="async" src="assets/img/desktop.webp" alt="Desktop and Start" data-i18n-attr="alt:g.desktop.alt" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.desktop.cap">The desktop with Start: pinned apps, recommendations and the taskbar's search.</figcaption></figure>
-      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/explorer.webp"><img decoding="async" src="assets/img/explorer.webp" alt="File Explorer" data-i18n-attr="alt:g.explorer" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.explorer.cap">File Explorer with tabs, the navigation pane and your Office files.</figcaption></figure>
-      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/settings.webp"><img decoding="async" src="assets/img/settings.webp" alt="Settings" data-i18n-attr="alt:g.settings" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.settings.cap">Settings: every page built in, KDE's settings window never opens.</figcaption></figure>
-      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/store.webp"><img decoding="async" src="assets/img/store.webp" alt="VeltOS Store" data-i18n-attr="alt:g.store" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.store.cap">VeltOS Store: apps and games from Debian's signed archive.</figcaption></figure>
-      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/office.webp"><img decoding="async" src="assets/img/office.webp" alt="Word start screen" data-i18n-attr="alt:g.office" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.office.cap">Word's start screen: new documents from templates and your recent files.</figcaption></figure>
-      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/mail.webp"><img decoding="async" src="assets/img/mail.webp" alt="VeltOS Mail" data-i18n-attr="alt:g.mail" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.mail.cap">VeltOS Mail, in the look of Outlook.</figcaption></figure>
+      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/desktop.webp"><img decoding="async" src="assets/img/desktop.webp" alt="Desktop and Start" data-i18n-attr="alt:g.desktop.alt" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.desktop.cap">The desktop with Start open: pinned apps, recommendations and the search box on the taskbar.</figcaption></figure>
+      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/explorer.webp"><img decoding="async" src="assets/img/explorer.webp" alt="File Explorer" data-i18n-attr="alt:g.explorer" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.explorer.cap">File Explorer: tabs, the navigation pane and your Office documents.</figcaption></figure>
+      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/settings.webp"><img decoding="async" src="assets/img/settings.webp" alt="Settings" data-i18n-attr="alt:g.settings" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.settings.cap">Settings: every page in one app; KDE's settings window never opens.</figcaption></figure>
+      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/store.webp"><img decoding="async" src="assets/img/store.webp" alt="Store" data-i18n-attr="alt:g.store" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.store.cap">VeltOS Store: apps and games from Debian's signed archive.</figcaption></figure>
+      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/office.webp"><img decoding="async" src="assets/img/office.webp" alt="Office" data-i18n-attr="alt:g.office" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.office.cap">Word's start screen: new documents from templates and your recent files.</figcaption></figure>
+      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/mail.webp"><img decoding="async" src="assets/img/mail.webp" alt="Mail" data-i18n-attr="alt:g.mail" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.mail.cap">VeltOS Mail, in the look of Outlook.</figcaption></figure>
       <figure class="shot"><button class="zoom" type="button" data-full="assets/img/dark.webp"><img decoding="async" src="assets/img/dark.webp" alt="Dark mode" data-i18n-attr="alt:g.dark" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.dark.cap">Dark mode with the Nebula theme: a purple accent, a dark Start and taskbar.</figcaption></figure>
-      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/installer.webp"><img decoding="async" src="assets/img/installer.webp" alt="The installer" data-i18n-attr="alt:g.installer" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.installer.cap">The installer, in the layout of Windows 11's setup.</figcaption></figure>
+      <figure class="shot"><button class="zoom" type="button" data-full="assets/img/installer.webp"><img decoding="async" src="assets/img/installer.webp" alt="Installer" data-i18n-attr="alt:g.installer" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.installer.cap">The installer, with pages in the layout of Windows 11's setup.</figcaption></figure>
       <figure class="shot"><button class="zoom" type="button" data-full="assets/img/repair.webp"><img decoding="async" src="assets/img/repair.webp" alt="Automatic Repair" data-i18n-attr="alt:g.repair" loading="lazy" width="1600" height="900"></button><figcaption data-i18n="g.repair.cap">Automatic Repair after two unfinished starts.</figcaption></figure>
     </div>
     <button class="nav-arrow prev" type="button" id="shot-prev" data-i18n-attr="aria-label:g.prev" aria-label="Previous">‹</button>
@@ -259,11 +259,11 @@
   <div class="split-text reveal">
     <p class="kicker" data-i18n="w.kicker">Windows programs</p>
     <h2 data-i18n="w.title">Double-click. Install. Find it in Start.</h2>
-    <p data-i18n="w.lead">VeltOS opens Windows installers and programs with Wine in one Windows environment, like the single C: drive of a PC. Installed programs appear in Start and in Settings, where they are uninstalled as on Windows.</p>
+    <p data-i18n="w.lead">VeltOS opens Windows installers and programs with Wine in one Windows environment, like the single C: drive of a PC. Installed programs appear in Start and in Settings, where you can uninstall them as on Windows.</p>
     <ol class="steps">
-      <li><span>1</span><div><strong data-i18n="w.s1.t">Open the .exe or .msi</strong><p data-i18n="w.s1.d">VeltOS reads its name, publisher and icon and shows what it will do.</p></div></li>
-      <li><span>2</span><div><strong data-i18n="w.s2.t">Install</strong><p data-i18n="w.s2.d">The program's own installer runs; Wine Mono and Gecko are already on board, nothing is downloaded.</p></div></li>
-      <li><span>3</span><div><strong data-i18n="w.s3.t">Use it like any app</strong><p data-i18n="w.s3.d">In Start, listed in Settings › Apps, with DXVK for games on Vulkan graphics.</p></div></li>
+      <li><span>1</span><div><strong data-i18n="w.s1.t">Open the .exe or .msi</strong><p data-i18n="w.s1.d">VeltOS reads the file's name, publisher and icon, then shows what it will do.</p></div></li>
+      <li><span>2</span><div><strong data-i18n="w.s2.t">Install</strong><p data-i18n="w.s2.d">The program's own installer runs. Wine Mono and Gecko come pre-installed, so nothing is downloaded.</p></div></li>
+      <li><span>3</span><div><strong data-i18n="w.s3.t">Use it like any app</strong><p data-i18n="w.s3.d">It appears in Start and in Settings › Apps; on graphics cards with Vulkan, games use DXVK.</p></div></li>
     </ol>
     <p class="honest" data-i18n="w.honest">Honest note: Wine does not run every Windows program, and it is not a security sandbox — run only programs you trust.</p>
   </div>
@@ -287,7 +287,7 @@
   <div class="section-head reveal">
     <p class="kicker" data-i18n="d.kicker">Download</p>
     <h2 data-i18n="d.title">Get VeltOS 0.1</h2>
-    <p data-i18n="d.lead">One ISO for 64-bit PCs starts a live system and installs VeltOS. VeltOS is pre-alpha: try it in a virtual machine or on a spare PC, not on the computer you depend on.</p>
+    <p data-i18n="d.lead">One ISO for 64-bit PCs both starts a live system and installs VeltOS. VeltOS is still pre-alpha, so try it in a virtual machine or on a spare PC, not on the computer you rely on.</p>
   </div>
   <div class="dl-panel reveal">
     <div class="dl-info">
@@ -297,7 +297,7 @@
         <ul class="dl-meta">
           <li data-i18n="dl.meta.arch">64-bit PCs (amd64)</li>
           <li data-i18n="dl.meta.size">ISO · 2.45 GB</li>
-          <li>UEFI · BIOS · Secure Boot</li>
+          <li data-i18n="dl.meta.fw">UEFI · BIOS · Secure Boot</li>
           <li data-i18n="dl.meta.base">Built on Debian 13</li>
         </ul>
       </div>
@@ -308,7 +308,7 @@
         <span data-i18n="dl.button">Download ISO</span>
         <span class="dl-soon iso-when-pending" data-i18n="dl.soon">Soon</span>
       </a>
-      <p class="dl-note iso-when-pending" data-i18n="dl.pending">The download link is published here soon. Until then, you can build the same ISO from the source code (below).</p>
+      <p class="dl-note iso-when-pending" data-i18n="dl.pending">The download link will be published here soon. Until then, you can build the same ISO from the source code (see below).</p>
       <div class="dl-sum iso-when-ready">
         <span class="dl-sum-label">SHA-256</span>
         <code id="iso-sha256">9d8afa183a94975fa43db82708bb095b6e23e40a527e5733b7c01cc196d32464</code>
@@ -317,15 +317,15 @@
     </div>
   </div>
   <ol class="dl-steps">
-    <li class="reveal"><span>1</span><div><strong data-i18n="dl.s1.t">Download</strong><p data-i18n="dl.s1.d">One ISO file of about 2.45 GB. Compare its SHA-256 with the one above.</p></div></li>
-    <li class="reveal"><span>2</span><div><strong data-i18n="dl.s2.t">Start it</strong><p data-i18n="dl.s2.d">In a virtual machine, or from a USB stick on a spare PC. So far VeltOS has been tested in virtual machines only.</p></div></li>
-    <li class="reveal"><span>3</span><div><strong data-i18n="dl.s3.t">Try or install</strong><p data-i18n="dl.s3.d">Try VeltOS without changing anything, then install it from the desktop when you are ready.</p></div></li>
+    <li class="reveal"><span>1</span><div><strong data-i18n="dl.s1.t">Download</strong><p data-i18n="dl.s1.d">A single ISO file of about 2.45 GB. After downloading, compare its SHA-256 with the one shown above.</p></div></li>
+    <li class="reveal"><span>2</span><div><strong data-i18n="dl.s2.t">Start it</strong><p data-i18n="dl.s2.d">Open it in a virtual machine, or write it to a USB stick and start a spare PC from it. So far VeltOS has been tested in virtual machines only.</p></div></li>
+    <li class="reveal"><span>3</span><div><strong data-i18n="dl.s3.t">Try or install</strong><p data-i18n="dl.s3.d">Try VeltOS without changing anything on your PC, then install it from the desktop when you are ready.</p></div></li>
   </ol>
   <div class="cards cards-2">
     <article class="card reveal">
       <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg></div>
       <h3 data-i18n="d.build.t">Build the ISO</h3>
-      <p data-i18n="d.build.d">Everything builds and tests in Docker; the host needs nothing else.</p>
+      <p data-i18n="d.build.d">Everything is built and tested in Docker; your computer needs only Docker and bash.</p>
       <div class="code">
         <div class="code-bar"><span>bash</span><button class="copy-btn" type="button" data-copy="build-cmd" data-i18n="d.copy">Copy</button></div>
         <pre><code id="build-cmd">git clone https://github.com/AhmetFurkanDEMIR/VeltOS.git
@@ -335,26 +335,17 @@ build/run.sh test</code></pre>
       </div>
     </article>
     <article class="card reveal">
-      <div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M7 20h10"/></svg></div>
-      <h3 data-i18n="d.vm.t">In a virtual machine</h3>
-      <ul class="list">
-        <li data-i18n="d.vm.1">4 GB of memory and a 25 GB disk</li>
-        <li data-i18n="d.vm.2">UEFI or BIOS, 64-bit</li>
-        <li data-i18n="d.vm.3">Turn on 3D acceleration for the smoothest desktop; without it VeltOS draws in software</li>
-        <li data-i18n="d.vm.4">Tested in VirtualBox and QEMU/KVM</li>
-        <li data-i18n="d.vm.5">On a Windows PC with Hyper-V on (WSL2, Docker Desktop), VirtualBox can freeze virtual machines until you press a key or move the mouse — a known VirtualBox bug; QEMU/KVM is not affected</li>
-      </ul>
+      <div class="card-icon"><svg viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9.5 2.5v4M14.5 2.5v4M9.5 17.5v4M14.5 17.5v4M2.5 9.5h4M2.5 14.5h4M17.5 9.5h4M17.5 14.5h4"/></svg></div>
+      <h3 data-i18n="r.title">Minimum system requirements</h3>
+      <dl class="req-list">
+        <div><dt data-i18n="r.cpu">Processor</dt><dd data-i18n="r.cpu.v">64-bit x86 (amd64)</dd></div>
+        <div><dt data-i18n="r.ram">Memory</dt><dd>4 GB</dd></div>
+        <div><dt data-i18n="r.disk">Storage</dt><dd>20 GB</dd></div>
+        <div><dt data-i18n="r.fw">Firmware</dt><dd data-i18n="r.fw.v">UEFI (Secure Boot supported) or BIOS</dd></div>
+        <div><dt data-i18n="r.gpu">Graphics</dt><dd data-i18n="r.gpu.v">Any; without 3D acceleration, VeltOS renders in software</dd></div>
+      </dl>
+      <p class="req-note" data-i18n="r.note">Tested in virtual machines (QEMU/KVM, VirtualBox); not yet on real PCs.</p>
     </article>
-  </div>
-  <div class="requirements reveal">
-    <h3 data-i18n="r.title">System requirements</h3>
-    <dl>
-      <div><dt data-i18n="r.cpu">Processor</dt><dd data-i18n="r.cpu.v">64-bit x86 (amd64)</dd></div>
-      <div><dt data-i18n="r.ram">Memory</dt><dd data-i18n="r.ram.v">2 GB minimum, 4 GB recommended</dd></div>
-      <div><dt data-i18n="r.disk">Storage</dt><dd data-i18n="r.disk.v">20 GB minimum</dd></div>
-      <div><dt data-i18n="r.fw">Firmware</dt><dd data-i18n="r.fw.v">UEFI (Secure Boot supported) or BIOS</dd></div>
-      <div><dt data-i18n="r.gpu">Graphics</dt><dd data-i18n="r.gpu.v">Any; OpenGL hardware recommended</dd></div>
-    </dl>
   </div>
 </section>
 
@@ -379,13 +370,13 @@ build/run.sh test</code></pre>
         <tr><th data-i18n="s.apps">VeltOS apps</th><td data-i18n="s.apps.v">Python and Qt Quick (PySide6 6.8)</td></tr>
         <tr><th data-i18n="s.langs">Languages</th><td data-i18n="s.langs.v">English, Turkish</td></tr>
         <tr><th data-i18n="s.iso">ISO</th><td data-i18n="s.iso.v">One hybrid image for USB sticks and DVDs, live system and installer in one</td></tr>
-        <tr><th data-i18n="s.license">License</th><td data-i18n="s.license.v">Free and open source (GPL and compatible licences; artwork CC BY-SA 4.0)</td></tr>
+        <tr><th data-i18n="s.license">License</th><td data-i18n="s.license.v">Free and open source (GPL and compatible licenses; artwork CC BY-SA 4.0)</td></tr>
       </tbody>
     </table>
     <div class="spec-side">
       <div class="badge-card">
         <h3 data-i18n="s.quality.t">Tested on every build</h3>
-        <p data-i18n="s.quality.d">Every package runs its unit tests while it builds, the image checks itself before it is written, and each ISO boots in QEMU with UEFI and BIOS with checks for the desktop, crashes and start-up times.</p>
+        <p data-i18n="s.quality.d">Every package runs its unit tests while it builds, and the image checks itself before it is written. Each ISO then boots in QEMU with UEFI and BIOS, with checks for the desktop, crashes and start-up times.</p>
       </div>
       <div class="badge-card">
         <h3 data-i18n="s.light.t">Light by design</h3>
@@ -405,9 +396,10 @@ build/run.sh test</code></pre>
     <details class="reveal"><summary data-i18n="q.1.q">Is VeltOS Windows?</summary><p data-i18n="q.1.a">No. VeltOS is a Linux system built on Debian. It looks and behaves like Windows 11 so that you feel at home, but it is a different operating system and is not affiliated with Microsoft.</p></details>
     <details class="reveal"><summary data-i18n="q.2.q">Will my Windows programs run?</summary><p data-i18n="q.2.a">Many do, through Wine; some do not, and some run with problems. VeltOS never promises that every program works — it shows you what happened, and for many tasks it offers its own apps instead.</p></details>
     <details class="reveal"><summary data-i18n="q.3.q">Does it cost anything?</summary><p data-i18n="q.3.a">No. VeltOS is free and open source, and so is the software it is built from.</p></details>
-    <details class="reveal"><summary data-i18n="q.4.q">Is it ready for daily use?</summary><p data-i18n="q.4.a">Not yet: version 0.1 is a pre-alpha for testing. Try it in a virtual machine or on a spare PC and tell us what you find on GitHub.</p></details>
-    <details class="reveal"><summary data-i18n="q.5.q">Where do updates come from?</summary><p data-i18n="q.5.a">From Debian's signed archives, through VeltOS Store and Settings; VeltOS' own packages are built from the code in this repository.</p></details>
-    <details class="reveal"><summary data-i18n="q.6.q">Which languages does it speak?</summary><p data-i18n="q.6.a">English and Turkish, everywhere VeltOS has its own windows. Debian's and KDE's parts are available in many more languages.</p></details>
+    <details class="reveal"><summary data-i18n="q.4.q">Is it ready for daily use?</summary><p data-i18n="q.4.a">Not yet: version 0.1 is a pre-alpha for testing. Try it in a virtual machine or on a spare PC and report what you find on GitHub.</p></details>
+    <details class="reveal"><summary data-i18n="q.7.q">Can I try VeltOS in a virtual machine?</summary><p data-i18n="q.7.a">Yes, that is how VeltOS is tested. Give the virtual machine 4 GB of memory and a 25 GB disk; UEFI and BIOS both work, and turning on 3D acceleration makes the desktop smoother. On a Windows PC with Hyper-V on (WSL2, Docker Desktop), VirtualBox can freeze a virtual machine until a key is pressed — a known VirtualBox bug; QEMU/KVM is not affected.</p></details>
+    <details class="reveal"><summary data-i18n="q.5.q">Where do updates come from?</summary><p data-i18n="q.5.a">From Debian's signed archives, installed through VeltOS Store and Settings. VeltOS' own packages are built from its source code on GitHub.</p></details>
+    <details class="reveal"><summary data-i18n="q.6.q">Which languages does it support?</summary><p data-i18n="q.6.a">English and Turkish, everywhere VeltOS has its own windows. Debian's and KDE's parts are available in many more languages.</p></details>
   </div>
 </section>
 
@@ -419,7 +411,7 @@ build/run.sh test</code></pre>
       <a class="brand" href="#top"><img decoding="async" src="assets/icons/veltos-logo.svg" alt="" width="28" height="28"><span>VeltOS</span></a>
       <p data-i18n="foot.tag">Your PC. No Limits.</p>
     </div>
-    <nav class="footer-links" aria-label="Footer">
+    <nav class="footer-links" data-i18n-attr="aria-label:aria.footer" aria-label="Footer">
       <a href="https://github.com/AhmetFurkanDEMIR/VeltOS" target="_blank" rel="noopener" data-i18n="foot.source">Source code</a>
       <a href="https://github.com/AhmetFurkanDEMIR/VeltOS/blob/main/docs/dev/status.md" target="_blank" rel="noopener" data-i18n="foot.status">Project status</a>
       <a href="https://github.com/AhmetFurkanDEMIR/VeltOS/issues" target="_blank" rel="noopener" data-i18n="foot.issues">Report a problem</a>
@@ -430,7 +422,7 @@ build/run.sh test</code></pre>
   </div>
 </footer>
 
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot" hidden>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" data-i18n-attr="aria-label:aria.shot" aria-label="Screenshot" hidden>
   <button class="lightbox-close" type="button" id="lightbox-close" data-i18n-attr="aria-label:lb.close" aria-label="Close">×</button>
   <img decoding="async" id="lightbox-img" alt="">
 </div>

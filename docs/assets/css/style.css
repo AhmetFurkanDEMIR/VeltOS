@@ -28,7 +28,7 @@
   --shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.6);
   --radius: 18px;
   --radius-sm: 10px;
-  --nav-bg: rgba(6, 10, 30, 0.92);
+  --nav-bg: #070b20;
   --code-bg: rgba(0, 0, 0, 0.35);
   --grid-line: rgba(255, 255, 255, 0.035);
   --orb-1: #3b5bff;
@@ -53,7 +53,7 @@
   --accent: #2f5ee6;
   --glow: rgba(47, 94, 230, 0.22);
   --shadow: 0 30px 70px -28px rgba(20, 34, 90, 0.35);
-  --nav-bg: rgba(245, 247, 253, 0.94);
+  --nav-bg: #f5f7fd;
   --code-bg: #0e1430;
   --grid-line: rgba(16, 24, 64, 0.045);
   --orb-1: #7c9bff;
@@ -402,16 +402,21 @@ html:not(.iso-ready) .iso-when-ready { display: none !important; }
 }
 .copy-btn {
   flex: none; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08); color: #fff; font-size: 12.5px; cursor: pointer; transition: background-color 0.2s ease;
+  background: rgba(255, 255, 255, 0.08); color: #fff; font-family: var(--font); font-size: 12.5px; cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 .copy-btn:hover { background: rgba(255, 255, 255, 0.16); }
 .copy-btn.done { background: #2ecc71; border-color: transparent; }
 .list { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 15px; display: grid; gap: 6px; }
-.requirements { margin-top: 22px; padding: 28px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); }
-.requirements h3 { margin: 0 0 16px; font-size: 19px; }
-.requirements dl { margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-.requirements dt { color: var(--faint); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
-.requirements dd { margin: 4px 0 0; font-weight: 600; font-size: 15px; }
+.req-list { margin: 4px 0 0; display: grid; }
+.req-list div {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.req-list div:last-child { border-bottom: none; }
+.req-list dt { color: var(--muted); font-size: 14.5px; }
+.req-list dd { margin: 0 0 0 auto; font-weight: 600; font-size: 15px; text-align: right; }
+.req-note { margin-top: auto !important; padding-top: 6px; font-size: 13.5px !important; color: var(--faint) !important; }
 
 /* Specs */
 .spec-wrap { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; align-items: start; }
@@ -467,7 +472,6 @@ html:not(.iso-ready) .iso-when-ready { display: none !important; }
   .hero-visual { max-width: 760px; margin: 0 auto; width: 100%; }
   .cards { grid-template-columns: repeat(2, 1fr); }
   .spec-wrap, .split { grid-template-columns: 1fr; }
-  .requirements dl { grid-template-columns: repeat(3, 1fr); }
   .dl-panel, .dl-steps { grid-template-columns: 1fr; }
   .float-a { left: -12px; }
   .float-b { right: -8px; }
@@ -475,7 +479,9 @@ html:not(.iso-ready) .iso-when-ready { display: none !important; }
 @media (max-width: 1180px) {
   .links a { padding: 8px 9px; font-size: 14px; }
 }
-@media (max-width: 1080px) {
+/* Menu in a drop-down panel: at 1120 px, because the Turkish names are
+   longer and did not fit on one line at 1081 px. */
+@media (max-width: 1120px) {
   .links {
     position: fixed; top: 63px; left: 0; right: 0; flex-direction: column; gap: 2px; margin: 0; padding: 12px 16px 18px;
     background: var(--surface-solid); border-bottom: 1px solid var(--border); box-shadow: 0 30px 50px -30px rgba(0, 0, 0, 0.6);
@@ -496,7 +502,6 @@ html:not(.iso-ready) .iso-when-ready { display: none !important; }
   .stats { padding: 12px 16px 0; gap: 10px; }
   .stat { padding: 18px; }
   .cards { grid-template-columns: 1fr; }
-  .requirements dl { grid-template-columns: 1fr 1fr; }
   .lead { font-size: 17px; }
   .float-card { padding: 9px 12px; gap: 9px; }
   .float-card img { width: 30px; height: 30px; }
@@ -517,6 +522,8 @@ html:not(.iso-ready) .iso-when-ready { display: none !important; }
   .dl-actions { justify-items: stretch; }
   .dl-button { justify-content: center; }
   .cards-2 { grid-template-columns: 1fr; }
+  .req-list div { flex-direction: column; }
+  .req-list dd { margin: 0; text-align: left; }
   .nav-arrow { display: none; }
   .tabs { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; scrollbar-width: none; }
   .tabs button { flex: 0 0 auto; }
