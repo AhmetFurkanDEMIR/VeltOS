@@ -1,6 +1,6 @@
 # VeltOS desktop: KDE Plasma 6 built from a minimal base plus a short list
 # of everyday applications, instead of the much larger task-kde-desktop
-# selection. See docs/architecture.md. The kde-plasma-desktop and
+# selection. See docs/dev/architecture.md. The kde-plasma-desktop and
 # kde-baseapps metapackages are spelled out (minus Dolphin and Konqueror):
 # kde-baseapps depends on Dolphin, and VeltOS has one file manager, File
 # Explorer (Debian 13: kde-plasma-desktop 5:162).

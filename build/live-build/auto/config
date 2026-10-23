@@ -1,7 +1,7 @@
 #!/bin/sh
 # live-build configuration for the VeltOS live/install ISO.
 # Run through `lb config` (build/scripts/build-iso.sh does this); the options
-# are explained in docs/architecture.md and lb_config(1).
+# are explained in docs/dev/architecture.md and lb_config(1).
 set -e
 
 VELTOS_VERSION="${VELTOS_VERSION:-0.1.0-dev}"

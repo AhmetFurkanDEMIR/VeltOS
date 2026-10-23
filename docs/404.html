@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found — VeltOS</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/icons/veltos-logo.svg" type="image/svg+xml">
+<script>
+  (function () {
+    try {
+      if (localStorage.getItem("veltos-theme") === "light") document.documentElement.setAttribute("data-theme", "light");
+      if (localStorage.getItem("veltos-lang") === "tr") document.documentElement.setAttribute("data-lang", "tr");
+    } catch (e) {}
+  })();
+</script>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .missing { min-height: 78vh; display: grid; place-items: center; text-align: center; padding: 40px 20px; }
+  .missing h1 { font-size: clamp(64px, 12vw, 140px); margin: 0; }
+  .missing p { color: var(--muted); font-size: 18px; margin: 8px 0 28px; }
+  [data-lang="tr"] .en, html:not([data-lang="tr"]) .tr { display: none; }
+</style>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="grid"></div></div>
+<main class="missing">
+  <div>
+    <img src="/assets/icons/veltos-logo.svg" alt="VeltOS" width="72" height="72" style="margin: 0 auto 18px">
+    <h1 class="gradient-text">404</h1>
+    <p class="en">This page does not exist — or not any more.</p>
+    <p class="tr">Bu sayfa yok ya da artık yok.</p>
+    <a class="btn btn-primary" href="/"><span class="en">Back to VeltOS</span><span class="tr">VeltOS'a dön</span></a>
+  </div>
+</main>
+</body>
+</html>

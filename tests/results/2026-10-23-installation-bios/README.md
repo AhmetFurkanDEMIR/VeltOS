@@ -43,4 +43,4 @@ with their icons (`07-winapps-start-search.png`).
 
 A UEFI installation with this ISO, an encrypted one (last tested end to end
 on 2026-10-19), VirtualBox (VMs on the developer host stall in NEM mode,
-see `docs/status.md`), real hardware.
+see `docs/dev/status.md`), real hardware.

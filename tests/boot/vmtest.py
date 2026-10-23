@@ -235,7 +235,7 @@ def run_checks(args, report, qmp, agent):
     _, out, _ = agent.run("journalctl -b -p err --no-pager -o short-monotonic | tail -n 40")
     report.measurements["journal_errors_tail"] = out or "(none)"
 
-    # Measurements (live session; see docs/testing.md for caveats).
+    # Measurements (live session; see docs/dev/testing.md for caveats).
     _, out, _ = agent.run("systemd-analyze 2>&1 | head -n1")
     report.measurements["systemd_analyze"] = out.strip()
     _, out, _ = agent.run("systemd-analyze blame --no-pager 2>/dev/null | head -n 10")

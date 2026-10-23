@@ -83,7 +83,7 @@ verify hook checks both); only debuggers lose Wine's symbols, and
   Windows 11's Installed apps); there is no separate manager window.
 - Not yet: per-program compatibility profiles, automatic runtime
   installation (winetricks verbs) and a compatibility database. See
-  `docs/status.md`.
+  `docs/dev/status.md`.
 
 ## Tests
 

@@ -198,4 +198,4 @@ the progress ring offscreen. The themed pages were checked in the dev VM
 
 Status: an installation with "Encrypt system" (UEFI, VM) was tested end to
 end on 2026-10-19 (`tests/results/2026-10-19-encrypted-install-uefi/`);
-plain and BIOS installations are not yet tested — see `docs/status.md`.
+plain and BIOS installations are not yet tested — see `docs/dev/status.md`.

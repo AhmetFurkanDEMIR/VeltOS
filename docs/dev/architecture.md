@@ -119,7 +119,7 @@ blur effect is available).
 Trade-offs: Kvantum renders from SVG and costs a little more CPU than
 Breeze; Aurorae decorations are QML and heavier than Breeze's C++ one.
 Measured RAM/CPU impact on the live session is still to be recorded in
-`docs/status.md`. Kvantum reads its theme only from `~/.config` (no
+`docs/dev/status.md`. Kvantum reads its theme only from `~/.config` (no
 system-wide file), so a Plasma session script creates it for new users.
 
 #### 2.3.2 Windows-familiar application names without patching packages
@@ -538,7 +538,7 @@ firmware updates yet; the curated lists are package names in the code.
   running in VMs. The host already fully controls a VM, so it adds no new
   privilege boundary.
 - VMs do not replace real NVIDIA/AMD/Intel hardware testing (see
-  `docs/testing.md`).
+  `docs/dev/testing.md`).
 
 ### 2.8 Updates (initial position)
 

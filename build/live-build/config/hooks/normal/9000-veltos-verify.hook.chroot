@@ -241,7 +241,7 @@ grep -q '^application/x-ms-dos-executable=veltos-run.desktop$' /etc/xdg/mimeapps
     || fail ".exe files are not associated with veltos-run"
 [ -f /usr/share/wine/mono/wine-mono-9.4.0-x86.msi ] || fail "Wine Mono missing"
 
-# A smaller ISO without losing features (2026-10-23, docs/architecture.md
+# A smaller ISO without losing features (2026-10-23, docs/dev/architecture.md
 # 2.23): Wine's DLLs without debug information (veltos-winapps'
 # strip-wine-dlls), no extra font weights, no documentation but the
 # licences, and /etc and /var stamped as up to date (no ldconfig at boot).

@@ -2,8 +2,8 @@
 
 This file is for AI coding agents and new human contributors. It contains
 the project rules, where things are, and how to continue the work. Read it
-fully before changing anything, then read `docs/status.md` (what is done)
-and `docs/architecture.md` (why it is built this way).
+fully before changing anything, then read `docs/dev/status.md` (what is done)
+and `docs/dev/architecture.md` (why it is built this way).
 
 ## Project in one paragraph
 
@@ -17,16 +17,16 @@ owner sets priorities; agents act as the engineering team.
 ## Rules (non-negotiable)
 
 1. **Language.** Everything in the repository is English: code, comments,
-   docs, commit messages, package descriptions. (The product owner may talk
-   to agents in Turkish; answer in the language you are addressed in, but
-   write the repo in English.)
+   docs, commit messages, package descriptions. Answer people in the
+   language they write in; the repository stays English. (VeltOS itself
+   speaks English and Turkish: its translations are part of the product.)
 2. **Working software first.** A bootable, installable system beats
    ambitious unimplemented features. Work in small, verifiable increments.
 3. **Never fabricate results.** Do not claim a build passed, a test ran,
    hardware works or a feature is complete unless you observed it. Report
    failures with their output. Mark anything untested as untested.
 4. **No silent mocks.** Never replace a real implementation with a mock or
-   stub without labelling it clearly in code and in `docs/status.md`.
+   stub without labelling it clearly in code and in `docs/dev/status.md`.
 5. **Reuse, don't rewrite.** Use Debian, KDE, Mesa, Wine/Proton and other
    mature upstream components. VeltOS code goes into small, testable
    packages under `packages/`. Do not fork Plasma, the kernel or Wine.
@@ -34,7 +34,7 @@ owner sets priorities; agents act as the engineering team.
    packages.debian.org or `apt-cache policy` in the builder container and
    read upstream docs; do not rely on memory. Record what you verified.
 7. **Lightweight by default.** Every new service, daemon or autostart
-   entry needs a reason; measure RAM/CPU/boot impact (see `docs/testing.md`).
+   entry needs a reason; measure RAM/CPU/boot impact (see `docs/dev/testing.md`).
 8. **Security and safety.** Packages come only from signed Debian archives
    or are built from this repo. Never install drivers from unverified
    downloads. Never run untrusted `.exe` files with elevated privileges.
@@ -45,9 +45,9 @@ owner sets priorities; agents act as the engineering team.
 10. **Honest claims.** Never promise universal Windows compatibility or
     "native performance" without comparative measurements.
 11. **Explain decisions.** Architectural choices go into
-    `docs/architecture.md` with alternatives and trade-offs.
+    `docs/dev/architecture.md` with alternatives and trade-offs.
 12. **Keep the handoff current.** After any meaningful change update
-    `docs/status.md`, add an entry to `docs/development-log.md`, and keep
+    `docs/dev/status.md`, add an entry to `docs/dev/development-log.md`, and keep
     README files accurate. The next agent must be able to continue from the
     repository alone.
 
@@ -88,22 +88,24 @@ owner sets priorities; agents act as the engineering team.
 | `tests/boot/vmtest.py` | QEMU/KVM boot test with screenshots, checks and measurements (`build/run.sh test`) |
 | `tests/boot/vmpreview.py` | Dev aid: install fresh `.deb`s into a live VM and screenshot a scripted interaction (`build/run.sh preview`) |
 | `tests/boot/winapps_vmtest.py` | Installs a real Windows program through `veltos-run` in a VM (`build/run.sh test-winapps`) |
-| `tests/repo/` | Repository-wide checks (logo copies, line endings) |
+| `tests/boot/vmctl.py` | Long-running VM driven step by step: installations, demos, website pictures (`build/run.sh vm ...`) |
+| `tests/repo/` | Repository-wide checks (line endings, control characters, logo copies, the website's icons, Qt keyword arguments) |
 | `tests/results/` | Committed test evidence for milestones |
-| `docs/` | Architecture, build guide, testing, status, development log |
+| `docs/` | The website, https://veltos.ahmetfurkandemir.com/ (GitHub Pages, static; see "The website" below) |
+| `docs/dev/` | Developer documentation: status, architecture, build guide, testing, development log |
 | `out/` | Build outputs (ISO, logs, test runs) — git-ignored |
 
 ## How to continue
 
-1. Read `docs/status.md`; pick the first item under "Next steps" unless the
+1. Read `docs/dev/status.md`; pick the first item under "Next steps" unless the
    product owner says otherwise.
 2. Make sure the environment works: `build/run.sh packages` (fast) and, for
    image changes, `build/run.sh iso` followed by `build/run.sh test`.
 3. Change the smallest thing that delivers the step. Add or update tests.
 4. Build and test for real. Read the report (`out/test-results/.../report.md`)
    and look at the screenshots.
-5. Update `docs/status.md`, `docs/development-log.md`, README files and,
-   for design decisions, `docs/architecture.md`.
+5. Update `docs/dev/status.md`, `docs/dev/development-log.md`, README files and,
+   for design decisions, `docs/dev/architecture.md`.
 6. Commit with a clear English message describing what changed and what was
    verified.
 
@@ -122,6 +124,28 @@ owner sets priorities; agents act as the engineering team.
   Brand palette: blue `#4F7CFF`, indigo `#5B3FE0`, cyan `#2FA8F0`,
   navy background `#050818`–`#0E1846`.
 - Naming: packages `veltos-*`; Plasma IDs `org.veltos.*`; live user `velt`.
+
+## The website (`docs/`)
+
+https://veltos.ahmetfurkandemir.com/ is published by GitHub Pages from the
+`docs/` folder of `main` (`CNAME`, `.nojekyll`). It is static HTML, CSS
+and JavaScript with no build step, no external requests and no cookies:
+`docs/index.html` opens complete with a double-click (`file://`).
+
+- Texts: English in `index.html` (`data-i18n` keys), Turkish in the `TR`
+  dictionary of `assets/js/main.js`; every key needs both. English and
+  dark are the defaults; the visitor's choice is kept in `localStorage`.
+- Pictures: `assets/img/*.webp` (1600x900) are screenshots of an installed
+  system in the QEMU dev VM (English, 1920x1080, downscaled); `og.jpg`
+  (1200x630) is the link preview. Retake them when the desktop changes
+  visibly, and never show something the ISO does not do.
+- Icons: copies of the OS's own SVGs (`tests/repo` checks they still
+  match a file of the same name in `packages/`). Fonts: Inter subsets
+  (OFL, `assets/fonts/LICENSE-Inter.txt`).
+- Claims on the site follow the project rules: no untested support, no
+  "native performance", measured numbers with how they were measured.
+- The developer documentation lives in `docs/dev/` (also published by
+  Pages as plain files).
 
 ## Gotchas learned so far
 

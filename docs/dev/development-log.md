@@ -3,6 +3,47 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-23 (afternoon) — Website, README and handoff files for publishing the repository
+
+The product owner asked for a comprehensive website (desktop and mobile,
+animated, light and dark, English and Turkish with English and dark as the
+defaults, GitHub Pages, no back end, opening complete from `index.html`
+with a double-click), an English README, the agent and README files
+finalised, `CLAUDE.md` without the Turkish-language note, the Markdown docs
+moved into a folder, and the repository checked for secrets before they
+push it.
+
+- **Website** (`docs/`, https://veltos.ahmetfurkandemir.com/): one static
+  page (hero, numbers, features, apps, screenshots, Windows programs,
+  download and build, specifications, roadmap, FAQ) plus `404.html`,
+  `CNAME`, `.nojekyll`, `robots.txt`, `sitemap.xml`; Inter as WOFF2
+  subsets (OFL), the OS's own icons, no external requests, cookies or
+  analytics. Screenshots from the installed QEMU system (previous entry).
+  Every number and claim was checked against the ISO's package list, the
+  test reports and the packages' READMEs; untested items were taken out
+  (VMware/Hyper-V support) and the measurement method is stated (start-up
+  4.0 s and sign-in 3 s, installed system in QEMU, 2026-10-23). Checked:
+  all 196 texts have a Turkish version; served over HTTP (images load, no
+  console errors, gallery tabs and language switch work); opened from
+  `file://` in headless Edge with a throw-away profile (styles, fonts,
+  pictures). A bug of the first draft, found there: a second `show()`
+  function replaced the gallery's, and nothing on the page appeared.
+- **Docs**: `docs/*.md` moved to `docs/dev/` (`git mv`, 61 references in
+  23 files updated; every relative Markdown link resolves).
+- **README.md** rewritten for GitHub (screenshots, highlights, what is
+  inside, try/build, versions from the ISO's package list, testing,
+  principles, layout, roadmap, trademarks); `packages/README.md` lists all
+  25 packages with their test counts; `tests/README.md`, `build/README.md`
+  and `CONTRIBUTING.md` brought up to date; `AGENTS.md` has a website
+  section and an updated map; `CLAUDE.md` only points at `AGENTS.md`.
+- **Repository checks**: a new `tests/repo` check keeps the website's icons
+  identical to the system's; the line-ending check skips the website's
+  binary types; `.gitattributes` marks them binary; `.gitignore` adds
+  `/.claude/`, editor folders and operating-system files. Secret scan of
+  the whole tree: no keys, tokens, host paths, private addresses or test
+  passwords (the maintainer address is only in Debian packaging and the
+  About page, as before).
+
 ## 2026-10-23 (day) — Tests of the smaller ISO: installed systems without initramfs (fixed), VirtualBox stalls, website pictures
 
 The ISO of the morning's work (`20261023-045821`, sha256
@@ -431,7 +472,7 @@ what was done for each and how it was checked:
   card sits, ends 24 px above the taskbar (KWin script measured the
   window at 342 × 640 px, bottom at 1008 of 1080).
 - **Disk Management (7)**: new package `veltos-disks` (see
-  `docs/architecture.md` 2.14): the volume list over the disk map, menus
+  `docs/dev/architecture.md` 2.14): the volume list over the disk map, menus
   and dialogs of Windows' Disk Management on UDisks2; KDE Partition
   Manager hidden and out of the image; Settings > Storage and Win+X open
   it.
@@ -445,7 +486,7 @@ what was done for each and how it was checked:
   (`activeFocusOnTab: false`), so Tab moves to the next control of the page.
 - **Desktop refresh, new items, protected icons (12, 16, 17, 18)**: Plasma's
   folder view gets `VeltOSDesktop.qml` (override `org.kde.desktopcontainment`,
-  `docs/architecture.md` 2.3.8a): Windows 11's desktop menu (View, Sort by,
+  `docs/dev/architecture.md` 2.3.8a): Windows 11's desktop menu (View, Sort by,
   Refresh, Paste, New, Display settings, Personalize, Open in Terminal),
   New > Folder / Text Document made at once with Windows' names
   (`desktop-new`) and the name box open, Refresh/F5 blink the icons, the
@@ -460,7 +501,7 @@ what was done for each and how it was checked:
   and touches the desktop launcher, so the desktop re-reads its icon
   (full/empty).
 - **Nested grey boxes around menus (14)**: not reproduced in QEMU (every
-  menu is one rounded box); left open in `docs/status.md` with what is
+  menu is one rounded box); left open in `docs/dev/status.md` with what is
   needed (a screenshot from the owner's VM).
 - **Search window (15)**: a plain field with the accent line under it
   (the blue frame is gone), results in a Column (rows overlapped in the
@@ -2461,7 +2502,7 @@ ISO `veltos-0.1.0-dev-20261019-064631` (verify hook passed):
 
 ### Decisions
 
-Recorded with trade-offs in `docs/architecture.md`: Debian 13 stable base,
+Recorded with trade-offs in `docs/dev/architecture.md`: Debian 13 stable base,
 Debian kernel, Plasma 6.3 customised via packages (no fork), GRUB for BIOS
 and UEFI, Secure Boot via Debian shim, zstd squashfs, NVIDIA proprietary
 driver not preinstalled (Hardware Manager will handle it), Calamares with

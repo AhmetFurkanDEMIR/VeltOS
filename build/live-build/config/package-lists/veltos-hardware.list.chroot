@@ -18,7 +18,7 @@ vainfo
 
 # Open graphics stack: AMD (radeonsi/RADV), Intel (iris/ANV), NVIDIA via
 # nouveau/NVK. Proprietary NVIDIA drivers are not preinstalled; see
-# docs/architecture.md, "Graphics drivers".
+# docs/dev/architecture.md, "Graphics drivers".
 libgl1-mesa-dri
 mesa-vulkan-drivers
 mesa-va-drivers

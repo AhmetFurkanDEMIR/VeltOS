@@ -6,7 +6,7 @@ ISO: `veltos-0.1.0-dev-20261019-170820` (installation). The unlock screen
 changes (font, texts, layout) and `tries=0` were then applied to the
 installed system from the newer `veltos-boot` and installer packages
 (`dpkg -i`, installer job run by hand) and checked by rebooting; the ISO
-built afterwards contains them (see `docs/development-log.md`).
+built afterwards contains them (see `docs/dev/development-log.md`).
 
 ## Steps and observations
 
