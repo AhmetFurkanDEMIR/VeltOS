@@ -1,4 +1,4 @@
-# 2026-10-23 — Installation (BIOS) and boot tests of ISO 20261023-061442
+# 2026-10-23 — Installations (BIOS, UEFI) and boot tests of ISO 20261023-061442
 
 ISO `veltos-0.1.0-dev-20261023-061442`, 2,445,506,560 bytes, sha256
 `9d8afa183a94975fa43db82708bb095b6e23e40a527e5733b7c01cc196d32464`.
@@ -22,6 +22,16 @@ With the fix (live packages removed before the initramfs job, the new
 | First start from disk | `systemd-analyze`: 3.976 s (kernel 2.136 s + userspace 1.839 s); sign-in screen about 15 s after the VM started (BIOS, GRUB's 2 s included) |
 | Signing in | plasmashell about 2.9 s after Enter; Start (`06`); no failed units, no core dumps |
 
+## UEFI installation (same ISO)
+
+OVMF without Secure Boot: "Erase disk" made an EFI system partition
+(300 MiB FAT32), boot (1 GiB) and root; 45 installer jobs in about two
+minutes, `boot-check` passed. The firmware boot entry is "VeltOS"
+(`\EFI\debian\shimx64.efi`); the installed system started
+(`systemd-analyze` 4.219 s, sign-in screen about 13 s after the VM
+started), signed in to the desktop (`08-uefi-installed-desktop.png`), no
+failed units, no core dumps.
+
 ## Boot tests of the live ISO
 
 | Firmware | Checks | `systemd-analyze` | plasmashell | Memory in use |
@@ -41,6 +51,6 @@ with their icons (`07-winapps-start-search.png`).
 
 ## Not covered here
 
-A UEFI installation with this ISO, an encrypted one (last tested end to end
-on 2026-10-19), VirtualBox (VMs on the developer host stall in NEM mode,
+An encrypted installation (last tested end to end on 2026-10-19), Secure
+Boot on an installed system, VirtualBox (VMs on the developer host stall in NEM mode,
 see `docs/dev/status.md`), real hardware.
