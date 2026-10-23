@@ -114,7 +114,9 @@ tests, and the image check passed.
   installation from it in QEMU took about 110 s, the initramfs job 12 s,
   boot-check passed, and the installed system started (`systemd-analyze`
   3.98 s, plasmashell 2.9 s after signing in, no failed units, no core
-  dumps). Evidence: `tests/results/2026-10-23-installation-bios/`.
+  dumps); a UEFI installation too (45 jobs, boot-check passed, firmware
+  entry "VeltOS" through shim, `systemd-analyze` 4.22 s, signed in).
+  Evidence: `tests/results/2026-10-23-installation-bios/`.
 - **Website pictures**: taken in that installed system (English, 1920x1080,
   a test account "Jordan Lee" with sample documents, pictures and a
   sample mailbox, all VM-only test data): Start, File Explorer with two tabs,

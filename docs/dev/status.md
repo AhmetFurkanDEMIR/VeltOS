@@ -83,8 +83,7 @@ checks that passed.
   the Ctrl+Alt+Del screen.
 
 - An installation in VirtualBox (the product owner's setup): its VMs
-  stall on this host (Known gaps). A UEFI installation after the
-  2026-10-23 installer fix.
+  stall on this host (Known gaps).
 - Bluetooth pages with a real adapter; Display page changes on real
   monitors; accent colour in all apps (Kvantum apps keep the theme's
   blue); blur/translucency with a real GPU.
@@ -190,13 +189,13 @@ checks that passed.
    copy on the owner's Desktop as `VeltOS-20261023-061442.iso`) with the
    owner's 38 items of 2026-10-22 and the installer, start-up and size
    work of 2026-10-23 (development log). QEMU: boot tests UEFI 19/19, BIOS
-   18/18, Secure Boot 20/20, `test-winapps` 7/7, and a BIOS installation
-   that starts (`tests/results/2026-10-23-installation-bios/`).
+   18/18, Secure Boot 20/20, `test-winapps` 7/7, and BIOS and UEFI
+   installations that start (`tests/results/2026-10-23-installation-bios/`).
    Still to see on screen: the search window's "no results", the text
    pointer, a real video in Media Player's full screen, Windows programs
    listed in Settings, VeltOS Mail in dark mode, Automatic Repair's Turn
    off, Camera with a real webcam, Mail with a real account, the sounds by
-   ear, a UEFI installation with the 2026-10-23 installer.
+   ear, an encrypted installation with the 2026-10-23 installer.
 2. VirtualBox: on the developer host its VMs stall in NEM mode (Known
    gaps). Check VeltOS in VirtualBox on a host without Hyper-V, or after a
    VirtualBox release that fixes issue 722; until then judge speed and
