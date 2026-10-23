@@ -45,7 +45,12 @@ class FileManager1(QObject):
 
     @Slot("QStringList", str)
     def ShowItemProperties(self, uris, startup_id):  # noqa: N802
-        self._open(uris)
+        # Windows 11's Properties window (properties.py), not a folder.
+        if self.idle is not None:
+            self.idle.start()
+        uris = [u for u in uris if u]
+        if uris:
+            self.start(["veltos-explorer", "--properties", *uris])
 
 
 def serve(argv=None):

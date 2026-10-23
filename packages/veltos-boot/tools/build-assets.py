@@ -232,7 +232,26 @@ def main():
     dropin = root / "usr/lib/systemd/system/sddm.service.d"
     dropin.mkdir(parents=True)
     shutil.copy(SRC / "systemd/veltos-plymouth.conf", dropin / "veltos-plymouth.conf")
+    build_resolution(root)
     shutil.rmtree(tmp)
+
+
+def build_resolution(root):
+    """The start-up screen at the screen's resolution (resolution/)."""
+    libexec = root / "usr/libexec/veltos-boot"
+    libexec.mkdir(parents=True, exist_ok=True)
+    for name in ("boot-resolution", "boot-resolution-sync"):
+        shutil.copy(SRC / "resolution" / name, libexec / name)
+        (libexec / name).chmod(0o755)
+    user_units = root / "usr/lib/systemd/user"
+    user_units.mkdir(parents=True, exist_ok=True)
+    shutil.copy(SRC / "resolution/veltos-boot-resolution.service", user_units / "veltos-boot-resolution.service")
+    wants = user_units / "plasma-workspace.target.wants"
+    wants.mkdir(exist_ok=True)
+    (wants / "veltos-boot-resolution.service").symlink_to("../veltos-boot-resolution.service")
+    actions = root / "usr/share/polkit-1/actions"
+    actions.mkdir(parents=True, exist_ok=True)
+    shutil.copy(SRC / "resolution/org.veltos.boot.policy", actions / "org.veltos.boot.policy")
 
 
 if __name__ == "__main__":

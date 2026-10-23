@@ -9,4 +9,12 @@ if [ "$1" = configure ]; then
         /usr/share/icons/Fluent-cursors/cursor.theme 110
 fi
 
+# Firefox's logo fills its whole square: drawn with a margin like the
+# VeltOS icons next to it (see /usr/libexec/veltos/pad-app-icon). Again
+# whenever firefox-esr installs new icons (trigger on the hicolor folders).
+if [ "$1" = configure ] || [ "$1" = triggered ]; then
+    /usr/libexec/veltos/pad-app-icon firefox-esr || true
+    /usr/libexec/veltos/pad-app-icon firefox || true
+fi
+
 #DEBHELPER#

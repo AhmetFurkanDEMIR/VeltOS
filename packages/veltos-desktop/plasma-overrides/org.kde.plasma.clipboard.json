@@ -1,0 +1,12 @@
+{
+  "plugin": "org.kde.plasma.clipboard",
+  "about": "The clipboard flyout as Windows 11's clipboard history: \"Clipboard history\" and \"Clear all\" at the top, copied text and pictures as cards (newest first), a \"...\" menu per card, a short message while nothing was copied; no KDE search field, barcode or edit pages, no KDE settings dialog. Klipper's history model stays. Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "replacements": [
+    {
+      "file": "contents/ui/main.qml",
+      "why": "Windows 11's clipboard history (product owner, 2026-10-22: make the clipboard flyout modern, like Windows 11)",
+      "replace_with": "clipboard/main.qml",
+      "upstream_sha256": "5afad88390b8352b46f64f920ba85c72237c647bb38fb64cc0ef6b270e0da147"
+    }
+  ]
+}

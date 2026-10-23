@@ -13,4 +13,5 @@ data/veltos-live-welcome.desktop etc/xdg/autostart/
 data/veltos-live-welcome.desktop usr/share/applications/
 data/veltos-live-session.sh etc/xdg/plasma-workspace/env/
 data/veltos-live.conf etc/sddm.conf.d/
-data/kvantum.kvconfig usr/share/veltos-installer/
+data/org.veltos.installer.policy usr/share/polkit-1/actions/
+build-assets/stylesheet-dark.qss etc/calamares/branding/veltos/

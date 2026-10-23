@@ -1,0 +1,32 @@
+#!/bin/sh
+# Strip the debug information from Wine's Windows DLLs. Run by
+# veltos-winapps' postinst when it is set up and, through a dpkg trigger on
+# Wine's DLL folders, whenever Wine is installed or updated.
+#
+# Debian builds Wine's PE files with DWARF debug information: 1.3 GB of the
+# 2.0 GB Wine installs, and 235 MB of the compressed VeltOS ISO (measured
+# 2026-10-23, product owner: a smaller ISO without losing anything). Every
+# Windows environment copies these files, and veltos-run already strips its
+# copies. The code stays the same and Wine still treats them as its builtin
+# DLLs (the "Wine builtin DLL" mark in the DOS header is kept); only a
+# debugger loses Wine's own symbols. dpkg --verify reports the files as
+# changed.
+set -u
+
+# Folder:strip tool pairs (test hook).
+pairs="${VELTOS_WINE_DLL_DIRS:-/usr/lib/x86_64-linux-gnu/wine/x86_64-windows:x86_64-w64-mingw32-strip /usr/lib/i386-linux-gnu/wine/i386-windows:i686-w64-mingw32-strip}"
+
+for pair in $pairs; do
+    dir="${pair%%:*}"
+    tool="${pair#*:}"
+    [ -d "$dir" ] || continue
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        echo "strip-wine-dlls: $tool is missing; $dir is left as it is"
+        continue
+    fi
+    find "$dir" -type f '(' -iname '*.dll' -o -iname '*.exe' -o -iname '*.drv' -o -iname '*.sys' \
+        -o -iname '*.cpl' -o -iname '*.ocx' -o -iname '*.acm' -o -iname '*.ax' -o -iname '*.ds' \
+        -o -iname '*.tlb' -o -iname '*.msstyles' ')' \
+        -exec "$tool" --strip-debug --preserve-dates '{}' + 2>/dev/null || true
+done
+exit 0

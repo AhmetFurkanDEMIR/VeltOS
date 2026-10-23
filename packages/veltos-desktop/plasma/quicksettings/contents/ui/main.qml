@@ -54,7 +54,10 @@ PlasmoidItem {
     PlasmaNM.Handler { id: handler }
     ScreenBrightnessControl {
         id: brightnessControl
-        isSilent: root.expanded
+        // The brightness bar at the bottom of the screen also shows while
+        // the slider here moves, like the volume bar (product owner,
+        // 2026-10-22); Plasma's applet keeps it silent while open.
+        isSilent: false
     }
     NightLightControl { id: nightLight }
     BatteryControlModel { id: battery }

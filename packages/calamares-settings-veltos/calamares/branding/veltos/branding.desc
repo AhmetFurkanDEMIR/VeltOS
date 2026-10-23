@@ -11,7 +11,10 @@ windowPlacement: center
 
 # Windows 11 style side bar (logo and steps) and buttons, written in QML
 # (calamares-sidebar.qml, calamares-navigation.qml); every other control
-# is styled by stylesheet.qss.
+# is styled by stylesheet.qss, which Calamares applies to its main window:
+# a link to the sheet start-calamares writes at each start, light or dark
+# with the user's accent (from stylesheet-light.qss and its generated dark
+# twin, stylesheet-dark.qss).
 sidebar: qml
 navigation: qml
 
@@ -25,6 +28,9 @@ strings:
     # Used for the firmware boot entry name only if efiBootloaderId is unset
     # (it is set; see modules/bootloader.conf).
     bootloaderEntryName: VeltOS
+    # The operating system's website (product owner, 2026-10-22).
+    productUrl:          https://veltos.ahmetfurkandemir.com/
+    supportUrl:          https://veltos.ahmetfurkandemir.com/
 
 images:
     productLogo:         "logo.png"

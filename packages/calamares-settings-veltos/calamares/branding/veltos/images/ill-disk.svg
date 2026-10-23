@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 256 256">
+  <!-- VeltOS installer: where VeltOS goes (a drive with its partitions). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E8EEFC"/>
+      <stop offset="1" stop-color="#D7E2FA"/>
+    </linearGradient>
+    <linearGradient id="case" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCE4F6"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5A85FF"/>
+      <stop offset="1" stop-color="#2F4FD6"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="112" fill="url(#glow)"/>
+  <rect x="38" y="78" width="180" height="112" rx="18" fill="#000000" opacity="0.10" transform="translate(0 7)"/>
+  <rect x="38" y="78" width="180" height="112" rx="18" fill="url(#case)" stroke="#C9D4EC" stroke-width="2"/>
+  <rect x="56" y="98" width="144" height="22" rx="6" fill="#E3E8F4"/>
+  <rect x="56" y="98" width="20" height="22" rx="6" fill="#7FA2FF"/>
+  <rect x="80" y="98" width="24" height="22" rx="4" fill="#9DB5FF"/>
+  <rect x="108" y="98" width="92" height="22" rx="6" fill="url(#front)"/>
+  <rect x="56" y="134" width="96" height="8" rx="4" fill="#C9D4EC"/>
+  <rect x="56" y="150" width="64" height="8" rx="4" fill="#DCE3F3"/>
+  <circle cx="192" cy="164" r="7" fill="#38C172"/>
+</svg>

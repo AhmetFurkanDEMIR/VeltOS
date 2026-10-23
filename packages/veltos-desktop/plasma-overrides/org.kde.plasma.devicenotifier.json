@@ -1,6 +1,6 @@
 {
   "plugin": "org.kde.plasma.devicenotifier",
-  "about": "Removable drives flyout like Windows 11's \"Safely Remove Hardware\": Windows' name, a small flyout with one plain list (no type headings, no sideways scroll bar). Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "about": "Removable drives flyout like Windows 11's \"Safely Remove Hardware\": Windows' name, a small flyout with one plain list (no type headings, no sideways scroll bar), each drive a Windows 11 row with a usage bar and an eject button. Matched against plasma-workspace 6.3.6 (Debian 13).",
   "replacements": [
     {
       "file": "metadata.json",
@@ -31,6 +31,12 @@
       "why": "one list without device type headings",
       "old": "                property: \"deviceType\"\n",
       "new": "                property: \"\" // VeltOS: one list without headings, like Windows\n"
+    },
+    {
+      "file": "contents/ui/DeviceItem.qml",
+      "why": "a drive as a Windows 11 row: icon, name, free space over a usage bar, an eject button; clicking opens it in File Explorer (product owner, 2026-10-22: make the devices flyout modern, like Windows 11)",
+      "replace_with": "devicenotifier/DeviceItem.qml",
+      "upstream_sha256": "c656a3beafe386b56f21de4c81b4099814149c4753c538b16c3e58c3732b348d"
     }
   ]
 }

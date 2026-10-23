@@ -1,0 +1,20 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "Appearance",
+        "Description": "Notifications slide in from the right edge of the screen and out again, like Windows 11 toasts",
+        "Description[tr]": "Bildirimler Windows 11'deki gibi ekranın sağ kenarından kayarak gelir ve kayarak gider",
+        "EnabledByDefault": true,
+        "Id": "veltostoast",
+        "License": "GPL-3.0-or-later",
+        "Name": "Toast animation",
+        "Name[tr]": "Bildirim animasyonu"
+    },
+    "X-KDE-Ordering": 50,
+    "X-Plasma-API": "javascript"
+}

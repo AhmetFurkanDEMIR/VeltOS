@@ -1,6 +1,6 @@
 {
   "plugin": "org.kde.desktopcontainment",
-  "about": "Plasma's desktop (folder view) containment, plasma-desktop-data 6.3.6 (Debian 13). VeltOS adds files/desktop/VeltOSDesktop.qml to it: the desktop's right-click menu is Windows 11's (View, Sort by, Refresh, Paste, New, Display settings, Personalize, Open in Terminal; Plasma's containment menu with Edit Mode and Add Widgets never opens), New > Folder / Text Document make the item at once and open its name for editing (Plasma asked in a dialog), Refresh blinks the icons, and the Recycle Bin, This PC and the VeltOS Store cannot be deleted, renamed or cut (their own small menu). The name box gets Windows 11's square corners. Everything else stays Plasma's.",
+  "about": "Plasma's desktop (folder view) containment, plasma-desktop-data 6.3.6 (Debian 13). VeltOS adds files/desktop/VeltOSDesktop.qml to it: the desktop's right-click menu is Windows 11's (View, Sort by, Refresh, Paste, New, Display settings, Personalize, Open in Terminal; Plasma's containment menu with Edit Mode and Add Widgets never opens), New > Folder / Text Document make the item at once and open its name for editing (Plasma asked in a dialog), Refresh blinks the icons, and the Recycle Bin, This PC and the VeltOS Store cannot be deleted, renamed or cut (their own small menu); every other file and folder gets Windows 11's menu with VeltOS' Properties window (KDE's dialog never opens). The Recycle Bin's icon shows whether it is full. The name box gets Windows 11's square corners. Everything else stays Plasma's.",
   "replacements": [
     {
       "file": "contents/ui/VeltOSDesktop.qml",
@@ -97,6 +97,12 @@
       "why": "the name box has Windows 11's square-ish corners",
       "old": "        background: Rectangle {\n            color: Kirigami.Theme.backgroundColor\n            radius: Kirigami.Units.cornerRadius\n            border.color: Kirigami.Theme.highlightColor\n            border.width: 1\n        }\n",
       "new": "        background: Rectangle {\n            // VeltOS: the name box of Windows 11.\n            color: Kirigami.Theme.backgroundColor\n            radius: 2\n            border.color: Kirigami.Theme.highlightColor\n            border.width: 1\n        }\n"
+    },
+    {
+      "file": "contents/ui/FolderItemDelegate.qml",
+      "why": "the Recycle Bin's icon shows whether it holds anything, as on Windows (product owner, 2026-10-22: the full bin was not shown)",
+      "old": "                    animated: false\n\n                    source: model.decoration\n",
+      "new": "                    animated: false\n\n                    // VeltOS: the Recycle Bin full or empty (VeltOSDesktop watches the trash).\n                    source: main.veltosFileName.endsWith(\"/recycle-bin.desktop\") && typeof veltos !== \"undefined\"\n                            ? (veltos.trashFull ? \"user-trash-full\" : \"user-trash\") : model.decoration\n"
     }
   ]
 }

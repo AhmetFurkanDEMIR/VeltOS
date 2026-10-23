@@ -2,7 +2,8 @@
 
 VeltOS File Explorer: a file manager in the layout of Windows 11 File
 Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
-**file dialog of every program** and the **"open with" window**:
+**file dialog of every program**, the **"open with" window** and the
+**Properties window**:
 
 - `veltos-explorer --pick` (`picker.py`, `qml/Picker.qml`): Windows 11's
   Open / Save As / Select Folder dialog built from Explorer's own address
@@ -10,7 +11,11 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   drop-down, New folder, "already exists, replace?", and the last folder
   remembered. The request is JSON on standard input, the answer JSON on
   standard output (see the module's docstring). VeltOS Settings calls it
-  directly (pictures, wallpapers).
+  directly (pictures, wallpapers). The "Save as type" box is as wide as
+  the file name box, as on Windows (product owner, 2026-10-22: long
+  LibreOffice type names overflowed the 300 px box), and Explorer's
+  drop-down menus are never wider than the window and open in the right
+  place the first time too (`WinMenu.qml` follows its own size).
 - `veltos-explorer --portal` (`portal.py`, GLib/GDBus, no Qt): the
   `org.freedesktop.impl.portal.FileChooser` backend of xdg-desktop-portal
   (D-Bus activated), chosen for Plasma sessions by
@@ -20,13 +25,46 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   in veltos-desktop's session script) therefore show the VeltOS dialog.
   The dialogs the backend starts (`--pick`) run with KDE's platform theme
   (`app.portal_platform_theme`): they are the portal's own dialog and must
-  not ask the portal from inside its request (2026-10-22).
+  not ask the portal from inside its request (2026-10-22). They also get
+  the session's language from systemd's user manager
+  (`portal.session_environment`: `LANGUAGE`, `LANG`, `LC_ALL`,
+  `LC_MESSAGES` from `systemctl --user show-environment`): D-Bus may
+  start the backend before Plasma has passed the language on, and the
+  dialog then said "File name" and "Save as type" in a Turkish session
+  (product owner, 2026-10-22).
+  `kde-portals.conf` also sets `org.freedesktop.impl.portal.Settings=kde`
+  and `org.freedesktop.impl.portal.Lockdown=none`: KDE's backend has no
+  Lockdown interface, so xdg-desktop-portal 1.20 started the GTK backend
+  as a fallback (Debian's file lists `kde;gtk;`), which waits for
+  `graphical-session.target`, and every early portal request at sign-in
+  waited 25 s (faster sign-in, product owner, 2026-10-22).
 - `veltos-explorer --open-with FILE` (`openwith.py`, `qml/OpenWith.qml`):
   "Select an app to open this .txt file" as Windows 11 asks it, with the
   apps that claim the type, "More apps", Always (records the default in
   `~/.config/mimeapps.list`) and Just once. Explorer's "Open with" menu
   ends with "Choose another app", and a file no app claims opens this
-  window instead of KDE's dialog.
+  window instead of KDE's dialog. As in Start, the first `.desktop` file
+  of a name wins even when it is hidden, so apps VeltOS hides with
+  `NoDisplay` copies (veltos-desktop `update-app-names`) are not offered.
+- `veltos-explorer --properties PATH...` (`properties.py`,
+  `qml/Properties.qml`; paths, `file://` URLs and `desktop:/NAME`):
+  Windows 11's Properties window instead of KDE's dialog, for files,
+  folders, several items, drives and Recycle Bin items, titled "NAME
+  Properties". General: icon and name (renaming), type, "Opens with" and
+  Change... (the "Select an app" window), location, size and size on
+  disk (counted in the background for folders, as Windows counts up),
+  what a folder contains, created / modified / accessed, Read-only and
+  Hidden; a drive's type, file system and used / free pie; a Recycle Bin
+  item's original location and deletion date. Security: owner, group and
+  read / write / run permissions (changed by the owner only). Details:
+  the facts as a list (picture size for pictures). OK, Cancel and Apply;
+  nothing needs the administrator password. Properties in File Explorer
+  (command bar, menus, Alt+Enter), Properties in the desktop's menus
+  (veltos-desktop) and `org.freedesktop.FileManager1.ShowItemProperties`
+  all open it (product owner, 2026-10-22).
+- `veltos-explorer --compress PATH...`: the desktop's "Compress to ZIP
+  file", the same `.zip` Explorer makes (a free name next to the items,
+  VeltOS Archive's progress window).
 - `veltos-explorer --empty-recycle-bin` (`app.empty_recycle_bin`,
   `qml/EmptyBin.qml`): Windows 11's "permanently delete all items?"
   question in a small window of its own, then the bin is emptied; the
@@ -48,7 +86,20 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   manager (`startSystemResize`).
 - **Command bar**: New (folder, text document), cut, copy, paste, rename,
   delete, Sort, View, "…" (select all/none/invert, Open in Terminal,
-  Properties). In the Recycle Bin: Empty Recycle Bin, Restore.
+  Properties). In the Recycle Bin: Empty Recycle Bin, Restore all items
+  (when nothing is selected), Restore.
+- **Recycle Bin** menus as on Windows 11 (product owner, 2026-10-22): an
+  item's menu has Restore, Cut, Delete and Properties; the empty space's
+  View, Sort, Refresh, Empty Recycle Bin and Restore all items. Items cut
+  in the Recycle Bin leave it through KIO's trash (`trash:/0-NAME`,
+  `ops.trash_url`), which also drops their `.trashinfo` (a plain move
+  left it behind).
+- **The desktop's system icons**: This PC, the Recycle Bin and the VeltOS
+  Store on the desktop (`places.DESKTOP_SYSTEM_ICONS`) cannot be deleted,
+  cut or renamed from File Explorer (a message says so) and their menu
+  offers only Open and Properties; veltos-desktop's desktop guard makes
+  the files root's, so not even a terminal removes them (product owner,
+  2026-10-22).
 - **Address row**: back, forward, recent places, up; the address box shows
   the path as clickable parts starting at the known folder (Documents,
   Pictures, …) and becomes a text box on click / Ctrl+L; refresh; the
@@ -78,6 +129,16 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   file, Extract All, Copy as path, Properties, Open in Terminal).
 - **Status bar**: number of items, selection and its size, Details / Large
   icons switches. Light and dark mode follow the system, live.
+- **Accent colour**: focus borders, the selection rectangle, selected text
+  and the accent-coloured buttons and marks use the accent chosen in
+  Settings (`AccentColor` in kdeglobals; lighter in dark mode, as Windows
+  draws it; VeltOS blue without one), in File Explorer and in its
+  dialogs (`Theme.qml`). The Home icon is drawn in the accent
+  (`qml/LocationIcon.qml`: the house of veltos-fluent-icons'
+  `veltos-home`) in the tab, the navigation pane and the address bar
+  (product owner, 2026-10-22).
+- Text boxes (address, search, file name, rename) are in the Tab order
+  and show the text (I-beam) pointer, like Windows'.
 
 ## How it works
 
@@ -87,11 +148,17 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   (`~/.config/veltos-explorer.json`), drives (`lsblk`, `udisksctl`),
   Recycle Bin (freedesktop.org trash), recent files, "Open with"
   applications from `.desktop` files.
-- `ops.py`: **copying, moving, deleting, the Recycle Bin, opening and
-  Properties go through KDE's file engine (`kioclient`)**: progress in the
-  notification area, "file already exists" questions, the standard trash.
-  Renaming and new items are local calls that never replace an existing
-  item. Compress / extract use Ark.
+- `ops.py`: **copying, moving, deleting, the Recycle Bin and opening go
+  through KDE's file engine (`kioclient`)**: progress in the notification
+  area, "file already exists" questions, the standard trash. Renaming and
+  new items are local calls that never replace an existing item.
+  Properties opens VeltOS' own window (`properties.py`), no longer KDE's
+  (`kioclient openProperties`). Compress / extract use VeltOS Archive
+  (`veltos-archive`).
+- `properties.py`: the Properties window's backend (sizes and dates in
+  Windows' wording, the folder count in a thread, drives from
+  `/proc/self/mounts`, the default app as Settings > Default apps decides
+  it, renaming, Read-only, Hidden and permissions).
 - `models.py`: the Qt model of a folder (with selection) and the tab
   (location, history, view, sort, search) — slow work in a thread.
 - `app.py`: the backend object for QML (tabs, clipboard, actions).
@@ -99,9 +166,12 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   except scroll bars and pop-ups).
 
 Folders open in File Explorer by default (`/etc/xdg/kde-mimeapps.list`).
-KDE's Dolphin stays installed for programs that ask the file manager to
-"show a file in its folder" (D-Bus `org.freedesktop.FileManager1`, not yet
-implemented here); it is hidden from Start.
+Programs that ask the file manager to show a folder, a file in its folder
+or a file's properties (D-Bus `org.freedesktop.FileManager1`,
+`filemanager1.py`, started on demand by D-Bus as `veltos-explorer
+--filemanager1`) get File Explorer and its Properties window. KDE's
+Dolphin is not in the VeltOS image (its service claims the same D-Bus
+name).
 
 ## Notes
 
@@ -117,6 +187,14 @@ search, drives (recorded `lsblk` output), pins, Recycle Bin restore, "Open
 with" commands, KIO commands, rename safety, and the real window loaded
 offscreen in English and Turkish (navigation, tabs, every view, copy and
 paste, new folder, rename, delete, menus, search).
+`tests/test_properties.py`: sizes and dates as Windows writes them,
+paths, URLs and `desktop:/`, a file, renaming with Read-only, Hidden and
+permissions, a folder's contents counted, several items, a Recycle Bin
+item and the bin, the root drive. `tests/test_portal_config.py`: file
+dialogs from File Explorer, Settings from KDE's backend, Lockdown off, no
+GTK backend. `tests/test_portal_theme.py` also checks that the dialogs
+take the session's language from systemd, `tests/test_filemanager1.py`
+that `ShowItemProperties` opens the Properties window.
 
 ## App icon and text
 

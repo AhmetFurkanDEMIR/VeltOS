@@ -1,0 +1,39 @@
+Source: veltos-calendar
+Section: utils
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-calendar
+Architecture: all
+Depends: ${python3:Depends},
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         ${misc:Depends}
+Recommends: veltos-clock,
+            veltos-desktop
+Description: VeltOS Calendar, in the layout of Windows 11's Calendar app
+ Day, work week, week, month and year views with "Today" and the previous
+ and next arrows, a small month and "New event" on the left, Windows'
+ quick card for a new event (name, date and time, all day, place,
+ reminder) and the full editor (repeat, reminder, description), in
+ English and Turkish.
+ .
+ Events are kept in an iCalendar file (~/.local/share/veltos-calendar/
+ calendar.ics) that other calendar programs can import. VeltOS Clock's
+ background agent (veltos-clock) shows the reminders while Calendar is
+ closed.

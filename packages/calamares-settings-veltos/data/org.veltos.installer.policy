@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!-- The VeltOS installer: install-veltos starts Calamares through
+     /usr/libexec/veltos-installer/start-calamares with pkexec. Like
+     Calamares' own action, it needs an administrator and keeps the display
+     (allow_gui); the live system's rules grant it to the live user. -->
+<policyconfig>
+  <vendor>VeltOS</vendor>
+  <vendor_url>https://veltos.ahmetfurkandemir.com/</vendor_url>
+  <action id="org.veltos.installer.start">
+    <description>Install VeltOS</description>
+    <description xml:lang="tr">VeltOS'u yükle</description>
+    <message>Authentication is required to install VeltOS</message>
+    <message xml:lang="tr">VeltOS'u yüklemek için kimlik doğrulaması gerekiyor</message>
+    <icon_name>veltos-logo</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/veltos-installer/start-calamares</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+</policyconfig>

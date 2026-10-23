@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Calendar: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3D8BF2"/>
+      <stop offset="1" stop-color="#1747B8"/>
+    </linearGradient>
+    <linearGradient id="sheet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E6EDF8"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F7FC"/>
+      <stop offset="1" stop-color="#C9D6EA"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2E6BE6"/>
+      <stop offset="1" stop-color="#1747B8"/>
+    </linearGradient>
+  </defs>
+  <path d="M 56 46 H 200 Q 228 46 228 74 V 196 Q 228 224 200 224 H 56 Q 28 224 28 196 V 74 Q 28 46 56 46 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 56 46 H 200 Q 228 46 228 74 V 196 Q 228 224 200 224 H 56 Q 28 224 28 196 V 74 Q 28 46 56 46 Z" fill="url(#body)"/>
+  <path d="M 60 96 H 196 Q 212 96 212 112 V 192 Q 212 208 196 208 H 60 Q 44 208 44 192 V 112 Q 44 96 60 96 Z" fill="url(#sheet)"/>
+  <rect x="62" y="110" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="98" y="110" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="134" y="110" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="170" y="110" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="62" y="140" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="98" y="140" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="134" y="140" width="24" height="20" rx="5" fill="url(#mark)"/>
+  <rect x="170" y="140" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="62" y="170" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="98" y="170" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="134" y="170" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="170" y="170" width="24" height="20" rx="5" fill="#A9C8F5"/>
+  <rect x="78" y="28" width="18" height="42" rx="9" fill="url(#ring)"/>
+  <rect x="83" y="34" width="8" height="24" rx="4" fill="#1A55C8" opacity="0.35"/>
+  <rect x="160" y="28" width="18" height="42" rx="9" fill="url(#ring)"/>
+  <rect x="165" y="34" width="8" height="24" rx="4" fill="#1A55C8" opacity="0.35"/>
+</svg>

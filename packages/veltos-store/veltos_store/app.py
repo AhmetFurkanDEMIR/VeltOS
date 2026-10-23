@@ -367,31 +367,40 @@ def instance_name():
 
 
 def raise_running():
-    """One Store window per user: ask a running one to come to the front."""
+    """One Store process per user: a running one is asked for a new window
+    (a second start of the Store, from another virtual desktop for
+    example)."""
     socket = QLocalSocket()
     socket.connectToServer(instance_name())
     if not socket.waitForConnected(500):
         return False
-    socket.write(b"raise\n")
+    socket.write(b"window\n")
     socket.flush()
     socket.waitForBytesWritten(500)
     socket.disconnectFromServer()
     return True
 
 
-def listen_for_raise(window):
-    server = QLocalServer(window)
+def listen_for_raise(engine):
+    """Each request opens another Store window, which KWin places on the
+    current virtual desktop: the Store can be open on several desktops
+    (product owner, 2026-10-22: on a second desktop it did not open, the
+    request only raised the window on the first one). The windows share
+    the installs in progress (one backend)."""
+    server = QLocalServer(engine)
     QLocalServer.removeServer(instance_name())
 
-    def show():
+    def open_window():
         connection = server.nextPendingConnection()
         if connection:
             connection.close()
-        window.show()
-        window.raise_()
-        window.requestActivate()
+        engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
+        if engine.rootObjects():
+            window = engine.rootObjects()[-1]
+            window.raise_()
+            window.requestActivate()
 
-    server.newConnection.connect(show)
+    server.newConnection.connect(open_window)
     server.listen(instance_name())
     return server
 
@@ -417,7 +426,7 @@ def main(argv=None):
     engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
     if not engine.rootObjects():
         return 1
-    server = listen_for_raise(engine.rootObjects()[0])  # noqa: F841 (kept alive)
+    server = listen_for_raise(engine)  # noqa: F841 (kept alive)
     code = app.exec()
     del engine
     return code

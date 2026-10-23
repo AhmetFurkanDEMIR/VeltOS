@@ -1,0 +1,12 @@
+#!/bin/sh
+# Remove the sign-in screen setting that safe-graphics writes at a start
+# without a graphics driver (made at run time, not a file of the package).
+set -e
+
+case "$1" in
+    remove|purge)
+        rm -f /etc/sddm.conf.d/zz-veltos-safe-graphics.conf
+        ;;
+esac
+
+#DEBHELPER#

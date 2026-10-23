@@ -21,6 +21,7 @@ no start page or donation tab (users can change all of them).
 """
 
 import base64
+import json
 import shutil
 from pathlib import Path
 
@@ -84,9 +85,9 @@ pref("general.config.sandbox_enabled", false);
 pref("widget.use-xdg-desktop-portal.file-picker", 1);
 """
 
-def autoconfig(what, sheets):
+def autoconfig(what, sheets, extra=""):
     """The autoconfig script: registers `sheets` (file paths) as user style
-    sheets for every window."""
+    sheets for every window, then runs `extra` (more privileged JS)."""
     names = ", ".join(f'"file://{sheet}"' for sheet in sheets)
     return f"""// VeltOS {what} set-up (first line must be a comment).
 // Registers the VeltOS style sheets for every window.
@@ -104,16 +105,124 @@ try {{
 }} catch (e) {{
   Components.utils.reportError("VeltOS: " + e);
 }}
-"""
+{extra}"""
 
 
-CAPTION_CSS = "/" + str(CSS_PATH)
+# VeltOS Mail (product owner, 2026-10-22: "like Microsoft Outlook, named
+# VeltOS Mail"): the name in window titles, and Outlook's simplified ribbon
+# as the default of the toolbar's mail buttons (New mail, Delete, Archive,
+# Report (junk), Move to, Reply, Reply all, Forward, Read/Unread, Tag; the
+# search box goes above them, mail.css). The ribbon is only the default:
+# a toolbar the user customised is left alone (Thunderbird keeps it in
+# xulstore.json, modules/CustomizationState.mjs of Thunderbird 140).
+MAIL_NAME = "VeltOS Mail"
+MAIL_RIBBON = ["write-message", "delete", "archive", "junk", "move-to", "reply", "reply-all",
+               "forward-inline", "mark-as", "tag-message", "get-messages", "search-bar"]
+# The reading pane header's settings (Thunderbird's "Customize" panel of the
+# header) as Outlook shows a mail: the sender's picture big, the subject
+# large, the reply/forward/delete buttons as icons only.
+MAIL_HEADER_LAYOUT = {"showAvatar": True, "showBigAvatar": True, "showFullAddress": True,
+                      "hideLabels": True, "subjectLarge": True, "buttonStyle": "only-icons"}
+MAIL_EXTRA = """
+// VeltOS Mail: the app's name in window titles. Thunderbird builds the main
+// window's title from the tab's title and the root's "titlemodifier"
+// ("Mozilla Thunderbird"; tabmail.js setDocumentTitle); other windows set
+// document.title themselves ("Write: (no subject) - Thunderbird";
+// MsgComposeCommands.js SetComposeWindowTitle), which changes their <title>
+// element (or the root's "title" attribute in XUL windows).
+try {
+  const NAME = "%(name)s";
+  const rename = win => {
+    const doc = win.document;
+    const root = doc && doc.documentElement;
+    if (!root) {
+      return;
+    }
+    const fix = () => {
+      const modifier = root.getAttribute("titlemodifier");
+      if (modifier && modifier !== NAME && modifier.includes("Thunderbird")) {
+        root.setAttribute("titlemodifier", NAME);
+      }
+      const title = doc.title;
+      if (title && /(Mozilla )?Thunderbird/.test(title)) {
+        doc.title = title.replace(/(Mozilla )?Thunderbird/g, NAME);
+      }
+    };
+    fix();
+    const watch = new win.MutationObserver(fix);
+    watch.observe(root, { attributes: true, attributeFilter: ["titlemodifier", "title"] });
+    const element = doc.querySelector("title");
+    if (element) {
+      watch.observe(element, { childList: true, characterData: true, subtree: true });
+    }
+  };
+  const observers = Components.classes["@mozilla.org/observer-service;1"]
+      .getService(Components.interfaces.nsIObserverService);
+  observers.addObserver({
+    observe(win) {
+      win.addEventListener("load", () => rename(win), { once: true });
+    },
+  }, "domwindowopened");
+
+  // Outlook's simplified ribbon as the default mail toolbar, Outlook's
+  // reading pane header (a big sender picture, actions as icons;
+  // msgHdrView.js gHeaderCustomize keeps these settings) and a new message
+  // window without a menu bar, as Outlook's (Alt shows it; View > Toolbars
+  // brings it back for good).
+  const outlookDefaults = () => {
+    const store = Components.classes["@mozilla.org/xul/xulstore;1"]
+        .getService(Components.interfaces.nsIXULStore);
+    const doc = "chrome://messenger/content/messenger.xhtml";
+    if (!store.hasValue(doc, "unifiedToolbar", "state")) {
+      store.setValue(doc, "unifiedToolbar", "state", JSON.stringify({ mail: %(ribbon)s }));
+    }
+    if (!store.hasValue(doc, "messageHeader", "layout")) {
+      store.setValue(doc, "messageHeader", "layout", JSON.stringify(%(header)s));
+    }
+    const compose = "chrome://messenger/content/messengercompose/messengercompose.xhtml";
+    if (!store.hasValue(compose, "compose-toolbar-menubar2", "autohide")) {
+      store.setValue(compose, "compose-toolbar-menubar2", "autohide", "true");
+    }
+  };
+  observers.addObserver({ observe: outlookDefaults }, "final-ui-startup");
+} catch (e) {
+  Components.utils.reportError("VeltOS Mail: " + e);
+}
+""" % {"name": MAIL_NAME, "ribbon": json.dumps(MAIL_RIBBON), "header": json.dumps(MAIL_HEADER_LAYOUT)}
+
+
+def mail_header_css():
+    """White caption buttons for Mail's blue title band (mail.css), and
+    their width, which mail.css keeps the app menu button clear of."""
+    # No default @namespace here: with XUL as the default namespace the
+    # rules would not match the band, an HTML div (VM, 2026-10-22).
+    lines = [
+        "/* VeltOS Mail: white caption glyphs on the Outlook blue title band",
+        "   (generated by tools/firefox.py). */",
+        '@-moz-document url("chrome://messenger/content/messenger.xhtml") {',
+        # Minimise, maximise or restore, close.
+        f"  #unifiedToolbarContainer {{ --veltos-caption-width: {3 * fluent.CAPTION_W}px; }}",
+    ]
+    for cls, kind in GLYPHS.items():
+        lines.append(f'  #unifiedToolbarContainer .{cls} > .toolbarbutton-icon {{ background-image: '
+                     f'url("{glyph_uri(kind, "#ffffff")}") !important; }}')
+    lines += [
+        # Close keeps Windows' red (caption-buttons.css).
+        "  #unifiedToolbarContainer .titlebar-button:not(.titlebar-close):hover > .toolbarbutton-icon {",
+        "    background-color: rgba(255, 255, 255, 0.14) !important; }",
+        "}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+CAPTION_CSS = "/" + CSS_PATH.as_posix()
 # Firefox's downloads panel in the Windows 11 look (firefox/downloads.css).
 DOWNLOADS_CSS = "/usr/share/veltos/firefox/downloads.css"
 # Mail's look (Outlook-like panes and cards), a file of veltos-desktop.
 MAIL_CSS = "/usr/share/veltos/mail/mail.css"
+MAIL_HEADER_CSS = "/usr/share/veltos/mail/mail-header.css"
 AUTOCONFIG = autoconfig("Firefox", [CAPTION_CSS, DOWNLOADS_CSS])
-MAIL_AUTOCONFIG = autoconfig("Mail (Thunderbird)", [CAPTION_CSS, MAIL_CSS])
+MAIL_AUTOCONFIG = autoconfig("Mail (Thunderbird)", [CAPTION_CSS, MAIL_CSS, MAIL_HEADER_CSS], MAIL_EXTRA)
 
 
 THUNDERBIRD_PREFS = AUTOCONFIG_PREFS.replace("/usr/lib/firefox-esr/", "/usr/lib/thunderbird/") + """// VeltOS: folders, list and reading pane side by side, like Outlook.
@@ -131,6 +240,10 @@ pref("datareporting.policy.dataSubmissionPolicyBypassNotification", true);
 pref("datareporting.policy.firstRunURL", "");
 pref("toolkit.telemetry.reportingpolicy.firstRun", false);
 pref("mail.rights.override", true);
+// VeltOS Mail: no tab bar while only one tab is open, like Outlook.
+pref("mail.tabs.autoHide", true);
+// People by their names only in the message list, as Outlook shows them.
+pref("mail.addressDisplayFormat", 2);
 """
 
 
@@ -151,6 +264,7 @@ def build(root):
     mail_css = root / MAIL_CSS.lstrip("/")
     mail_css.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(Path(__file__).resolve().parent.parent / "mail/mail.css", mail_css)
+    (root / MAIL_HEADER_CSS.lstrip("/")).write_text(mail_header_css(), encoding="utf-8", newline="\n")
     downloads_css = root / DOWNLOADS_CSS.lstrip("/")
     shutil.copy(Path(__file__).resolve().parent.parent / "firefox/downloads.css", downloads_css)
 

@@ -4,6 +4,8 @@ accounts.py, inputs.py, apps.py and the systemsettings/kcmshell6 redirect
 
 import importlib.machinery
 import importlib.util
+import io
+import json
 import os
 import sys
 import tempfile
@@ -161,9 +163,62 @@ class AccountsTests(unittest.TestCase):
 
     def test_add_user_checks_the_name(self):
         runner = self.runner()
-        self.assertEqual(accounts.Accounts(runner, me="velt").add_user("Bad Name", "", "pw", False), "bad_username")
+        self.assertEqual(accounts.Accounts(runner, me="velt").add_user("!!!", "", "pw", False), "bad_username")
         self.assertEqual(accounts.Accounts(runner, me="velt").add_user("ali", "", "", False), "password_missing")
+        self.assertEqual(accounts.Accounts(runner, me="velt").add_user("ayse", "", "pw", False), "user_exists")
         self.assertFalse(any("CreateUser" in " ".join(c) for c in runner.commands))
+
+    def test_login_names_like_windows_accepts_them(self):
+        self.assertEqual(accounts.login_name("Ayşe Yılmaz"), "ayseyilmaz")
+        self.assertEqual(accounts.login_name("İLKER"), "ilker")
+        self.assertEqual(accounts.login_name("  Çağrı.Öztürk  "), "cagriozturk")
+        self.assertEqual(accounts.login_name("2nd user"), "nduser")
+        self.assertEqual(accounts.login_name("José"), "jose")
+        self.assertEqual(accounts.login_name("!!!"), "")
+        self.assertEqual(len(accounts.login_name("a" * 50)), 32)
+
+    def test_add_user_asks_for_the_password_once(self):
+        # Creating the user and setting its password run in one process
+        # (admin_calls), so polkit asks once; two `gdbus` calls asked twice
+        # on an installed system (VM, 2026-10-23). The password's hash goes
+        # through standard input, never the command line.
+        runner = self.runner()
+        account = accounts.Accounts(runner, me="velt")
+        with mock.patch.object(accounts, "hash_password", lambda pw: "$6$salt$hash"):
+            self.assertEqual(account.add_user("Ali Veli", "", "pw", True), "")
+        command, data = runner.inputs[-1]
+        self.assertEqual(command[1:], ["-m", "veltos_settings.admin_calls"])
+        self.assertNotIn("$6$salt$hash", " ".join(command))
+        create, password = json.loads(data)
+        self.assertEqual((create["method"], create["args"]), ("CreateUser", ["aliveli", "Ali Veli", 1]))
+        self.assertEqual((password["path"], password["method"]), ("@created", "SetPassword"))
+        self.assertEqual(password["args"], ["$6$salt$hash", ""])
+        self.assertFalse(any("CreateUser" in " ".join(c) for c in runner.commands if c[0] == "gdbus"))
+
+    def test_admin_calls_use_one_connection_and_the_created_path(self):
+        try:
+            from gi.repository import GLib
+        except ImportError:
+            self.skipTest("needs python3-gi")
+        from veltos_settings import admin_calls
+        made = []
+
+        class FakeBus:
+            def call_sync(self, bus, path, interface, method, args, reply_type, flags, timeout, cancellable):
+                made.append((path, method, args.unpack(), flags, timeout))
+                if method == "CreateUser":
+                    return GLib.Variant("(o)", ("/org/freedesktop/Accounts/User1005",))
+                return GLib.Variant("()", ())
+        calls = [{"path": "/org/freedesktop/Accounts", "interface": "org.freedesktop.Accounts",
+                  "method": "CreateUser", "signature": "(ssi)", "args": ["ali", "Ali", 0]},
+                 {"path": "@created", "interface": "org.freedesktop.Accounts.User",
+                  "method": "SetPassword", "signature": "(ss)", "args": ["$6$x", ""]}]
+        self.assertEqual(admin_calls.main(io.StringIO(json.dumps(calls)), FakeBus()), 0)
+        self.assertEqual([m[:3] for m in made],
+                         [("/org/freedesktop/Accounts", "CreateUser", ("ali", "Ali", 0)),
+                          ("/org/freedesktop/Accounts/User1005", "SetPassword", ("$6$x", ""))])
+        from gi.repository import Gio
+        self.assertTrue(all(m[3] & Gio.DBusCallFlags.ALLOW_INTERACTIVE_AUTHORIZATION for m in made))
 
     def test_cannot_remove_oneself(self):
         self.assertFalse(accounts.Accounts(self.runner(), me="velt").remove_user("velt"))
@@ -323,6 +378,40 @@ class RedirectTests(unittest.TestCase):
         with mock.patch.object(redirect.os, "execvp", lambda *args: calls.append(args)),                 mock.patch.object(redirect.sys, "argv", ["/usr/bin/systemsettings"]):
             redirect.main()
         self.assertEqual([c[1][1] for c in calls], ["about", "power", "home"])
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "symlinks and modes")
+    def test_postinst_locks_kde_programs_but_not_the_redirect(self):
+        # kinfocenter.kde is KDE's symlink to "systemsettings", which is the
+        # redirect: the postinst's chmod followed it and made the redirect
+        # root's only ("Permission denied" for users; VM, 2026-10-23).
+        import stat
+        import subprocess
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            usr_bin = root / "usr/bin"
+            libexec = root / "usr/libexec/veltos"
+            fake_bin = root / "fake-bin"
+            for d in (usr_bin, libexec, fake_bin):
+                d.mkdir(parents=True)
+            redirect = libexec / "settings-redirect"
+            redirect.write_text("#!/bin/sh\n")
+            redirect.chmod(0o755)
+            (usr_bin / "systemsettings").symlink_to("../libexec/veltos/settings-redirect")
+            kde = usr_bin / "systemsettings.kde"
+            kde.write_text("#!/bin/sh\n")
+            kde.chmod(0o755)
+            (usr_bin / "kinfocenter.kde").symlink_to("systemsettings")
+            calls = root / "calls"
+            override = fake_bin / "dpkg-statoverride"
+            override.write_text(f'#!/bin/sh\necho "$@" >> {calls}\n[ "$1" != --list ]\n')
+            override.chmod(0o755)
+            script = (PKG / "debian/veltos-settings.postinst").read_text(encoding="utf-8")
+            script = script.replace("#DEBHELPER#", "").replace("/usr/", f"{root}/usr/")
+            subprocess.run(["sh", "-c", script, "postinst", "configure"], check=True,
+                           env=dict(os.environ, PATH=f"{fake_bin}:/usr/bin:/bin"))
+            self.assertEqual(stat.S_IMODE(redirect.stat().st_mode), 0o755)
+            self.assertEqual(stat.S_IMODE(kde.stat().st_mode), 0o700)
+            self.assertNotIn(f"--add root root 0700 {usr_bin}/kinfocenter.kde", calls.read_text())
 
 
 if __name__ == "__main__":

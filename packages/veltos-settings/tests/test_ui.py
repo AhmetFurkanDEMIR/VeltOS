@@ -91,7 +91,7 @@ class SettingsWindowTests(unittest.TestCase):
                           ("apps", "defaultapps"), ("apps", "startup"), ("accounts", "yourinfo"),
                           ("accounts", "signin"), ("accounts", "otherusers"), ("time", "region"),
                           ("accessibility", "accessibility"), ("privacy", "searching"),
-                          ("personalization", "themes")):
+                          ("personalization", "themes"), ("personalization", "taskbar")):
             self.show(page, sub)
             self.assertEqual(self.window.property("subPage"), sub)
             self.assertEqual(self.problems(), [], sub)
@@ -103,8 +103,10 @@ class SettingsWindowTests(unittest.TestCase):
 
     def test_items_open_pages_and_actions(self):
         self.call("activate", {"action": "updates", "page": ""})
+        self.call("activate", {"action": "website", "page": ""})
         self.call("activate", {"action": "", "page": "about", "pageId": "system"})
-        self.assertEqual(self.started, [["veltos-store", "--updates"]])
+        self.assertEqual(self.started, [["veltos-store", "--updates"],
+                                        ["xdg-open", "https://veltos.ahmetfurkandemir.com/"]])
         self.assertEqual(self.window.property("subPage"), "about")
 
     def test_new_pages_change_settings(self):
@@ -127,7 +129,7 @@ class SettingsWindowTests(unittest.TestCase):
         results = []
         self.backend.accountResult.connect(lambda op, error: results.append((op, error)))
         self.backend.changePassword("old", "one", "two")
-        self.backend.addUser("Bad Name", "", "pw", False)
+        self.backend.addUser("!!!", "", "pw", False)      # nothing a login name can be made of
         self.app.processEvents()
         self.assertEqual(results, [("password", "passwords_differ"), ("adduser", "bad_username")])
         self.assertEqual(self.problems(), [])

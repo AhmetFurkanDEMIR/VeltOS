@@ -370,6 +370,14 @@ def build_static_config(root):
     lnf = LOOK_AND_FEEL[DEFAULT_LOOK_AND_FEEL]
 
     files = {
+        # Windows 11 shows no toast when a network connects or disconnects
+        # (the network icon tells); Plasma's network applet does. Failures
+        # still pop up. KNotification reads /etc/xdg below the user's file.
+        "etc/xdg/networkmanagement.notifyrc": (
+            "[Event/ConnectionActivated]\nAction=None\n"
+            "\n[Event/ConnectionDeactivated]\nAction=None\n"
+            "\n[Event/NoLongerConnected]\nAction=None\n"
+        ),
         # Window frames: Windows 11 style buttons on the right, app icon left.
         # LibreOffice's start-up window (window class "soffice", before the
         # module sets libreoffice-writer & co.) stays off the taskbar: it
@@ -597,8 +605,10 @@ def build_static_config(root):
     for name in ("konsoleui.rc", "sessionui.rc"):
         shutil.copy(SRC / "konsole" / name, kxmlgui / name)
 
-    # KWin effects in QML (Windows 11 Task View).
+    # KWin effects in QML (Windows 11 Task View) and KWin scripts (the
+    # taskbar's window previews; EnabledByDefault in their metadata).
     shutil.copytree(SRC / "kwin/effects", root / "usr/share/kwin/effects", dirs_exist_ok=True)
+    shutil.copytree(SRC / "kwin/scripts", root / "usr/share/kwin/scripts", dirs_exist_ok=True)
 
     # Desktop icons every user gets (see system/veltos-session.sh).
     desktop_icons = root / "usr/share/veltos/desktop"
@@ -618,9 +628,18 @@ def build_static_config(root):
     for helper in ("context-menus", "desktop-new", "display-scale", "greeter-compositor",
                    "needs-software-rendering", "sddm-virtualbox-env", "session-defaults", "session-fixups",
                    "start-categories", "terminal-theme", "trash-icon", "update-app-names",
-                   "update-plasma-overrides"):
+                   "update-plasma-overrides", "veltos-desktop-guard"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
+    # The desktop guard (system/veltos-desktop-guard): a D-Bus system
+    # service started on demand, as root, that keeps This PC, the Recycle
+    # Bin and the Store on the caller's own desktop. Hardened: it can only
+    # change files below /home and holds just the capabilities it uses.
+    for source, target in (("veltos-desktop-guard.service", "usr/lib/systemd/system"),
+                           ("org.veltos.DesktopGuard.service", "usr/share/dbus-1/system-services"),
+                           ("org.veltos.DesktopGuard.conf", "usr/share/dbus-1/system.d")):
+        (root / target).mkdir(parents=True, exist_ok=True)
+        shutil.copy(SRC / "system" / source, root / target / source)
     # The desktop's Recycle Bin icon follows the trash: a systemd user path
     # unit (no process of its own) watches the trash and runs trash-icon,
     # which touches the launcher so the desktop re-reads its icon (full or
@@ -652,11 +671,11 @@ def build_static_config(root):
     # xdg-desktop-portal.service itself timed out after 90 s: plasmashell
     # came after ~95 s instead of ~18 s (QEMU boot tests, since 2026-10-21).
     # A drop-in per unit; one for a unit that is not installed is inert.
-    # Not plasmashell: programs started from Start inherit plasmashell's
-    # environment (KIO's launcher hands it to the transient unit), so it
-    # keeps the portal theme for them (with the drop-in, LibreOffice got
-    # KDE's file dialog; ISO 093321, 2026-10-22). By the time plasmashell
-    # starts, the portal and its backends start without the chain above.
+    # Not plasmashell's environment: programs started from Start inherit it
+    # (KIO's launcher hands it to the transient unit), so it keeps the
+    # portal theme for them (with this drop-in, LibreOffice got KDE's file
+    # dialog; ISO 093321, 2026-10-22). plasmashell itself gets KDE's theme
+    # through Qt's -platformtheme argument instead (below).
     units_dir = root / "usr/lib/systemd/user"
     for unit in PLASMA_SERVICES:
         dropin = units_dir / f"{unit}.service.d" / "veltos-portal-theme.conf"
@@ -666,6 +685,21 @@ def build_static_config(root):
             b"# services use KDE's platform theme; the portal's would wait for the\n"
             b"# portal, which cannot be up before they are (25 s each, 2026-10-22).\n"
             b"[Service]\nEnvironment=QT_QPA_PLATFORMTHEME=kde\n")
+    # plasmashell: Qt's -platformtheme argument wins over the variable, so it
+    # uses KDE's theme itself and still hands the portal theme to the
+    # programs it starts. With the portal theme it asked the portal for the
+    # colour scheme while starting; KDE's portal backend is ordered after
+    # plasma-core.target, which waits for plasmashell, so every sign-in
+    # waited 25 s for that D-Bus call to time out (desktop ~30 s after
+    # signing in, ~2 s with this; installed system in QEMU, 2026-10-22).
+    # ExecStart as in Debian's unit (plasma-workspace 6.3) plus the theme.
+    dropin = units_dir / "plasma-plasmashell.service.d" / "veltos-platform-theme.conf"
+    dropin.parent.mkdir(parents=True, exist_ok=True)
+    dropin.write_bytes(
+        b"# Installed by veltos-desktop (tools/build-assets.py): plasmashell uses\n"
+        b"# KDE's platform theme itself and keeps the portal theme in its\n"
+        b"# environment for the programs it starts (25 s less at every sign-in).\n"
+        b"[Service]\nExecStart=\nExecStart=/usr/bin/plasmashell --no-respawn -platformtheme kde\n")
 
 
 # Plasma's user services (plasma-workspace, kwin, kded6, powerdevil,
@@ -678,7 +712,7 @@ PLASMA_SERVICES = (
     "plasma-ksplash-ready", "plasma-ksystemstats", "plasma-kwallet-pam", "plasma-kwin_wayland",
     "plasma-kwin_x11", "plasma-polkit-agent", "plasma-powerdevil",
     "plasma-restoresession", "plasma-xdg-desktop-portal-kde", "plasma-xembedsniproxy",
-)   # not plasma-plasmashell: see above
+)   # plasma-plasmashell: -platformtheme instead, see above
 
 
 # VeltOS plasmoids: source directory under plasma/ -> plugin id.

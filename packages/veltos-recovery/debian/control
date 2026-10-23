@@ -1,0 +1,43 @@
+Source: veltos-recovery
+Section: admin
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-qtquick,
+               qml6-module-qtquick-window,
+               qt6-svg-plugins
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-recovery
+Architecture: all
+Depends: ${python3:Depends},
+         console-setup,
+         fonts-inter,
+         grub-common,
+         grub2-common,
+         kbd,
+         libqt6gui6,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-qtquick,
+         qml6-module-qtquick-window,
+         qt6-svg-plugins,
+         veltos-boot,
+         ${misc:Depends}
+Recommends: fonts-cascadia-code
+Description: VeltOS Automatic Repair, like Windows 11's recovery
+ When VeltOS does not finish starting twice in a row, the PC starts
+ Automatic Repair by itself, as Windows does: a full-screen window in the
+ layout of Windows 11's recovery screens with Restart and Advanced options
+ (Startup Repair, Safe mode, Command Prompt, the last start's problems,
+ Continue, Turn off), in English and Turkish.
+ .
+ GRUB counts the starts (veltos-boot), this package clears the count once
+ the sign-in screen is up, restarts the PC when a start ends in emergency
+ mode or the sign-in screen keeps failing, and keeps the system journal on
+ disk so the problems of a failed start can be shown.

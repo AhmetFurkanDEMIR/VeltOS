@@ -9,12 +9,11 @@
 # (/etc/xdg/kdeglobals) they offer no KDE settings dialogs. Scripts
 # (VeltOS Settings) can still change the taskbar.
 #
-# Taskbar window previews: KWin's screen capture gives garbled preview
-# images when it renders in software (llvmpipe: virtual machines without 3D
-# acceleration; VM test 2026-10-20). There the taskbar shows the window
-# title only, like Windows with visual effects off; with a real GPU the
-# previews stay on. Decided at every sign-in, so moving a disk between a VM
-# and real hardware does the right thing.
+# Taskbar window previews come from KWin (kwin/scripts/veltostaskbarpreview),
+# which draws them itself and so also in software rendering; Plasma's own
+# window tooltips are off (plasma-overrides). Users of older VeltOS
+# versions had Plasma's tooltips switched off in virtual machines: the
+# setting is put back (it now only shapes the pinned apps' tooltips).
 #
 # The Store is pinned to the taskbar once for users whose taskbar was made
 # before it existed (new users get it from the layout script); unpinning it
@@ -39,13 +38,6 @@ done
 # Screens get Windows' scale steps (100, 125, 150 %...) instead of KWin's
 # 5 % steps, which blur text and window buttons (see display-scale).
 /usr/libexec/veltos/display-scale || true
-
-renderer="$(qdbus6 org.kde.KWin /KWin org.kde.KWin.supportInformation 2>/dev/null |
-            sed -n 's/^OpenGL renderer string: //p' | head -n 1)"
-case "$renderer" in
-    ""|*llvmpipe*|*softpipe*|*"Software Rasterizer"*) previews=false ;;
-    *) previews=true ;;
-esac
 
 # Applets still loading may reset their lock from the saved layout, so
 # the script runs twice.
@@ -82,7 +74,7 @@ panels().forEach(function (panel) {
     ['org.kde.plasma.icontasks', 'org.kde.plasma.taskmanager'].forEach(function (id) {
         panel.widgets(id).forEach(function (tasks) {
             tasks.currentConfigGroup = ['General'];
-            tasks.writeConfig('showToolTips', $previews);
+            tasks.writeConfig('showToolTips', true);
             if ($pin_store) {
                 var launchers = tasks.readConfig('launchers', []);
                 if (typeof launchers === 'string') {

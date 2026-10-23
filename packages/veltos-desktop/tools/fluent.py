@@ -178,6 +178,67 @@ def set_menu_opacity(svg, opacity, name="svg"):
     return "".join(out)
 
 
+def _style_of(element):
+    match = re.search(r'\bstyle="([^"]*)"', element)
+    return match.group(1) if match else ""
+
+
+def _with_opacity(element, opacity):
+    """The element with its style's opacity set (replaced or added)."""
+    style = _style_of(element)
+    if not style and "style=" not in element:
+        return re.sub(r"^<(\w+)", rf'<\1 style="opacity:{opacity}"', element)
+    if re.search(r"(?<![-\w])opacity:[0-9.]+", style):
+        new_style = re.sub(r"(?<![-\w])opacity:[0-9.]+", f"opacity:{opacity}", style)
+    else:
+        new_style = f"opacity:{opacity};" + style
+    return element.replace(f'style="{style}"', f'style="{new_style}"', 1)
+
+
+def uniform_menu_band(svg, opacity, name="svg"):
+    """Give the band in Kvantum's menu shadow the menu's own opacity.
+
+    Fluent draws a menu as a square-cornered body (menu-normal, made
+    `opacity` by set_menu_opacity) inside a rounded band of the same colour
+    at 75 % that is part of the shadow pieces (menu-shadow-*), meant to be
+    seen through blur. Without blur (VMs, KWin's blur off) the two showed
+    as two boxes, one inside the other, lighter or darker than each other
+    (product owner, 2026-10-22). The band's solid fill (75 %) now has the
+    body's opacity, so menu and band read as one rounded box; the soft
+    shadow gradients and the thin edge lines stay as they are."""
+    pieces = list(re.finditer(r'<(path|g|rect)\b[^>]*\bid="menu-shadow-(?!hint)[a-z]+"[^>]*>', svg))
+    if not pieces:
+        raise SystemExit(f"{name}: no menu shadow pieces")
+    changed = 0
+
+    def even_out(element_match):
+        nonlocal changed
+        element = element_match.group(0)
+        style = _style_of(element)
+        fill = re.search(r"(?<![-\w])fill:([^;]+)", style)
+        level = re.search(r"(?<![-\w])opacity:([0-9.]+)", style)
+        if (fill is None or fill.group(1).startswith("url(") or fill.group(1).lower() in ("#000000", "#000")
+                or level is None or float(level.group(1)) < 0.7):
+            return element
+        changed += 1
+        return _with_opacity(element, opacity)
+
+    out, pos = [], 0
+    for match in pieces:
+        out.append(svg[pos:match.start()])
+        if match.group(1) == "g":
+            end = svg.index("</g>", match.end())
+            out.append(match.group(0) + re.sub(r"<(?:path|rect)\b[^>]*/?>", even_out, svg[match.end():end]))
+        else:
+            end = match.end()
+            out.append(re.sub(r"<(?:path|rect)\b[^>]*/?>", even_out, match.group(0)))
+        pos = end
+    out.append(svg[pos:])
+    if changed == 0:
+        raise SystemExit(f"{name}: no band found in the menu shadow pieces; update tools/fluent.py")
+    return "".join(out)
+
+
 def build_kvantum(upstream, root):
     src = upstream / "Kvantum/Fluent-round"
     dest = root / "usr/share/Kvantum" / KVANTUM_DIR
@@ -185,6 +246,7 @@ def build_kvantum(upstream, root):
     for name, (fluent, variant) in KVANTUM.items():
         svg = (src / f"{fluent}.svg").read_text(encoding="utf-8")
         svg = set_menu_opacity(recolour(svg, variant, f"{fluent}.svg"), MENU_OPACITY, f"{fluent}.svg")
+        svg = uniform_menu_band(svg, MENU_OPACITY, f"{fluent}.svg")
         (dest / f"{name}.svg").write_text(svg, encoding="utf-8")
         config = (src / f"{fluent}.kvconfig").read_text(encoding="utf-8")
         config = recolour(config, variant, f"{fluent}.kvconfig")

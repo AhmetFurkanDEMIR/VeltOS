@@ -20,16 +20,30 @@ Popup {
     property int minimumWidth: 220
     signal triggered(string action)
 
+    // Where the menu was asked to open, and the top of what it opens from
+    // (it flips above when the space below is too small). The position
+    // follows the menu's size: on the first opening the size is only known
+    // once the new items are laid out, and a position computed from the
+    // old size put drop-downs in the wrong place (product owner,
+    // 2026-10-22: the file dialog's type list on its first opening).
+    property point anchorPoint: Qt.point(0, 0)
+    property real anchorTop: 0
+    x: Math.max(4, Math.min(anchorPoint.x, Overlay.overlay.width - width - 4))
+    y: anchorPoint.y + height > Overlay.overlay.height - 4 ? Math.max(4, anchorTop - height) : anchorPoint.y
+
     function openAt(item, x, y) {
         const point = item.mapToItem(Overlay.overlay, x, y);
-        menu.x = Math.min(point.x, Overlay.overlay.width - menu.width - 4);
-        menu.y = point.y + menu.height > Overlay.overlay.height - 4 ? Math.max(4, point.y - menu.height) : point.y;
+        menu.anchorPoint = point;
+        // Below a box (a drop-down): above the box when flipped; at a
+        // clicked point: ending at the point.
+        menu.anchorTop = y >= item.height ? item.mapToItem(Overlay.overlay, 0, 0).y - 2 : point.y;
         menu.open();
     }
 
     parent: Overlay.overlay
     padding: 4
-    width: Math.max(minimumWidth, column.implicitWidth + 2 * padding)
+    // Never wider than the window: long entries (file types) are shortened.
+    width: Math.min(Overlay.overlay.width - 8, Math.max(minimumWidth, column.implicitWidth + 2 * padding))
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 

@@ -75,7 +75,7 @@ ApplicationWindow {
         "startup": startupComponent, "yourinfo": yourInfoComponent, "signin": signInComponent,
         "otherusers": otherUsersComponent, "region": regionComponent,
         "accessibility": accessibilityComponent, "searching": searchingComponent,
-        "themes": themesComponent
+        "themes": themesComponent, "taskbar": taskbarComponent
     })
 
     // `veltos-settings PAGE`: a navigation page or a built-in page.
@@ -367,6 +367,12 @@ ApplicationWindow {
     Component {
         id: lockScreenComponent
         LockScreenPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: taskbarComponent
+        TaskbarPage {
             onItemActivated: item => window.activate(item)
         }
     }

@@ -21,7 +21,11 @@ QtObject {
     readonly property color selected: dark ? "#2E3F66" : "#DCE8FD"
     readonly property color selectedHover: dark ? "#34497A" : "#CCDDFB"
     readonly property color selectedBorder: dark ? "#4C6FC4" : "#9FC0F7"
-    readonly property color accent: dark ? "#6E95FF" : "#2F5EE6"
+    // The system's accent colour (Settings > Personalization > Colours),
+    // lighter in dark mode as Windows draws it; VeltOS blue otherwise.
+    readonly property color systemAccent: backend.accentColor ? backend.accentColor : "#2F5EE6"
+    readonly property color accent: backend.accentColor ? (dark ? Qt.lighter(systemAccent, 1.35) : systemAccent)
+                                                       : (dark ? "#6E95FF" : "#2F5EE6")
     readonly property color field: dark ? "#2C2E3A" : "#FFFFFF"
     readonly property color fieldBorder: dark ? "#3B3E4E" : "#D9DDE6"
     readonly property color menu: dark ? "#2C2E3A" : "#FFFFFF"

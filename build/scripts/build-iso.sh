@@ -47,6 +47,13 @@ cd "$LB_DIR"
 lb config
 echo "==> lb build (log: $RESULT_DIR/build.log)"
 mkdir -p "$RESULT_DIR"
+# 1 MiB squashfs blocks (live-build's default is 128 KiB): with zstd level
+# 19 (auto/config) the image is 11 % smaller, and zstd unpacks as fast as
+# before (measured on the 2026-10-23 image's libraries, fonts and
+# translations: 1372 -> 1220 MB, unpacking 3 s either way; xz would save
+# 20 % but unpack twice as slowly). live-build adds MKSQUASHFS_OPTIONS to
+# its mksquashfs call.
+export MKSQUASHFS_OPTIONS="-b 1M"
 set +e
 lb build 2>&1 | tee "$RESULT_DIR/build.log"
 status=${PIPESTATUS[0]}

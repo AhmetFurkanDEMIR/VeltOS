@@ -10,8 +10,12 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
 - **Taskbar** at the bottom: Start button and pinned/running apps
   **centred** (Windows 11 style); on the right the tray (network, sound,
   battery, notifications; everything else behind the "^" arrow) and a
-  Windows-sized clock with the date below the time. Pinned: File
-  Explorer, Firefox, Settings.
+  Windows-sized clock with the date below the time, then Show desktop at
+  the screen's right edge. Pinned, left to right, like a fresh Windows 11
+  PC (product owner, 2026-10-22): File Explorer, Firefox, Settings, Store,
+  Camera, Photos, Media Player. Pointing at a running app shows its
+  window previews (KWin, `veltostaskbarpreview`); right-clicking the
+  empty taskbar offers Task Manager and Taskbar settings.
 - **VeltOS Start** menu (opens with the Windows/Meta key or Alt+F1), in
   the layout of Windows 11's Start of 2025: the search field at the top,
   then one scrolling page with "Pinned" (8 columns, two rows until "Show
@@ -42,30 +46,38 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   - colour schemes `VeltOS Light` (default) / `VeltOS Dark`.
 - **Windows-familiar names**: File Explorer, Terminal, Text Editor,
   Photos, Document Viewer, Archive Manager, Screenshot, Task Manager,
-  System Information, Store, Disk Management, Firefox, and Control Panel
-  for KDE's complete System Settings ("Settings" is VeltOS Settings,
-  package `veltos-settings`). The names also appear inside the programs:
+  System Information, Store, Disk Management and Firefox ("Settings" is
+  VeltOS Settings, package `veltos-settings`; KDE's System Settings is
+  hidden, its programs open VeltOS Settings and, since 2026-10-22, only
+  root may run KDE's own). The names also appear inside the programs:
   window titles read "Home — File Explorer", not "Home — Dolphin".
   Searching for the Windows word ("notepad", "explorer", "cmd"...) or the
-  old name finds the app. Developer and KDE-branded extras (Kate,
-  Konqueror, KDE Connect, Vim, Winetricks, ...) are hidden from Start.
+  old name finds the app. Thunderbird is "VeltOS Mail" in every language
+  (product owner, 2026-10-22; "Mail", "Posta" and "Outlook" stay search
+  words). Developer and KDE-branded extras (Kate, Konqueror, KDE Connect,
+  Vim, Winetricks, ...) are hidden from Start, and so is LibreOffice Draw,
+  which stays installed because PowerPoint (`libreoffice-impress`) depends
+  on it but is offered for no file type either (product owner,
+  2026-10-22).
 - **Sign-in screen** (SDDM theme `veltos`) like Windows 11: lock view with
   time and date; any key or click shows the picture, name and password
   field on the blurred wallpaper; power menu bottom right, other users
-  bottom left. No session or desktop names are shown.
+  bottom left. No session or desktop names are shown: it starts Plasma on
+  Wayland, or Plasma on X11 when the screen itself runs on X11 — at a
+  start without a graphics driver (veltos-recovery's Safe mode), where
+  Wayland cannot run; SDDM remembering the X11 session afterwards does not
+  carry over to normal starts.
 - Shut down, restart and sign out act at once (no confirmation screen),
   and signing in starts with a clean desktop.
 - **Settings** without pages for KDE services VeltOS does not use
   (KDE Connect, Thunderbolt authorisation, telemetry, background services,
   activities, ...).
-- **File Explorer** (Dolphin) laid out like Windows 11 File Explorer:
-  address row (back, forward, up, address bar, search) and command row
-  (New, cut, copy, paste, rename, delete, Sort, View, more;
-  `dolphin/dolphinui.rc`), Details view with Name / Date modified / Type /
-  Size, side bar sections "Quick access", "This PC", "Removable drives"
-  with Home, Desktop, Downloads, Documents, Pictures, Music, Videos, Trash;
-  no Network/Recent/Search sections; zip files open like folders; every
-  window starts at Home.
+- **File Explorer** is VeltOS File Explorer (package `veltos-explorer`);
+  Dolphin is not in the image. The Dolphin defaults this package still
+  ships (`dolphin/dolphinui.rc`, `/etc/xdg/dolphinrc`: Windows 11 style
+  address and command rows, Details view, "Quick access" / "This PC" side
+  bar, every window at Home) only matter on a system where a user
+  installs Dolphin themselves.
 - **Quick Settings** (`org.veltos.quicksettings`): one taskbar button with
   the network, sound and battery icons opens a Windows 11 style panel —
   Wi-Fi, Bluetooth, Airplane mode and Night light tiles, brightness and
@@ -87,32 +99,36 @@ files that do not exist yet.
 |---|---|---|
 | System-wide KDE defaults | `/etc/xdg/kdeglobals`, `kwinrc`, `plasmarc`, `dolphinrc`, `kcminputrc`, `kscreenlockerrc`, `ksplashrc` | Users override them in `~/.config`. `kdeglobals` also lists the hidden Settings pages (`[KDE Control Module Restrictions]`) and the light/dark global theme pair. |
 | Global themes | `/usr/share/plasma/look-and-feel/org.veltos.{light,dark}/` | Switching between them switches colours, icons, Plasma theme, window frames and (via the `kvantum` / `kvantum-dark` style key) the application style. |
-| Session script | `/etc/xdg/plasma-workspace/env/veltos-session.sh` | Sourced by Plasma before anything starts: puts `/var/lib/veltos/xdg` first in `XDG_DATA_DIRS`, puts the pseudo-language `en@veltos` / `tr@veltos` first in `LANGUAGE` and, if needed, runs `/usr/libexec/veltos/session-defaults`. Where `needs-software-rendering` says so (VirtualBox without 3D acceleration) it exports `LIBGL_ALWAYS_SOFTWARE=1` (Mesa llvmpipe) so the session renders at all — only that: KWin's QPainter compositor left Task View's previews black and Qt Quick's software scene graph drew boxes under the desktop labels. |
+| Session script | `/etc/xdg/plasma-workspace/env/veltos-session.sh` | Sourced by Plasma before anything starts: puts `/var/lib/veltos/xdg` first in `XDG_DATA_DIRS`, puts the pseudo-language `en@veltos` / `tr@veltos` first in `LANGUAGE` and, if needed, runs `/usr/libexec/veltos/session-defaults`. Where `needs-software-rendering` says so (VirtualBox without 3D acceleration) it exports `LIBGL_ALWAYS_SOFTWARE=1` (Mesa llvmpipe) so the session renders at all — only that: KWin's QPainter compositor left Task View's previews black and Qt Quick's software scene graph drew boxes under the desktop labels. It also asks the desktop guard (below) to protect the desktop's system icons, in the background so sign-in does not wait. |
 | Program-name catalogs | `/usr/share/locale/{en,tr}@veltos/LC_MESSAGES/*.mo` (from `tools/app_titles.py`) | Translate only the programs' own names ("Dolphin" → "File Explorer"). KDE falls through to the real language for every other text, so no other package's files change. |
 | Sign-in screen | `/usr/share/sddm/themes/veltos/` (`sddm/veltos/Main.qml`), selected in `/usr/lib/sddm/sddm.conf.d/10-veltos.conf` | Tested offscreen at build time with stand-ins for SDDM's objects (`tests/test_sddm.py`). |
 | Session manager | `/etc/xdg/ksmserverrc` | `confirmLogout=false`, `loginMode=emptySession`. |
 | `session-defaults` | `/usr/libexec/veltos/` | Creates `~/.config/Kvantum/kvantum.kvconfig` (Kvantum has no system-wide setting) and `~/.local/share/user-places.xbel` (File Explorer side bar, with the user's localised folder names). Never overwrites. |
 | `update-app-names` | `/usr/libexec/veltos/` | Writes renamed/hidden copies of other packages' `.desktop` files to `/var/lib/veltos/xdg/applications/` (and adds program options where needed: Terminal's `--notransparency`; removes Spectacle's global shortcuts, also through `/var/lib/veltos/xdg/kglobalaccel/`, because Print Screen belongs to VeltOS Snipping Tool). Also writes VeltOS' default apps for file types (`kde-mimeapps.list` there, from `DEFAULT_APPS`: the first installed VeltOS app per type, e.g. text files → Notepad), which Plasma reads before KDE's own list. Run from `postinst` and from a dpkg trigger on `/usr/share/applications`, so the copies follow package updates. Other packages' files are never modified. |
-| `update-plasma-overrides` | `/usr/libexec/veltos/`, specs in `/usr/share/veltos/plasma-overrides/*.json` (source: `plasma-overrides/`) | Windows 11 changes to Plasma and KWin components without forking them: copies the installed package (e.g. the system tray) to `/var/lib/veltos/xdg/plasma/plasmoids/` (shells: `plasma/shells/`, KWin QML: `kwin/`), applies exact text replacements or whole-file replacements (only while the original has the recorded sha256) and checks each matched; if one no longer fits after an update, the copy is removed and the original is used. Run from `postinst` and dpkg triggers on `/usr/share/plasma/plasmoids`, `/usr/share/plasma/shells` and `/usr/share/kwin/aurorae`; the image build fails if a change does not fit. Currently: the taskbar's hidden-icons flyout (icons only, small, no header) and item flyouts without settings/pin buttons; notification toasts like Windows 11 (bottom-right, picture left, equal buttons, newest at the bottom, no tray bell); "Safely Remove Hardware" (drives) flyout; taskbar button menus ("Pin to taskbar", no KDE settings), tooltips, no spinner on starting apps and a stacked button (no "+") for several windows of one app; the Windows 11 lock screen (desktop shell); square close-button hover on maximised windows (KWin's Aurorae); the desktop's Windows 11 menus, New, Refresh and protected icons (`org.kde.desktopcontainment`, a file added with `"add"`). |
+| `update-plasma-overrides` | `/usr/libexec/veltos/`, specs in `/usr/share/veltos/plasma-overrides/*.json` (source: `plasma-overrides/`) | Windows 11 changes to Plasma and KWin components without forking them: copies the installed package (e.g. the system tray) to `/var/lib/veltos/xdg/plasma/plasmoids/` (shells: `plasma/shells/`, KWin QML: `kwin/`), applies exact text replacements or whole-file replacements (only while the original has the recorded sha256) and checks each matched; if one no longer fits after an update, the copy is removed and the original is used. Run from `postinst` and dpkg triggers on `/usr/share/plasma/plasmoids`, `/usr/share/plasma/shells` and `/usr/share/kwin/aurorae`; the image build fails if a change does not fit. Currently: the taskbar's hidden-icons flyout (icons only, small, no header; the arrow's tooltip goes away when it is clicked and does not cover the open flyout) and item flyouts without settings/pin buttons; the clipboard flyout as Windows 11's clipboard history (`org.kde.plasma.clipboard`, `files/clipboard/main.qml`); notification toasts like Windows 11 (bottom-right, picture left, equal buttons, newest at the bottom, no tray bell, Windows 11's "..." menu, jobs with Windows 11's progress: `files/notifications/JobItem.qml`); "Safely Remove Hardware" (drives) flyout with Windows 11 drive rows (`files/devicenotifier/DeviceItem.qml`); taskbar button menus ("Pin to taskbar", no KDE settings), no spinner on starting apps, a stacked button (no "+") for several windows of one app, window previews left to KWin (Plasma's tooltip only names pinned apps that are not running), a round speaker badge on apps playing sound (`files/taskmanager/AudioStream.qml`); Windows 11's taskbar menu and Show desktop at the screen's edge (`org.kde.panel`, `files/panel/VeltOSTaskbarMenu.qml` added with `"add"`); the Windows 11 lock screen (desktop shell); square close-button hover on maximised windows, the Office apps' coloured title bars and modal dialogs with only a Close button (KWin's Aurorae); the desktop's Windows 11 menus, New, Refresh, protected icons and the full/empty Recycle Bin (`org.kde.desktopcontainment`, a file added with `"add"`). |
 | GTK theme `VeltOS` | `/usr/share/themes/VeltOS/` (`tools/gtktheme.py`) | Breeze (colours follow the KDE colour scheme) with Windows 11 caption buttons drawn by the same code as the window frames. The session script switches users from Breeze to it. |
 | Firefox caption buttons | `/usr/lib/firefox-esr/defaults/pref/veltos.js`, `/usr/lib/firefox-esr/veltos.cfg`, `/usr/share/veltos/firefox/caption-buttons.css` (`tools/firefox.py`) | Firefox draws its own round (libadwaita-like) title bar buttons on Linux and ignores the GTK theme; its autoconfig registers a style sheet with the 46 x 32 Windows 11 buttons and red close. |
+| VeltOS Mail (Thunderbird) | `/usr/lib/thunderbird/veltos.cfg` (autoconfig), `/usr/share/thunderbird/defaults/pref/veltos.js`, `/usr/share/veltos/mail/mail.css` (`mail/mail.css`), `/usr/share/veltos/mail/mail-header.css` (`tools/firefox.py`) | Thunderbird as "VeltOS Mail" in the look of Outlook (product owner, 2026-10-22). The autoconfig registers the style sheets, puts "VeltOS Mail" in the window titles (the main window's `titlemodifier`, other windows' titles), and sets Outlook's defaults where the user has none (Thunderbird's xulstore): the simplified ribbon as the mail toolbar (New mail, Delete, Archive, Report, Move to, Reply, Reply all, Forward, Read/Unread, Tag), the reading pane header (big sender picture, actions as icons) and a new message window without a menu bar (Alt shows it). `mail.css`: Outlook's blue title band with "VeltOS Mail", the search box in it and white window glyphs (`mail-header.css`), the ribbon on white below; the reading pane with the subject first and large and a round initial in the accent; the new message window with Send filled in the accent and Windows 11 fields; the account page without Thunderbird's story, donation request, links, version and watermark ("Welcome to VeltOS Mail"); the add-account card with Outlook's Continue button and "VeltOS Mail" texts; tabs in Windows 11's look. Preferences: no tab bar while one tab is open (`mail.tabs.autoHide`), people by their names only in the message list (`mail.addressDisplayFormat=2`). |
 | Ctrl+Alt+Del screen | `contents/logout/Logout.qml` of both global themes (`plasma/logout/`) | Windows' security options: blurred sign-in wallpaper, Lock, Switch user, Sign out, Change a password, Task Manager, Cancel, power menu bottom right. A program asking to shut down gets a small Windows-style card instead. |
 | Power key | `/etc/xdg/powerdevilrc` | Shuts down, Windows' default (also VirtualBox's "send the shutdown signal"). |
-| Locked taskbar | `/etc/xdg/kdeglobals` `[KDE Action Restrictions]`, `session-fixups`, `context-menus` | No widgets added/moved/removed and no KDE "Configure …" dialogs; desktop menu with the file entries only, no menu on the empty taskbar. |
-| Desktop icons | `/usr/share/veltos/desktop/*.desktop`, copied by the session script | "This PC", "Recycle Bin" and "VeltOS Store" on every user's desktop, like Windows' system icons: a deleted one comes back at the next sign-in, and the desktop's menu offers no Delete, Rename or Cut for them (see the desktop override below). The Recycle Bin's icon follows the trash (`veltos-trash-icon.path`, a systemd user path unit on `~/.local/share/Trash`, runs `trash-icon`, which touches the launcher). |
-| Desktop (Windows 11 behaviour) | `plasma-overrides/org.kde.desktopcontainment.json`, `plasma-overrides/files/desktop/VeltOSDesktop.qml` (added to Plasma's folder view by `update-plasma-overrides`), `/usr/libexec/veltos/desktop-new`, catalog `/usr/share/locale/tr/LC_MESSAGES/veltos-desktop.mo` (`translations/tr.po`, `i18nd`) | Right-click on the desktop opens Windows 11's menu (View: icon sizes, auto arrange; Sort by; Refresh; Paste; New: Folder, Text Document; Display settings; Personalize; Open in Terminal), never Plasma's containment menu (no Edit Mode, no Add Widgets). New > Folder / Text Document make the item with Windows' name ("New folder", "New folder (2)", …; `desktop-new`) and open its name for editing at once, as Windows does (Plasma asked in a dialog); Refresh and F5 blink the icons; the Recycle Bin, This PC and the Store have a small menu of their own (Open, Empty Recycle Bin → File Explorer's Windows 11 question, Properties) and the Delete key, F2 and Ctrl+X skip them; the name box has square corners. Texts come from VeltOS' own catalog, so KDE's translations are untouched. |
-| `session-fixups` | `/usr/libexec/veltos/`, started by `/etc/xdg/autostart/veltos-session-fixups.desktop` | One-shot at sign-in: locks the taskbar's items; display scale in 25 % steps for new screens (`display-scale`); with software rendering (llvmpipe, VMs without 3D) KWin's window captures are garbled, so the taskbar shows titles instead of window previews there. |
+| Locked taskbar | `/etc/xdg/kdeglobals` `[KDE Action Restrictions]`, `session-fixups`, `context-menus` | No widgets added/moved/removed and no KDE "Configure …" dialogs; desktop menu with the file entries only. The empty taskbar's menu is Windows 11's (Task Manager, Taskbar settings: the `org.kde.panel` override), never Plasma's Edit Mode / Add Widgets. VeltOS Settings > Personalization > Taskbar changes the taskbar through plasmashell's scripting interface; for it the VeltOS applets have configuration keys of their own (`contents/config/main.xml`): `org.veltos.search` `mode` (0 hidden, 1 search icon only, 2 icon and label, 3 search box), `org.veltos.taskview` `shown`, `org.veltos.showdesktop` `enabled` (off: a narrow empty end remains). |
+| Desktop icons | `/usr/share/veltos/desktop/*.desktop`, copied by the session script and guarded by the desktop guard | "This PC", "Recycle Bin" and "VeltOS Store" on every user's desktop, like Windows' system icons: a deleted one comes back at the next sign-in, the desktop's menu offers no Delete, Rename or Cut for them (see the desktop override below), File Explorer refuses them too (veltos-explorer), and the desktop guard makes them root's so not even a terminal removes them (product owner, 2026-10-22). The Recycle Bin's icon shows whether the bin is full: the desktop override watches `trash:/` and picks `user-trash-full` or `user-trash` (KIO's own `EmptyIcon` in the launcher was not re-read by the desktop). `veltos-trash-icon.path`, a systemd user path unit on `~/.local/share/Trash`, still runs `trash-icon`, which asks the guard to move the root-owned launcher's date (`TouchRecycleBin`) so the desktop re-reads it. |
+| Desktop guard | `/usr/libexec/veltos/veltos-desktop-guard`, `/usr/lib/systemd/system/veltos-desktop-guard.service`, D-Bus `org.veltos.DesktopGuard` (`/usr/share/dbus-1/system-services/`, policy in `/usr/share/dbus-1/system.d/`) | A root service started on demand by D-Bus (GLib, `python3-gi`), ending after a minute without calls. `Protect` makes the three launchers root's own files (written anew from `/usr/share/veltos/desktop`, never written through a link) and the caller's desktop folder root's with the user's group, mode 1775 (sticky, like `/tmp`): the user still creates, renames and deletes their own files there, but nobody else's. Only for a user private group (named after the user, nobody else in it or using it as theirs: Debian's default); with a shared group such as `users` the desktop would become writable for others, so nothing is changed and the answer is "refused" (the launchers are then the user's own copies, deletable). `TouchRecycleBin` moves the Recycle Bin launcher's date between 2 and 2.5 s after 1970. It acts only on the calling user's own desktop: the user is the bus' `GetConnectionUnixUser` of the connection, never an argument, and folders are opened one name at a time without following symbolic links, inside the caller's home. Root is not hindered (no immutable flag, so removing an account still works). The unit may write below `/home` only, has no network and keeps four capabilities (`CAP_CHOWN`, `CAP_FOWNER`, `CAP_DAC_OVERRIDE`, `CAP_DAC_READ_SEARCH`); the package does not start it (`dh_installsystemd --no-start`). |
+| Desktop (Windows 11 behaviour) | `plasma-overrides/org.kde.desktopcontainment.json`, `plasma-overrides/files/desktop/VeltOSDesktop.qml` (added to Plasma's folder view by `update-plasma-overrides`), `/usr/libexec/veltos/desktop-new`, catalog `/usr/share/locale/tr/LC_MESSAGES/veltos-desktop.mo` (`translations/tr.po`, `i18nd`) | Right-click on the desktop opens Windows 11's menu (View: icon sizes, auto arrange; Sort by; Refresh; Paste; New: Folder, Text Document; Display settings; Personalize; Open in Terminal), never Plasma's containment menu (no Edit Mode, no Add Widgets). New > Folder / Text Document make the item with Windows' name ("New folder", "New folder (2)", …; `desktop-new`) and open its name for editing at once, as Windows does (Plasma asked in a dialog); Refresh and F5 blink the icons; the Recycle Bin, This PC and the Store have a small menu of their own (Open, Empty Recycle Bin → File Explorer's Windows 11 question, Properties) and the Delete key, F2 and Ctrl+X skip them; every other file and folder gets Windows 11's menu (Open, Open with, Cut, Copy, Rename, Delete, Compress to ZIP file, Properties), whose Open with, Compress to ZIP file and Properties go through VeltOS File Explorer (`veltos-explorer --open-with`: the "Select an app" window; `--compress`: the same `.zip` File Explorer makes, with VeltOS Archive's progress; `--properties`: VeltOS' Properties window, KDE's dialog never opens; the Recycle Bin's Properties shows the bin); the Recycle Bin's icon shows whether it is full; the name box has square corners. Texts come from VeltOS' own catalog, so KDE's translations are untouched. |
+| `session-fixups` | `/usr/libexec/veltos/`, started by `/etc/xdg/autostart/veltos-session-fixups.desktop` | One-shot at sign-in: locks the taskbar's items; display scale in 25 % steps for new screens (`display-scale`); pins the Store once for older taskbars. Window previews now come from KWin (`veltostaskbarpreview`), which draws them also with software rendering, so Plasma's tooltip setting, switched off in VMs by older VeltOS versions, is put back on (it now only shapes the pinned apps' tooltips). |
+| Taskbar window previews | `/usr/share/kwin/scripts/veltostaskbarpreview/` (`kwin/scripts/`, `EnabledByDefault`) | Windows 11's previews above a taskbar button as a KWin QML script (public `org.kde.kwin` API only; product owner, 2026-10-22): pointing at a running app's button shows one card per window on the current desktop (icon, title, a close button while pointed at, a live picture drawn by KWin's `WindowThumbnail`); a click switches to the window, the close button or a middle click closes it; pointing at a card for a while shows that window alone, the others fade out (Peek); cards that do not fit become a list. KWin finds an app's windows by the button Plasma's task manager gives each window as its minimise target (`iconGeometry`). Plasma's own window tooltips captured windows through the screen-cast service, which gave garbled pictures with software rendering; these work with every renderer. A click on an app with several windows leaves its previews open instead of cycling windows (Meta+number still switches). |
+| Toast animation | `/usr/share/kwin/effects/veltostoast/` (`kwin/effects/veltostoast/`, a JavaScript effect, `EnabledByDefault`) | Notification pop-ups slide in from the right edge of the screen while they fade in and slide back out to the right when they close, like Windows 11 toasts; KWin's "Fading Popups" would only fade them (this effect takes the animation over with a forced grab). |
 | `context-menus` | `/usr/libexec/veltos/`, run by `veltos-session.sh` before plasmashell starts | Right-click menu options of the desktop and the taskbar (`[ActionPlugins]` in the Plasma layout file). |
 | `needs-software-rendering` | `/usr/libexec/veltos/` | The one rule for when VeltOS renders in software instead of with the display driver's OpenGL (exit status 0 = yes): VirtualBox (DMI) **without working 3D acceleration**. With 3D off, Mesa has already fallen back to llvmpipe on the GBM platform (`eglinfo -B`, no display needed); with 3D on the same VMSVGA display gives real OpenGL (renderer "SVGA3D") and nothing is forced. Nothing in sysfs tells the two apart. Only VirtualBox is probed. Used by `veltos-session.sh` and `sddm-virtualbox-env`. |
 | `greeter-compositor` | `/usr/libexec/veltos/`, SDDM's `CompositorCommand` | Starts KWin for the sign-in screen with Plasma's own arguments; when `/run/veltos/software-rendering` exists (left by `sddm-virtualbox-env`), with KWin's software compositor and Mesa's llvmpipe (the session does the same in `veltos-session.sh`). |
 | `sddm-virtualbox-env` | `/usr/libexec/veltos/`, `ExecStartPre` of `sddm.service` (`/usr/lib/systemd/system/sddm.service.d/veltos-virtualbox.conf`) | Before SDDM starts, asks `needs-software-rendering` (as root, so the render node can be probed). Yes: writes `/etc/sddm.conf.d/zz-veltos-virtualbox.conf` (the vendor `GreeterEnvironment` plus `LIBGL_ALWAYS_SOFTWARE=1`, so the sign-in screen's QML renders with llvmpipe) and the marker `/run/veltos/software-rendering` for `greeter-compositor`; no: removes both. Decided at every start, so a disk moved between a VM and real hardware, or a VM whose 3D setting changed, does the right thing. |
-| Plasma services without the portal theme | `/usr/lib/systemd/user/plasma-*.service.d/veltos-portal-theme.conf` (generated by `tools/build-assets.py`, list `PLASMA_SERVICES`) | `Environment=QT_QPA_PLATFORMTHEME=kde` for Plasma's own services (kwin, ksplash, kded6, kcminit, ksmserver, kactivitymanagerd, powerdevil, KDE's portal backend, ...) — not plasmashell, whose environment programs started from Start inherit: it keeps the portal theme for their file dialogs. The session gives every program the portal platform theme for the Windows 11 file dialogs; a Qt program starting with it asks the portal first, and at session start the portal cannot be up yet (its backends are Wayland clients of KWin and Qt programs themselves): each of those services blocked 25 s and the portal timed out after 90 s, plasmashell came after ~95 s instead of ~18 s (2026-10-22). Programs the user starts keep the portal theme. |
+| Plasma services without the portal theme | `/usr/lib/systemd/user/plasma-*.service.d/veltos-portal-theme.conf` (generated by `tools/build-assets.py`, list `PLASMA_SERVICES`) | `Environment=QT_QPA_PLATFORMTHEME=kde` for Plasma's own services (kwin, ksplash, kded6, kcminit, ksmserver, kactivitymanagerd, powerdevil, KDE's portal backend, ...) — not plasmashell, whose environment programs started from Start inherit: it keeps the portal theme for their file dialogs. The session gives every program the portal platform theme for the Windows 11 file dialogs; a Qt program starting with it asks the portal first, and at session start the portal cannot be up yet (its backends are Wayland clients of KWin and Qt programs themselves): each of those services blocked 25 s and the portal timed out after 90 s, plasmashell came after ~95 s instead of ~18 s (2026-10-22). Programs the user starts keep the portal theme. plasmashell itself gets KDE's theme through Qt's `-platformtheme kde` argument instead (`plasma-plasmashell.service.d/veltos-platform-theme.conf`: Debian's `ExecStart` plus the argument), which wins over the variable, so its environment keeps the portal theme for the programs it starts: with the portal theme plasmashell asked the portal for the colour scheme while starting, KDE's portal backend is ordered after `plasma-core.target`, which waits for plasmashell, and every sign-in waited 25 s for that call to time out (faster sign-in, product owner, 2026-10-22). |
 | Task View | `/usr/share/kwin/effects/veltostaskview/` (`kwin/effects/veltostaskview/`) | Windows 11 Task View as a KWin QML scene effect (public `org.kde.kwin` API): window thumbnails with icon, title and close button; desktops strip with "New desktop" and remove, pointing at a desktop shows its windows; Meta+Tab and the taskbar's Task View button. |
 | Terminal | `/usr/share/konsole/VeltOS Light.profile`, `VeltOS Dark.profile`, `VeltOS-OneHalfLight.colorscheme`, `VeltOS-Campbell.colorscheme`, `/usr/share/veltos/konsole/tabs-*.css`, `/usr/share/kxmlgui5/konsole/*.rc`, `/etc/xdg/konsolerc`, `/usr/libexec/veltos/terminal-theme` (source: `konsole/`, `system/`) | Konsole like Windows Terminal, following the light/dark theme (`terminal-theme`, run at sign-in and by Settings' theme switch; open terminals switch colours over D-Bus): One Half Light or Campbell colours, rounded tabs with the selected one in the terminal colour (Konsole reads tab styles only from a file: `TabBarUseUserStyleSheet`), Cascadia Mono 12 (fonts-cascadia-code), bar cursor, 120 x 30, tabs always shown with a "+" button, no toolbars (Konsole's own window layout files without the toolbars, same number so KXMLGUI prefers them), opaque window (`--notransparency` added by `update-app-names`: Konsole's see-through window let other windows show through its tab bar). |
 | Sounds | `/usr/share/sounds/veltos/` (`tools/sounds.py`), `[Sounds] Theme=veltos` in kdeglobals, `/etc/xdg/plasma_workspace.notifyrc` | Original system sounds synthesised at build time (Windows' sounds are not shipped); a chime when the desktop appears after signing in. |
 | Animations | `KWIN_EFFECTS_FORCE_ANIMATIONS=1` in the session script | KWin switches its animations off with software rendering (most VMs); VeltOS keeps them on (open/close, minimise, maximise, sliding popups, desktop switching). |
 | Clipboard | `/etc/xdg/klipperrc` | Plasma's clipboard keeps pictures (Klipper ignores them by default), so a snip stays pasteable after Snipping Tool ends. |
-| Other defaults | `/etc/xdg/klaunchrc`, `usr/lib/sddm/sddm.conf.d/10-veltos.conf` | No app icon bouncing next to the pointer while a program starts; no on-screen keyboard on the sign-in screen (SDDM's default input method). |
+| Other defaults | `/etc/xdg/klaunchrc`, `usr/lib/sddm/sddm.conf.d/10-veltos.conf`, `/etc/xdg/networkmanagement.notifyrc` | No app icon bouncing next to the pointer while a program starts; no on-screen keyboard on the sign-in screen (SDDM's default input method); no toast when a network connects or disconnects, as on Windows 11 (the network icon tells; failures still pop up). |
 
 ## Source layout
 
@@ -132,10 +148,12 @@ files that do not exist yet.
 | `plasma-overrides/` | Changes to Plasma and KWin components (see `update-plasma-overrides`); `files/` holds whole replacement files |
 | `desktop/` | Desktop icons: This PC, Recycle Bin, VeltOS Store |
 | `konsole/` | Terminal profile, Campbell colour scheme, Konsole window layout without toolbars |
+| `kwin/` | KWin effects (`effects/veltostaskview`: Task View; `effects/veltostoast`: the toast animation) and scripts (`scripts/veltostaskbarpreview`: the taskbar's window previews) |
+| `mail/mail.css` | VeltOS Mail's Outlook look (Thunderbird user style sheet) |
 | `tools/gtktheme.py`, `tools/firefox.py` | GTK theme and Firefox style sheet with Windows 11 caption buttons |
 | `tools/app_titles.py` | Program-name catalogs for the en@veltos / tr@veltos pseudo-languages |
 | `sddm/veltos/` | VeltOS sign-in screen (SDDM theme) |
-| `system/` | `veltos-session.sh`, `context-menus`, `desktop-new`, `display-scale`, `greeter-compositor`, `needs-software-rendering`, `sddm-virtualbox-env`, `session-defaults`, `session-fixups`, `terminal-theme`, `trash-icon`, `update-app-names`, `update-plasma-overrides` |
+| `system/` | `veltos-session.sh`, `context-menus`, `desktop-new`, `display-scale`, `greeter-compositor`, `needs-software-rendering`, `sddm-virtualbox-env`, `session-defaults`, `session-fixups`, `terminal-theme`, `trash-icon`, `update-app-names`, `update-plasma-overrides`, `veltos-desktop-guard` (with `veltos-desktop-guard.service`, `org.veltos.DesktopGuard.service` and `.conf`) |
 | `translations/` | The `veltos-desktop` message catalog (Turkish): texts VeltOS adds to Plasma's own components |
 | `tests/` | Unit tests: asset build (incl. a full build), Fluent derivation, app names, session helpers; `tests/data/` holds the Plasma QML the overrides apply to |
 
@@ -156,6 +174,13 @@ files that do not exist yet.
 - Plasma theme: opaque panel/popup backgrounds by default; Fluent's
   translucent ones are kept in `translucent/`, which Plasma uses only when
   the blur effect is available.
+- Kvantum menus are one rounded box (`uniform_menu_band`): Fluent draws a
+  square-cornered menu body inside a rounded band of the same colour at
+  75 % that belongs to the shadow pieces and is meant to be seen through
+  blur; without blur the two showed as two boxes, one inside the other
+  (product owner, 2026-10-22). The band now has the body's opacity; the
+  shadow gradients and edge lines stay. The build fails if the band is
+  not found.
 
 ## Development
 
@@ -240,10 +265,77 @@ rebuilt `veltos-desktop` in a running VM delete that directory and restart
   `veltos-colour-mode` symbolic icon (veltos-fluent-icons) for Settings'
   Personalization rows.
 
+## Added 2026-10-22 (evening)
+
+The product owner's requests of 2026-10-22, in the mechanisms above:
+
+- **Taskbar**: window previews with Peek from KWin
+  (`veltostaskbarpreview`); the stacked button of an app with several
+  windows redrawn (only the edge of a second plate beside the button, in
+  its colours; the first version looked like two different boxes); a
+  click on such a button leaves the previews open; a pinned app's tooltip
+  is its name; a round speaker badge on apps playing sound (the sound
+  waves pulse, a cross when muted, a click mutes); right-click on the
+  empty taskbar: Task Manager, Taskbar settings; Show desktop a little
+  wider and at the screen's very edge; the default pins (Camera, Photos,
+  Media Player added); the Task View button's glyph drawn as outlines
+  only (it was filled with the theme's background, a black block in dark
+  mode); the settings keys Settings > Personalization > Taskbar uses.
+- **Search window**: "No results for …" in the middle of the window with
+  Windows 11's hint ("Check the spelling or try a different search."); the
+  taskbar's search box shows the text (I-beam) pointer and follows the
+  Search setting (hidden, icon, icon and label, box).
+- **Tray**: the hidden-icons arrow's tooltip goes away when it is
+  clicked; the clipboard flyout as Windows 11's clipboard history
+  ("Clipboard history", "Clear all", cards newest first with a "..."
+  menu, a message while nothing was copied; Klipper's history stays); the
+  drives flyout ("Safely Remove Hardware") with Windows 11 rows: icon,
+  name, "X free of Y" over a usage bar, an eject button; the brightness
+  bar at the bottom of the screen also shows while Quick Settings'
+  brightness slider moves, like the volume bar.
+- **Notifications**: Windows 11's "..." menu on toasts (turn off all
+  notifications of the app in `plasmanotifyrc`, or open Settings'
+  notification page); downloads and copies in a toast with a thin
+  progress bar, bytes, speed and percentage, and equal buttons (Pause /
+  Resume and Cancel, then Open file and Open folder); the slide-in
+  animation (`veltostoast`); no toast for network connections.
+- **Desktop**: Windows 11's menu for files and folders with VeltOS
+  File Explorer's Open with, Compress and Properties windows; the Recycle
+  Bin icon full or empty; This PC, the Recycle Bin and the Store guarded
+  by the desktop guard.
+- **Menus and frames**: Kvantum menus as one rounded box
+  (`tools/fluent.py`); modal dialogs (message boxes) with only a Close
+  button (Aurorae).
+- **VeltOS Mail**: Thunderbird renamed and styled like Outlook (see the
+  table).
+- **LibreOffice Draw** hidden and offered for no file type.
+- **Faster sign-in**: plasmashell with `-platformtheme kde`; the sign-in
+  splash and the Ctrl+Alt+Del screen blur the wallpaper once
+  (`cached: true`) instead of on every animation frame: with software
+  rendering the splash's spinner kept the CPU busy that way while the
+  session started. (The portal settings for sign-in are veltos-explorer's
+  `kde-portals.conf`.)
+- Tests: `tests/test_plasma_overrides.py` (the Recycle Bin icon, window
+  previews left to KWin, the stack edge, the click that leaves previews
+  open, the pinned app's tooltip, the speaker badge, the taskbar menu and
+  the Show desktop edge, job toasts, the tray heading, modal dialogs'
+  buttons; `tests/data/` holds the upstream files these apply to),
+  `tests/test_build_assets.py` (the menu band, the plasmashell drop-in,
+  VeltOS Mail's style sheets, autoconfig and preferences),
+  `tests/test_system.py` (VeltOS Mail's name, Draw hidden and without
+  file types), `tests/test_desktop_guard.py` (the desktop guard on a fake
+  account's home: owners and modes, links replaced rather than written
+  through, folders behind links or of somebody else refused, shared groups
+  refused; the owner changes need root, which the package build has).
+
 ## Known limitations
 
-- Notification pop-ups (toasts) and the taskbar's window tooltip are still
-  Plasma's design; the notification centre in the clock flyout is VeltOS'.
+- Notification toasts and the tray's flyouts are Plasma's components
+  changed by `update-plasma-overrides`: when a Plasma update changes a
+  matched file, that component falls back to Plasma's own design until
+  the override is updated (building a new image fails until then). The
+  notification centre in the clock flyout and the taskbar's window
+  previews (KWin script) are VeltOS' own.
 - Firefox's caption buttons come from a style sheet that depends on
   Firefox's internal class names (`.titlebar-button`); a Firefox update may
   need `tools/firefox.py` to follow. Firefox from other sources (Flatpak,
@@ -252,8 +344,10 @@ rebuilt `veltos-desktop` in a running VM delete that directory and restart
   Turkish, and only for the strings listed in `tools/app_titles.py`
   (window titles, welcome pages); About dialogs and help menus still
   mention KDE and the original names in other places.
-- The screen locker (after sign-in) is still Plasma's own; Plasma 6 loads
-  it from the desktop shell package, which VeltOS does not replace yet.
+- The screen locker (after sign-in) is Plasma's kscreenlocker; VeltOS
+  replaces only its `LockScreenUi.qml` (the Windows 11 lock screen,
+  through the desktop shell override), and only while Plasma's file is
+  the recorded 6.3.6 one.
 - Global Theme preview images show the wallpaper, not a desktop screenshot.
 - `theme.conf.user` in the Breeze SDDM theme directory is owned by this
   package; changing the login background in System Settings edits it.
@@ -269,4 +363,8 @@ rebuilt `veltos-desktop` in a running VM delete that directory and restart
 Code GPL-3.0-or-later; artwork CC-BY-SA-4.0; themes and colour schemes
 derived from Fluent-kde GPL-3.0 (Vince Liuice; Kvantum theme based on
 KvAdapta by Tsu Jan); `ActionMenu.qml` adapted from KDE Kickoff
-(GPL-2.0-or-later). See `debian/copyright`.
+(GPL-2.0-or-later). The QML files in `plasma-overrides/files/` carry
+their own SPDX headers; those adapted from Plasma keep Plasma's licences
+(GPL-2.0-or-later; LGPL-2.0-or-later for `devicenotifier/DeviceItem.qml`;
+GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL for
+`notifications/JobItem.qml`). See `debian/copyright`.

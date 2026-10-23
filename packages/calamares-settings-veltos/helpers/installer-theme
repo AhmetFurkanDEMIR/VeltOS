@@ -1,0 +1,50 @@
+#!/bin/sh
+# The installer's look for start-calamares, from the signed-in user's VeltOS
+# theme (product owner, 2026-10-23: the installer takes the system's theme
+# and colours): light or dark mode, the accent colour, and whether the
+# screen is drawn in software. Run by install-veltos as the live user;
+# prints the options, e.g.
+#     --dark --accent #E81123 --software
+#
+# Dark mode: the global theme or colour scheme says so (as VeltOS' apps
+# read it). Accent: the one chosen in Settings (kdeglobals AccentColor,
+# "r,g,b" or "#RRGGBB"), else the colour scheme's selection colour, else
+# VeltOS blue. Software: Mesa's renderer is llvmpipe or another software
+# rasterizer (VMs without 3D acceleration, no GPU driver); Qt Quick then
+# draws the installer in software too, which repaints only what changes.
+set -u
+
+kread="${VELTOS_KREADCONFIG:-kreadconfig6}"         # test hooks
+egl="${VELTOS_EGLINFO:-eglinfo}"
+
+kde() { "$kread" --file kdeglobals --group "$1" --key "$2" 2>/dev/null || true; }
+
+mode=--light
+case "$(kde KDE LookAndFeelPackage) $(kde General ColorScheme)" in
+    *[Dd]ark*) mode=--dark ;;
+esac
+
+hex() {    # "r,g,b" or "#RRGGBB" -> "#RRGGBB", else nothing
+    case "$1" in
+        \#[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])
+            echo "$1" | tr 'a-f' 'A-F' ;;
+        *,*,*)
+            echo "$1" | awk -F, '$1 ~ /^ *[0-9]+ *$/ && $2 ~ /^ *[0-9]+ *$/ && $3 ~ /^ *[0-9]+ *$/ &&
+                                 $1 < 256 && $2 < 256 && $3 < 256 { printf "#%02X%02X%02X\n", $1, $2, $3 }' ;;
+    esac
+}
+accent="$(hex "$(kde General AccentColor)")"
+[ -n "$accent" ] || accent="$(hex "$(kde Colors:Selection BackgroundNormal)")"
+[ -n "$accent" ] || accent="#2F5EE6"
+
+# Mesa's answer on the GBM platform needs no display (as veltos-desktop's
+# needs-software-rendering reads it). No answer: software, which always
+# works.
+renderer="$("$egl" -B 2>/dev/null | sed -n '/^GBM platform/,/^[A-Za-z0-9]* platform/p' \
+            | sed -n 's/^OpenGL core profile renderer: //p' | head -n 1)"
+software=""
+case "$renderer" in
+    ""|*llvmpipe*|*softpipe*|*"Software Rasterizer"*) software=" --software" ;;
+esac
+
+echo "$mode --accent $accent$software"

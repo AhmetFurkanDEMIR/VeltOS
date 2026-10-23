@@ -1,6 +1,11 @@
 # Build outputs (ISOs, logs, VM disks) live outside version control.
 /out/
 
+# Local editor and agent settings (machine-specific paths)
+/.claude/
+/.vscode/
+/.idea/
+
 # Debian package build artefacts
 /packages/*/build-assets/
 /packages/*/upstream/

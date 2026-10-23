@@ -107,6 +107,13 @@ override_dh_auto_install:
 	find $(ICONS) -xtype l -delete
 	# Icon caches are generated on the target system by dpkg triggers.
 	find $(ICONS) -name icon-theme.cache -delete
+	# Programs whose own logo fills its square get a margin like the VeltOS
+	# icons around it (Firefox): made on the target system from the
+	# program's icon by the postinst (and its dpkg trigger), see the tool.
+	install -D -m 755 tools/pad-app-icon debian/veltos-fluent-icons/usr/libexec/veltos/pad-app-icon
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 
 # Checks on the installed tree (dh_auto_test runs before dh_auto_install).
 execute_after_dh_auto_install:

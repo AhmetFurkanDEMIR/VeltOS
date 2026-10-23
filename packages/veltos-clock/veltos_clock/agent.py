@@ -9,6 +9,10 @@ notification (Snooze / Dismiss for alarms) and plays the VeltOS alarm
 sound until the notification is answered or two minutes have passed.
 GLib and GDBus only (python3-gi): a small resident process with no
 window, kept because an alarm has to ring with the app closed.
+
+It also shows VeltOS Calendar's reminders (veltos-calendar, when it is
+installed): one resident process for both, as Windows' notifications
+come from the system, not from each app.
 """
 
 import datetime
@@ -90,6 +94,9 @@ class Agent:
                                     gio.DBusSignalFlags.NONE, self.on_action)
         connection.signal_subscribe(None, NOTIFY_BUS, "NotificationClosed", NOTIFY_PATH, None,
                                     gio.DBusSignalFlags.NONE, self.on_closed)
+        # Calendar reminders are due after this moment (none from before
+        # the session: Windows does not replay missed reminders either).
+        self.calendar_checked = datetime.datetime.now()
 
     def text(self, key, **values):
         return strings.text(self.lang, key, **values)
@@ -131,10 +138,44 @@ class Agent:
             changed = True
         if changed:
             store.save(data, self.path)
+        self.check_calendar(now)
         for key, ringer in list(self.ringing.items()):
             if not ringer.tick(self.sound):
                 del self.ringing[key]
         return True
+
+    def check_calendar(self, now):
+        """VeltOS Calendar's reminders that fell due since the last look."""
+        try:
+            from veltos_calendar import store as calendar, strings as calendar_texts
+        except ImportError:
+            return
+        since, self.calendar_checked = self.calendar_checked, now
+        try:
+            due = calendar.due_reminders(calendar.load(), since, now)
+        except Exception:  # a broken calendar file must not stop the alarms
+            return
+        for event, start in due:
+            title = event.title or calendar_texts.text(self.lang, "no_title")
+            if event.all_day:
+                body = start.strftime("%d.%m.%Y") if self.lang == "tr" else start.strftime("%B %d, %Y")
+            elif abs((start - now).total_seconds()) < 60:
+                body = calendar_texts.text(self.lang, "starts_now")
+            else:
+                body = calendar_texts.text(self.lang, "starts_at", time=start.strftime("%H:%M"))
+            if event.location:
+                body += "\n" + event.location
+            hints = {"desktop-entry": self.GLib.Variant("s", "veltos-calendar")}
+            try:
+                self.connection.call_sync(
+                    NOTIFY_BUS, NOTIFY_PATH, NOTIFY_BUS, "Notify",
+                    self.GLib.Variant("(susssasa{sv}i)", (calendar_texts.text(self.lang, "app_title"), 0,
+                                                          "veltos-calendar", title, body,
+                                                          ["dismiss", calendar_texts.text(self.lang, "dismiss")],
+                                                          hints, 0)),
+                    None, self.Gio.DBusCallFlags.NONE, -1, None)
+            except Exception:
+                pass
 
     def on_action(self, _conn, _sender, _path, _iface, _signal, parameters):
         nid, action = parameters.unpack()

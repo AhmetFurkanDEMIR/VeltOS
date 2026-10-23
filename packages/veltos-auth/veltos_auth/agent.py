@@ -110,10 +110,12 @@ class Agent:
         self.registration = connection.register_object(AGENT_PATH, node.interfaces[0], self.handle_call, None, None)
 
     def register(self):
-        """Tell polkit this agent answers for the session."""
+        """Tell polkit this agent answers for the session, in the session's
+        language (polkit translates its messages into that locale)."""
+        from .strings import polkit_locale
         self.connection.call_sync(
             AUTHORITY, AUTHORITY_PATH, AUTHORITY_IFACE, "RegisterAuthenticationAgent",
-            self.GLib.Variant("((sa{sv})ss)", (subject(glib=self.GLib), self.lang, AGENT_PATH)),
+            self.GLib.Variant("((sa{sv})ss)", (subject(glib=self.GLib), polkit_locale(lang=self.lang), AGENT_PATH)),
             None, self.Gio.DBusCallFlags.NONE, -1, None)
 
     def unregister(self):

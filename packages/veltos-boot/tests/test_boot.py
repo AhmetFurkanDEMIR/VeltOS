@@ -2,6 +2,7 @@
 
 import configparser
 import importlib.util
+import json
 import os
 import re
 import shutil
@@ -158,7 +159,7 @@ class GrubTests(unittest.TestCase):
         # No text on screen while starting, like Windows: splash, kernel
         # and systemd status quiet, no text cursor.
         for option in ("quiet", "splash", "loglevel=3", "systemd.show_status=false",
-                       "rd.systemd.show_status=false", "vt.global_cursor_default=0"):
+                       "rd.systemd.show_status=false", "vt.global_cursor_default=0", "panic=10"):
             self.assertIn(option, cmdline)
         self.assertIn("GRUB_DISABLE_OS_PROBER=false", text)
         self.assertNotIn("debian", text.lower())
@@ -207,6 +208,75 @@ class GrubTests(unittest.TestCase):
             failed = subprocess.run(["sh", "-c", wrapper], env=env, capture_output=True)
             self.assertNotEqual(failed.returncode, 0)
 
+    def test_automatic_repair_entries(self):
+        # With veltos-recovery installed: starts are counted, two unfinished
+        # starts open "VeltOS Recovery", and "safe graphics" exists.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            original = tmp / "10_linux.dpkg-veltos"
+            original.write_text(
+                "#!/bin/sh\ncat <<'X'\n"
+                "menuentry 'VeltOS GNU/Linux' --class veltos --class os $menuentry_id_option 'gnulinux-simple-1234' {\n"
+                "\tload_video\n"
+                "\techo\t'Loading Linux 6.12.113+deb13-amd64 ...'\n"
+                "\tlinux\t/vmlinuz-6.12.113+deb13-amd64 root=UUID=1234 ro  quiet splash loglevel=3\n"
+                "\tinitrd\t/initrd.img-6.12.113+deb13-amd64\n"
+                "}\n"
+                "submenu 'Advanced options for VeltOS GNU/Linux' $menuentry_id_option 'gnulinux-advanced-1234' {\n"
+                "\tmenuentry 'VeltOS GNU/Linux, with Linux 6.12.113+deb13-amd64' --class veltos "
+                "$menuentry_id_option 'gnulinux-6.12-advanced-1234' {\n"
+                "\t\tlinux\t/vmlinuz-6.12.113+deb13-amd64 root=UUID=1234 ro  quiet splash\n"
+                "\t}\n"
+                "\tmenuentry 'VeltOS GNU/Linux, with Linux 6.12.113+deb13-amd64 (recovery mode)' --class veltos "
+                "$menuentry_id_option 'gnulinux-6.12-recovery-1234' {\n"
+                "\t\tlinux\t/vmlinuz-6.12.113+deb13-amd64 root=UUID=1234 ro single\n"
+                "\t}\n"
+                "}\nX\n")
+            original.chmod(0o755)
+            unit = tmp / "veltos-recovery.target"
+            unit.write_text("[Unit]\n")
+            bin_dir = tmp / "bin"
+            bin_dir.mkdir()
+            wrapper = (PKG / "grub.d/10_linux").read_text().replace(
+                "/etc/grub.d/10_linux.dpkg-veltos", str(original))
+            env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "GRUB_DISTRIBUTOR": "VeltOS",
+                   "VELTOS_RECOVERY_UNIT": str(unit)}
+            out = subprocess.run(["sh", "-c", wrapper], capture_output=True, text=True,
+                                 check=True, env=env).stdout
+            self.assertIn("function veltos_count_start {", out)
+            self.assertIn("menuentry 'VeltOS' --class veltos --class os $menuentry_id_option "
+                          "'gnulinux-simple-1234' {\n\tveltos_count_start\n", out)
+            self.assertIn("'gnulinux-6.12-advanced-1234' {\n\t\tveltos_count_start\n", out)
+            # Debian's recovery mode is a deliberate start: not counted.
+            self.assertIn("'gnulinux-6.12-recovery-1234' {\n\t\tlinux", out)
+            self.assertIn("menuentry 'VeltOS Recovery' --class veltos --class os "
+                          "$menuentry_id_option 'veltos-recovery' {\n\tload_video\n", out)
+            self.assertIn("\tlinux\t/vmlinuz-6.12.113+deb13-amd64 root=UUID=1234 ro "
+                          "quiet splash nomodeset systemd.unit=veltos-recovery.target\n", out)
+            recovery = out.split("menuentry 'VeltOS Recovery'")[1].split("}")[0]
+            self.assertNotIn("veltos_count_start", recovery)
+            safe = out.split("menuentry 'VeltOS (safe graphics)'")[1].split("}")[0]
+            self.assertIn("$menuentry_id_option 'veltos-safe' {\n\tveltos_count_start\n", safe)
+            self.assertIn("ro  quiet splash loglevel=3 nomodeset\n", safe)
+            self.assertTrue(out.rstrip().endswith('if [ "${veltos_failed}" = 2 ]; then\n'
+                                                  '  set default="veltos-recovery"\nfi'), out[-200:])
+            self.assertNotIn("Loading", out)
+            # GRUB cannot write its environment on Btrfs: no counting.
+            probe = bin_dir / "grub-probe"
+            probe.write_text("#!/bin/sh\ncase \"$1\" in --target=fs) echo btrfs ;; esac\n")
+            probe.chmod(0o755)
+            out = subprocess.run(["sh", "-c", wrapper], capture_output=True, text=True,
+                                 check=True, env=env).stdout
+            self.assertNotIn("veltos_count_start", out)
+            self.assertNotIn("veltos-recovery", out)
+            # Without veltos-recovery: Debian's entries only (renamed).
+            unit.unlink()
+            probe.unlink()
+            out = subprocess.run(["sh", "-c", wrapper], capture_output=True, text=True,
+                                 check=True, env=env).stdout
+            self.assertNotIn("veltos_count_start", out)
+            self.assertIn("menuentry 'VeltOS' --class veltos", out)
+
     def test_grub_common_configured_before_the_diversion(self):
         control = (PKG / "debian/control").read_text()
         self.assertRegex(control, r"Pre-Depends: grub-common")
@@ -245,6 +315,98 @@ class GrubTests(unittest.TestCase):
                                      env={"PATH": f"{bin_dir}:/usr/bin:/bin"}).stdout
                 self.assertEqual("set timeout_style=menu" in out, expect, out)
                 self.assertIn("set color_normal=black/black", out)
+
+
+class ResolutionTests(unittest.TestCase):
+    """The start-up screen at the screen's resolution (resolution/)."""
+
+    HELPER = PKG / "resolution/boot-resolution"
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def helper(self, *args, env=None):
+        full = {"PATH": "/usr/bin:/bin", "VELTOS_SYSFS": str(self.tmp / "sys")}
+        full.update(env or {})
+        return subprocess.run(["sh", str(self.HELPER), *args], capture_output=True, text=True, env=full)
+
+    def connector(self, name, status, modes):
+        d = self.tmp / "sys/class/drm" / name
+        d.mkdir(parents=True)
+        (d / "status").write_text(status + "\n")
+        (d / "modes").write_text("".join(m + "\n" for m in modes))
+
+    def test_detect_prefers_the_built_in_panel(self):
+        self.connector("card0-HDMI-A-1", "connected", ["1920x1080", "1280x720"])
+        self.connector("card0-DP-1", "disconnected", [])
+        self.assertEqual(self.helper("detect").stdout, "1920x1080\n")
+        self.connector("card0-eDP-1", "connected", ["2560x1600", "1920x1200"])
+        self.assertEqual(self.helper("detect").stdout, "2560x1600\n")
+
+    def test_detect_without_a_screen(self):
+        self.connector("card0-Virtual-1", "disconnected", [])
+        result = self.helper("detect")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+
+    def test_set_writes_the_mode_before_the_safe_ones(self):
+        result = self.helper("set", "1920x1080", "--root", str(self.tmp / "target"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        conf = (self.tmp / "target/etc/default/grub.d/veltos_resolution.cfg").read_text()
+        self.assertIn("\nGRUB_GFXMODE=1920x1080,1024x768,800x600,auto\n", conf)
+        self.helper("set", "1024x768", "--root", str(self.tmp / "target"))
+        conf = (self.tmp / "target/etc/default/grub.d/veltos_resolution.cfg").read_text()
+        self.assertIn("\nGRUB_GFXMODE=1024x768,800x600,auto\n", conf)
+        # Sorts after veltos.cfg (sourced later) in byte order.
+        self.assertGreater("veltos_resolution.cfg", "veltos.cfg")
+        self.assertLess("veltos_resolution.cfg", "zz-local.cfg")
+
+    def test_set_refuses_what_is_not_a_screen_mode(self):
+        for bad in ("abc", "1920x1080i", "100x100", "99999x1080", "1920x1080;reboot", ""):
+            result = self.helper("set", bad, "--root", str(self.tmp / "target"))
+            self.assertEqual(result.returncode, 2, bad)
+        self.assertFalse((self.tmp / "target").exists())
+
+    def test_pkexec_cannot_write_elsewhere(self):
+        result = self.helper("set", "1920x1080", "--root", str(self.tmp / "target"), env={"PKEXEC_UID": "1000"})
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse((self.tmp / "target").exists())
+
+    def test_sign_in_sync_asks_for_the_current_mode_only_when_changed(self):
+        bin_dir = self.tmp / "bin"
+        bin_dir.mkdir()
+        screen = {"outputs": [
+            {"enabled": True, "priority": 2, "currentModeId": "1",
+             "modes": [{"id": "1", "size": {"width": 1280, "height": 1024}}]},
+            {"enabled": True, "priority": 1, "currentModeId": "7",
+             "modes": [{"id": "3", "size": {"width": 1920, "height": 1080}},
+                       {"id": "7", "size": {"width": 2560, "height": 1440}}]}]}
+        (bin_dir / "screen.json").write_text(json.dumps(screen))
+        (bin_dir / "kscreen-doctor").write_text(f"#!/bin/sh\ncat '{bin_dir}/screen.json'\n")
+        (bin_dir / "pkexec").write_text(f"#!/bin/sh\necho \"$@\" >> '{bin_dir}/pkexec.log'\n")
+        helper = bin_dir / "helper"
+        helper.write_text(f"#!/bin/sh\n[ \"$1\" = current ] && cat '{bin_dir}/current'\n")
+        for tool in ("kscreen-doctor", "pkexec", "helper"):
+            (bin_dir / tool).chmod(0o755)
+        env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VELTOS_SYNC_DELAY": "0", "VELTOS_BOOT_HELPER": str(helper)}
+        sync = PKG / "resolution/boot-resolution-sync"
+        (bin_dir / "current").write_text("2560x1440\n")
+        subprocess.run(["sh", str(sync)], env=env, check=True)
+        self.assertFalse((bin_dir / "pkexec.log").exists())
+        (bin_dir / "current").write_text("1024x768\n")
+        subprocess.run(["sh", str(sync)], env=env, check=True)
+        self.assertEqual((bin_dir / "pkexec.log").read_text(), f"{helper} set 2560x1440\n")
+
+    def test_policy_allows_the_signed_in_user_only(self):
+        policy = (PKG / "resolution/org.veltos.boot.policy").read_text()
+        self.assertIn("<allow_active>yes</allow_active>", policy)
+        self.assertIn("<allow_any>no</allow_any>", policy)
+        self.assertIn(">/usr/libexec/veltos-boot/boot-resolution</annotate>", policy)
+        unit = (PKG / "resolution/veltos-boot-resolution.service").read_text()
+        self.assertIn("Type=simple", unit)   # the session does not wait for it
 
 
 if __name__ == "__main__":

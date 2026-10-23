@@ -23,7 +23,12 @@ taskbar and Settings; Discover stays installed but hidden.
 - **Library**: "Get updates" / "Update all" and the installed apps with
   Open and Uninstall. `veltos-store --updates` opens it and checks for
   updates (Settings > VeltOS Update).
-- English and Turkish; light and dark; one window per user.
+- English and Turkish; light and dark.
+- One Store process per user, but not one window: starting the Store
+  again (from another virtual desktop, for example) opens another window,
+  which KWin places on the current desktop; the windows share the
+  installs in progress (one backend). Before, a second start only raised
+  the window on the first desktop (product owner, 2026-10-22).
 
 ## How it works
 
@@ -32,7 +37,8 @@ taskbar and Settings; Discover stays installed but hidden.
 | Catalogue | `veltos_store/catalog.py` | Debian's AppStream data (DEP-11, downloaded by apt into `/var/lib/swcatalog`) through `gir1.2-appstream-1.0`; icons from the AppStream icon cache. VeltOS's program names and hidden programs (`/var/lib/veltos/xdg/applications`, veltos-desktop's `update-app-names`) are applied. Data older than two days is refreshed at start (`pkcon refresh`): screenshot addresses change with package updates. |
 | Install / uninstall / update | `veltos_store/packages.py` | `pkcon -p -y install|remove|update` one job after another, progress read from its output in the C locale. PackageKit asks for the administrator password through the session's agent (the live session needs none). An uninstall that would remove a part of VeltOS (checked with `apt-get -s remove`) is refused with a message. |
 | Open | `veltos_store/app.py` | `gtk-launch <desktop id>` |
-| Window | `veltos_store/qml/` | `Main.qml` (navigation rail, search), `HomePage`, `GridPage` (apps, games, results), `AppPage`, `LibraryPage`, `AppCard`, `InstallButton` |
+| Window | `veltos_store/qml/` | `Main.qml` (navigation rail, search), `HomePage`, `GridPage` (apps, games, results), `AppPage`, `LibraryPage`, `AppCard`, `InstallButton`. The rail's selection bar is a short pill at the left edge, level with the icon, and the rail is wide enough that it no longer covers the first letter of "Uygulamalar" (product owner, 2026-10-22). The search box is in the Tab order and shows the text (I-beam) pointer. |
+| Single instance | `veltos_store/app.py` | A local socket per user (`raise_running`, `listen_for_raise`): a second start sends `window` to the running Store, which loads another `Main.qml` window. |
 
 Curated lists (featured, essentials, creative apps, games) are package
 names in `catalog.py`; only those in the catalogue are shown.

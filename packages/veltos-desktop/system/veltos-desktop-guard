@@ -1,0 +1,313 @@
+#!/usr/bin/python3
+"""VeltOS desktop guard: "This PC", the Recycle Bin and the VeltOS Store
+stay on a user's desktop, like Windows' system icons.
+
+Neither the desktop, File Explorer nor a terminal can delete, rename or
+change their launchers (recycle-bin.desktop, this-pc.desktop,
+veltos-store.desktop from /usr/share/veltos/desktop; product owner,
+2026-10-22: "not from the terminal either"): the launchers belong to root,
+and the user's desktop folder becomes root's with the user's own group,
+group-writable and sticky (mode 1775, like /tmp). The user still creates,
+renames and deletes their own files there as before; a file belonging to
+somebody else cannot be removed from a sticky folder. Root (deleting the
+account, for example) is not hindered. An immutable flag (chattr +i) was
+not used: it stops root, too, so removing the user's home would fail.
+Group-writable is only safe with a user private group (named after the
+user, nobody else in it: Debian's default); for a user whose group is
+shared, such as "users", nothing is changed and the answer is "refused".
+
+A D-Bus system service (org.veltos.DesktopGuard), started on demand by
+D-Bus and ended after a minute without calls. It only ever acts on the
+caller's own desktop: the caller is the bus' account of the connection
+(GetConnectionUnixUser), never an argument; folders are opened one name at
+a time without following symbolic links and must lie in the caller's home
+and belong to the caller; a launcher that is not root's own single-linked
+file is removed and written anew, never written through.
+
+    Protect()          -> "ok", "no-desktop" or "refused"
+    TouchRecycleBin()  -> the same: moves the Recycle Bin launcher's date
+                          between 2 and 2.5 s after 1970 so the desktop
+                          re-reads its icon (trash-icon)
+"""
+
+import grp
+import os
+import pwd
+import stat
+import sys
+
+from gi.repository import Gio, GLib
+
+BUS_NAME = "org.veltos.DesktopGuard"
+OBJECT_PATH = "/org/veltos/DesktopGuard"
+SOURCE = "/usr/share/veltos/desktop"
+# Launcher -> its fixed date (the desktop lists icons by date: these first).
+LAUNCHERS = {"recycle-bin.desktop": 2.0, "this-pc.desktop": 3.0, "veltos-store.desktop": 4.0}
+DESKTOP_MODE = 0o1775
+LAUNCHER_MODE = 0o755           # executable: Plasma runs trusted launchers only
+IDLE_SECONDS = 60
+MAX_CONFIG = 64 * 1024
+
+INTROSPECTION = """
+<node>
+  <interface name="org.veltos.DesktopGuard">
+    <method name="Protect"><arg type="s" direction="out" name="result"/></method>
+    <method name="TouchRecycleBin"><arg type="s" direction="out" name="result"/></method>
+  </interface>
+</node>
+"""
+
+DIRECTORY_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+
+
+class Refused(Exception):
+    pass
+
+
+def open_path(start_fd, parts, uid=None):
+    """Open the folder `parts` below `start_fd`, one name at a time, never
+    through a symbolic link; with `uid`, every folder must belong to it."""
+    fd = os.dup(start_fd)
+    try:
+        for part in parts:
+            if part in ("", ".", "..") or "/" in part:
+                raise Refused(f"bad folder name {part!r}")
+            next_fd = os.open(part, DIRECTORY_FLAGS, dir_fd=fd)
+            os.close(fd)
+            fd = next_fd
+            if uid is not None and os.fstat(fd).st_uid != uid:
+                raise Refused(f"{part!r} does not belong to the user")
+        return fd
+    except BaseException:
+        os.close(fd)
+        raise
+
+
+def desktop_parts(home_fd):
+    """The desktop folder below the home, from the user's user-dirs.dirs
+    (XDG_DESKTOP_DIR="$HOME/..."), else "Desktop"."""
+    try:
+        config_fd = open_path(home_fd, [".config"])
+    except (OSError, Refused):
+        return ["Desktop"]
+    try:
+        fd = os.open("user-dirs.dirs", os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=config_fd)
+    except OSError:
+        os.close(config_fd)
+        return ["Desktop"]
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            return ["Desktop"]
+        text = os.read(fd, MAX_CONFIG).decode("utf-8", "replace")
+    finally:
+        os.close(fd)
+        os.close(config_fd)
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith("XDG_DESKTOP_DIR="):
+            value = line.split("=", 1)[1].strip().strip('"')
+            if not value.startswith("$HOME/"):
+                return ["Desktop"]
+            parts = [p for p in value[len("$HOME/"):].split("/") if p]
+            if not parts or any(p in (".", "..") for p in parts):
+                return ["Desktop"]
+            return parts
+    return ["Desktop"]
+
+
+def private_group(user):
+    """Whether the user's primary group is theirs alone: named after them,
+    no other members, nobody else's primary group."""
+    try:
+        group = grp.getgrgid(user.pw_gid)
+    except KeyError:
+        return False
+    if group.gr_name != user.pw_name or any(name != user.pw_name for name in group.gr_mem):
+        return False
+    return not any(other.pw_gid == user.pw_gid and other.pw_uid != user.pw_uid for other in pwd.getpwall())
+
+
+def open_desktop(uid):
+    """The caller's desktop folder (opened safely) and the caller's group;
+    (None, gid) when there is no desktop folder yet."""
+    if uid < 1000 or uid == 65534:
+        raise Refused("not a user account")
+    user = pwd.getpwuid(uid)
+    if not private_group(user):
+        raise Refused("the user's group is shared with other accounts")
+    home = os.path.normpath(user.pw_dir)
+    if not home.startswith("/") or home == "/":
+        raise Refused("no home folder")
+    root_fd = os.open("/", DIRECTORY_FLAGS)
+    try:
+        home_fd = open_path(root_fd, [p for p in home.split("/") if p])
+    finally:
+        os.close(root_fd)
+    try:
+        if os.fstat(home_fd).st_uid != uid:
+            raise Refused("the home folder does not belong to the user")
+        parts = desktop_parts(home_fd)
+        try:
+            parent_fd = open_path(home_fd, parts[:-1], uid)
+        except FileNotFoundError:
+            return None, user.pw_gid
+        try:
+            desktop_fd = open_path(parent_fd, parts[-1:])
+        except FileNotFoundError:
+            return None, user.pw_gid
+        finally:
+            os.close(parent_fd)
+        info = os.fstat(desktop_fd)
+        # The user's own folder, or one this service guarded before.
+        if not (info.st_uid == uid or (info.st_uid == 0 and info.st_gid == user.pw_gid)):
+            os.close(desktop_fd)
+            raise Refused("the desktop folder belongs to somebody else")
+        return desktop_fd, user.pw_gid
+    finally:
+        os.close(home_fd)
+
+
+def guard_folder(desktop_fd, gid):
+    """Root's, the user's group, rwxrwxr-x and sticky."""
+    info = os.fstat(desktop_fd)
+    if info.st_uid != 0 or info.st_gid != gid:
+        os.fchown(desktop_fd, 0, gid)
+    if stat.S_IMODE(os.fstat(desktop_fd).st_mode) != DESKTOP_MODE:
+        os.fchmod(desktop_fd, DESKTOP_MODE)
+
+
+def read_source(name):
+    with open(os.path.join(SOURCE, name), "rb") as source:
+        return source.read()
+
+
+def place_launcher(desktop_fd, name):
+    """The launcher as /usr/share/veltos/desktop has it, root's own,
+    executable and dated."""
+    content = read_source(name)
+    when = int(LAUNCHERS[name] * 1e9)
+    for _attempt in range(5):
+        try:
+            info = os.stat(name, dir_fd=desktop_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            info = None
+        if info is not None:
+            if stat.S_ISDIR(info.st_mode):
+                return                  # a folder of that name: left alone
+            if not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or info.st_nlink != 1:
+                # The user's file, a link or anything else: replaced, never
+                # written through.
+                os.unlink(name, dir_fd=desktop_fd)
+                info = None
+        try:
+            if info is None:
+                fd = os.open(name, os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
+                             LAUNCHER_MODE, dir_fd=desktop_fd)
+            else:
+                fd = os.open(name, os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=desktop_fd)
+        except (FileExistsError, FileNotFoundError):
+            continue                    # changed meanwhile: look again
+        try:
+            current = os.fstat(fd)
+            if not stat.S_ISREG(current.st_mode) or current.st_uid != 0 or current.st_nlink != 1:
+                continue
+            if os.pread(fd, len(content) + 1, 0) != content:
+                os.ftruncate(fd, 0)
+                os.pwrite(fd, content, 0)
+            if current.st_gid != 0:
+                os.fchown(fd, 0, 0)
+            if stat.S_IMODE(current.st_mode) != LAUNCHER_MODE:
+                os.fchmod(fd, LAUNCHER_MODE)
+            if current.st_mtime_ns != when:
+                os.utime(fd, ns=(when, when))
+            return
+        finally:
+            os.close(fd)
+    raise Refused(f"{name} kept changing")
+
+
+def protect(uid):
+    desktop_fd, gid = open_desktop(uid)
+    if desktop_fd is None:
+        return "no-desktop"
+    try:
+        guard_folder(desktop_fd, gid)
+        for name in LAUNCHERS:
+            place_launcher(desktop_fd, name)
+    finally:
+        os.close(desktop_fd)
+    return "ok"
+
+
+def touch_recycle_bin(uid):
+    desktop_fd, _gid = open_desktop(uid)
+    if desktop_fd is None:
+        return "no-desktop"
+    try:
+        fd = os.open("recycle-bin.desktop", os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=desktop_fd)
+    except OSError:
+        os.close(desktop_fd)
+        return "no-desktop"
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != 0:
+            raise Refused("not the guarded launcher")
+        when = int(2.5e9) if info.st_mtime_ns == int(2e9) else int(2e9)
+        os.utime(fd, ns=(when, when))
+    finally:
+        os.close(fd)
+        os.close(desktop_fd)
+    return "ok"
+
+
+class Service:
+    def __init__(self, loop):
+        self.loop = loop
+        self.idle = None
+        self.restart_idle()
+
+    def restart_idle(self):
+        if self.idle is not None:
+            GLib.source_remove(self.idle)
+        self.idle = GLib.timeout_add_seconds(IDLE_SECONDS, self.loop.quit)
+
+    @staticmethod
+    def caller_uid(connection, sender):
+        reply = connection.call_sync("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+                                     "GetConnectionUnixUser", GLib.Variant("(s)", (sender,)),
+                                     GLib.VariantType("(u)"), Gio.DBusCallFlags.NONE, 5000, None)
+        return reply.unpack()[0]
+
+    def on_call(self, connection, sender, _path, _interface, method, _parameters, invocation):
+        self.restart_idle()
+        try:
+            uid = self.caller_uid(connection, sender)
+            if method == "Protect":
+                result = protect(uid)
+            elif method == "TouchRecycleBin":
+                result = touch_recycle_bin(uid)
+            else:
+                invocation.return_dbus_error("org.freedesktop.DBus.Error.UnknownMethod", method)
+                return
+        except (Refused, OSError, KeyError, GLib.Error) as error:
+            print(f"veltos-desktop-guard: refused: {error}", file=sys.stderr)
+            result = "refused"
+        invocation.return_value(GLib.Variant("(s)", (result,)))
+
+
+def main():
+    loop = GLib.MainLoop()
+    service = Service(loop)
+    node = Gio.DBusNodeInfo.new_for_xml(INTROSPECTION)
+
+    def on_bus(connection, _name):
+        connection.register_object(OBJECT_PATH, node.interfaces[0], service.on_call, None, None)
+
+    Gio.bus_own_name(Gio.BusType.SYSTEM, BUS_NAME, Gio.BusNameOwnerFlags.NONE, on_bus, None,
+                     lambda *_args: loop.quit())
+    loop.run()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -7,3 +7,5 @@ ID=veltos
 ID_LIKE=debian
 ANSI_COLOR="38;2;79;124;255"
 LOGO=veltos-logo
+HOME_URL="https://veltos.ahmetfurkandemir.com/"
+SUPPORT_URL="https://veltos.ahmetfurkandemir.com/"

@@ -1,7 +1,7 @@
 {
   "plugin": "aurorae",
   "type": "kwin",
-  "about": "KWin's Aurorae engine draws the VeltOS window frames from SVG files and has no button pictures for maximised windows. The close button's red hover rounds the window's top right corner like Windows 11; on a maximised window the corner is square, so the hover must be too. With these changes a button SVG may carry hover-maximized / pressed-maximized pictures (VeltOS' close button does, tools/fluent.py) that are used while the window is maximised; themes without them look as before. The windows of the Office apps (LibreOffice behind VeltOS Office) get their title bar in the app's colour, as Microsoft 365's Word, Excel and PowerPoint have on Windows 11: a tint over the light frame's title bar, white caption text, and the buttons' \"-ondark\" pictures (white glyphs); the dark frame stays dark, like Office's Black theme. The windows are told by their caption (\"… — VeltOS Office Writer\", the product name veltos-office gives LibreOffice): KDecoration3 exposes no window class to the QML.",
+  "about": "KWin's Aurorae engine draws the VeltOS window frames from SVG files and has no button pictures for maximised windows. The close button's red hover rounds the window's top right corner like Windows 11; on a maximised window the corner is square, so the hover must be too. With these changes a button SVG may carry hover-maximized / pressed-maximized pictures (VeltOS' close button does, tools/fluent.py) that are used while the window is maximised; themes without them look as before. The windows of the Office apps (LibreOffice behind VeltOS Office) get their title bar in the app's colour, as Microsoft 365's Word, Excel and PowerPoint have on Windows 11: a tint over the light frame's title bar, white caption text, and the buttons' \"-ondark\" pictures (white glyphs); the dark frame stays dark, like Office's Black theme. The windows are told by their caption (\"… — VeltOS Office Writer\", the product name veltos-office gives LibreOffice): KDecoration3 exposes no window class to the QML. Modal dialogs (message boxes) have only a Close button, as on Windows 11: Aurorae shows Minimise and Maximise on every window that allows them, and KWin lets modal dialogs be minimised.",
   "replacements": [
     {
       "file": "AuroraeButton.qml",
@@ -56,6 +56,18 @@
       "why": "white caption on the coloured title bar",
       "old": "        color: decoration.client.active ? auroraeTheme.activeTextColor : auroraeTheme.inactiveTextColor\n",
       "new": "        color: root.veltosTinted ? (decoration.client.active ? \"#FFFFFF\" : \"#F4F4F4\")\n               : (decoration.client.active ? auroraeTheme.activeTextColor : auroraeTheme.inactiveTextColor) // VeltOS\n"
+    },
+    {
+      "file": "AuroraeButton.qml",
+      "why": "no Minimise button on modal dialogs (Windows 11 message boxes have only Close)",
+      "old": "        } else {\n            visible = buttonSvg.imagePath != \"\";\n        }\n",
+      "new": "        } else {\n            // VeltOS: as on Windows 11, a modal dialog (a message box) has no Minimise button\n            visible = Qt.binding(() => buttonSvg.imagePath != \"\" && !(decoration.client.modal\n                && buttonType == DecorationOptions.DecorationButtonMinimize));\n        }\n"
+    },
+    {
+      "file": "AuroraeMaximizeButton.qml",
+      "why": "no Maximise button on modal dialogs (Windows 11 message boxes have only Close)",
+      "old": "    property bool toggled: false\n    AuroraeButton {\n        id: maximizeButton\n",
+      "new": "    property bool toggled: false\n    // VeltOS: as on Windows 11, a modal dialog (a message box) has no Maximise button\n    visible: !decoration.client.modal\n    AuroraeButton {\n        id: maximizeButton\n"
     }
   ]
 }

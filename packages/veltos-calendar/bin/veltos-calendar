@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""VeltOS Calendar (Windows 11 Calendar layout)."""
+import sys
+
+from veltos_calendar.app import main
+
+sys.exit(main(sys.argv))

@@ -32,10 +32,10 @@ def all_applications(lang="en"):
         for path in paths:
             if path.name in seen:
                 continue
+            seen.add(path.name)          # a hidden copy hides the original behind it
             entry = places.read_desktop_entry(path)
             if entry is None:
                 continue
-            seen.add(path.name)
             name = entry.get(f"Name[{lang}]") or entry.get("Name", path.stem)
             result.append({"id": path.name, "name": name, "icon": entry.get("Icon", ""), "path": str(path)})
     result.sort(key=lambda a: a["name"].casefold())
@@ -110,6 +110,11 @@ class Opener(QObject):
     @Property(bool, constant=True)
     def darkMode(self):
         return self._dark
+
+    @Property(str, constant=True)
+    def accentColor(self):
+        from .app import Backend
+        return Backend.read_accent_color()
 
     @Property(float, constant=True)
     def textScale(self):

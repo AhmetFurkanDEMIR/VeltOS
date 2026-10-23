@@ -10,8 +10,8 @@ from pathlib import Path
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 try:
-    from PySide6.QtCore import (Property, QMetaObject, QObject, Qt, QUrl, Signal, Slot,
-                                qInstallMessageHandler)
+    from PySide6.QtCore import (Property, QCoreApplication, QEvent, QMetaObject, QObject, Qt, QUrl,
+                                Signal, Slot, qInstallMessageHandler)
     from PySide6.QtGui import QGuiApplication, QStandardItem, QStandardItemModel
     from PySide6.QtQml import QQmlPropertyMap
     from PySide6.QtQuick import QQuickView
@@ -88,10 +88,25 @@ if HAVE_QT:
         def count(self):
             return self.rowCount()
 
-    class FakeSessions(QObject):
+    class FakeSessions(QStandardItemModel):
+        """SDDM's session list: Plasma on X11 first, as SDDM may remember
+        it after a start without a graphics driver, then Plasma on Wayland."""
+        ROLES = {Qt.UserRole + 1: b"file", Qt.UserRole + 2: b"name"}
+
+        def __init__(self):
+            super().__init__()
+            for file, name in (("plasmax11.desktop", "Plasma (X11)"), ("plasma.desktop", "Plasma (Wayland)")):
+                item = QStandardItem()
+                item.setData(file, Qt.UserRole + 1)
+                item.setData(name, Qt.UserRole + 2)
+                self.appendRow(item)
+
+        def roleNames(self):
+            return self.ROLES
+
         @Property(int, constant=True)
         def lastIndex(self):
-            return 1
+            return 0
 
 
 @unittest.skipUnless(HAVE_QT, "needs PySide6 (Build-Depends)")
@@ -116,14 +131,18 @@ class SignInScreenTests(unittest.TestCase):
         self.root = self.view.rootObject()
 
     def tearDown(self):
+        # Delete the view now, while this test's fake objects still exist:
+        # deleted later, its bindings read them after they were gone and the
+        # next test saw "Cannot read property ... of null".
         self.view.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         self.app.processEvents()
 
     def problems(self):
         return [m for m in self.messages if "qml" in m.lower() or "error" in m.lower()
                 or "undefined" in m.lower() or "warning" in m.lower()]
 
-    def test_loads_and_signs_in_with_the_last_session(self):
+    def test_loads_and_signs_in_to_plasma_on_wayland(self):
         self.assertIsNotNone(self.root, self.messages)
         self.assertEqual(self.root.property("userName"), "velt")
         self.root.setProperty("signInView", True)
@@ -132,11 +151,23 @@ class SignInScreenTests(unittest.TestCase):
         password.setProperty("text", "secret")
         QMetaObject.invokeMethod(self.root, "signIn")
         self.app.processEvents()
+        # Wayland, although SDDM remembers X11 (lastIndex 0) after a safe start.
         self.assertEqual(self.sddm.calls[-1], ("login", "velt", "secret", 1))
         self.sddm.loginFailed.emit()
         self.app.processEvents()
         self.assertEqual(password.property("text"), "")
         self.assertFalse(self.root.property("busy"))
+        self.assertEqual(self.problems(), [])
+
+    def test_signs_in_to_plasma_on_x11_without_a_graphics_driver(self):
+        # The screen runs on X11 only at a start without a graphics driver
+        # (veltos-recovery's safe-graphics); Wayland cannot run then.
+        self.root.setProperty("onX11", True)
+        self.root.setProperty("signInView", True)
+        self.find_password_field().setProperty("text", "secret")
+        QMetaObject.invokeMethod(self.root, "signIn")
+        self.app.processEvents()
+        self.assertEqual(self.sddm.calls[-1], ("login", "velt", "secret", 0))
         self.assertEqual(self.problems(), [])
 
     def find_password_field(self):

@@ -1,0 +1,41 @@
+WINE REGISTRY Version 2
+;; All keys relative to \\Machine
+
+#arch=win64
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\7-Zip] 1792672752
+#time=1dc43a0f5e2b1a4
+"DisplayIcon"="C:\\Program Files\\7-Zip\\7zFM.exe"
+"DisplayName"="7-Zip 23.01 (x64)"
+"DisplayVersion"="23.01"
+"EstimatedSize"=dword:000016a8
+"InstallLocation"="C:\\Program Files\\7-Zip\\"
+"Publisher"="Igor Pavlov"
+"UninstallString"="\"C:\\Program Files\\7-Zip\\Uninstall.exe\""
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\7-Zip\\Sub] 1792672752
+"DisplayName"="Not a program"
+"UninstallString"="x"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{E0E6B1A4-1111-2222-3333-444455556666}] 1792672752
+"DisplayName"="Wine Mono Runtime"
+"WindowsInstaller"=dword:00000001
+
+[Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Notepad++] 1792672752
+"DisplayName"="Notepad++ (32-bit) \x00e7al\x0131\x015f"
+"InstallDate"="20261022"
+"Publisher"="Notepad++ Team"
+"UninstallString"=str(2):"%ProgramFiles%\\Notepad++\\uninstall.exe"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\KB123456] 1792672752
+"DisplayName"="Update for Something"
+"ParentKeyName"="Something"
+"UninstallString"="x"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Hidden] 1792672752
+"DisplayName"="A system part"
+"SystemComponent"=dword:00000001
+"UninstallString"="x"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Run] 1792672752
+"DisplayName"="Not under Uninstall"

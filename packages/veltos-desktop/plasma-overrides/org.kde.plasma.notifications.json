@@ -1,6 +1,6 @@
 {
   "plugin": "org.kde.plasma.notifications",
-  "about": "Notification pop-ups like Windows 11 toasts: bottom-right corner, 12 px from the screen edge and the taskbar, Windows' width, no line under the app name and no timeout bar, the picture on the left, action buttons filling the row with equal widths, a monochrome close glyph, no KDE settings button and no bell in the tray (the clock opens the notification centre, like Windows 11). Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "about": "Notification pop-ups like Windows 11 toasts: bottom-right corner, 12 px from the screen edge and the taskbar, Windows' width, no line under the app name and no timeout bar, the picture on the left, action buttons filling the row with equal widths, a monochrome close glyph, Windows 11's \"...\" menu (turn the app's notifications off, notification settings) instead of KDE's settings button and no bell in the tray (the clock opens the notification centre, like Windows 11). Matched against plasma-workspace 6.3.6 (Debian 13). Jobs in a toast (Firefox downloads through Plasma's browser integration, file copies) show Windows 11's thin progress bar with bytes, speed and percentage under it and equal-width buttons: Pause/Resume and Cancel, then Open file and Open folder.",
   "replacements": [
     {
       "file": "contents/ui/delegates/DelegatePopup.qml",
@@ -97,6 +97,36 @@
       "why": "buttons of equal width",
       "old": "        id: actionRow\n",
       "new": "        id: actionRow\n        uniformCellSizes: true // VeltOS: buttons of equal width, like Windows\n"
+    },
+    {
+      "file": "contents/ui/components/ModelInterface.qml",
+      "why": "the app a toast belongs to, for its \"...\" menu",
+      "old": "    property var applicationIconSource\n    property string applicationName\n",
+      "new": "    property var applicationIconSource\n    property string applicationName\n    // VeltOS: \"app:<desktop entry>\" or \"service:<notifyrc name>\" (plasmanotifyrc groups).\n    property string veltosAppId\n"
+    },
+    {
+      "file": "contents/ui/global/Globals.qml",
+      "why": "the app a toast belongs to, for its \"...\" menu",
+      "old": "                applicationName: model.applicationName\n",
+      "new": "                applicationName: model.applicationName\n                veltosAppId: model.desktopEntry ? \"app:\" + model.desktopEntry\n                           : (model.notifyRcName ? \"service:\" + model.notifyRcName : \"\") // VeltOS\n"
+    },
+    {
+      "file": "contents/ui/components/HeadingButtons.qml",
+      "why": "imports for the \"...\" menu",
+      "old": "import org.kde.coreaddons as KCoreAddons\n",
+      "new": "import org.kde.coreaddons as KCoreAddons\nimport org.kde.plasma.extras as PlasmaExtras\nimport org.kde.plasma.plasma5support as P5Support\n"
+    },
+    {
+      "file": "contents/ui/components/HeadingButtons.qml",
+      "why": "Windows 11's \"...\" button on toasts (turn the app's notifications off, notification settings); product owner, 2026-10-22: toasts still looked like Debian's",
+      "old": "    PlasmaComponents3.ToolButton {\n        id: dismissButton\n",
+      "new": "    // VeltOS: Windows 11's \"...\" button on a toast: turn the app's\n    // notifications off, or open the notification settings (VeltOS Settings).\n    PlasmaComponents3.ToolButton {\n        id: veltosMoreButton\n        readonly property bool canTurnOff: /^(app|service):[A-Za-z0-9._-]+$/.test(modelInterface.veltosAppId)\n        icon.name: \"view-more-symbolic\"  // Fluent draws this one horizontal\n        visible: !modelInterface.inHistory && modelInterface.closable\n                 && modelInterface.notificationType !== NotificationManager.Notifications.JobType\n        display: PlasmaComponents3.AbstractButton.IconOnly\n        text: i18nd(\"veltos-desktop\", \"More options\")\n        Accessible.description: __applicationName\n\n        onClicked: veltosMoreMenu.open(0, height)\n\n        PlasmaComponents3.ToolTip {\n            text: parent.text\n        }\n\n        P5Support.DataSource {\n            id: veltosShell\n            engine: \"executable\"\n            connectedSources: []\n            onNewData: source => disconnectSource(source)\n        }\n\n        PlasmaExtras.Menu {\n            id: veltosMoreMenu\n            visualParent: veltosMoreButton\n\n            PlasmaExtras.MenuItem {\n                visible: veltosMoreButton.canTurnOff\n                text: i18nd(\"veltos-desktop\", \"Turn off all notifications for %1\", modelInterface.applicationName)\n                icon: \"notifications-disabled\"\n                onClicked: {\n                    const id = modelInterface.veltosAppId;\n                    const group = id.startsWith(\"app:\") ? \"Applications\" : \"Services\";\n                    const name = id.substring(id.indexOf(\":\") + 1);\n                    const base = \"kwriteconfig6 --notify --file plasmanotifyrc --group \" + group + \" --group \" + name;\n                    veltosShell.connectSource(base + \" --key ShowPopups --type bool false; \"\n                                              + base + \" --key ShowInHistory --type bool false\");\n                    modelInterface.closeClicked();\n                }\n            }\n            PlasmaExtras.MenuItem {\n                text: i18nd(\"veltos-desktop\", \"Go to notification settings\")\n                icon: \"configure\"\n                onClicked: {\n                    veltosShell.connectSource(\"veltos-settings notifications\");\n                    modelInterface.closeClicked();\n                }\n            }\n        }\n    }\n\n    PlasmaComponents3.ToolButton {\n        id: dismissButton\n"
+    },
+    {
+      "file": "contents/ui/components/JobItem.qml",
+      "why": "jobs (downloads, copies) as Windows 11 shows progress in a toast; product owner, 2026-10-22",
+      "replace_with": "notifications/JobItem.qml",
+      "upstream_sha256": "6ec7c0f5d8fdea605fbf31e07fae2a996c1cec673114ea00ef253a75dc5239d6"
     }
   ]
 }

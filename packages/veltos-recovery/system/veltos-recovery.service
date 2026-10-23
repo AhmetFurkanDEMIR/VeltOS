@@ -1,0 +1,22 @@
+[Unit]
+Description=VeltOS Automatic Repair (screen)
+After=multi-user.target plymouth-quit-wait.service systemd-user-sessions.service
+Conflicts=getty@tty1.service display-manager.service
+
+[Service]
+Type=simple
+# The window draws on the frame buffer Plymouth used.
+ExecStartPre=-/usr/bin/plymouth quit
+ExecStart=/usr/lib/veltos-recovery/run-recovery
+EnvironmentFile=-/etc/default/locale
+RuntimeDirectory=veltos-recovery
+RuntimeDirectoryMode=0700
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=no
+StandardInput=tty-force
+StandardOutput=journal
+StandardError=journal
+Restart=on-failure
+RestartSec=2

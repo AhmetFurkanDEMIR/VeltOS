@@ -15,6 +15,10 @@
 . "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" 2>/dev/null
 desktop="${XDG_DESKTOP_DIR:-$HOME/Desktop}"
 launcher="$desktop/recycle-bin.desktop"
+# The launcher is root's (veltos-desktop-guard): the guard moves its date.
+if busctl --system --timeout=10 call org.veltos.DesktopGuard /org/veltos/DesktopGuard         org.veltos.DesktopGuard TouchRecycleBin 2>/dev/null | grep -q '"ok"'; then
+    exit 0
+fi
 if [ -e "$launcher" ]; then
     if [ "$(stat -c %.1Y "$launcher" 2>/dev/null)" = "2.0" ]; then
         touch -d @2.5 "$launcher"

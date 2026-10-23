@@ -1,0 +1,33 @@
+#!/bin/sh
+# Start the installed system at this screen's resolution: the boot menu and
+# the VeltOS start-up screen use the mode the screen prefers (product
+# owner, 2026-10-22: the start-up screen was small). Detected from the
+# kernel's view of the screen; after the first sign-in the installed
+# system keeps it at the resolution the screen is set to (veltos-boot).
+# Runs before the bootloader jobs, which run update-grub in the target.
+#
+# Nothing here may stop an installation: on any failure the start-up
+# screen keeps GRUB's 1024x768 and the job succeeds. The first ISO with
+# this job failed every installation at its end (VirtualBox, 2026-10-23):
+# Calamares runs through pkexec, so PKEXEC_UID is in the environment of
+# its jobs, and veltos-boot's helper, which refuses --root to callers
+# that come through pkexec (any signed-in user may run it that way),
+# refused the installer too. The job runs as root inside Calamares; it
+# calls the helper without that variable.
+set -u
+. /usr/libexec/veltos-installer/common.sh
+
+helper="${VELTOS_BOOT_HELPER:-/usr/libexec/veltos-boot/boot-resolution}"    # test hook
+if [ ! -x "$helper" ]; then
+    echo "boot-resolution: veltos-boot is not installed here; the start-up screen keeps 1024x768"
+    exit 0
+fi
+mode="$(env -u PKEXEC_UID "$helper" detect || true)"
+if [ -z "$mode" ]; then
+    echo "boot-resolution: no screen mode found; the start-up screen keeps 1024x768"
+    exit 0
+fi
+if ! env -u PKEXEC_UID "$helper" set "$mode" --root "$CHROOT"; then
+    echo "boot-resolution: could not record $mode; the start-up screen keeps 1024x768"
+fi
+exit 0

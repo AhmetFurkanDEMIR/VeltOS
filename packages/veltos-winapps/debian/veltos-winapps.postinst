@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+# Wine's DLLs without their debug information (see strip-wine-dlls): when
+# veltos-winapps is set up, and when Wine installs or updates them (the
+# dpkg trigger on Wine's DLL folders).
+case "$1" in
+    configure|triggered)
+        /usr/libexec/veltos/strip-wine-dlls || true
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

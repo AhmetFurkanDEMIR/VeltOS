@@ -52,6 +52,8 @@ veltos-disks
 veltos-store
 # Clock (Windows 11 layout): alarms, timers, stopwatch, world clock.
 veltos-clock
+# Calendar (Windows 11 layout); its reminders come from veltos-clock's agent.
+veltos-calendar
 veltos-snip
 veltos-calculator
 veltos-camera
@@ -82,6 +84,11 @@ thunderbird-l10n-tr
 pipewire-audio
 
 fonts-noto-core
+# Noto's UI fonts and Chinese/Japanese/Korean in their regular and bold
+# weights, named here because the "fonts-noto" bundle that brought them is
+# left out (veltos-lean.pref.chroot: its extra weights took 113 MB of the ISO).
+fonts-noto-ui-core
+fonts-noto-cjk
 # Cascadia Mono: the terminal font of Windows Terminal (VeltOS terminal profile).
 fonts-cascadia-code
 fonts-noto-color-emoji

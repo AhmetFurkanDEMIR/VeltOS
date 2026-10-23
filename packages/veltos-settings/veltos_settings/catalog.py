@@ -20,9 +20,9 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
                  "wifi", "background", "colours", "datetime", "notifications", "power",
                  "nightlight", "multitasking", "mouse", "touchpad", "keyboard", "lockscreen",
                  "defaultapps", "startup", "yourinfo", "signin", "otherusers", "region",
-                 "accessibility", "searching", "themes")
+                 "accessibility", "searching", "themes", "taskbar")
 # Actions the backend knows (app.Backend.runAction).
-ACTIONS = ("store", "updates", "uninstall-windows", "disk-management")
+ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website")
 
 # Navigation pane icons are monochrome line icons, as in Windows 11 Settings.
 PAGES = [
@@ -104,6 +104,12 @@ PAGES = [
          "title": ("Lock screen", "Kilit ekranı"),
          "desc": ("When to lock, password on wake", "Ne zaman kilitleneceği, uyanınca parola"),
          "keywords": "lock password screensaver kilit parola"},
+        {"id": "taskbar", "icon": "view-app-grid-symbolic", "page": "taskbar",
+         "title": ("Taskbar", "Görev çubuğu"),
+         "desc": ("Taskbar items, system tray icons, taskbar behaviors",
+                  "Görev çubuğu öğeleri, sistem tepsisi simgeleri, görev çubuğu davranışları"),
+         "keywords": "taskbar search task view alignment center left hide badges combine tray "
+                     "görev çubuğu arama hizalama ortala sol gizle birleştir tepsi"},
     ]},
     {"id": "apps", "icon": "view-app-grid-symbolic", "title": ("Apps", "Uygulamalar"), "items": [
         {"id": "windows-apps", "icon": "application-x-executable-symbolic", "page": "windows-apps",
@@ -182,6 +188,11 @@ PAGES = [
          "title": ("Check for updates", "Güncellemeleri denetle"),
          "desc": ("Security fixes and app updates", "Güvenlik düzeltmeleri ve uygulama güncellemeleri"),
          "keywords": "update upgrade patch security güncelleme yama güvenlik"},
+        {"id": "website", "icon": "internet-web-browser-symbolic", "action": "website",
+         "title": ("VeltOS website", "VeltOS web sitesi"),
+         "desc": ("News and help about VeltOS: veltos.ahmetfurkandemir.com",
+                  "VeltOS hakkında haberler ve yardım: veltos.ahmetfurkandemir.com"),
+         "keywords": "website web site help news veltos.ahmetfurkandemir.com site yardım haber"},
     ]},
 ]
 

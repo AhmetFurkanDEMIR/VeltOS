@@ -1,0 +1,7 @@
+# VeltOS installer job: stop when the installed system could not start
+---
+type:       "job"
+name:       "boot-check"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/boot-check"
+timeout:    60

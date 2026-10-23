@@ -1,0 +1,11 @@
+[Unit]
+Description=VeltOS: this start worked (Automatic Repair counter)
+Documentation=file:///usr/share/doc/veltos-recovery/README.md
+After=display-manager.service
+# Installed systems only: the live medium's boot menu keeps no counter.
+ConditionPathExists=/boot/grub/grubenv
+
+[Service]
+# simple: graphical.target does not wait for it.
+Type=simple
+ExecStart=/usr/lib/veltos-recovery/boot-ok

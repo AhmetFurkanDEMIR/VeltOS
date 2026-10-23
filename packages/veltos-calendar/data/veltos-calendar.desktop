@@ -1,0 +1,23 @@
+[Desktop Entry]
+Type=Application
+Name=Calendar
+Name[tr]=Takvim
+GenericName=Calendar
+GenericName[tr]=Takvim
+Comment=Your events by day, week, month and year
+Comment[tr]=Etkinlikleriniz gün, hafta, ay ve yıl olarak
+Keywords=calendar;events;appointments;meeting;reminder;date;agenda;
+Keywords[tr]=takvim;etkinlik;randevu;toplantı;anımsatıcı;tarih;ajanda;
+Exec=veltos-calendar
+Icon=veltos-calendar
+Terminal=false
+Categories=Office;Calendar;
+StartupNotify=true
+X-KDE-StartupNotify=false
+
+Actions=new-event;
+
+[Desktop Action new-event]
+Name=New event
+Name[tr]=Yeni etkinlik
+Exec=veltos-calendar new-event

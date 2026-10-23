@@ -141,6 +141,33 @@ class FluentTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             fluent.set_menu_opacity('<path id="menu-normal"/>', 0.94, "t")
 
+    def test_menu_band_as_opaque_as_the_menu(self):
+        # Fluent's menu shadow pieces (as in Fluent-round.svg and its dark
+        # variant): a 75 % band of the menu colour, the gradient shadow, a
+        # light line and a black hairline. The band gets the menu's own
+        # opacity: band and body looked like two boxes (2026-10-22).
+        light = ('<g id="menu-shadow-top" transform="x">'
+                 '<path d="a" style="opacity:0.75;fill:#ffffff;fill-opacity:1" />'
+                 '<rect style="opacity:0.1;fill:url(#linearGradient4863-5-3)" />'
+                 '<path d="b" style="opacity:0.5;fill:#ffffff" />'
+                 '<rect style="opacity:0.15;fill:#000000;stroke-width:0.25" /></g>'
+                 '<g id="menu-shadow-hint-top"><path style="opacity:1;fill:#ffffff"/></g>'
+                 '<path id="menu-normal" style="opacity:0.94;fill:#ffffff"/>')
+        out = fluent.uniform_menu_band(light, 0.94, "t")
+        self.assertIn('style="opacity:0.94;fill:#ffffff;fill-opacity:1"', out)
+        self.assertIn('style="opacity:0.5;fill:#ffffff"', out)                     # the thin line stays
+        self.assertIn("opacity:0.1;fill:url(#linearGradient4863-5-3)", out)
+        self.assertIn("opacity:0.15;fill:#000000", out)
+        self.assertIn('<g id="menu-shadow-hint-top"><path style="opacity:1;fill:#ffffff"/>', out)   # not a shadow
+        dark = ('<g id="menu-shadow-left"><path style="fill:#2c2c2c;fill-opacity:1;opacity:0.75"/>'
+                '<rect style="fill:url(#g);opacity:0.2"/><path style="fill:#ffffff;opacity:0.1"/></g>')
+        out = fluent.uniform_menu_band(dark, 0.94, "t")
+        self.assertIn("fill:#2c2c2c;fill-opacity:1;opacity:0.94", out)
+        self.assertIn("fill:url(#g);opacity:0.2", out)
+        self.assertIn("fill:#ffffff;opacity:0.1", out)
+        with self.assertRaises(SystemExit):
+            fluent.uniform_menu_band('<path id="menu-normal"/>', 0.94, "t")
+
 
 class WallpaperTests(unittest.TestCase):
     def test_crop_keeps_target_aspect(self):
@@ -236,8 +263,8 @@ class SearchTests(StartMenuTests):
         self.assertEqual(meta["KPlugin"]["Id"], self.PLUGIN_ID)
         self.assertIn(self.STARTMENU.name, build_assets.PLASMOIDS)
 
-    def test_config_schema_is_xml(self):
-        self.skipTest("no configuration")
+    # test_config_schema_is_xml (inherited): the search box and Task View
+    # have settings since 2026-10-22 (Settings > Personalization > Taskbar).
 
     def test_layout_adds_it_next_to_start(self):
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
@@ -315,11 +342,14 @@ class TaskbarTests(unittest.TestCase):
         self.assertNotIn("digitalclock", js)
 
     def test_show_desktop_at_the_right_end(self):
+        import xml.etree.ElementTree as ET
         meta = json.loads((PKG / "plasma/showdesktop/metadata.json").read_text(encoding="utf-8"))
         self.assertEqual(meta["KPlugin"]["Id"], build_assets.SHOWDESKTOP_ID)
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
         self.assertGreater(js.index('addWidget("org.veltos.showdesktop")'),
                            js.index('addWidget("org.veltos.clock")'))
+        # Its setting (Settings > Personalization > Taskbar) is valid XML.
+        ET.parse(PKG / "plasma/showdesktop/contents/config/main.xml")
 
     def test_see_through_like_windows(self):
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
@@ -447,9 +477,14 @@ class FullBuildTest(unittest.TestCase):
                      "plasma-xdg-desktop-portal-kde"):
             conf = (root / "usr/lib/systemd/user" / f"{unit}.service.d" / "veltos-portal-theme.conf").read_text()
             self.assertIn("[Service]\nEnvironment=QT_QPA_PLATFORMTHEME=kde\n", conf, unit)
-        # plasmashell keeps the portal theme: programs started from Start
-        # inherit its environment and need the theme for their file dialogs.
+        # plasmashell keeps the portal theme in its environment: programs
+        # started from Start inherit it and need it for their file dialogs.
+        # It uses KDE's theme itself (-platformtheme): with the portal's it
+        # waited 25 s at every sign-in.
         self.assertFalse((root / "usr/lib/systemd/user/plasma-plasmashell.service.d/veltos-portal-theme.conf").exists())
+        shell = (root / "usr/lib/systemd/user/plasma-plasmashell.service.d/veltos-platform-theme.conf").read_text()
+        self.assertIn("[Service]\nExecStart=\nExecStart=/usr/bin/plasmashell --no-respawn -platformtheme kde\n", shell)
+        self.assertNotIn("Environment=", shell)
         # The session renders the whole stack in software in VirtualBox.
         session = (root / "etc/xdg/plasma-workspace/env/veltos-session.sh").read_text()
         self.assertIn("if /usr/libexec/veltos/needs-software-rendering; then", session)   # one rule, shared
@@ -502,6 +537,29 @@ class FullBuildTest(unittest.TestCase):
         self.assertIn('url("about:accountsetup")', css)
         self.assertIn('content: "Add your account";', css)
         self.assertIn('content: "Hesabınızı ekleyin";', css)
+        # VeltOS Mail in Outlook's look (product owner, 2026-10-22): the blue
+        # band with the name, the search box and the ribbon below it.
+        self.assertIn('content: "VeltOS Mail";', css)
+        self.assertIn("#unifiedToolbarContent > li:has(global-search-bar)", css)
+        cfg = (root / "usr/lib/thunderbird/veltos.cfg").read_text()
+        sheets = cfg.split("for (let sheet of [", 1)[1].split("]", 1)[0]
+        self.assertIn("file:///usr/share/veltos/mail/mail-header.css", sheets)
+        # File URLs with "/" also when the assets are built on Windows: a "\"
+        # path kept every Mail style sheet from loading (VM).
+        self.assertNotIn("\\", sheets)
+        self.assertIn('const NAME = "VeltOS Mail";', cfg)
+        self.assertIn('doc.querySelector("title")', cfg)        # the new message window's title
+        # Outlook's defaults, only where the user has none: the ribbon, the
+        # reading pane header, no menu bar in the new message window.
+        self.assertIn('"unifiedToolbar", "state", JSON.stringify({ mail: ["write-message", "delete"', cfg)
+        self.assertIn('"buttonStyle": "only-icons"', cfg)
+        self.assertIn('if (!store.hasValue(compose, "compose-toolbar-menubar2", "autohide"))', cfg)
+        self.assertIn('pref("mail.tabs.autoHide", true);', mail)
+        self.assertIn('pref("mail.addressDisplayFormat", 2);', mail)
+        header = (root / "usr/share/veltos/mail/mail-header.css").read_text()
+        # No default XUL namespace: the band is an HTML div (VM).
+        self.assertNotIn("@namespace", header)
+        self.assertIn(f"--veltos-caption-width: {3 * fluent.CAPTION_W}px;", header)
         restrictions = kdeglobals["[KDE Control Module Restrictions]"]
         self.assertEqual(restrictions["kcm_kdeconnect"], "false")
         self.assertIn("ToolButtonStyle=IconOnly", (root / "etc/xdg/dolphinrc").read_text())

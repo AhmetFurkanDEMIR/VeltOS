@@ -1,0 +1,352 @@
+/*
+ * VeltOS installer look: light Windows 11 style controls (rounded buttons
+ * and fields, accent underline while typing, accent check boxes, thin
+ * scroll bars). Calamares applies this file to every page.
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+* {
+    font-family: "Inter";
+}
+
+#mainApp, QDialog, QMessageBox {
+    background-color: #F3F5FA;
+    color: #1B1D24;
+}
+
+QLabel {
+    color: #1B1D24;
+}
+
+/* Calamares draws an old-style "Loading…" spinner at the left of a QML
+   page while it compiles the page (QmlViewStep: the spinner sits in a
+   plain QWidget). The first page shows Windows 11's progress ring in the
+   middle instead (welcomeq.qml), so this one is made invisible; the
+   partition page's spinner (inside a QStackedWidget) stays. */
+.QWidget > WaitingSpinnerWidget {
+    color: transparent;
+}
+
+/* Pages in scroll areas take the window colour (not Qt's grey). */
+QScrollArea, QScrollArea > QWidget > QWidget, QStackedWidget {
+    background: transparent;
+    border: none;
+}
+
+QPushButton {
+    background-color: #FFFFFF;
+    color: #1B1D24;
+    border: 1px solid #D5DAE5;
+    border-bottom-color: #C3C9D6;
+    border-radius: 6px;
+    padding: 6px 16px;
+    min-height: 20px;
+}
+QPushButton:hover {
+    background-color: #F7F8FC;
+}
+QPushButton:pressed {
+    background-color: #EEF1F7;
+    color: #5D6475;
+}
+QPushButton:disabled {
+    background-color: #F7F8FB;
+    border-color: #E3E6EE;
+    color: #A3A9B8;
+}
+QPushButton:default, QPushButton:checked {
+    background-color: #2F5EE6;
+    border: 1px solid #2A55D4;
+    color: #FFFFFF;
+}
+
+/* Questions (install now?, cancel the installation?, ...) as Windows 11
+   draws a message box: white, roomy text-only buttons on the right (Qt
+   centres them under Kvantum; centerButtons is a property of the button
+   box, set here). The text keeps the window's font: QMessageBox sizes
+   itself before the style sheet's fonts apply, and a larger font cut the
+   text off (VM, 2026-10-22). Their windows have only a Close button:
+   VeltOS' window frames hide minimise/maximise for modal dialogs
+   (veltos-desktop, aurorae override). */
+QMessageBox {
+    background-color: #FFFFFF;
+    padding: 12px;
+}
+QMessageBox QLabel {
+    padding: 4px 8px;
+}
+QMessageBox QLabel#qt_msgbox_informativelabel {
+    color: #5D6475;
+}
+QMessageBox QDialogButtonBox {
+    qproperty-centerButtons: false;
+}
+QMessageBox QPushButton, QDialogButtonBox QPushButton {
+    icon-size: 0px;
+    min-width: 96px;
+    padding: 6px 18px;
+}
+
+/* A failed installation: Calamares' error window (ErrorDialog) with the
+   failed step's output in a terminal-style box (Windows Terminal colours,
+   Cascadia Mono). The only place the installer shows command output. */
+QDialog#ErrorDialog {
+    background-color: #FFFFFF;
+    min-width: 640px;
+    min-height: 420px;
+}
+QDialog#ErrorDialog QLabel#headingLabel {
+    font-size: 18px;
+    padding: 4px 0px;
+}
+QDialog#ErrorDialog QLabel#informativeTextLabel {
+    font-size: 13px;
+}
+QDialog#ErrorDialog QLabel#label {
+    color: #5D6475;
+    padding-top: 6px;
+}
+QDialog#ErrorDialog QTextBrowser#detailsBrowser {
+    background-color: #0C0C0C;
+    color: #CCCCCC;
+    font-family: "Cascadia Mono";
+    font-size: 12px;
+    border: 1px solid #2B2B2B;
+    border-radius: 6px;
+    padding: 8px;
+    selection-background-color: #264F78;
+    selection-color: #FFFFFF;
+}
+
+QLineEdit, QSpinBox, QPlainTextEdit, QTextEdit {
+    background-color: #FFFFFF;
+    color: #1B1D24;
+    border: 1px solid #D5DAE5;
+    border-bottom: 1px solid #8A90A2;
+    border-radius: 5px;
+    padding: 6px 8px;
+    selection-background-color: #2F5EE6;
+    selection-color: #FFFFFF;
+}
+QLineEdit:focus, QSpinBox:focus {
+    border-bottom: 2px solid #2F5EE6;
+}
+QLineEdit:disabled {
+    background-color: #F7F8FB;
+    color: #A3A9B8;
+}
+
+QComboBox {
+    background-color: #FFFFFF;
+    color: #1B1D24;
+    border: 1px solid #D5DAE5;
+    border-radius: 5px;
+    padding: 5px 10px;
+    min-height: 22px;
+}
+QComboBox:hover {
+    background-color: #F7F8FC;
+}
+QComboBox::drop-down {
+    border: none;
+    width: 30px;
+}
+QComboBox::down-arrow {
+    image: url(/etc/calamares/branding/veltos/images/chevron-down.svg);
+    width: 12px;
+    height: 12px;
+}
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    border: 1px solid #D5DAE5;
+    padding: 4px;
+    outline: 0;
+    selection-background-color: #E4E8F3;
+    selection-color: #1B1D24;
+}
+
+QListView, QTreeView, QTableView {
+    background-color: #FFFFFF;
+    alternate-background-color: #FAFBFD;
+    color: #1B1D24;
+    border: 1px solid #E3E6EE;
+    border-radius: 8px;
+    padding: 4px;
+    outline: 0;
+}
+QListView::item, QTreeView::item {
+    padding: 5px 6px;
+    border-radius: 5px;
+}
+QListView::item:hover, QTreeView::item:hover {
+    background-color: #F1F3F9;
+}
+QListView::item:selected, QTreeView::item:selected, QTableView::item:selected {
+    background-color: #E4E8F3;
+    color: #1B1D24;
+}
+QHeaderView::section {
+    background-color: #FFFFFF;
+    color: #5D6475;
+    border: none;
+    border-bottom: 1px solid #E3E6EE;
+    padding: 6px;
+}
+
+QCheckBox, QRadioButton {
+    spacing: 8px;
+    color: #1B1D24;
+}
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #8A90A2;
+    border-radius: 4px;
+    background-color: #FFFFFF;
+}
+QCheckBox::indicator:hover {
+    background-color: #F1F3F9;
+}
+QCheckBox::indicator:checked {
+    background-color: #2F5EE6;
+    border-color: #2F5EE6;
+    image: url(/etc/calamares/branding/veltos/images/check.svg);
+}
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #8A90A2;
+    border-radius: 10px;
+    background-color: #FFFFFF;
+}
+QRadioButton::indicator:hover {
+    background-color: #F1F3F9;
+}
+QRadioButton::indicator:checked {
+    width: 10px;
+    height: 10px;
+    border: 5px solid #2F5EE6;
+    background-color: #FFFFFF;
+}
+
+QGroupBox {
+    background-color: #FFFFFF;
+    border: 1px solid #E3E6EE;
+    border-radius: 8px;
+    margin-top: 16px;
+    padding: 12px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 4px;
+    color: #5D6475;
+}
+
+QProgressBar {
+    background-color: #E1E5EE;
+    border: none;
+    border-radius: 3px;
+    max-height: 6px;
+    color: transparent;
+}
+QProgressBar::chunk {
+    background-color: #2F5EE6;
+    border-radius: 3px;
+}
+/* The installation's progress under the slideshow: Windows 11's thin bar. */
+QProgressBar#exec-progress {
+    background-color: #D7DCE8;
+    border-radius: 2px;
+    max-height: 4px;
+    min-height: 4px;
+    margin: 0px 24px;
+}
+QProgressBar#exec-progress::chunk {
+    background-color: #2F5EE6;
+    border-radius: 2px;
+}
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 2px;
+}
+QScrollBar::handle:vertical {
+    background-color: #C3C9D6;
+    border-radius: 3px;
+    min-height: 32px;
+}
+QScrollBar:horizontal {
+    background: transparent;
+    height: 10px;
+    margin: 2px;
+}
+QScrollBar::handle:horizontal {
+    background-color: #C3C9D6;
+    border-radius: 3px;
+    min-width: 32px;
+}
+QScrollBar::add-line, QScrollBar::sub-line {
+    width: 0;
+    height: 0;
+}
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+}
+
+QToolTip {
+    background-color: #FFFFFF;
+    color: #1B1D24;
+    border: 1px solid #D5DAE5;
+    padding: 4px 8px;
+}
+
+/* While installing, Windows Setup shows progress, not commands: the job
+   status line ("Running command ...") and the "Toggle log" button of
+   Calamares' installation page are hidden (Calamares 3.3: the label is
+   "exec-message", the button sits in the page's only QToolBar). A failed
+   installation still shows its error and details. */
+QLabel#exec-message {
+    max-height: 0px;
+    margin: 0px;
+    padding: 0px;
+    color: transparent;
+}
+QToolBar {
+    max-width: 0px;
+    max-height: 0px;
+    border: none;
+}
+
+/* Partition page (Calamares' ChoicePage, a C++ page): the Windows 11 look
+   QSS can give it. The boot mode ("EFI") and partition table type are
+   technical and Windows does not show them. The options' old-style disk
+   pictures are compiled into Calamares and cannot be replaced, so they are
+   left out (icon size 0) and the page carries the installer's own drive
+   picture in its free space instead, like the other pages. */
+BootInfoWidget, DeviceInfoWidget {
+    max-width: 0px;
+    max-height: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+Calamares--Widgets--PrettyRadioButton QRadioButton {
+    qproperty-iconSize: 0px 0px;
+}
+QScrollArea#m_itemsScrollArea QWidget#scrollAreaWidgetContents {
+    background-image: url(/etc/calamares/branding/veltos/images/ill-disk.svg);
+    background-position: bottom right;
+    background-repeat: no-repeat;
+}
+QLabel#m_drivesLabel {
+    font-size: 14px;
+    font-weight: 600;
+}
+Calamares--Widgets--ClickableLabel {
+    font-size: 13px;
+    padding: 4px 0px;
+}
+QLabel#m_previewBeforeLabel, QLabel#m_previewAfterLabel {
+    color: #5D6475;
+}

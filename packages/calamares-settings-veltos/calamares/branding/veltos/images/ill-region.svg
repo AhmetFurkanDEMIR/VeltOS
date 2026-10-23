@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS installer: where are you (a globe and a place pin). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6FB8FF"/>
+      <stop offset="1" stop-color="#2F5EE6"/>
+    </linearGradient>
+    <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5BD08A"/>
+      <stop offset="1" stop-color="#20A160"/>
+    </linearGradient>
+    <linearGradient id="pin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF7A6B"/>
+      <stop offset="1" stop-color="#D93A2B"/>
+    </linearGradient>
+  </defs>
+  <circle cx="122" cy="140" r="92" fill="#000000" opacity="0.12" transform="translate(0 6)"/>
+  <circle cx="122" cy="140" r="92" fill="url(#sea)"/>
+  <path d="M 62 92 Q 84 78 104 86 Q 118 92 112 108 Q 104 124 120 132 Q 136 140 128 160 Q 120 180 96 176 Q 74 172 66 150 Q 58 128 48 120 Q 50 104 62 92 Z" fill="url(#land)"/>
+  <path d="M 150 70 Q 172 72 188 92 Q 198 108 186 118 Q 172 126 160 116 Q 148 106 140 92 Q 136 78 150 70 Z" fill="url(#land)"/>
+  <path d="M 160 170 Q 178 164 192 176 Q 196 190 182 202 Q 166 210 156 198 Q 148 184 160 170 Z" fill="url(#land)"/>
+  <ellipse cx="122" cy="140" rx="92" ry="34" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.45"/>
+  <ellipse cx="122" cy="140" rx="40" ry="92" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.45"/>
+  <path d="M 186 24 Q 214 24 214 54 Q 214 76 186 108 Q 158 76 158 54 Q 158 24 186 24 Z" fill="#000000" opacity="0.15" transform="translate(0 5)"/>
+  <path d="M 186 24 Q 214 24 214 54 Q 214 76 186 108 Q 158 76 158 54 Q 158 24 186 24 Z" fill="url(#pin)"/>
+  <circle cx="186" cy="54" r="11" fill="#FFFFFF"/>
+</svg>

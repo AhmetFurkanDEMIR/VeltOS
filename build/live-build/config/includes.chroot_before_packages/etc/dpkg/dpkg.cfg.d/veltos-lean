@@ -1,0 +1,10 @@
+# VeltOS: files no VeltOS window shows are not installed, which keeps the
+# ISO and installed systems smaller (product owner, 2026-10-23; 105 MB of
+# the compressed ISO, measured on the 2026-10-23 image):
+#  * package documentation (mostly compressed changelogs), except each
+#    package's copyright file, which keeps every licence on the system;
+#  * KDE's default "Next" wallpaper (VeltOS has its own wallpapers).
+# Shipped in the image, so packages installed later follow the same rule.
+path-exclude=/usr/share/doc/*
+path-include=/usr/share/doc/*/copyright
+path-exclude=/usr/share/wallpapers/Next/*

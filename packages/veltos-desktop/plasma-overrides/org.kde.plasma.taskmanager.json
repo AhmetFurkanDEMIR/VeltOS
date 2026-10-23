@@ -1,6 +1,6 @@
 {
   "plugin": "org.kde.plasma.taskmanager",
-  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph; no spinning circle over a starting app. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13); several windows of one app show as a stacked button, without Plasma's plus sign, like Windows 11. A program's progress (downloads, copies) is a thin bar under the icon, as on Windows 11, not Plasma's filled area behind it.",
+  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph; no spinning circle over a starting app. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13); several windows of one app show as a stacked button, without Plasma's plus sign, like Windows 11; window previews come from KWin (veltostaskbarpreview) and a click on such a button leaves them open; a pinned app's tooltip is its name; an app playing sound gets a round speaker badge. A program's progress (downloads, copies) is a thin bar under the icon, as on Windows 11, not Plasma's filled area behind it.",
   "replacements": [
     {
       "file": "contents/ui/TaskProgressOverlay.qml",
@@ -53,9 +53,33 @@
     },
     {
       "file": "contents/ui/Task.qml",
-      "why": "stacked button for an app with several windows",
+      "why": "stacked button for an app with several windows (product owner, 2026-10-22: the first version looked like two different boxes)",
       "old": "    KSvg.FrameSvgItem {\n        id: frame\n",
-      "new": "    // VeltOS: several windows of one app look like a stack of buttons,\n    // as on Windows 11: a second plate peeks out on the right while\n    // the button is pointed at or active.\n    Rectangle {\n        anchors.fill: frame\n        anchors.leftMargin: 5\n        anchors.rightMargin: -3\n        anchors.topMargin: 5\n        anchors.bottomMargin: 5\n        radius: 5\n        visible: !task.inPopup && model.IsGroupParent === true\n                 && (task.highlighted || model.IsActive === true)\n        color: Qt.alpha(Kirigami.Theme.textColor, 0.05)\n        border.width: 1\n        border.color: Qt.alpha(Kirigami.Theme.textColor, 0.10)\n    }\n\n    KSvg.FrameSvgItem {\n        id: frame\n"
+      "new": "    // VeltOS: several windows of one app look like a stack of buttons,\n    // as on Windows 11: the edge of a second plate shows on the right of\n    // the button's plate while the button is pointed at or active, in\n    // the plate's own colours. Only the part beside the plate is drawn\n    // (the plate is see-through).\n    Item {\n        visible: !task.inPopup && model.IsGroupParent === true\n                 && (task.highlighted || model.IsActive === true)\n        x: frame.x + frame.width - frame.fixedMargins.right\n        y: frame.y + frame.fixedMargins.top + 4\n        width: 3\n        height: Math.max(0, frame.height - frame.fixedMargins.top - frame.fixedMargins.bottom - 8)\n        clip: true\n        Rectangle {\n            readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark\n            anchors.right: parent.right\n            width: 14\n            height: parent.height\n            radius: 4\n            color: dark ? Qt.alpha(Kirigami.Theme.textColor, 0.09) : Qt.rgba(1, 1, 1, 0.42)\n            border.width: 1\n            border.color: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.09)\n        }\n    }\n\n    KSvg.FrameSvgItem {\n        id: frame\n"
+    },
+    {
+      "file": "contents/ui/Task.qml",
+      "why": "window previews come from KWin (kwin/scripts/veltostaskbarpreview), drawn like Windows 11's and working in software rendering; Plasma's tooltip only names pinned apps that are not running",
+      "old": "    active: !inPopup && !tasksRoot.groupDialog && task.contextMenu?.status !== PlasmaExtras.Menu.Open\n",
+      "new": "    active: !inPopup && !tasksRoot.groupDialog && task.contextMenu?.status !== PlasmaExtras.Menu.Open\n            && !model.IsWindow // VeltOS: KWin's veltostaskbarpreview shows the windows\n"
+    },
+    {
+      "file": "contents/ui/code/tools.js",
+      "why": "a click on an app with several windows shows their previews, as on Windows 11, instead of switching windows (Meta+number still switches)",
+      "old": "    if (model.IsGroupParent) {\n        // Option 1 (default): Cycle through this group's tasks\n",
+      "new": "    if (model.IsGroupParent && modifiers !== null) {\n        // VeltOS: like Windows 11, clicking an app with several windows\n        // leaves its window previews open (KWin's veltostaskbarpreview\n        // shows them while the button is pointed at) and switches nothing.\n        return;\n    }\n    if (model.IsGroupParent) {\n        // Option 1 (default): Cycle through this group's tasks\n"
+    },
+    {
+      "file": "contents/ui/ToolTipInstance.qml",
+      "why": "a pinned app's tooltip shows its name only, as on Windows 11",
+      "old": "        if (!toolTipDelegate.isWin) {\n            return toolTipDelegate.genericName;\n        }\n",
+      "new": "        if (!toolTipDelegate.isWin) {\n            return \"\"; // VeltOS: Windows 11 names a pinned app, nothing more\n        }\n"
+    },
+    {
+      "file": "contents/ui/AudioStream.qml",
+      "why": "the sign of an app playing sound as a round badge with a Fluent speaker glyph (product owner, 2026-10-22: make it modern, like Windows 11)",
+      "replace_with": "taskmanager/AudioStream.qml",
+      "upstream_sha256": "c1be30480c76d1db9ea8ef9bc86af11560d324f37b994ca01eaa3bdc18f7192b"
     }
   ]
 }

@@ -1,0 +1,33 @@
+#!/bin/sh
+# At sign-in (veltos-boot-resolution.service, user): keep the boot menu and
+# the start-up screen at the resolution the screen is set to. Reads the
+# primary screen's current mode from KScreen and, when it differs from the
+# one the boot uses, lets the root helper write it (pkexec; the polkit
+# action org.veltos.boot.resolution allows the signed-in user without a
+# password). Nothing happens on the live medium, whose boot menu is on the
+# medium.
+set -u
+
+[ -d /run/live/medium ] && exit 0
+
+# Leave the first seconds of the session to the desktop.
+sleep "${VELTOS_SYNC_DELAY:-20}"
+
+mode="$(kscreen-doctor -j 2>/dev/null | python3 -c '
+import json, sys
+try:
+    outputs = [o for o in json.load(sys.stdin).get("outputs", []) if o.get("enabled")]
+except ValueError:
+    sys.exit(0)
+# The primary screen has priority 1.
+outputs.sort(key=lambda o: o.get("priority") or 99)
+for output in outputs[:1]:
+    for m in output.get("modes", []):
+        if m.get("id") == output.get("currentModeId"):
+            print("%dx%d" % (m["size"]["width"], m["size"]["height"]))
+')"
+[ -n "$mode" ] || exit 0
+
+helper="${VELTOS_BOOT_HELPER:-/usr/libexec/veltos-boot/boot-resolution}"    # test hook
+[ "$mode" = "$("$helper" current)" ] && exit 0
+exec pkexec "$helper" set "$mode"

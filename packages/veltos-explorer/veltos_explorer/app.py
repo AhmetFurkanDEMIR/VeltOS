@@ -399,16 +399,18 @@ class Backend(QObject):
 
     @Slot()
     def properties(self):
+        # VeltOS' Windows 11 Properties window (properties.py), for every
+        # selected item; KDE's dialog never opens.
         tab = self.current_tab()
-        chosen = tab.model.selected_items()
-        target = chosen[0]["path"] if chosen else tab.location
-        if target not in SPECIAL:
-            self.ops.properties(target)
+        targets = [item["path"] for item in tab.model.selected_items()] or [tab.location]
+        targets = [t for t in targets if t not in SPECIAL]
+        if targets:
+            self.ops.properties(targets)
 
     @Slot(str)
     def propertiesOf(self, path):
         if path and path not in SPECIAL:
-            self.ops.properties(path)
+            self.ops.properties([path])
 
     @Slot(str)
     def terminalAt(self, path):
@@ -432,6 +434,10 @@ class Backend(QObject):
     @Property(bool, notify=settingsChanged)
     def darkMode(self):
         return self._dark
+
+    @Property(str, notify=settingsChanged)
+    def accentColor(self):
+        return self.read_accent_color()
 
     @Property(float, notify=settingsChanged)
     def textScale(self):
@@ -470,6 +476,30 @@ class Backend(QObject):
         return 1.0
 
     @staticmethod
+    def read_accent_color():
+        """The accent chosen in Settings ("#rrggbb"), from kdeglobals
+        ([General] AccentColor, which Settings records), or ""."""
+        config = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "kdeglobals"
+        for path in (config, Path("/etc/xdg/kdeglobals")):
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            section = ""
+            for line in text.splitlines():
+                line = line.strip()
+                if line.startswith("["):
+                    section = line
+                elif section == "[General]" and line.startswith("AccentColor="):
+                    parts = line.split("=", 1)[1].split(",")
+                    try:
+                        red, green, blue = (max(0, min(255, int(p))) for p in parts[:3])
+                    except ValueError:
+                        return ""
+                    return f"#{red:02x}{green:02x}{blue:02x}"
+        return ""
+
+    @staticmethod
     def read_dark_mode():
         config = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "kdeglobals"
         for path in (config, Path("/etc/xdg/kdeglobals")):
@@ -491,6 +521,20 @@ class Backend(QObject):
 
     def _selected_paths(self):
         return [i["path"] for i in self.current_tab().model.selected_items()]
+
+    def _changeable_paths(self):
+        """The selection without the desktop's system icons (This PC, the
+        Recycle Bin, the Store): they cannot be deleted, cut or renamed;
+        a message says so when only they were chosen."""
+        paths = self._selected_paths()
+        kept = [p for p in paths if not places.is_desktop_system_icon(p)]
+        if paths and not kept:
+            self.message.emit(self.text("system_icon_stays"))
+        return kept
+
+    @Slot(str, result=bool)
+    def isSystemIcon(self, path):
+        return places.is_desktop_system_icon(path)
 
     def _set_clipboard(self, paths, cut):
         data = QMimeData()
@@ -533,7 +577,7 @@ class Backend(QObject):
 
     @Slot()
     def cut(self):
-        paths = self._selected_paths()
+        paths = self._changeable_paths()
         if paths:
             self._set_clipboard(paths, True)
 
@@ -590,7 +634,7 @@ class Backend(QObject):
     @Slot(bool)
     def deleteSelection(self, permanently):
         tab = self.current_tab()
-        paths = self._selected_paths()
+        paths = self._changeable_paths()
         if not paths:
             return
         if tab.location == TRASH or permanently:
@@ -601,6 +645,8 @@ class Backend(QObject):
     @Slot(str, str, result=str)
     def rename(self, path, new_name):
         """"" when renamed, else the message to show."""
+        if places.is_desktop_system_icon(path):
+            return self.text("system_icon_stays")
         reason = ops.Operations.rename(path, new_name)
         if not reason:
             new_path = str(Path(path).parent / new_name.strip())
@@ -674,6 +720,14 @@ class Backend(QObject):
     @Slot()
     def restoreSelection(self):
         problems = [places.restore(p) for p in self._selected_paths()]
+        if "exists" in problems:
+            self.message.emit(self.text("restore_exists"))
+        self.current_tab().load()
+
+    @Slot()
+    def restoreAll(self):
+        """Recycle Bin > "Restore all items", as on Windows."""
+        problems = [places.restore(item["path"]) for item in places.trash_items()]
         if "exists" in problems:
             self.message.emit(self.text("restore_exists"))
         self.current_tab().load()
@@ -755,6 +809,18 @@ def main(argv=None):
     if "--open-with" in argv[1:]:
         from . import openwith
         return openwith.run(argv)
+    if "--properties" in argv[1:]:
+        from . import properties
+        return properties.run(argv)
+    if "--compress" in argv[1:]:
+        # The desktop's "Compress to ZIP file": the same .zip File Explorer
+        # makes (a free name next to the items, VeltOS Archive's progress).
+        from . import properties
+        sources = [properties.resolve(a) for a in argv[1:] if a != "--compress"]
+        sources = [s for s in sources if os.path.lexists(s)]
+        if sources:
+            ops.Operations().compress(sources, os.path.dirname(sources[0]))
+        return 0
     if "--empty-recycle-bin" in argv[1:]:
         return empty_recycle_bin(argv)
     app = prepare_application(argv, "veltos-explorer")
@@ -791,6 +857,10 @@ class EmptyBinBackend(QObject):
     @Property(bool, constant=True)
     def darkMode(self):
         return Backend.read_dark_mode()
+
+    @Property(str, constant=True)
+    def accentColor(self):
+        return Backend.read_accent_color()
 
     @Property(float, constant=True)
     def textScale(self):

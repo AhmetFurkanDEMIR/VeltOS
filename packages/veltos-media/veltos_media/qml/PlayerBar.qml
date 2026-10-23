@@ -21,6 +21,12 @@ Rectangle {
     signal openNowPlaying()
     signal toggleFullScreen()
 
+    // The sides are equally wide, so the buttons and the seek bar sit in
+    // the middle of the window at every size, also in full screen
+    // (product owner, 2026-10-22: they stayed left of the middle there,
+    // because the volume side grew as well).
+    readonly property real sideWidth: Math.round(Math.min(320, bar.width * 0.26))
+
     implicitHeight: 96
     color: Theme.player
     Rectangle { anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; height: 1; color: Theme.separator }
@@ -61,8 +67,9 @@ Rectangle {
 
         // Now playing.
         RowLayout {
-            Layout.preferredWidth: Math.min(320, bar.width * 0.28)
-            Layout.maximumWidth: Layout.preferredWidth
+            Layout.preferredWidth: bar.sideWidth
+            Layout.minimumWidth: bar.sideWidth
+            Layout.maximumWidth: bar.sideWidth
             spacing: 12
             Rectangle {
                 implicitWidth: 56
@@ -178,7 +185,10 @@ Rectangle {
 
         // Volume and full screen.
         RowLayout {
-            Layout.preferredWidth: Math.min(260, bar.width * 0.22)
+            Layout.preferredWidth: bar.sideWidth
+            Layout.minimumWidth: bar.sideWidth
+            Layout.maximumWidth: bar.sideWidth
+            Layout.fillWidth: false
             spacing: 4
             Item { Layout.fillWidth: true }
             IconButton {

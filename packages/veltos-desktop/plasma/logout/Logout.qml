@@ -149,6 +149,7 @@ Item {
             anchors.fill: parent
             source: wallpaper
             radius: 64
+            cached: true    // blurred once, not on every animation frame (see Splash.qml)
             visible: wallpaper.status === Image.Ready
         }
         Rectangle {

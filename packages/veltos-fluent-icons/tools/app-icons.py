@@ -66,18 +66,22 @@ def calculator():
 
 
 def camera():
-    body_d = ("M 40 76 Q 40 60 56 60 H 86 L 100 40 Q 104 34 112 34 H 144 Q 152 34 156 40 L 170 60 "
-              "H 200 Q 216 60 216 76 V 196 Q 216 212 200 212 H 56 Q 40 212 40 196 Z")
-    return svg("Camera", grad("body", "#7B8594", "#525C6A") + grad("lens", "#C38BFF", "#3FA8F6", "1", "1")
-               + grad("ring", "#FFFFFF", "#E2E7EE"),
+    # A wide camera body (about 3:2, like Windows 11's Camera icon) with a
+    # large lens; the first drawing was nearly square and looked squeezed
+    # next to the other icons (product owner, 2026-10-22).
+    body_d = ("M 22 92 Q 22 72 42 72 H 76 L 92 50 Q 98 42 108 42 H 148 Q 158 42 164 50 L 180 72 "
+              "H 214 Q 234 72 234 92 V 194 Q 234 214 214 214 H 42 Q 22 214 22 194 Z")
+    return svg("Camera", grad("body", "#7B8594", "#4E5866") + grad("lens", "#C38BFF", "#3FA8F6", "1", "1")
+               + grad("ring", "#FFFFFF", "#DCE2EA"),
                shadow(body_d)
-               + '  <rect x="54" y="46" width="34" height="18" rx="6" fill="#2FA8F0"/>\n'
+               + '  <rect x="38" y="58" width="34" height="18" rx="6" fill="#2FA8F0"/>\n'
                + f'  <path d="{body_d}" fill="url(#body)"/>\n'
-               + '  <path d="M 56 63 H 200" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="3" stroke-linecap="round"/>\n'
-               + '  <circle cx="128" cy="136" r="56" fill="url(#ring)"/>\n'
-               + '  <circle cx="128" cy="136" r="42" fill="url(#lens)"/>\n'
-               + '  <ellipse cx="114" cy="120" rx="13" ry="9" fill="#FFFFFF" opacity="0.35"/>\n'
-               + '  <circle cx="192" cy="88" r="7" fill="#DDE3EA"/>\n')
+               + '  <path d="M 42 75 H 214" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="3" stroke-linecap="round"/>\n'
+               + '  <circle cx="128" cy="142" r="60" fill="url(#ring)"/>\n'
+               + '  <circle cx="128" cy="142" r="46" fill="url(#lens)"/>\n'
+               + '  <circle cx="128" cy="142" r="20" fill="#1E2A44" opacity="0.35"/>\n'
+               + '  <ellipse cx="110" cy="124" rx="15" ry="10" fill="#FFFFFF" opacity="0.38"/>\n'
+               + '  <circle cx="206" cy="98" r="8" fill="#DDE3EA"/>\n')
 
 
 def mail():
@@ -159,6 +163,29 @@ def clock():
                + f'  <path d="M {cx} {cy + 18} L {cx + 20} {cy + 56}" stroke="#2FA8F0" stroke-width="4" stroke-linecap="round"/>\n'
                + f'  <circle cx="{cx}" cy="{cy}" r="8" fill="#15308F"/>\n'
                + f'  <circle cx="{cx}" cy="{cy}" r="3" fill="#FFFFFF"/>\n')
+
+
+def calendar():
+    """Windows 11's Calendar look: a blue calendar with two binding rings,
+    a white sheet and a grid of days, one of them marked."""
+    body_d = rrect(28, 46, 200, 178, 28)
+    sheet_d = rrect(44, 96, 168, 112, 16)
+    cells = []
+    for row in range(3):
+        for column in range(4):
+            x, y = 62 + column * 36, 110 + row * 30
+            marked = (row, column) == (1, 2)
+            cells.append(f'  <rect x="{x}" y="{y}" width="24" height="20" rx="5" '
+                         f'fill="{"url(#mark)" if marked else "#A9C8F5"}"/>\n')
+    rings = "".join(f'  <rect x="{x}" y="28" width="18" height="42" rx="9" fill="url(#ring)"/>\n'
+                    f'  <rect x="{x + 5}" y="34" width="8" height="24" rx="4" fill="#1A55C8" opacity="0.35"/>\n'
+                    for x in (78, 160))
+    return svg("Calendar", grad("body", "#3D8BF2", "#1747B8") + grad("sheet", "#FFFFFF", "#E6EDF8")
+               + grad("ring", "#F4F7FC", "#C9D6EA") + grad("mark", "#2E6BE6", "#1747B8"),
+               shadow(body_d)
+               + f'  <path d="{body_d}" fill="url(#body)"/>\n'
+               + f'  <path d="{sheet_d}" fill="url(#sheet)"/>\n'
+               + "".join(cells) + rings)
 
 
 def gear_path(cx, cy, outer, inner, teeth, tooth_frac=0.42):
@@ -348,6 +375,8 @@ NAMES = {
     calculator: ["veltos-calculator", "accessories-calculator", "org.kde.kcalc", "calc"],
     camera: ["veltos-camera", "camera-app", "org.kde.kamoso", "cheese", "org.gnome.Cheese"],
     mail: ["veltos-mail", "thunderbird", "internet-mail", "mail-client", "org.kde.kmail2"],
+    calendar: ["veltos-calendar", "office-calendar", "x-office-calendar", "org.kde.korganizer", "korganizer",
+               "org.gnome.Calendar", "gnome-calendar"],
     snipping_tool: ["veltos-snip", "org.kde.spectacle", "spectacle", "accessories-screenshot"],
     store: ["veltos-store", "org.kde.discover", "plasmadiscover"],
     settings: ["veltos-settings", "systemsettings", "preferences-system"],

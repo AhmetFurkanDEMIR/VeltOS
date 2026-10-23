@@ -1,0 +1,17 @@
+[Unit]
+Description=VeltOS: restart after a failed start (Automatic Repair)
+Documentation=file:///usr/share/doc/veltos-recovery/README.md
+DefaultDependencies=no
+# Installed systems only, and not when emergency or rescue mode, or the
+# recovery start, was asked for.
+ConditionPathExists=/boot/grub/grubenv
+ConditionKernelCommandLine=!single
+ConditionKernelCommandLine=!emergency
+ConditionKernelCommandLine=!rescue
+ConditionKernelCommandLine=!systemd.unit=emergency.target
+ConditionKernelCommandLine=!systemd.unit=rescue.target
+ConditionKernelCommandLine=!systemd.unit=veltos-recovery.target
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/veltos-recovery/boot-failed

@@ -68,13 +68,23 @@ PlasmoidItem {
     compactRepresentation: MouseArea {
         id: box
 
-        Layout.minimumWidth: root.vertical ? -1 : (compact ? height : Kirigami.Units.gridUnit * 11)
+        Layout.minimumWidth: hidden ? 0 : root.vertical ? -1
+                             : (compact ? height : (labelled ? Kirigami.Units.gridUnit * 6 : Kirigami.Units.gridUnit * 11))
         Layout.preferredWidth: Layout.minimumWidth
         Layout.maximumWidth: Layout.minimumWidth
         Layout.fillHeight: true
-        // On a vertical or crowded taskbar only the magnifier, like Windows.
-        readonly property bool compact: root.vertical
+        // Settings > Personalization > Taskbar > Search, as on Windows 11:
+        // hidden, the magnifier only (also on a vertical taskbar), the
+        // magnifier and "Search", or the search box.
+        readonly property int mode: Plasmoid.configuration.mode
+        readonly property bool hidden: mode === 0
+        readonly property bool compact: root.vertical || mode === 1
+        readonly property bool labelled: !compact && mode === 2
+        visible: !hidden
         hoverEnabled: true
+        // The text cursor over the box, as over a text box (product owner,
+        // 2026-10-22); the magnifier alone (vertical taskbar) is a button.
+        cursorShape: compact ? Qt.ArrowCursor : Qt.IBeamCursor
         onClicked: root.expanded = !root.expanded
         Accessible.role: Accessible.Button
         Accessible.name: i18n("Search")
@@ -285,9 +295,53 @@ PlasmoidItem {
                 Item { Layout.fillHeight: true }
             }
 
+            // Nothing found: Windows 11's message in the middle of the window,
+            // a search glyph in a soft circle above "No results for ...".
+            ColumnLayout {
+                objectName: "noResults"
+                visible: panel.searching && panel.resultCount === 0
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: Kirigami.Units.largeSpacing
+                Item { Layout.fillHeight: true }
+                Rectangle {
+                    Layout.alignment: Qt.AlignHCenter
+                    implicitWidth: Kirigami.Units.gridUnit * 4
+                    implicitHeight: implicitWidth
+                    radius: width / 2
+                    color: Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
+                    Kirigami.Icon {
+                        anchors.centerIn: parent
+                        width: Kirigami.Units.iconSizes.medium
+                        height: width
+                        source: "search"
+                        color: Kirigami.Theme.highlightColor
+                        isMask: true
+                    }
+                }
+                PC3.Label {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Kirigami.Units.smallSpacing
+                    horizontalAlignment: Text.AlignHCenter
+                    text: i18n("No results for “%1”", searchField.text)
+                    font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.25
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideMiddle
+                }
+                PC3.Label {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: i18n("Check the spelling or try a different search.")
+                    opacity: 0.7
+                    wrapMode: Text.WordWrap
+                }
+                Item { Layout.fillHeight: true }
+                Item { Layout.preferredHeight: Kirigami.Units.gridUnit * 2 }
+            }
+
             // Typing: results on the left, the best match on the right.
             RowLayout {
-                visible: panel.searching
+                visible: panel.searching && panel.resultCount > 0
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: Kirigami.Units.gridUnit
@@ -373,13 +427,6 @@ PlasmoidItem {
                                 }
                             }
                         }
-                    }
-                    PlasmaExtras.PlaceholderMessage {
-                        Layout.fillWidth: true
-                        Layout.topMargin: Kirigami.Units.gridUnit * 4
-                        visible: panel.resultCount === 0 && panel.searching
-                        iconName: "edit-none"
-                        text: i18n("No results for “%1”", searchField.text)
                     }
                     Item { Layout.fillHeight: true }
                 }

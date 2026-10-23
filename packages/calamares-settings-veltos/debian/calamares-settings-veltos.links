@@ -1,1 +1,3 @@
 usr/share/wallpapers/VeltOS/contents/images_dark/1366x768.png etc/calamares/branding/veltos/welcome.png
+usr/share/qt6/translations/qtbase_tr.qm etc/calamares/branding/veltos/lang/calamares-veltos_tr.qm
+run/veltos-installer/stylesheet.qss etc/calamares/branding/veltos/stylesheet.qss

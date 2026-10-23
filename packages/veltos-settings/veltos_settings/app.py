@@ -4,6 +4,7 @@
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -18,7 +19,7 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import accounts, apps, catalog, devices, inputs, prefs, strings, sysinfo
+from . import accounts, apps, catalog, devices, inputs, prefs, strings, sysinfo, taskbar
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 LOOK_AND_FEEL = {False: "org.veltos.light", True: "org.veltos.dark"}
@@ -29,6 +30,10 @@ DESKTOP_THEME = {False: "VeltOS", True: "VeltOS-Dark"}
 # kdedefaults one, so on a first switch nothing changed and the taskbar
 # stayed light (VM test 2026-10-19); the file is therefore edited directly
 # ([Theme] name=, other groups kept, same file so the watcher sees it).
+# The operating system's website (product owner, 2026-10-22); also in
+# /etc/os-release (HOME_URL, veltos-base).
+VELTOS_WEBSITE = "https://veltos.ahmetfurkandemir.com/"
+
 APPLY_THEME = r'''plasma-apply-lookandfeel --apply "$1" >/dev/null 2>&1
 f="${XDG_CONFIG_HOME:-$HOME/.config}/plasmarc"
 touch "$f"
@@ -53,22 +58,67 @@ def detached(command, env=None):
 
 
 def windows_programs():
-    """Records of Windows programs installed through veltos-run, if any."""
+    """The installed Windows programs, as Windows 11's Settings > Apps >
+    Installed apps lists them: from the Windows environment's registry
+    (veltos_winapps.programs: what can be uninstalled), with the Start menu
+    shortcut that veltos-run recorded for a program ("Open"); programs
+    veltos-run started without installing them (no registry entry) too."""
     try:
+        from veltos_winapps.programs import installed_programs
         from veltos_winapps.winenv import installed_apps
     except ImportError:
         return []
-    apps = []
+    records = []
     for record in installed_apps():
         shortcuts = [s for s in record.get("shortcuts", []) if Path(s).exists()]
-        apps.append({
-            "name": record.get("name", ""),
-            "publisher": record.get("publisher") or "",
-            "version": record.get("version") or "",
-            "installed": (record.get("installed_at") or "")[:10],
-            "shortcut": shortcuts[0] if shortcuts else "",
-        })
+        records.append({"name": record.get("name", ""), "publisher": record.get("publisher") or "",
+                         "version": record.get("version") or "",
+                         "installed": (record.get("installed_at") or "")[:10],
+                         "shortcut": shortcuts[0] if shortcuts else ""})
+
+    def same_program(record, program):
+        a, b = record["name"].casefold().strip(), program["name"].casefold()
+        return bool(a) and (a in b or b in a)
+
+    apps, used = [], set()
+    for program in installed_programs():
+        record = next((r for i, r in enumerate(records) if i not in used and same_program(r, program)), None)
+        if record is not None:
+            used.add(records.index(record))
+        apps.append({"key": program["key"], "name": program["name"],
+                     "publisher": program["publisher"] or (record or {}).get("publisher", ""),
+                     "version": program["version"] or (record or {}).get("version", ""),
+                     "installed": program["date"] or (record or {}).get("installed", ""),
+                     "sizeKb": program["sizeKb"], "exe": program["icon"],
+                     "shortcut": (record or {}).get("shortcut", ""), "icon": ""})
+    for index, record in enumerate(records):
+        if index not in used:
+            apps.append(dict(record, key="", sizeKb=0, exe="", icon=""))
     return apps
+
+
+def program_icon(exe, cache_dir=None):
+    """A PNG of the program's own icon (from its .exe), cached; "" if none."""
+    if not exe:
+        return ""
+    cache = Path(cache_dir or (Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
+                               / "veltos" / "program-icons"))
+    target = cache / (re.sub(r"[^A-Za-z0-9._-]", "_", exe.strip("/"))[-120:] + ".png")
+    if target.exists():
+        return str(target)
+    try:
+        import pefile
+        from veltos_winapps.exeinfo import extract_icon_png
+        pe = pefile.PE(exe, fast_load=True)
+        pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_RESOURCE"]])
+        data = extract_icon_png(pe, 64)
+    except Exception:  # not a readable program file: the generic icon
+        return ""
+    if not data:
+        return ""
+    cache.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+    return str(target)
 
 
 def system_tools(runner=devices.run, lang="en"):
@@ -79,7 +129,7 @@ def system_tools(runner=devices.run, lang="en"):
                            personal=devices.Personalization(runner), time=devices.Time(runner),
                            prefs=prefs.Preferences(runner), inputs=inputs.Inputs(runner),
                            accounts=accounts.Accounts(runner), defaults=apps.DefaultApps(runner, lang=lang),
-                           startup=apps.StartupApps(lang=lang))
+                           startup=apps.StartupApps(lang=lang), taskbar=taskbar.Taskbar(runner))
 
 
 # Recently used settings (Home > Recommended settings), most used first.
@@ -159,6 +209,7 @@ class Backend(QObject):
     personalChanged = Signal()
     timeChanged = Signal()
     prefsChanged = Signal()
+    taskbarChanged = Signal()
     inputsChanged = Signal()
     accountsChanged = Signal()
     appsChanged = Signal()
@@ -187,10 +238,12 @@ class Backend(QObject):
         self._time = {"timezone": "", "automatic": False, "canAutomatic": True, "zones": [],
                       "loaded": False}
         self._prefs = {"loaded": False}
+        self._taskbar = {"loaded": False, "available": False, "trayItems": []}
         self._inputs = {"loaded": False, "hasMouse": False, "hasTouchpad": False}
         self._accounts = {"loaded": False, "me": {"name": sysinfo.user_name(), "realName": sysinfo.user_name(),
                                                   "icon": "", "admin": False}, "others": []}
         self._apps = {"loaded": False, "groups": [], "startup": [], "notificationApps": []}
+        self._uninstalling = set()
 
     # --- texts and structure ------------------------------------------------
 
@@ -212,6 +265,10 @@ class Backend(QObject):
     @Property(str, constant=True)
     def startPage(self):
         return self._start_page
+
+    @Property(str, constant=True)
+    def veltosWebsite(self):
+        return VELTOS_WEBSITE
 
     @Slot(str, result="QVariantList")
     def search(self, query):
@@ -235,7 +292,57 @@ class Backend(QObject):
     def windowsApps(self):
         if self._windows_apps is None:
             self._windows_apps = windows_programs()
+            self._load_program_icons()
         return self._windows_apps
+
+    def _load_program_icons(self):
+        """The programs' own icons, read from their .exe files off the UI thread."""
+        apps = list(self._windows_apps or [])
+
+        def work():
+            return {app["exe"]: program_icon(app["exe"]) for app in apps if app.get("exe")}
+
+        def done(icons):
+            if not icons or self._windows_apps is None:
+                return
+            self._windows_apps = [dict(app, icon=icons.get(app.get("exe"), "") or app.get("icon", ""))
+                                  for app in self._windows_apps]
+            self.changed.emit()
+        self.jobs.submit(work, done)
+
+    @Property("QVariantList", notify=changed)
+    def uninstalling(self):
+        return sorted(self._uninstalling)
+
+    @Slot(str)
+    def uninstallWindowsApp(self, key):
+        """Settings > Apps: "Uninstall" of a Windows program runs its own
+        uninstaller through Wine; the list follows when it is done."""
+        try:
+            from veltos_winapps.programs import uninstall_command
+            from veltos_winapps.winenv import Environment
+        except ImportError:
+            return
+        command = uninstall_command(key)
+        if command is None or key in self._uninstalling:
+            return
+        self._uninstalling.add(key)
+        self.changed.emit()
+        environment = Environment()
+
+        def work():
+            import subprocess
+            try:
+                subprocess.run(command, env=environment.env(), stdin=subprocess.DEVNULL,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3600)
+            except (OSError, subprocess.SubprocessError):
+                pass
+
+        def done(_result):
+            self._uninstalling.discard(key)
+            self._windows_apps = None
+            self.changed.emit()
+        self.jobs.submit(work, done)
 
     @Property(str, constant=True)
     def userName(self):
@@ -281,6 +388,8 @@ class Backend(QObject):
             self._start(["veltos-store", "--updates"])
         elif action == "disk-management":
             self._start(["veltos-disks"])      # VeltOS Disk Management (Windows 11 layout)
+        elif action == "website":
+            self._start(["xdg-open", VELTOS_WEBSITE])
         elif action == "uninstall-windows":
             try:
                 from veltos_winapps.winenv import Environment, wine_tool
@@ -632,6 +741,33 @@ class Backend(QObject):
             return
         self._update("_prefs", self.prefsChanged, {name: value})
         self.jobs.submit(lambda: self.system.prefs.set(name, value))
+
+    # --- Personalization > Taskbar (taskbar.py) ------------------------------------------------
+
+    @Property("QVariantMap", notify=taskbarChanged)
+    def taskbar(self):
+        return self._taskbar
+
+    @Slot()
+    def refreshTaskbar(self):
+        self.jobs.submit(lambda: self.system.taskbar.state(self.lang), self._merge("_taskbar", self.taskbarChanged))
+
+    @Slot(str, "QVariant")
+    def setTaskbar(self, name, value):
+        # QML numbers arrive as floats.
+        if name == "search" and isinstance(value, float) and value.is_integer():
+            value = int(value)
+        if taskbar.valid(name, value) is None:
+            return
+        self._update("_taskbar", self.taskbarChanged, {name: value})
+        self.jobs.submit(lambda: self.system.taskbar.set(name, value))
+
+    @Slot(str, bool)
+    def setTrayIcon(self, item_id, shown):
+        items = [dict(item, shown=shown) if item.get("id") == item_id else item
+                 for item in self._taskbar.get("trayItems", [])]
+        self._update("_taskbar", self.taskbarChanged, {"trayItems": items})
+        self.jobs.submit(lambda: self.system.taskbar.set_tray_item(item_id, shown))
 
     @Slot(bool)
     def setDoNotDisturb(self, on):

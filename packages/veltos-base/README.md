@@ -5,8 +5,15 @@ Makes the system identify itself as VeltOS.
 ## What it installs
 
 - `/usr/lib/os-release` (and therefore `/etc/os-release`, a symlink):
-  `NAME="VeltOS"`, `ID=veltos`, `ID_LIKE=debian`, `VERSION_ID`, `LOGO=veltos-logo`.
+  `NAME="VeltOS"`, `ID=veltos`, `ID_LIKE=debian`, `VERSION_ID`, `LOGO=veltos-logo`,
+  `HOME_URL` and `SUPPORT_URL` (the VeltOS website,
+  https://veltos.ahmetfurkandemir.com/).
 - `/etc/issue`, `/etc/issue.net`: "VeltOS 0.1" console login banners.
+- `/etc/motd`, the message after a console sign-in (Automatic Repair's
+  Command Prompt, Ctrl+Alt+F2): VeltOS' wording of Debian's licence and
+  warranty notice. base-files owns no `/etc/motd` (it copies its text there
+  when the file is missing), so `postinst` replaces it only while it is
+  still Debian's text, and `postrm` brings Debian's back (2026-10-23).
 
 ## How
 

@@ -184,10 +184,15 @@ class PortalServiceTests(unittest.TestCase):
         self.connection = FakeConnection()
         self.original_popen = portal.subprocess.Popen
         portal.subprocess.Popen = FakeProcess
+        # The session's language comes from systemd (session_environment,
+        # tested in test_portal_theme); not asked here.
+        self.original_environment = portal.session_environment
+        portal.session_environment = lambda: dict(os.environ)
         self.service = portal.Service(None, self.connection, FakeGio, self.glib)
 
     def tearDown(self):
         portal.subprocess.Popen = self.original_popen
+        portal.session_environment = self.original_environment
 
     def call(self, handle, title, parent="wayland:1", method="OpenFile", options=None):
         invocation = FakeInvocation()

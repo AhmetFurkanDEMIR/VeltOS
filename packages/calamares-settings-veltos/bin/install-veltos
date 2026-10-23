@@ -6,18 +6,23 @@
 # while the installer runs.
 sudo mv /etc/fstab /etc/fstab.orig.calamares 2>/dev/null
 
-# Calamares runs as root, so it does not see the live user's application
-# style. Give root the VeltOS (Windows 11 like) Kvantum style for the
-# installer's dialogs (cancel question, partition dialogs, ...). Live
-# system only: root's home is in memory.
-sudo install -D -m 644 /usr/share/veltos-installer/kvantum.kvconfig \
-    /root/.config/Kvantum/kvantum.kvconfig 2>/dev/null
+# The installer takes the session's look: light or dark, the accent colour,
+# software drawing in VMs without 3D (installer-theme reads them as this
+# user; start-calamares applies them as root, see there).
+theme="$(/usr/libexec/veltos-installer/installer-theme)"
+
+# The side bar's website link: Calamares runs as root, so the page is
+# opened in this user's browser by a helper of this user.
+/usr/libexec/veltos-installer/open-website &
+links=$!
 
 # Calamares runs as root through pkexec; under Wayland it uses Xwayland and
 # needs permission to open a window there.
 xhost +si:localuser:root >/dev/null
-pkexec calamares -style kvantum
+# shellcheck disable=SC2086
+pkexec /usr/libexec/veltos-installer/start-calamares $theme
 xhost -si:localuser:root >/dev/null
 
+kill "$links" 2>/dev/null
 sudo mv /etc/fstab.orig.calamares /etc/fstab 2>/dev/null
 exit 0

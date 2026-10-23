@@ -9,9 +9,21 @@ creating new items are single local calls done here.
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from . import files, places
+
+
+def trash_url(path, trash=None):
+    """KIO's address of an item in the home Recycle Bin (trash:/0-NAME), or
+    the path itself for anything else."""
+    files_dir = Path(trash or places.trash_dir()) / "files"
+    try:
+        relative = Path(path).relative_to(files_dir)
+    except ValueError:
+        return str(path)
+    return "trash:/0-" + str(relative)
 
 
 def detached(command, cwd=None):
@@ -45,6 +57,9 @@ class Operations:
         sources = [s for s in sources if str(Path(s).parent) != destination
                    and not destination.startswith(s.rstrip("/") + "/") and s != destination]
         if sources:
+            # Items cut in the Recycle Bin leave it through KIO's trash, which
+            # also drops their .trashinfo (a plain move left it behind).
+            sources = [trash_url(s) for s in sources]
             self.start(["kioclient", "--interactive", "move", *sources, destination + "/"])
 
     def trash(self, sources):
@@ -72,8 +87,11 @@ class Operations:
         if command:
             self.start(command)
 
-    def properties(self, path):
-        self.start(["kioclient", "openProperties", str(path)])
+    def properties(self, paths):
+        """Windows 11's Properties window (properties.py), not KDE's dialog."""
+        paths = [str(p) for p in paths]
+        if paths:
+            self.start([sys.executable, "-m", "veltos_explorer", "--properties", *paths])
 
     def terminal(self, folder):
         # Opaque window: see update-app-names (veltos-desktop).

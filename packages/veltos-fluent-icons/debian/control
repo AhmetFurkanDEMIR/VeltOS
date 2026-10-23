@@ -9,7 +9,7 @@ Homepage: https://github.com/vinceliuice/Fluent-icon-theme
 
 Package: veltos-fluent-icons
 Architecture: all
-Depends: breeze-icon-theme, ${misc:Depends}
+Depends: breeze-icon-theme, python3, ${misc:Depends}
 Description: Fluent icon and cursor themes for VeltOS
  Clean, colourful icons in the style of Windows 11's Fluent design, by
  Vince Liuice. Installs the "Fluent", "Fluent-light" and "Fluent-dark"

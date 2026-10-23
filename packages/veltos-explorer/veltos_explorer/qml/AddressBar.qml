@@ -99,10 +99,10 @@ Rectangle {
                 spacing: 4
                 visible: !bar.editing
 
-                Kirigami.Icon {
+                LocationIcon {
                     Layout.preferredWidth: 16
                     Layout.preferredHeight: 16
-                    source: bar.tab.query !== "" ? "search" : bar.tab.icon
+                    name: bar.tab.query !== "" ? "search" : bar.tab.icon
                 }
                 Repeater {
                     model: bar.tab.query !== ""
@@ -156,6 +156,10 @@ Rectangle {
 
             TextInput {
                 id: pathInput
+                // Like a Windows text box: in the Tab order, the text cursor over it and
+                // (in a layout) the full height of its box. A plain TextInput has neither.
+                activeFocusOnTab: true
+                HoverHandler { cursorShape: Qt.IBeamCursor }
                 anchors.fill: parent
                 anchors.leftMargin: 10
                 anchors.rightMargin: 10
@@ -199,6 +203,12 @@ Rectangle {
                 }
                 TextInput {
                     id: searchInput
+                    // Like a Windows text box: in the Tab order, the text cursor over it and
+                    // (in a layout) the full height of its box. A plain TextInput has neither.
+                    activeFocusOnTab: true
+                    HoverHandler { cursorShape: Qt.IBeamCursor }
+                    Layout.fillHeight: true
+                    verticalAlignment: TextInput.AlignVCenter
                     Layout.fillWidth: true
                     color: Theme.text
                     selectionColor: Theme.accent

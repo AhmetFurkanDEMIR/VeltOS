@@ -101,6 +101,11 @@ for veltos_icon in "${VELTOS_DESKTOP_ICONS:-/usr/share/veltos/desktop}"/*.deskto
         veltos-store.desktop) touch -d @4 "$veltos_desktop/$veltos_name" 2>/dev/null || true ;;
     esac
 done
+# ... and not from a terminal either: the desktop guard, a root service,
+# makes these three launchers root's and the desktop folder sticky, so
+# only their own files can be deleted there (system/veltos-desktop-guard).
+# In the background: sign-in does not wait for it.
+busctl --system --timeout=15 call org.veltos.DesktopGuard /org/veltos/DesktopGuard     org.veltos.DesktopGuard Protect >/dev/null 2>&1 &
 unset veltos_desktop veltos_icon veltos_name veltos_once
 
 # Program names inside the programs ("Home — File Explorer" instead of

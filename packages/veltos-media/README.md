@@ -8,7 +8,8 @@ writes the default apps).
 - **Window**: navigation pane (search, Home, Music library, Video library,
   Play queue, Playlists with the playlists, Settings), the pages, the
   player bar at the bottom, "now playing" over the pages. Own frame and
-  shadow (`frame.py`).
+  shadow (`frame.py`). The search box is in the Tab order and shows the
+  text (I-beam) pointer, like a Windows text box.
 - **Home**: Open file(s), recent media (the last played songs and videos).
 - **Music library** (`library.py`): the songs of the Music folder (XDG
   user folder) and added folders with their tags read by mutagen (title,
@@ -28,9 +29,14 @@ writes the default apps).
   `~/.config/veltos/media.conf`).
 - **Player bar**: picture, title and artist (opens "now playing"),
   shuffle, previous, play/pause, next, repeat, the seek bar with times,
-  mute, volume (logarithmic) and full screen. **Now playing**: the video
-  (click pauses, double click full screen, controls hide in full screen),
-  or a song's album picture on a blurred copy of it.
+  mute, volume (logarithmic) and full screen. Its two sides are equally
+  wide, so the buttons and the seek bar stay in the middle of the window
+  at every size, also in full screen (product owner, 2026-10-22). The
+  logarithmic volume is computed in the QML: Qt 6.8 does not offer
+  `QtAudio.convertVolume` to QML, and the old call left the volume at
+  100 %. **Now playing**: the video (click pauses, double click full
+  screen, controls hide in full screen), or a song's album picture on a
+  blurred copy of it.
 - Keys: Space/Ctrl+P play/pause, Ctrl+F next, Ctrl+B previous, Ctrl+H
   shuffle, Ctrl+T repeat, Ctrl+O open, F11 full screen, arrows seek 10 s,
   F8/F9/F10 mute/volume.

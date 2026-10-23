@@ -1,0 +1,18 @@
+#!/bin/sh
+# Stamp /etc and /var as up to date with /usr, as systemd-update-done does
+# after a boot that ran the "needs update" services.
+#
+# The image had no /etc/.updated, so every live start, and the first start
+# of every installed system, ran the services with ConditionNeedsUpdate=:
+# ldconfig.service alone took 10.6 s of the live start in VirtualBox (3.2 s
+# in QEMU), besides the journal catalog update (2026-10-23). The linker
+# cache and the catalog are already built in the image by the packages'
+# triggers. Runs after every package and hook that changes /usr; the
+# stamps hold /usr's time (live-build later sets both to SOURCE_DATE_EPOCH,
+# which keeps them equal).
+set -e
+
+/usr/lib/systemd/systemd-update-done
+test -s /etc/.updated
+test -s /var/.updated
+echo "I: veltos-update-done: /etc and /var stamped"
