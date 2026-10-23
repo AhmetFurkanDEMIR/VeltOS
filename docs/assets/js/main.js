@@ -13,15 +13,15 @@
     "nav.gallery": "Ekran görüntüleri",
     "nav.windows": "Windows programları",
     "nav.specs": "Teknik bilgiler",
-    "nav.roadmap": "Yol haritası",
     "nav.faq": "SSS",
+    "nav.download": "İndir",
     "nav.menu": "Menü",
     "theme.toggle": "Açık veya koyu tema",
     "hero.eyebrow": "Sürüm 0.1 · ön alfa · Debian 13 tabanlı",
     "hero.title1": "Bilgisayarınız.",
     "hero.title2": "Sınırsız.",
     "hero.lead": "VeltOS, Windows 11 kullanıcılarının zaten bildiği gibi çalışan bir masaüstü işletim sistemidir: Başlat, görev çubuğu, Dosya Gezgini, Ayarlar ve bir Mağaza; üstüne kendi uygulamaları, modern bir kurulum programı ve Wine ile Windows programı desteği. Ücretsiz, açık kaynak ve Debian üzerine kurulu.",
-    "hero.get": "VeltOS'u edinin",
+    "hero.get": "VeltOS'u indirin",
     "hero.source": "Kaynak kodu",
     "hero.langs": "Türkçe · English",
     "img.desktop": "Başlat menüsü açık VeltOS masaüstü",
@@ -114,12 +114,22 @@
     "w.window": "Windows programı yükle",
     "w.publisher": "Igor Pavlov · 64 bit",
     "w.progress": "Yükleniyor… program Başlat'ta görünecek.",
-    "d.kicker": "VeltOS'u edinin",
-    "d.title": "Deneyin, derleyin, izleyin",
-    "d.lead": "VeltOS ön alfa aşamasındadır: güvendiğiniz bilgisayarda değil, bir sanal makinede ya da yedek bir bilgisayarda deneyin.",
-    "d.release.t": "Sürümler",
-    "d.release.d": "ISO'nun test sürümleri hazır olduklarında GitHub'da yayımlanır. Tek bir ISO hem canlı sistem olarak açılır hem VeltOS'u kurar.",
-    "d.release.b": "GitHub Sürümleri",
+    "d.kicker": "İndir",
+    "d.title": "VeltOS 0.1'i edinin",
+    "d.lead": "64 bit bilgisayarlar için tek bir ISO: canlı sistem olarak açılır ve VeltOS'u kurar. VeltOS ön alfa aşamasındadır: güvendiğiniz bilgisayarda değil, bir sanal makinede ya da yedek bir bilgisayarda deneyin.",
+    "dl.badge": "ön alfa",
+    "dl.meta.arch": "64 bit bilgisayarlar (amd64)",
+    "dl.meta.size": "ISO · 2,45 GB",
+    "dl.meta.base": "Debian 13 tabanlı",
+    "dl.button": "ISO'yu indir",
+    "dl.soon": "Yakında",
+    "dl.pending": "İndirme bağlantısı yakında burada yayımlanacak. O zamana kadar aynı ISO'yu kaynak kodundan kendiniz derleyebilirsiniz (aşağıda).",
+    "dl.s1.t": "İndirin",
+    "dl.s1.d": "Yaklaşık 2,45 GB'lık tek bir ISO dosyası. SHA-256 değerini yukarıdakiyle karşılaştırın.",
+    "dl.s2.t": "Başlatın",
+    "dl.s2.d": "Bir sanal makinede ya da yedek bir bilgisayarda USB bellekten. VeltOS şimdiye kadar yalnızca sanal makinelerde test edildi.",
+    "dl.s3.t": "Deneyin ya da kurun",
+    "dl.s3.d": "VeltOS'u hiçbir şeyi değiştirmeden deneyin, hazır olduğunuzda masaüstünden kurun.",
     "d.build.t": "ISO'yu derleyin",
     "d.build.d": "Her şey Docker içinde derlenir ve test edilir; bilgisayarınıza başka bir şey gerekmez.",
     "d.copy": "Kopyala",
@@ -167,23 +177,6 @@
     "s.quality.d": "Her paket derlenirken birim testlerini çalıştırır, kalıp yazılmadan önce kendini denetler ve her ISO, masaüstü, çökmeler ve açılış süreleri denetlenerek QEMU'da UEFI ve BIOS ile açılır.",
     "s.light.t": "Tasarımı gereği hafif",
     "s.light.d": "Her arka plan hizmeti yerini hak etmelidir; açılış ve bellek kullanımı her ISO için ölçülür.",
-    "m.kicker": "Yol haritası",
-    "m.title": "VeltOS nereye gidiyor",
-    "m.done": "Tamamlandı",
-    "m.now": "Sürüyor",
-    "m.planned": "Planlandı",
-    "m.0.t": "Temel",
-    "m.0.d": "Mimari, Debian tabanı, masaüstü, sürücü ve uyumluluk stratejisi.",
-    "m.1.t": "Açılabilen, kurulabilen bir ISO",
-    "m.1.d": "Canlı sistem, kurulum programı, VeltOS masaüstü ve uygulamaları, sanal makinelerde açılış testleri.",
-    "m.3.t": "Windows programları",
-    "m.3.d": "Çalıştırıcı, tek Windows ortamı, Başlat'ta ve Ayarlar'da programlar; daha fazla programın test edilmesi.",
-    "m.5.t": "Sürümler ve güncelleştirmeler",
-    "m.5.d": "Gerçek donanımda kurulum testleri, güncelleştirme kanalları, herkese açık sürümler.",
-    "m.2.t": "Donanım yöneticisi",
-    "m.2.d": "Bilgisayarın aygıtlarını tanımak ve NVIDIA'nınki gibi sürücüleri imzalı arşivlerden önermek.",
-    "m.4.t": "Oyun",
-    "m.4.d": "Proton ile Steam, DXVK ve VKD3D-Proton, oyun profilleri ve ölçülmüş karşılaştırmalar.",
     "q.kicker": "Sorular",
     "q.title": "Sık sorulanlar",
     "q.1.q": "VeltOS, Windows mu?",
@@ -280,19 +273,56 @@
     });
   });
 
-  /* Header shadow and the current section in the menu */
+  /* Header shadow, at most once per frame */
   var nav = document.querySelector(".nav");
-  var sections = Array.prototype.slice.call(document.querySelectorAll("main section[id]"));
-  function onScroll() {
+  var shadowQueued = false;
+  function updateShadow() {
+    shadowQueued = false;
     nav.classList.toggle("scrolled", window.scrollY > 8);
-    var current = "";
-    sections.forEach(function (s) { if (s.getBoundingClientRect().top < 140) current = s.id; });
-    links.querySelectorAll("a").forEach(function (a) {
-      a.classList.toggle("active", a.getAttribute("href") === "#" + current);
-    });
   }
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
+  window.addEventListener("scroll", function () {
+    if (!shadowQueued) { shadowQueued = true; requestAnimationFrame(updateShadow); }
+  }, { passive: true });
+  updateShadow();
+
+  /* The current section in the menu, and the hero's animations resting while
+     it is scrolled away; IntersectionObservers, so nothing is measured while
+     the page scrolls. */
+  if ("IntersectionObserver" in window) {
+    var menuLinks = Array.prototype.slice.call(links.querySelectorAll("a"));
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var id = entry.target.id;
+        menuLinks.forEach(function (a) {
+          a.classList.toggle("active", id !== "" && a.getAttribute("href") === "#" + id);
+        });
+      });
+    }, { rootMargin: "-40% 0px -55% 0px" });
+    document.querySelectorAll("main > section").forEach(function (s) { spy.observe(s); });
+    var hero = document.querySelector(".hero");
+    if (hero) {
+      new IntersectionObserver(function (entries) {
+        root.classList.toggle("hero-away", !entries[0].isIntersecting);
+      }).observe(hero);
+    }
+  }
+
+  /* Download: every [data-iso-link] follows <meta name="veltos-iso-url">;
+     until the ISO is published the download button waits (the head script
+     marks the page iso-pending). */
+  var isoMeta = document.querySelector('meta[name="veltos-iso-url"]');
+  var isoUrl = isoMeta ? isoMeta.getAttribute("content") : "";
+  var isoReady = /^https:\/\/\S+$/.test(isoUrl);
+  document.querySelectorAll("[data-iso-link]").forEach(function (a) {
+    if (isoReady) {
+      a.setAttribute("href", isoUrl);
+      a.setAttribute("rel", "noopener");
+    } else if (a.classList.contains("dl-button")) {
+      a.setAttribute("aria-disabled", "true");
+      a.setAttribute("tabindex", "-1");
+    }
+  });
 
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

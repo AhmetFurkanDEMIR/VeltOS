@@ -3,6 +3,50 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-23 (evening) — Website: download section, no roadmap, smoother scrolling; encrypted installation
+
+- **Encrypted installation** of ISO `20261023-061442` (QEMU, UEFI): "Erase
+  disk" + "Encrypt system", 45 jobs, `boot-check` passed; the VeltOS
+  password screen at start-up, the sign-in screen about 9 s after the
+  password, `tries=0` in crypttab, the desktop after signing in, no failed
+  units or core dumps (`tests/results/2026-10-23-installation-bios/`).
+- The product owner on the website: remove the roadmap ("Where VeltOS is
+  going"); scrolling stutters; the copy button sits on the build commands;
+  feature a direct ISO download (the link comes later); on phones the
+  "Ready in about 2 s" card disappears.
+- **Roadmap** section and menu entry removed (the README keeps its table).
+- **Download**: the menu's last entry, the hero's main button and a new
+  panel at the top of the download section (version, 64-bit, ISO size,
+  firmware, Debian 13; the SHA-256 with a copy button; three steps). The
+  link lives in one place, `<meta name="veltos-iso-url">`; empty, the
+  button reads "Download ISO · Soon" and a note points to building the ISO;
+  checked with a test link in a copy of the site (both buttons link to the
+  file, the checksum shows). A GitHub release file must be under 2 GiB and
+  the ISO is 2.28 GiB, so it needs another host.
+- **Copy button**: the build commands' block has its own bar with "bash"
+  and Copy (the button no longer floats over the first line); on phones the
+  commands wrap instead of scrolling sideways. Its class no longer shares
+  the footer's `.copy` rule.
+- **Phones**: the three floating cards in the hero stay (the "ready" card
+  was hidden below 640 px) and are placed apart; checked in headless Edge
+  at 320, 360, 375, 414, 768, 1024 and 1440 px: no card covers another, the
+  copy button covers nothing, the page is never wider than the screen.
+- **Scrolling**: the background glows were three 460-620 px circles under
+  `filter: blur(90px)` that moved all the time, and the header blurred what
+  scrolled under it (`backdrop-filter`); both are drawn again for every
+  frame. Now the glows are radial gradients moved by the compositor, the
+  header is nearly opaque, the pulsing dots animate transform/opacity
+  instead of box-shadow, the hero's endless animations rest while it is
+  scrolled away, pictures decode asynchronously, and the scroll handler no
+  longer measures every section on each event (IntersectionObservers).
+  Measured honestly: in Edge on the developer PC (Intel UHD, 144 Hz)
+  neither a scripted scroll nor a traced wheel scroll showed dropped frames
+  even before the change, so the stutter the owner saw was most likely in
+  another browser (the app's built-in pane, where the page had been shown)
+  or while VMs and ISO builds kept the CPU busy; the removed effects are
+  the ones known to stutter in software-rendered and embedded browsers and
+  on weak GPUs. Not measured on a phone.
+
 ## 2026-10-23 (afternoon) — Website, README and handoff files for publishing the repository
 
 The product owner asked for a comprehensive website (desktop and mobile,

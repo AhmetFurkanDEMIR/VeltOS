@@ -142,8 +142,20 @@ and JavaScript with no build step, no external requests and no cookies:
 - Icons: copies of the OS's own SVGs (`tests/repo` checks they still
   match a file of the same name in `packages/`). Fonts: Inter subsets
   (OFL, `assets/fonts/LICENSE-Inter.txt`).
+- Download: the ISO's direct https link goes into
+  `<meta name="veltos-iso-url">` in `docs/index.html`; the head script marks
+  the page `iso-ready` and every `[data-iso-link]` button follows it (empty:
+  "Download ISO · Soon" and a note). Update the size and the SHA-256 in the
+  download panel with the link. A GitHub release file must be under 2 GiB
+  (docs.github.com, "About releases"); the ISO is larger, so it is hosted
+  elsewhere.
 - Claims on the site follow the project rules: no untested support, no
   "native performance", measured numbers with how they were measured.
+- Keep scrolling cheap: no `filter: blur()` or `backdrop-filter` on large or
+  moving elements (they were drawn again for every frame), endless
+  animations only on `transform`/`opacity` (the hero's pause while it is
+  scrolled away), no layout reads in scroll handlers (IntersectionObserver
+  instead).
 - The developer documentation lives in `docs/dev/` (also published by
   Pages as plain files).
 

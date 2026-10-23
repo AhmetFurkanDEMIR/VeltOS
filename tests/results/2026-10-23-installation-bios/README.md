@@ -1,4 +1,4 @@
-# 2026-10-23 — Installations (BIOS, UEFI) and boot tests of ISO 20261023-061442
+# 2026-10-23 — Installations (BIOS, UEFI, encrypted) and boot tests of ISO 20261023-061442
 
 ISO `veltos-0.1.0-dev-20261023-061442`, 2,445,506,560 bytes, sha256
 `9d8afa183a94975fa43db82708bb095b6e23e40a527e5733b7c01cc196d32464`.
@@ -32,6 +32,17 @@ minutes, `boot-check` passed. The firmware boot entry is "VeltOS"
 started), signed in to the desktop (`08-uefi-installed-desktop.png`), no
 failed units, no core dumps.
 
+## Encrypted installation (same ISO, UEFI)
+
+"Erase disk" with "Encrypt system" (`09-encrypted-disk-page.png`): EFI
+system partition, an unencrypted 1 GiB `/boot` and a LUKS root; 45 installer
+jobs, `boot-check` passed. At start-up the VeltOS password screen asked for
+the disk password (`10-encrypted-password-screen.png`); the sign-in screen
+came about 9 s after it was typed, `/etc/crypttab` has `tries=0`, and the
+desktop opened after signing in (`11-encrypted-installed-desktop.png`), with
+no failed units and no core dumps. (The VM-only test passphrase is not
+recorded here.)
+
 ## Boot tests of the live ISO
 
 | Firmware | Checks | `systemd-analyze` | plasmashell | Memory in use |
@@ -51,6 +62,5 @@ with their icons (`07-winapps-start-search.png`).
 
 ## Not covered here
 
-An encrypted installation (last tested end to end on 2026-10-19), Secure
-Boot on an installed system, VirtualBox (VMs on the developer host stall in NEM mode,
+Secure Boot on an installed system, VirtualBox (VMs on the developer host stall in NEM mode,
 see `docs/dev/status.md`), real hardware.
