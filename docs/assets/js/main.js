@@ -8,6 +8,7 @@
 
   var TR = {
     "skip": "İçeriğe geç",
+    "aria.main": "Ana menü",
     "nav.features": "Özellikler",
     "nav.apps": "Uygulamalar",
     "nav.gallery": "Ekran görüntüleri",
@@ -15,55 +16,57 @@
     "nav.specs": "Teknik bilgiler",
     "nav.faq": "SSS",
     "nav.download": "İndir",
-    "nav.menu": "Menü",
     "theme.toggle": "Açık veya koyu tema",
+    "nav.menu": "Menü",
     "hero.eyebrow": "Sürüm 0.1 · ön alfa · Debian 13 tabanlı",
     "hero.title1": "Bilgisayarınız.",
     "hero.title2": "Sınırsız.",
-    "hero.lead": "VeltOS, Windows 11 kullanıcılarının zaten bildiği gibi çalışan bir masaüstü işletim sistemidir: Başlat, görev çubuğu, Dosya Gezgini, Ayarlar ve bir Mağaza; üstüne kendi uygulamaları, modern bir kurulum programı ve Wine ile Windows programı desteği. Ücretsiz, açık kaynak ve Debian üzerine kurulu.",
+    "hero.lead": "VeltOS, Windows 11 kullanıcılarının alıştığı gibi çalışan bir masaüstü işletim sistemidir: Başlat menüsü, görev çubuğu, Dosya Gezgini, Ayarlar ve uygulama mağazası tam beklediğiniz yerde. Kendi uygulamaları, modern kurulum programı ve Wine ile Windows programı desteğiyle gelir. Ücretsizdir, açık kaynaktır ve Debian üzerine kuruludur.",
     "hero.get": "VeltOS'u indirin",
     "hero.source": "Kaynak kodu",
+    "aria.highlights": "Öne çıkanlar",
     "hero.langs": "Türkçe · English",
-    "img.desktop": "Başlat menüsü açık VeltOS masaüstü",
+    "img.desktop": "Başlat menüsü açıkken VeltOS masaüstü",
     "float.explorer": "Dosya Gezgini",
     "float.explorer.sub": "Sekmeler, Giriş, Bu bilgisayar",
     "float.store": "VeltOS Mağaza",
     "float.store.sub": "İmzalı, ücretsiz uygulamalar",
     "float.ready": "Yaklaşık 3 saniyede hazır",
-    "float.ready.sub": "oturum açmadan masaüstüne*",
+    "float.ready.sub": "oturum açılışından masaüstüne*",
+    "aria.numbers": "Rakamlarla VeltOS",
     "stats.packages": "VeltOS paketi ve uygulaması",
-    "stats.tests": "her derlemede otomatik test",
+    "stats.tests": "her derlemede çalışan otomatik test",
     "stats.boot": "sistem açılışı*",
-    "stats.signin": "oturum açmadan masaüstüne*",
-    "stats.note": "* Kurulu bir sistemde, QEMU/KVM sanal makinesinde ölçüldü (4 çekirdek, 3D hızlandırma yok). Açılış, systemd-analyze'ın bildirdiği çekirdek ve kullanıcı alanı süresidir; ürün yazılımı ve önyükleme menüsü dahil değildir. Sizin donanımınızda farklı olur.",
+    "stats.signin": "oturum açılışından masaüstüne*",
+    "stats.note": "* QEMU/KVM sanal makinesine kurulu bir sistemde ölçülmüştür (4 çekirdek, 3D hızlandırma yok). Açılış süresi, systemd-analyze'ın bildirdiği çekirdek ve kullanıcı alanı süresidir; üretici yazılımı ile önyükleme menüsü buna dahil değildir. Sonuçlar donanımınıza göre değişir.",
     "features.kicker": "İlk dakikadan tanıdık",
     "features.title": "Her şey beklediğiniz yerde",
-    "features.lead": "Yeni alışkanlıklar edinmeniz gerekmez. VeltOS, Windows 11'in düzenini ve küçük ayrıntılarını izler; Linux'un hızını, güvenliğini ve özgürlüğünü korur.",
+    "features.lead": "Yeni alışkanlıklar edinmenize gerek yok. VeltOS, Windows 11'in düzenini ve küçük ayrıntılarını izlerken Linux'un hızını, güvenliğini ve özgürlüğünü korur.",
     "f.start.t": "Başlat, görev çubuğu, arama",
-    "f.start.d": "Canlı pencere önizlemeli ortalanmış görev çubuğu, sabitlenmiş uygulamalar ve önerilerle Başlat, yazdıkça arama, sanal masaüstleriyle Görev Görünümü ve bildiğiniz sağ tık menüleri.",
+    "f.start.d": "Pencereleri canlı önizleyen ortalanmış görev çubuğu, sabitlenmiş uygulamaları ve önerileriyle Başlat menüsü, siz yazarken sonuç veren arama, sanal masaüstleriyle Görev Görünümü ve alıştığınız sağ tık menüleri.",
     "f.files.t": "Dosya Gezgini",
-    "f.files.d": "Sekmeler, Giriş, Bu bilgisayar, Geri Dönüşüm Kutusu, Özellikler, zip dosyaları ve Windows sürücüleri; her programda aynı dosya pencereleri.",
+    "f.files.d": "Sekmeler, Giriş, Bu bilgisayar, Geri Dönüşüm Kutusu, Özellikler penceresi, zip dosyaları ve Windows sürücüleri. Üstelik her programda aynı dosya açma ve kaydetme pencereleri karşınıza çıkar.",
     "f.settings.t": "Tek bir Ayarlar uygulaması",
-    "f.settings.d": "Wi-Fi, Bluetooth, ekran, ses, hesaplar, uygulamalar, gizlilik ve güncelleştirmeler zaten bildiğiniz sayfalarda, kendi dilinizde.",
+    "f.settings.d": "Wi-Fi, Bluetooth, ekran, ses, hesaplar, uygulamalar, gizlilik ve güncelleştirmeler; hepsi alıştığınız sayfalarda ve kendi dilinizde.",
     "f.store.t": "VeltOS Mağaza",
-    "f.store.d": "Debian'ın imzalı arşivinden binlerce ücretsiz uygulama ve oyun; tek tıkla kurulur ve güncellenir.",
-    "f.office.t": "Office ve Posta",
-    "f.office.d": "LibreOffice üzerinde Word, Excel ve PowerPoint başlangıç ekranları, varsayılan olarak Microsoft biçimlerinde kayıt ve Outlook görünümünde VeltOS Mail.",
+    "f.store.d": "Debian'ın imzalı arşivinden binlerce ücretsiz uygulama ve oyun, tek tıkla kurulur ve güncellenir.",
+    "f.office.t": "Office ve e-posta",
+    "f.office.d": "LibreOffice üzerinde Word, Excel ve PowerPoint başlangıç ekranları; belgeler varsayılan olarak Microsoft biçimlerinde kaydedilir. E-postalarınız içinse Outlook görünümünde VeltOS Mail var.",
     "f.windows.t": "Windows programları",
-    "f.windows.d": "Bir .exe veya .msi dosyasına çift tıklayın: VeltOS onu Wine ile kurar, Başlat'a ve Ayarlar'a ekler. Her program henüz çalışmıyor; VeltOS size söyler.",
+    "f.windows.d": "Bir .exe ya da .msi dosyasına çift tıklayın; VeltOS programı Wine ile kurar, Başlat'a ve Ayarlar'a ekler. Her program çalışmaz; çalışmadığında VeltOS bunu size bildirir.",
     "f.repair.t": "Otomatik Onarım",
-    "f.repair.d": "VeltOS üst üste iki kez açılamazsa bir onarım ekranı Başlangıç Onarımı, Güvenli mod, Komut İstemi ve son açılışın sorunlarını sunar.",
+    "f.repair.d": "VeltOS üst üste iki kez açılamazsa onarım ekranı kendiliğinden gelir: Başlangıç Onarımı, Güvenli mod, Komut İstemi ve nelerin ters gittiğine dair ayrıntılar.",
     "f.secure.t": "Varsayılan olarak güvenli",
-    "f.secure.d": "Yazılım yalnızca imzalı Debian arşivlerinden ya da VeltOS'un kendi kaynaklarından gelir; Güvenli Önyükleme, AppArmor ve BitLocker gibi açılışta parola soran disk şifreleme.",
-    "f.style.t": "Size ait görünüm",
-    "f.style.d": "Açık ve koyu mod, kendi duvar kâğıtlarıyla sekiz tema, her VeltOS uygulamasına geçen bir vurgu rengi ve Windows 11'in animasyonları.",
-    "apps.kicker": "VeltOS için yazıldı",
-    "apps.title": "Her gün açtığınız uygulamalar",
-    "apps.lead": "Windows 11'deki karşılıklarının düzeninde, Türkçe ve İngilizce, açık ve koyu temada VeltOS için yazıldı.",
+    "f.secure.d": "Yazılımlar yalnızca imzalı Debian arşivlerinden gelir ya da VeltOS'un kendi kaynaklarından derlenir. Güvenli Önyükleme, AppArmor ve BitLocker gibi açılışta parola soran disk şifreleme de hazır gelir.",
+    "f.style.t": "Size özel görünüm",
+    "f.style.d": "Açık ve koyu mod, her biri kendi duvar kâğıdıyla gelen sekiz tema, tüm VeltOS uygulamalarına yansıyan bir vurgu rengi ve Windows 11'in animasyonları.",
+    "apps.kicker": "VeltOS için geliştirildi",
+    "apps.title": "Her gün kullandığınız uygulamalar",
+    "apps.lead": "Hepsi VeltOS için, Windows 11'deki karşılıklarının düzeninde yazıldı; Türkçe ve İngilizce, açık ve koyu temada kullanılabilir.",
     "a.explorer": "Dosya Gezgini",
     "a.settings": "Ayarlar",
-    "a.store": "Mağaza",
-    "a.mail": "Posta",
+    "a.store": "VeltOS Mağaza",
+    "a.mail": "VeltOS Mail",
     "a.calendar": "Takvim",
     "a.photos": "Fotoğraflar",
     "a.media": "Medya Oynatıcı",
@@ -77,126 +80,125 @@
     "a.taskmanager": "Görev Yöneticisi",
     "a.disks": "Disk Yönetimi",
     "a.winapps": "Windows programları",
-    "gallery.kicker": "Görün",
+    "gallery.kicker": "Yakından bakın",
     "gallery.title": "VeltOS'tan ekran görüntüleri",
-    "gallery.lead": "VeltOS'un kendisinde, bir sanal makinede çekildi. Büyütmek için resme tıklayın.",
+    "gallery.lead": "Görüntülerin hepsi, sanal makinede çalışan VeltOS'ta alındı. Büyütmek için bir görüntüye tıklayın.",
+    "aria.shots": "Ekran görüntüleri",
     "g.desktop": "Masaüstü",
     "g.explorer": "Dosya Gezgini",
     "g.settings": "Ayarlar",
     "g.store": "Mağaza",
     "g.office": "Office",
-    "g.mail": "Posta",
+    "g.mail": "E-posta",
     "g.dark": "Koyu mod",
     "g.installer": "Kurulum",
     "g.repair": "Otomatik Onarım",
-    "g.desktop.alt": "Masaüstü ve Başlat",
-    "g.desktop.cap": "Başlat ile masaüstü: sabitlenmiş uygulamalar, öneriler ve görev çubuğundaki arama.",
-    "g.explorer.cap": "Sekmeler, gezinti bölmesi ve Office dosyalarınızla Dosya Gezgini.",
-    "g.settings.cap": "Ayarlar: her sayfa yerleşik, KDE'nin ayar penceresi hiç açılmaz.",
+    "g.desktop.alt": "Masaüstü ve Başlat menüsü",
+    "g.desktop.cap": "Başlat menüsü açık masaüstü: sabitlenmiş uygulamalar, öneriler ve görev çubuğundaki arama kutusu.",
+    "g.explorer.cap": "Dosya Gezgini: sekmeler, gezinti bölmesi ve Office belgeleriniz.",
+    "g.settings.cap": "Ayarlar: bütün sayfalar tek uygulamada; KDE'nin ayar penceresi hiç açılmaz.",
     "g.store.cap": "VeltOS Mağaza: Debian'ın imzalı arşivinden uygulamalar ve oyunlar.",
-    "g.office.cap": "Word'ün başlangıç ekranı: şablonlardan yeni belgeler ve son dosyalarınız.",
+    "g.office.cap": "Word'ün başlangıç ekranı: şablonlardan yeni belgeler ve son açtığınız dosyalar.",
     "g.mail.cap": "Outlook görünümünde VeltOS Mail.",
-    "g.dark.cap": "Nebula temasıyla koyu mod: mor vurgu rengi, koyu Başlat ve görev çubuğu.",
-    "g.installer.cap": "Windows 11 kurulumunun düzeninde kurulum programı.",
-    "g.repair.cap": "İki yarım kalan açılıştan sonra Otomatik Onarım.",
+    "g.dark.cap": "Nebula temasıyla koyu mod: mor vurgu rengi, koyu Başlat menüsü ve görev çubuğu.",
+    "g.installer.cap": "Windows 11 kurulumunu andıran sayfalarıyla kurulum programı.",
+    "g.repair.cap": "Yarım kalan iki açılışın ardından gelen Otomatik Onarım ekranı.",
     "g.prev": "Önceki",
     "g.next": "Sonraki",
     "w.kicker": "Windows programları",
     "w.title": "Çift tıklayın. Kurun. Başlat'ta bulun.",
-    "w.lead": "VeltOS, Windows kurulum dosyalarını ve programlarını Wine ile tek bir Windows ortamında açar; bir bilgisayardaki tek C: sürücüsü gibi. Kurulan programlar Başlat'ta ve Ayarlar'da görünür ve Windows'taki gibi oradan kaldırılır.",
-    "w.s1.t": ".exe veya .msi dosyasını açın",
-    "w.s1.d": "VeltOS adını, yayımcısını ve simgesini okur ve ne yapacağını gösterir.",
+    "w.lead": "VeltOS, Windows kurulum dosyalarını ve programlarını Wine ile tek bir Windows ortamında açar; tıpkı bir bilgisayardaki tek C: sürücüsü gibi. Kurduğunuz programlar Başlat'ta ve Ayarlar'da görünür; onları Windows'ta olduğu gibi Ayarlar'dan kaldırabilirsiniz.",
+    "w.s1.t": ".exe ya da .msi dosyasını açın",
+    "w.s1.d": "VeltOS dosyanın adını, yayımcısını ve simgesini okur, ardından ne yapacağını gösterir.",
     "w.s2.t": "Kurun",
-    "w.s2.d": "Programın kendi kurulum programı çalışır; Wine Mono ve Gecko zaten yüklüdür, hiçbir şey indirilmez.",
-    "w.s3.t": "Her uygulama gibi kullanın",
-    "w.s3.d": "Başlat'ta yer alır, Ayarlar › Uygulamalar'da listelenir; Vulkan destekli ekran kartlarında oyunlar için DXVK.",
-    "w.honest": "Dürüst not: Wine her Windows programını çalıştırmaz ve bir güvenlik korumalı alanı değildir; yalnızca güvendiğiniz programları çalıştırın.",
-    "w.window": "Windows programı yükle",
+    "w.s2.d": "Programın kendi kurulum sihirbazı çalışır. Wine Mono ve Gecko hazır geldiği için internetten hiçbir şey indirilmez.",
+    "w.s3.t": "Diğer uygulamalar gibi kullanın",
+    "w.s3.d": "Program Başlat'ta yer alır ve Ayarlar › Uygulamalar'da listelenir. Vulkan destekleyen ekran kartlarında oyunlar için DXVK kullanılır.",
+    "w.honest": "Açık konuşalım: Wine her Windows programını çalıştıramaz ve bir güvenlik yalıtımı (sandbox) değildir. Yalnızca güvendiğiniz programları çalıştırın.",
+    "w.window": "Windows programı kur",
     "w.publisher": "Igor Pavlov · 64 bit",
-    "w.progress": "Yükleniyor… program Başlat'ta görünecek.",
+    "w.progress": "Kuruluyor… Program Başlat'ta görünecek.",
     "d.kicker": "İndir",
-    "d.title": "VeltOS 0.1'i edinin",
-    "d.lead": "64 bit bilgisayarlar için tek bir ISO: canlı sistem olarak açılır ve VeltOS'u kurar. VeltOS ön alfa aşamasındadır: güvendiğiniz bilgisayarda değil, bir sanal makinede ya da yedek bir bilgisayarda deneyin.",
+    "d.title": "VeltOS 0.1'i indirin",
+    "d.lead": "64 bit bilgisayarlar için hazırlanan tek bir ISO dosyası hem canlı sistem olarak açılır hem de VeltOS'u kurar. VeltOS henüz ön alfa aşamasında olduğu için onu günlük işlerinizi yaptığınız bilgisayarda değil, bir sanal makinede ya da yedek bir bilgisayarda deneyin.",
     "dl.badge": "ön alfa",
     "dl.meta.arch": "64 bit bilgisayarlar (amd64)",
     "dl.meta.size": "ISO · 2,45 GB",
+    "dl.meta.fw": "UEFI · BIOS · Güvenli Önyükleme",
     "dl.meta.base": "Debian 13 tabanlı",
     "dl.button": "ISO'yu indir",
     "dl.soon": "Yakında",
-    "dl.pending": "İndirme bağlantısı yakında burada yayımlanacak. O zamana kadar aynı ISO'yu kaynak kodundan kendiniz derleyebilirsiniz (aşağıda).",
-    "dl.s1.t": "İndirin",
-    "dl.s1.d": "Yaklaşık 2,45 GB'lık tek bir ISO dosyası. SHA-256 değerini yukarıdakiyle karşılaştırın.",
-    "dl.s2.t": "Başlatın",
-    "dl.s2.d": "Bir sanal makinede ya da yedek bir bilgisayarda USB bellekten. VeltOS şimdiye kadar yalnızca sanal makinelerde test edildi.",
-    "dl.s3.t": "Deneyin ya da kurun",
-    "dl.s3.d": "VeltOS'u hiçbir şeyi değiştirmeden deneyin, hazır olduğunuzda masaüstünden kurun.",
-    "d.build.t": "ISO'yu derleyin",
-    "d.build.d": "Her şey Docker içinde derlenir ve test edilir; bilgisayarınıza başka bir şey gerekmez.",
+    "dl.pending": "İndirme bağlantısı çok yakında burada olacak. O zamana kadar aynı ISO'yu kaynak kodundan kendiniz derleyebilirsiniz (aşağıya bakın).",
     "d.copy": "Kopyala",
-    "d.copied": "Kopyalandı",
-    "d.vm.t": "Sanal makinede",
-    "d.vm.1": "4 GB bellek ve 25 GB disk",
-    "d.vm.2": "UEFI veya BIOS, 64 bit",
-    "d.vm.3": "En akıcı masaüstü için 3D hızlandırmayı açın; kapalıyken VeltOS yazılımla çizer",
-    "d.vm.4": "VirtualBox ve QEMU/KVM'de test edildi",
-    "d.vm.5": "Hyper-V'nin açık olduğu bir Windows bilgisayarda (WSL2, Docker Desktop) VirtualBox, sanal makineleri bir tuşa basana ya da fareyi oynatana kadar dondurabiliyor; bu bilinen bir VirtualBox hatası. QEMU/KVM bundan etkilenmez",
-    "r.title": "Sistem gereksinimleri",
+    "dl.s1.t": "İndirin",
+    "dl.s1.d": "Yaklaşık 2,45 GB'lık tek bir ISO dosyası. İndirdikten sonra SHA-256 değerini yukarıdakiyle karşılaştırın.",
+    "dl.s2.t": "Başlatın",
+    "dl.s2.d": "ISO'yu bir sanal makinede açın ya da USB belleğe yazıp yedek bir bilgisayarı ondan başlatın. VeltOS şimdiye kadar yalnızca sanal makinelerde test edildi.",
+    "dl.s3.t": "Deneyin ya da kurun",
+    "dl.s3.d": "VeltOS'u bilgisayarınızda hiçbir şeyi değiştirmeden deneyin; hazır olduğunuzda masaüstünden kurun.",
+    "d.build.t": "ISO'yu derleyin",
+    "d.build.d": "Her şey Docker içinde derlenir ve test edilir; bilgisayarınızda yalnızca Docker ve bash gerekir.",
+    "r.title": "Minimum sistem gereksinimleri",
     "r.cpu": "İşlemci",
     "r.cpu.v": "64 bit x86 (amd64)",
     "r.ram": "Bellek",
-    "r.ram.v": "En az 2 GB, önerilen 4 GB",
     "r.disk": "Depolama",
-    "r.disk.v": "En az 20 GB",
-    "r.fw": "Ürün yazılımı",
-    "r.fw.v": "UEFI (Güvenli Önyükleme destekli) veya BIOS",
+    "r.fw": "Üretici yazılımı",
+    "r.fw.v": "UEFI (Güvenli Önyükleme desteklenir) veya BIOS",
     "r.gpu": "Ekran kartı",
-    "r.gpu.v": "Herhangi biri; OpenGL donanımı önerilir",
-    "s.kicker": "Kaputun altında",
-    "s.title": "Sürüm 0.1, kanıtlanmış parçalar üzerinde",
-    "s.lead": "VeltOS olgun açık kaynak yazılımları çatallamadan kullanır ve üzerine küçük, test edilmiş kendi paketlerini ekler.",
+    "r.gpu.v": "Herhangi biri; 3D hızlandırma yoksa görüntü yazılımla oluşturulur",
+    "r.note": "Sanal makinelerde (QEMU/KVM, VirtualBox) test edildi; henüz gerçek bilgisayarlarda denenmedi.",
+    "s.kicker": "Perde arkası",
+    "s.title": "Sürüm 0.1: kendini kanıtlamış yazılımlar üzerine kurulu",
+    "s.lead": "VeltOS, olgun açık kaynak yazılımları çatallamadan (fork etmeden) olduğu gibi kullanır ve bunların üzerine küçük, test edilmiş kendi paketlerini ekler.",
     "s.version": "Sürüm",
     "s.version.v": "0.1 (ön alfa)",
-    "s.base": "Temel",
+    "s.base": "Temel sistem",
     "s.kernel": "Çekirdek",
     "s.desktop": "Masaüstü",
-    "s.desktop.v": "Wayland üzerinde KDE Plasma 6.3; VeltOS'un görev çubuğu, Başlat'ı ve Görev Görünümü ile",
-    "s.installer": "Kurulum",
-    "s.installer.v": "VeltOS sayfalarıyla Calamares 3.3; isteğe bağlı disk şifreleme",
+    "s.desktop.v": "Wayland üzerinde KDE Plasma 6.3; görev çubuğu, Başlat menüsü ve Görev Görünümü VeltOS'a ait",
+    "s.installer": "Kurulum programı",
+    "s.installer.v": "VeltOS'a özel sayfalarla Calamares 3.3; isteğe bağlı disk şifreleme",
     "s.office": "Ofis",
-    "s.browser": "Web ve posta",
+    "s.browser": "Web ve e-posta",
     "s.windows": "Windows programları",
     "s.apps": "VeltOS uygulamaları",
     "s.apps.v": "Python ve Qt Quick (PySide6 6.8)",
     "s.langs": "Diller",
     "s.langs.v": "Türkçe, İngilizce",
     "s.iso": "ISO",
-    "s.iso.v": "USB bellekler ve DVD'ler için tek bir hibrit kalıp; canlı sistem ve kurulum bir arada",
+    "s.iso.v": "USB bellek ve DVD için tek bir hibrit kalıp; canlı sistem ve kurulum bir arada",
     "s.license": "Lisans",
     "s.license.v": "Özgür ve açık kaynak (GPL ve uyumlu lisanslar; görseller CC BY-SA 4.0)",
     "s.quality.t": "Her derlemede test edilir",
-    "s.quality.d": "Her paket derlenirken birim testlerini çalıştırır, kalıp yazılmadan önce kendini denetler ve her ISO, masaüstü, çökmeler ve açılış süreleri denetlenerek QEMU'da UEFI ve BIOS ile açılır.",
+    "s.quality.d": "Her paket derlenirken kendi birim testlerini çalıştırır; sistem kalıbı da yazılmadan önce kendini denetler. Ardından her ISO, QEMU'da UEFI ve BIOS ile açılır; masaüstü, çökmeler ve açılış süreleri tek tek kontrol edilir.",
     "s.light.t": "Tasarımı gereği hafif",
-    "s.light.d": "Her arka plan hizmeti yerini hak etmelidir; açılış ve bellek kullanımı her ISO için ölçülür.",
+    "s.light.d": "Her arka plan hizmeti yerini hak etmek zorunda; açılış süresi ve bellek kullanımı her ISO'da yeniden ölçülür.",
     "q.kicker": "Sorular",
-    "q.title": "Sık sorulanlar",
-    "q.1.q": "VeltOS, Windows mu?",
-    "q.1.a": "Hayır. VeltOS, Debian üzerine kurulu bir Linux sistemidir. Kendinizi evinizde hissetmeniz için Windows 11 gibi görünür ve davranır, ancak farklı bir işletim sistemidir ve Microsoft ile bağlantısı yoktur.",
+    "q.title": "Sıkça sorulan sorular",
+    "q.1.q": "VeltOS bir Windows sürümü mü?",
+    "q.1.a": "Hayır. VeltOS, Debian üzerine kurulu bir Linux dağıtımıdır. Kendinizi evinizde hissetmeniz için Windows 11 gibi görünür ve davranır, ancak ayrı bir işletim sistemidir ve Microsoft ile hiçbir bağlantısı yoktur.",
     "q.2.q": "Windows programlarım çalışır mı?",
-    "q.2.a": "Birçoğu Wine ile çalışır; bazıları çalışmaz, bazıları sorunlarla çalışır. VeltOS her programın çalışacağını asla vaat etmez; ne olduğunu size gösterir ve birçok iş için kendi uygulamalarını sunar.",
+    "q.2.a": "Birçoğu Wine sayesinde çalışır; bazıları hiç çalışmaz, bazıları ise sorunlu çalışır. VeltOS her programın çalışacağı sözünü vermez; ne olduğunu size açıkça gösterir ve pek çok iş için kendi uygulamalarını sunar.",
     "q.3.q": "Ücretli mi?",
     "q.3.a": "Hayır. VeltOS ücretsiz ve açık kaynaktır; üzerine kurulduğu yazılımlar da öyle.",
     "q.4.q": "Günlük kullanıma hazır mı?",
-    "q.4.a": "Henüz değil: 0.1 sürümü test için bir ön alfadır. Bir sanal makinede ya da yedek bir bilgisayarda deneyin, bulduklarınızı GitHub'da bize bildirin.",
+    "q.4.a": "Henüz değil. 0.1, test amaçlı bir ön alfa sürümüdür. Bir sanal makinede ya da yedek bir bilgisayarda deneyin ve bulduğunuz sorunları GitHub üzerinden bize bildirin.",
+    "q.7.q": "VeltOS'u sanal makinede deneyebilir miyim?",
+    "q.7.a": "Evet, VeltOS zaten sanal makinelerde test ediliyor. Sanal makineye 4 GB bellek ve 25 GB disk ayırın; UEFI de BIOS da çalışır. 3D hızlandırmayı açarsanız masaüstü daha akıcı olur. Hyper-V'nin açık olduğu Windows bilgisayarlarda (WSL2, Docker Desktop) VirtualBox, sanal makineyi bir tuşa basılana kadar dondurabilir; bu, VirtualBox'ın bilinen bir hatasıdır. QEMU/KVM bu sorundan etkilenmez.",
     "q.5.q": "Güncelleştirmeler nereden gelir?",
-    "q.5.a": "Debian'ın imzalı arşivlerinden, VeltOS Mağaza ve Ayarlar üzerinden; VeltOS'un kendi paketleri bu depodaki koddan derlenir.",
-    "q.6.q": "Hangi dilleri konuşur?",
-    "q.6.a": "VeltOS'un kendi pencerelerinin hepsinde Türkçe ve İngilizce. Debian ve KDE parçaları çok daha fazla dilde kullanılabilir.",
+    "q.5.a": "Güncelleştirmeler Debian'ın imzalı arşivlerinden gelir ve VeltOS Mağaza ile Ayarlar üzerinden kurulur. VeltOS'un kendi paketleri ise GitHub'daki kaynak kodundan derlenir.",
+    "q.6.q": "Hangi dilleri destekliyor?",
+    "q.6.a": "VeltOS'un kendi pencerelerinin tamamı Türkçe ve İngilizcedir. Debian ve KDE'den gelen bileşenler çok daha fazla dilde kullanılabilir.",
     "foot.tag": "Bilgisayarınız. Sınırsız.",
+    "aria.footer": "Alt bilgi",
     "foot.source": "Kaynak kodu",
     "foot.status": "Proje durumu",
     "foot.issues": "Sorun bildirin",
-    "foot.legal": "VeltOS; Debian, KDE Plasma, LibreOffice, Firefox, Thunderbird, Wine ve Calamares üzerine kurulu bağımsız bir projedir. Microsoft ile bağlantılı değildir ve Microsoft tarafından desteklenmez; Windows, Word, Excel, PowerPoint ve Outlook, Microsoft Corporation'ın ticari markalarıdır ve burada yalnızca VeltOS'un neye benzediğini anlatmak için anılır. VeltOS görselleri © VeltOS Geliştiricileri, CC BY-SA 4.0.",
-    "lb.close": "Kapat"
+    "foot.legal": "VeltOS; Debian, KDE Plasma, LibreOffice, Firefox, Thunderbird, Wine ve Calamares üzerine kurulu bağımsız bir projedir. Microsoft ile bağlantılı değildir ve Microsoft tarafından desteklenmez. Windows, Word, Excel, PowerPoint ve Outlook, Microsoft Corporation'ın ticari markalarıdır; burada yalnızca VeltOS'un neye benzediğini anlatmak için anılır. VeltOS görselleri © VeltOS Geliştiricileri, CC BY-SA 4.0.",
+    "aria.shot": "Ekran görüntüsü",
+    "lb.close": "Kapat",
+    "d.copied": "Kopyalandı"
   };
   var TITLES = {
     en: "VeltOS — Your PC. No Limits.",
@@ -242,6 +244,17 @@
       });
     });
     document.title = TITLES[lang];
+    document.querySelectorAll("[data-count]").forEach(function (el) {
+      if (el.dataset.done) el.textContent = formatCount(el, parseFloat(el.getAttribute("data-count")));
+    });
+  }
+
+  /* Numbers in the page's language: "4.0 s" in English, "4,0 sn" in Turkish. */
+  function formatCount(el, value) {
+    var turkish = root.getAttribute("data-lang") === "tr";
+    var text = value.toFixed(parseInt(el.getAttribute("data-decimals") || "0", 10));
+    var suffix = (turkish && el.getAttribute("data-suffix-tr")) || el.getAttribute("data-suffix") || "";
+    return (turkish ? text.replace(".", ",") : text) + suffix;
   }
 
   applyLanguage(root.getAttribute("data-lang") === "tr" ? "tr" : "en");
@@ -270,6 +283,21 @@
     a.addEventListener("click", function () {
       links.classList.remove("open");
       menu.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  /* The logo goes back to the top of the page ("#top" is the top of the
+     document in HTML; this also scrolls smoothly and keeps "#top" out of
+     the address). */
+  document.querySelectorAll('a[href="#top"]').forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      e.preventDefault();
+      links.classList.remove("open");
+      menu.setAttribute("aria-expanded", "false");
+      window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+      try {
+        if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+      } catch (err) { /* not allowed for some file:// pages */ }
     });
   });
 
@@ -329,15 +357,13 @@
   /* Appear on scroll, count up */
   function countUp(el) {
     var target = parseFloat(el.getAttribute("data-count"));
-    var decimals = parseInt(el.getAttribute("data-decimals") || "0", 10);
-    var suffix = el.getAttribute("data-suffix") || "";
-    if (reduced) { el.textContent = target.toFixed(decimals) + suffix; return; }
+    if (reduced) { el.textContent = formatCount(el, target); return; }
     var start = null;
     function frame(now) {
       if (start === null) start = now;
       var p = Math.min(1, (now - start) / 1400);
       var eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = (target * eased).toFixed(decimals) + suffix;
+      el.textContent = formatCount(el, target * eased);
       if (p < 1) requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);

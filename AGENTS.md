@@ -151,6 +151,15 @@ and JavaScript with no build step, no external requests and no cookies:
   elsewhere.
 - Claims on the site follow the project rules: no untested support, no
   "native performance", measured numbers with how they were measured.
+- Turkish is written as Turkish, not word for word, and uses the names the
+  OS shows (VeltOS Mail, VeltOS Mağaza, Bu bilgisayar, Görev Görünümü,
+  Başlangıç Onarımı, Komut İstemi; firmware is "üretici yazılımı").
+  Numbers follow the language (`data-suffix-tr`, decimal comma). Check a
+  new text for both languages at 1081-1140 px: Turkish menu names are
+  longer (the menu folds at 1120 px).
+- The logo links to `#top`, which HTML treats as the top of the document
+  only while no element has that id; an id on the sticky header made the
+  link do nothing (the header is always in view).
 - Keep scrolling cheap: no `filter: blur()` or `backdrop-filter` on large or
   moving elements (they were drawn again for every frame), endless
   animations only on `transform`/`opacity` (the hero's pause while it is
