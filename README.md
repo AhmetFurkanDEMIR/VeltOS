@@ -99,10 +99,11 @@ Debian packages under [packages/](packages/). Firefox ESR is the web browser.
 
 ## Try VeltOS
 
-Test builds of the ISO will be published on
-[GitHub Releases](https://github.com/AhmetFurkanDEMIR/VeltOS/releases).
-Until then, build the ISO yourself (below). One hybrid ISO works from a USB
-stick or a DVD, starts a live system and installs VeltOS.
+The ISO's download link will be in the
+[download section of the website](https://veltos.ahmetfurkandemir.com/#download)
+(at 2.45 GB it is larger than a GitHub release file may be). Until then,
+build the ISO yourself (below). One hybrid ISO starts a live system and
+installs VeltOS.
 
 In a virtual machine, give VeltOS 4 GB of memory and a 25 GB disk; UEFI and
 BIOS both work. In VirtualBox use the VMSVGA graphics controller and turn on
