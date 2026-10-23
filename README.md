@@ -1,110 +1,257 @@
+<div align="center">
+
+<img src="docs/assets/icons/veltos-logo.svg" alt="VeltOS logo" width="96" height="96">
+
 # VeltOS
 
 **Your PC. No Limits.**
 
-VeltOS is a lightweight, Debian-based desktop operating system with a
-Windows 11-inspired KDE Plasma desktop. Its goals are automatic, safe
-hardware and driver management, and the broadest *practical* compatibility
-with Windows applications and games through Wine and Proton.
+A free, Debian-based desktop operating system that looks and works the way
+Windows 11 users already know, with its own apps, a modern installer and
+Windows program support through Wine.
 
-Website: <https://veltos.ahmetfurkandemir.com/>
+[Website](https://veltos.ahmetfurkandemir.com/) ·
+[Project status](docs/dev/status.md) ·
+[Build guide](docs/dev/build-guide.md) ·
+[Architecture](docs/dev/architecture.md) ·
+[Contributing](CONTRIBUTING.md)
 
-> **Project status: pre-alpha.** VeltOS builds as a bootable live ISO with
-> the VeltOS desktop and has only been tested in virtual machines. It is
-> not ready for daily use. The hardware manager, gaming support and a
-> tested installation are not done yet. See [docs/status.md](docs/status.md)
-> for exactly what works and what has been tested.
+![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-orange)
+![Debian 13 trixie](https://img.shields.io/badge/Debian-13%20trixie-A81D33?logo=debian&logoColor=white)
+![KDE Plasma 6.3](https://img.shields.io/badge/KDE%20Plasma-6.3-1D99F3?logo=kde&logoColor=white)
+![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)
 
-## What exists today
+</div>
 
-- A reproducible-by-design live ISO build (Debian 13 "trixie", Linux 6.12,
-  KDE Plasma 6.3 on Wayland) that runs entirely in a Docker container.
-- A Windows 11 style desktop: centred taskbar, VeltOS Start menu,
-  Windows 11 inspired windows, buttons and menus (derived from Fluent-kde),
-  Windows-familiar program names (File Explorer, Settings, Task Manager,
-  …), a Windows 11 style Settings app, sign-in screen, boot screen (logo
-  and spinner, no visible boot menu) and a live-system welcome window
-  ("Try VeltOS" / "Install VeltOS", English / Türkçe).
-- VeltOS apps in the layout of their Windows 11 counterparts (PySide6/QML
-  on Debian's components): File Explorer and the file dialog of every
-  program, Settings, Task Manager, Disk Management, Store, Notepad,
-  Calculator, Clock, Calendar, Photos, Media Player, Camera, Snipping
-  Tool, PDF Reader, an archive manager, the administrator password prompt,
-  Microsoft 365's start screen in front of LibreOffice (Word, Excel,
-  PowerPoint) and Thunderbird restyled as "VeltOS Mail" in Outlook's look.
-- Double-clicking a Windows `.exe`/`.msi` (or a `.bat`/`.cmd` batch file) installs or runs it through Wine
-  (VeltOS runner); Wine is not a security sandbox, and not every Windows
-  program works.
-- A VeltOS installer (Calamares) whose pages follow Windows 11's setup;
-  the installation log is shown only when a step fails.
-- Automatic Repair: after two starts that did not finish, the PC starts a
-  Windows 11 style recovery screen (restart, startup repair, safe mode,
-  command prompt).
-- System identity (`os-release` says VeltOS while staying Debian-compatible).
-- Hardware diagnostic tools on the ISO (lspci, lsusb, lshw, inxi, hwinfo,
-  vulkaninfo, glxinfo, vainfo, smartctl, nvme, sensors, mokutil) and
-  Debian's redistributable firmware.
-- An automated VM boot test (BIOS, UEFI, Secure Boot) with screenshots,
-  checks and measurements.
+![The VeltOS desktop with Start open](docs/assets/img/desktop.webp)
 
-## Quick start (developers)
+> [!IMPORTANT]
+> **VeltOS is pre-alpha.** It builds as a bootable, installable ISO that is
+> tested in virtual machines (QEMU/KVM for every ISO, VirtualBox by hand), but
+> it has not been tested on real hardware yet and is not ready for daily use.
+> [docs/dev/status.md](docs/dev/status.md) lists exactly what works and how it
+> was tested.
 
-Requirements: Docker (Docker Desktop on Windows/macOS), bash (Git Bash on
-Windows), ~25 GB disk, network access to deb.debian.org.
+## Highlights
+
+- **Windows 11's desktop, on Linux.** A centred taskbar, Start with pinned
+  apps and recommendations, search as you type, Task View with virtual
+  desktops, Quick Settings, the notification centre and the right-click menus
+  you know, on KDE Plasma 6.3 (Wayland).
+- **Apps written for VeltOS.** File Explorer, Settings, Store, Notepad,
+  Calculator, Photos, Media Player and more, each in the layout of its
+  Windows 11 counterpart, in English and Turkish, light and dark.
+- **Office and Mail.** Microsoft 365's start screen in front of LibreOffice
+  (Word, Excel and PowerPoint, saving in Microsoft's formats by default) and
+  Thunderbird in Outlook's look.
+- **Windows programs with a double click.** `.exe` and `.msi` files install
+  through Wine into one Windows environment and appear in Start and in
+  Settings › Apps. Wine does not run every program and is not a security
+  sandbox; VeltOS says so.
+- **A modern installer.** Calamares with VeltOS' own pages in the style of
+  Windows 11's setup. It follows the live system's light or dark mode and
+  accent colour, and offers disk encryption that asks for the password at
+  start-up, like BitLocker.
+- **Automatic Repair.** When VeltOS does not finish starting twice in a row,
+  the PC opens a repair screen with Startup Repair, Safe mode, Command Prompt
+  and the last start's problems.
+- **Safe and light by default.** Software comes only from Debian's signed
+  archives or is built from this repository. AppArmor is on, and the ISO
+  boots with Secure Boot through Debian's signed shim. Every background
+  service has to earn its place, and start-up times are measured for every
+  ISO.
+
+## Screenshots
+
+| | |
+|:---:|:---:|
+| ![File Explorer](docs/assets/img/explorer.webp) | ![Settings](docs/assets/img/settings.webp) |
+| File Explorer with tabs and Office files | Settings in Windows 11's layout |
+| ![VeltOS Store](docs/assets/img/store.webp) | ![Word's start screen](docs/assets/img/office.webp) |
+| VeltOS Store on Debian's archive | Word's start screen, LibreOffice behind it |
+| ![Dark mode](docs/assets/img/dark.webp) | ![The VeltOS installer](docs/assets/img/installer.webp) |
+| Dark mode with the Nebula theme | The VeltOS installer |
+
+More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#gallery).
+
+## What's inside
+
+| VeltOS | Like Windows 11's | Built on |
+|---|---|---|
+| File Explorer | File Explorer, the file dialogs, "Open with" | KIO |
+| Settings | Settings | NetworkManager, BlueZ, PipeWire, KScreen |
+| Store | Microsoft Store | AppStream, PackageKit |
+| Word, Excel, PowerPoint | Microsoft 365's start screen | LibreOffice 25.2 |
+| Mail | Outlook | Thunderbird |
+| Calendar, Clock, Calculator, Notepad | The apps of the same name | Qt Quick |
+| Photos, Media Player, Camera | The apps of the same name | Pillow, Qt Multimedia |
+| Snipping Tool | Snipping Tool (Print Screen, Win+Shift+S) | Spectacle |
+| PDF Reader | A modern PDF reader | Qt PDF |
+| Archive | WinRAR's layout | 7-Zip, bsdtar |
+| Task Manager, Disk Management | The tools of the same name | psutil, UDisks2 |
+| Administrator prompt | User Account Control | polkit |
+| Windows programs | App Installer | Wine 10.0, DXVK 2.6 |
+| Automatic Repair | Automatic Repair | systemd, GRUB |
+| Installer | Windows Setup | Calamares 3.3 |
+
+All VeltOS apps are Python 3 and Qt Quick (PySide6), packaged as small
+Debian packages under [packages/](packages/). Firefox ESR is the web browser.
+
+## Try VeltOS
+
+Test builds of the ISO will be published on
+[GitHub Releases](https://github.com/AhmetFurkanDEMIR/VeltOS/releases).
+Until then, build the ISO yourself (below). One hybrid ISO works from a USB
+stick or a DVD, starts a live system and installs VeltOS.
+
+In a virtual machine, give VeltOS 4 GB of memory and a 25 GB disk; UEFI and
+BIOS both work. In VirtualBox use the VMSVGA graphics controller and turn on
+3D acceleration for the smoothest desktop; without it VeltOS draws in
+software. On a Windows PC with Hyper-V on (WSL2, Docker Desktop), VirtualBox
+can freeze virtual machines until a key is pressed — a known VirtualBox bug
+([VirtualBox issue 722](https://github.com/VirtualBox/virtualbox/issues/722));
+QEMU/KVM is not affected. The live session signs in by itself (user `velt`,
+password `live`).
+
+Try VeltOS in a virtual machine or on a spare PC, not on a computer you depend
+on.
+
+## Build from source
+
+Everything builds and is tested inside a Docker container; the host needs
+only Docker and bash.
+
+| You need | |
+|---|---|
+| Docker | Docker Engine on Linux, Docker Desktop on Windows and macOS (privileged containers) |
+| bash | Git Bash on Windows |
+| Disk | About 25 GB free |
+| Memory | 8 GB; 16 GB is better |
+| KVM | For the boot tests (`build/run.sh test`) |
 
 ```bash
-build/run.sh iso     # build packages and the ISO into out/iso/
-build/run.sh test    # boot it in QEMU/KVM and verify the desktop (UEFI)
+git clone https://github.com/AhmetFurkanDEMIR/VeltOS.git
+cd VeltOS
+build/run.sh iso      # build every package (with its unit tests) and the ISO into out/iso/
+build/run.sh test     # boot the newest ISO in QEMU/KVM with UEFI and check the desktop
 ```
 
-Details, options and troubleshooting: [docs/build-guide.md](docs/build-guide.md).
-Live session login: user `velt`, password `live`.
+| Command | What it does |
+|---|---|
+| `build/run.sh packages [name...]` | Build VeltOS' Debian packages and run their unit tests |
+| `build/run.sh iso` | Build the packages and the live ISO |
+| `build/run.sh test [uefi\|bios\|secureboot]` | Boot the newest ISO in QEMU/KVM, check it and take screenshots |
+| `build/run.sh test-winapps` | Install a real Windows program through VeltOS' runner in a VM |
+| `build/run.sh vm start` | A long-running development VM (`do`, `exec`, `upload`, `stop`) |
+| `build/run.sh shell` | A shell in the builder container |
 
-## Project rules
+Options, mirrors and troubleshooting are in the
+[build guide](docs/dev/build-guide.md).
 
-VeltOS is developed by humans and AI agents together under a short set of
-rules — the full text is in [AGENTS.md](AGENTS.md):
+## Under the hood
 
-1. Working, bootable software before ambitious unimplemented features.
-2. Never fabricate build results, test results, hardware support or
-   completed features; untested means untested.
-3. Reuse mature upstream components (Debian, KDE, Mesa, Wine/Proton);
-   VeltOS code lives in small, testable Debian packages.
-4. Security, reliability, maintainability and low resource use are
-   requirements, not extras.
-5. No universal-compatibility or "native performance" claims without
-   measurements.
-6. Builds and tests stay isolated from the developer's host system.
-7. Everything in the repository is written in English, and docs are kept
-   current so anyone (or any agent) can continue the work.
+| | |
+|---|---|
+| Base | Debian 13 "trixie" (stable) |
+| Kernel | Linux 6.12 LTS, Debian's signed kernel |
+| Desktop | KDE Plasma 6.3 on Wayland, with VeltOS' taskbar, Start, Task View and window frames |
+| Graphics | Mesa 25.0; software rendering where a virtual machine has no 3D |
+| Boot | GRUB 2.12 for BIOS and UEFI, Secure Boot through shim, Plymouth |
+| Installer | Calamares 3.3.14 with VeltOS' pages |
+| Office, web, mail | LibreOffice 25.2, Firefox ESR, Thunderbird ESR |
+| Windows programs | Wine 10.0, DXVK 2.6, Wine Mono and Gecko |
+| VeltOS apps | Python 3.13, PySide6 6.8 (Qt Quick) |
+| Languages | English and Turkish |
+| ISO | 2.45 GB, one hybrid image for USB sticks and DVDs (2026-10-23 build) |
+
+VeltOS reuses mature upstream software instead of forking it: Debian
+packages, KDE Plasma, Mesa, Wine and Calamares are used as they are and
+changed through configuration, themes and small VeltOS packages. The
+reasons, the alternatives and their trade-offs are in
+[docs/dev/architecture.md](docs/dev/architecture.md).
+
+## Quality and testing
+
+- **Unit tests in every package build.** Each package runs its tests while it
+  builds (694 tests in the 2026-10-23 ISO build).
+- **The image checks itself.** A live-build hook stops the build when a VeltOS
+  invariant is broken: required packages, branding, themes, file
+  associations, the boot splash, stripped Wine libraries and more.
+- **Boot tests in virtual machines.** ISOs boot in QEMU/KVM with UEFI, BIOS
+  and Secure Boot; the test checks the desktop, looks for crashes and core
+  dumps and records screenshots, memory use and start-up times.
+- **Install tests.** Installations, encrypted ones included, run in QEMU
+  virtual machines and are started again from the installed disk.
+- **Evidence in the repository.** Reports and screenshots of milestone test
+  runs are kept in [tests/results/](tests/results/).
+
+What is not tested yet (real hardware above all) is listed in
+[docs/dev/status.md](docs/dev/status.md) and
+[docs/dev/testing.md](docs/dev/testing.md).
+
+## Project principles
+
+VeltOS is built by people and AI agents together under a short set of rules;
+the full text is in [AGENTS.md](AGENTS.md).
+
+1. Working, bootable software comes before ambitious unimplemented features.
+2. No fabricated results: untested means untested, and failures are reported
+   with their output.
+3. Reuse mature upstream components; VeltOS' own code lives in small, tested
+   Debian packages.
+4. Security, reliability and low resource use are requirements.
+5. No promises of universal Windows compatibility or "native performance"
+   without measurements.
+6. Builds and tests stay inside containers and virtual machines, away from
+   the developer's system.
+7. Everything in the repository is in English, and the documentation is kept
+   current so that anyone can continue the work.
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| [AGENTS.md](AGENTS.md) | Rules and handoff guide for contributors and AI agents |
-| [build/](build/) | Build entry point, builder container, live-build configuration |
-| [packages/](packages/) | VeltOS Debian packages, one per directory (`veltos-base`, `veltos-desktop`, `veltos-settings`, `veltos-explorer`, `veltos-boot`, `veltos-recovery`, `veltos-fluent-icons`, `calamares-settings-veltos`, the VeltOS apps, `veltos-winapps`, `veltos-wine-addons`); [AGENTS.md](AGENTS.md) has the full map |
-| [tests/](tests/) | VM boot test and committed test evidence |
-| [docs/architecture.md](docs/architecture.md) | Technical decisions, trade-offs, risks |
-| [docs/build-guide.md](docs/build-guide.md) | How to build and test |
-| [docs/testing.md](docs/testing.md) | Test strategy and measurement caveats |
-| [docs/status.md](docs/status.md) | Implemented / in progress / planned, with evidence |
-| [docs/development-log.md](docs/development-log.md) | Chronological engineering log |
+| [AGENTS.md](AGENTS.md) | Rules, repository map and lessons learned, for contributors and AI agents |
+| [build/](build/) | `run.sh` (the single entry point), the builder container, the live-build configuration |
+| [packages/](packages/) | VeltOS' Debian packages, one per directory |
+| [tests/](tests/) | VM boot, install and Windows program tests; committed test evidence |
+| [docs/](docs/) | The website (GitHub Pages) |
+| [docs/dev/](docs/dev/) | Developer documentation |
+
+## Documentation
+
+| Document | What it covers |
+|---|---|
+| [Project status](docs/dev/status.md) | What is done, how it was tested, known gaps and next steps |
+| [Architecture](docs/dev/architecture.md) | Technical decisions with alternatives and trade-offs |
+| [Build guide](docs/dev/build-guide.md) | Building and testing, step by step |
+| [Testing](docs/dev/testing.md) | Test strategy, measurements and their limits |
+| [Development log](docs/dev/development-log.md) | Everything that was done, in order, with results |
 
 ## Roadmap
 
 | Milestone | Scope | State |
 |---|---|---|
-| 0 — Feasibility & architecture | Base, desktop, driver and compatibility strategy, risks | Done ([architecture](docs/architecture.md)) |
-| 1 — First bootable ISO | live-build config, branding, diagnostic tools, VM boot | Done in VMs; Windows 11 UI work continuing — see [status](docs/status.md) |
-| 2 — Hardware detection | Velt Hardware Manager, driver recommendations | Planned |
-| 3 — Windows application manager | .exe handling, shared Wine environment, logs | Started (runner works in VM tests) |
-| 4 — Gaming | Steam/Proton, DXVK/VKD3D-Proton, profiles, benchmarks | Planned |
-| 5 — Installer & releases | Branded Calamares, install tests, updates, recovery | Branded installer done; install test pending |
+| Foundation | Debian base, desktop, driver and compatibility strategy | Done |
+| A bootable, installable ISO | Live system, installer, VeltOS' desktop and apps, VM tests | Done in virtual machines |
+| Windows programs | The runner, one Windows environment, programs in Start and Settings | In progress |
+| Releases and updates | Tests on real hardware, update channels, public releases | In progress |
+| Hardware manager | Recognise devices and recommend drivers (NVIDIA's, for example) from signed archives | Planned |
+| Gaming | Steam with Proton, DXVK and VKD3D-Proton, game profiles, measured benchmarks | Planned |
 
-## License
+## Contributing
 
-VeltOS code is licensed under the GNU GPL v3 or later ([LICENSE](LICENSE)).
-VeltOS artwork is CC-BY-SA-4.0. Debian and upstream components keep their
-own licenses.
+Bug reports and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+and [AGENTS.md](AGENTS.md) first, and report problems on
+[GitHub Issues](https://github.com/AhmetFurkanDEMIR/VeltOS/issues).
+
+## License and trademarks
+
+VeltOS' code is licensed under the GNU General Public License v3.0 or later
+([LICENSE](LICENSE)); VeltOS' artwork is licensed under CC BY-SA 4.0. Debian
+and the upstream components keep their own licenses.
+
+VeltOS is an independent project and is not affiliated with or endorsed by
+Microsoft. Windows, Microsoft 365, Word, Excel, PowerPoint and Outlook are
+trademarks of Microsoft Corporation; they are named only to describe what
+VeltOS resembles.

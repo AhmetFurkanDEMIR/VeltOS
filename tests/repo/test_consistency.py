@@ -41,12 +41,33 @@ class ArtworkTests(unittest.TestCase):
         splash = (REPO / "build/live-build/config/bootloaders/splash.svg").read_text()
         self.assertIn(inner, splash)
 
+    def test_website_icons_are_the_systems(self):
+        """The website (docs/) shows VeltOS' own icons: each must still be
+        identical to a file of the same name in a package's artwork, data or
+        branding folder."""
+        icons = sorted((REPO / "docs/assets/icons").glob("*.svg"))
+        if not icons:
+            self.skipTest("no website in this tree")
+        sources = {}
+        for pattern in ("packages/*/artwork/*.svg", "packages/*/data/*.svg",
+                        "packages/*/branding/*.svg", "packages/*/branding/*/*.svg"):
+            for path in REPO.glob(pattern):
+                sources.setdefault(path.name, []).append(path.read_bytes())
+        for icon in icons:
+            with self.subTest(icon=icon.name):
+                self.assertIn(icon.read_bytes(), sources.get(icon.name, []),
+                              f"docs/assets/icons/{icon.name} differs from the system's icon")
+
+
+BINARY = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".iso", ".deb", ".gz", ".mo",
+          ".woff", ".woff2", ".ttf", ".otf", ".pdf"}
+
 
 class LineEndingTests(unittest.TestCase):
     def test_no_crlf_in_text_files(self):
         offenders = []
         for path in repo_files():
-            if path.suffix in {".png", ".jpg", ".iso", ".deb", ".gz", ".mo"}:
+            if path.suffix in BINARY:
                 continue
             if b"\r\n" in path.read_bytes():
                 offenders.append(str(path.relative_to(REPO)))

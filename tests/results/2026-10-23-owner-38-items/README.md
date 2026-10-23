@@ -5,7 +5,7 @@ with the packages of this change installed by `dpkg -i` (the VM-only
 `out/vm/install-debs.sh`), in Turkish; the Automatic Repair and Safe mode
 pictures come from real starts of that installed system (GRUB's start
 counter at 2, and the "Safe mode" boot entry). Details per item are in
-`docs/development-log.md` (2026-10-23 entry).
+`docs/dev/development-log.md` (2026-10-23 entry).
 
 | File | What it shows |
 |---|---|

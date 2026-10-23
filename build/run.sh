@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # VeltOS developer entry point. Every step runs inside the veltos-builder
 # container, so the host only needs Docker (Linux, macOS, or Windows with
-# Docker Desktop + Git Bash). See docs/build-guide.md.
+# Docker Desktop + Git Bash). See docs/dev/build-guide.md.
 #
 #   build/run.sh image        build the builder container image
 #   build/run.sh packages [name...]  build the VeltOS .deb packages into

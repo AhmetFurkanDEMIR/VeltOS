@@ -78,7 +78,7 @@ Texts in English and Turkish, from the system's `LANG`
   `exit`, back on the options), Restart and Safe mode (the desktop on X11
   and the frame buffer, with the setting written by hand before the
   package had `safe-graphics`) worked. Not yet run: Turn off, a BIOS
-  machine, real hardware; see `docs/status.md`.
+  machine, real hardware; see `docs/dev/status.md`.
 
 ## Installed files
 

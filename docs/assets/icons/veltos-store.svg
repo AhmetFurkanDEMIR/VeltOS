@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS Store: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="bag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A6FE8"/>
+      <stop offset="1" stop-color="#1D3FA6"/>
+    </linearGradient>
+    <linearGradient id="v" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCE6FF"/>
+    </linearGradient>
+  </defs>
+  <path d="M 40 84 Q 40 72 52 72 H 204 Q 216 72 216 84 L 222 210 Q 222 226 206 226 H 50 Q 34 226 34 210 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 88 92 V 64 Q 88 34 128 34 Q 168 34 168 64 V 92" fill="none" stroke="#38C5F9" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 40 84 Q 40 72 52 72 H 204 Q 216 72 216 84 L 222 210 Q 222 226 206 226 H 50 Q 34 226 34 210 Z" fill="url(#bag)"/>
+  <path d="M 52 75 H 204" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 92 112 L 128 192 L 164 112" fill="none" stroke="url(#v)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

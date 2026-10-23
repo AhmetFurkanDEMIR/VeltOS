@@ -143,7 +143,7 @@ Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):
 
 - Raw results: `out/test-results/<UTC stamp>-<firmware>/` (not committed).
 - Milestone evidence: copied to `tests/results/<milestone>/` and summarised
-  in `docs/status.md`.
+  in `docs/dev/status.md`.
 
 ## Not covered yet (planned)
 
