@@ -429,6 +429,24 @@ class FullBuildTest(unittest.TestCase):
             self.check_fluent_themes(root, kdeglobals)
             self.check_terminal(root)
             self.check_controls_style(root)
+            self.check_samples(root)
+
+    def check_samples(self, root):
+        """Sample media for Photos and Media Player: a song with its cover
+        and a video (VeltOS' own), every wallpaper light and dark."""
+        samples = root / "usr/share/veltos/samples"
+        song = (samples / "Music/VeltOS - Bloom.mp3").read_bytes()
+        self.assertTrue(song.startswith(b"ID3"))
+        self.assertIn(b"APIC", song[:200000])                  # the cover
+        self.assertIn(b"ftyp", (samples / "Videos/VeltOS.mp4").read_bytes()[:64])
+        pictures = sorted(p.name for p in (samples / "Wallpapers").iterdir())
+        self.assertEqual(len(pictures), 2 * len(build_assets.wallpapers.DESIGNS))
+        self.assertIn("VeltOS Bloom.png", pictures)
+        self.assertIn("VeltOS Bloom (Dark).png", pictures)
+        for link in (samples / "Wallpapers").iterdir():
+            target = os.readlink(link)
+            self.assertTrue(target.startswith("/usr/share/wallpapers/") and target.endswith("/3840x2160.png"), target)
+            self.assertTrue((root / target.lstrip("/")).is_file(), target)
 
     def check_controls_style(self, root):
         """VeltOS' Qt Quick Controls style: Windows 11 scroll bars, everything

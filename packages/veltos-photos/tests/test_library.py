@@ -114,5 +114,23 @@ class EditTests(unittest.TestCase):
         self.assertEqual((facts["width"], facts["height"]), (80, 40))
 
 
+class SampleTests(unittest.TestCase):
+    """VeltOS' sample pictures (the wallpapers) and video are part of the
+    default library when veltos-desktop installed them."""
+
+    def test_default_folders_include_samples(self):
+        samples = Path(tempfile.mkdtemp())
+        (samples / "Wallpapers").mkdir()
+        saved = library.SAMPLES
+        library.SAMPLES = samples
+        try:
+            folders = library.default_folders()
+            self.assertEqual(folders[2:], [samples / "Wallpapers"])      # no Videos folder there
+            (samples / "Videos").mkdir()
+            self.assertEqual(library.default_folders()[2:], [samples / "Wallpapers", samples / "Videos"])
+        finally:
+            library.SAMPLES = saved
+
+
 if __name__ == "__main__":
     unittest.main()

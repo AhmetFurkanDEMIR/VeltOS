@@ -15,6 +15,17 @@ SKIP_DIRS = {".cache", ".Trash", ".git", "node_modules", "drive_c"}
 COVER_NAMES = ("cover", "folder", "front", "album", "albumart")
 
 
+# VeltOS' sample media (veltos-desktop: the wallpapers as pictures, a video
+# and a song), part of the libraries as Windows' sample files were.
+SAMPLES = Path("/usr/share/veltos/samples")
+
+
+def sample_dirs(*names, root=None):
+    """The sample folders that exist, as paths."""
+    base = SAMPLES if root is None else Path(root)
+    return [base / name for name in names if (base / name).is_dir()]
+
+
 def user_dir(name, fallback):
     home = Path.home()
     config = Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config") / "user-dirs.dirs"

@@ -212,11 +212,13 @@ class Backend(QObject):
 
     @Property("QStringList", notify=settingsChanged)
     def musicFolders(self):
-        return self._list("musicFolders") or [str(library.user_dir("MUSIC", "Music"))]
+        return self._list("musicFolders") or [str(p) for p in (library.user_dir("MUSIC", "Music"),
+                                                                 *library.sample_dirs("Music"))]
 
     @Property("QStringList", notify=settingsChanged)
     def videoFolders(self):
-        return self._list("videoFolders") or [str(library.user_dir("VIDEOS", "Videos"))]
+        return self._list("videoFolders") or [str(p) for p in (library.user_dir("VIDEOS", "Videos"),
+                                                                 *library.sample_dirs("Videos"))]
 
     @Slot(str, str)
     def addFolder(self, kind, url):
@@ -240,6 +242,10 @@ class Backend(QObject):
 
     @Slot(str, result=str)
     def folderName(self, path):
+        sample = {str(library.SAMPLES / "Music"): "sample_music",
+                  str(library.SAMPLES / "Videos"): "sample_videos"}.get(path)
+        if sample:
+            return self._texts[sample]
         return Path(path).name or path
 
     @Property(bool, notify=libraryChanged)

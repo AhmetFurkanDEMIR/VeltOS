@@ -636,6 +636,20 @@ def build_static_config(root):
                    "update-plasma-overrides", "veltos-desktop-guard"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
+    # Sample media (samples/, made by tools/sample-media.py) and every
+    # wallpaper as a picture (links to the largest size): Photos and Media
+    # Player show /usr/share/veltos/samples in their libraries, as Windows
+    # shows its sample pictures, music and videos.
+    samples = root / "usr/share/veltos/samples"
+    for folder, name in (("Music", "VeltOS - Bloom.mp3"), ("Videos", "VeltOS.mp4")):
+        (samples / folder).mkdir(parents=True, exist_ok=True)
+        shutil.copy(SRC / "samples" / name, samples / folder / name)
+    (samples / "Wallpapers").mkdir(parents=True, exist_ok=True)
+    for package_id, title in wallpapers.DESIGNS.values():
+        for variant, suffix in (("images", ""), ("images_dark", " (Dark)")):
+            picture = samples / "Wallpapers" / f"{title}{suffix}.png"
+            if not picture.is_symlink():
+                picture.symlink_to(f"/usr/share/wallpapers/{package_id}/contents/{variant}/3840x2160.png")
     # VeltOS' Qt Quick Controls style (qml/org/veltos/controls): Windows 11
     # scroll bars over KDE's Breeze for VeltOS' apps, which select it with
     # veltos_controls.use(). Kirigami picks its platform plugin by the

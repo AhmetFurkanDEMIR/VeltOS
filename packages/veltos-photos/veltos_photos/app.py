@@ -321,6 +321,10 @@ class Backend(QObject):
 
     @Slot(str, result=str)
     def folderName(self, path):
+        sample = {str(library.SAMPLES / "Wallpapers"): "sample_wallpapers",
+                  str(library.SAMPLES / "Videos"): "sample_videos"}.get(path)
+        if sample:
+            return self._texts[sample]
         return Path(path).name or path
 
     # --- library and gallery ----------------------------------------------------------------

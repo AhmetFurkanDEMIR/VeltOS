@@ -112,5 +112,12 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual(library.duration_text(0), "0:00")
 
 
+class SampleTests(unittest.TestCase):
+    def test_sample_dirs(self):
+        samples = Path(tempfile.mkdtemp())
+        (samples / "Music").mkdir()
+        self.assertEqual(library.sample_dirs("Music", "Videos", root=samples), [samples / "Music"])
+
+
 if __name__ == "__main__":
     unittest.main()

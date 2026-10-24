@@ -22,6 +22,8 @@ TEXTS = {
     "all_items": ("Photos and videos", "Fotoğraflar ve videolar"),
     "photos_only": ("Photos", "Fotoğraflar"),
     "videos_only": ("Videos", "Videolar"),
+    "sample_wallpapers": ("Wallpapers", "Duvar kağıtları"),
+    "sample_videos": ("Sample videos", "Örnek videolar"),
     "sort": ("Sort", "Sırala"),
     "newest": ("Date taken: newest first", "Çekim tarihi: önce en yeni"),
     "oldest": ("Date taken: oldest first", "Çekim tarihi: önce en eski"),

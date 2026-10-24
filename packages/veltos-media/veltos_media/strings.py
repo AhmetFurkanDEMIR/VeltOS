@@ -24,6 +24,8 @@ TEXTS = {
     "media_files": ("Media files", "Medya dosyaları"),
     # Music
     "music": ("Music", "Müzik"),
+    "sample_music": ("Sample music", "Örnek müzikler"),
+    "sample_videos": ("Sample videos", "Örnek videolar"),
     "songs": ("Songs", "Şarkılar"),
     "albums": ("Albums", "Albümler"),
     "artists": ("Artists", "Sanatçılar"),

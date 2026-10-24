@@ -60,7 +60,7 @@ class ArtworkTests(unittest.TestCase):
 
 
 BINARY = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".iso", ".deb", ".gz", ".mo",
-          ".woff", ".woff2", ".ttf", ".otf", ".pdf"}
+          ".woff", ".woff2", ".ttf", ".otf", ".pdf", ".mp3", ".mp4", ".ogg", ".wav", ".webm"}
 
 
 class LineEndingTests(unittest.TestCase):

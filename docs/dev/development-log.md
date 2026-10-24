@@ -3,6 +3,33 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Sample pictures, music and a video
+
+Item 14 of the product owner's list: the default wallpapers in Photos,
+and a nice video and sound that come with the system.
+
+- Nothing third-party: `veltos-desktop/tools/sample-media.py` synthesizes
+  a 63 s ambient song in D major (pads, bass and a soft FM bell
+  arpeggio with a ping-pong echo, pure Python, a fixed random seed) and
+  makes a 31 s video from four VeltOS wallpapers (slow zooms, 1 s
+  cross-fades) and an end card with the logo on VeltOS' navy, with the
+  song as sound. The results are committed (`samples/`, 1.3 MB + 3.3 MB)
+  so package builds need no ffmpeg; the tool documents how to make them
+  again. First attempts: a looped still image fed to ffmpeg's zoompan
+  multiplied the frames (zoompan makes `d` frames per input frame), and
+  the bells were bright (modulation lowered, a 4 kHz low-pass added).
+- veltos-desktop installs them in `/usr/share/veltos/samples/{Music,
+  Videos}` and links every wallpaper (light and dark, 3840x2160) into
+  `samples/Wallpapers`. Photos' and Media Player's default libraries
+  include these folders ("Duvar kağıtları", "Örnek videolar",
+  "Örnek müzikler"), as Windows' libraries included its sample files.
+- The repository checks treat .mp3/.mp4/.ogg/.wav/.webm as binary
+  (`.gitattributes`, `tests/repo`).
+- Verified: package tests (the samples in the built tree, the default
+  folders); dev VM: Photos with 17 items and the sample folders, Media
+  Player's album with its cover, the song playing, the video in the
+  video library (`tests/results/2026-10-25-sample-media/`).
+
 ## 2026-10-25 — Task Manager: GPU usage
 
 Item 13 of the product owner's list.

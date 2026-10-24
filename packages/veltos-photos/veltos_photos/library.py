@@ -15,6 +15,16 @@ VIDEO_SUFFIXES = {".mp4", ".m4v", ".mov", ".mkv", ".webm", ".avi", ".wmv", ".3gp
 SKIP_DIRS = {".thumbnails", ".cache", ".Trash", ".git", "node_modules", "drive_c"}
 MAX_ITEMS = 50000
 
+# VeltOS' sample media (veltos-desktop: the wallpapers as pictures, a video
+# and a song), part of the libraries as Windows' sample files were.
+SAMPLES = Path("/usr/share/veltos/samples")
+
+
+def sample_dirs(*names, root=None):
+    """The sample folders that exist, as paths."""
+    base = SAMPLES if root is None else Path(root)
+    return [base / name for name in names if (base / name).is_dir()]
+
 
 def user_dir(name, fallback):
     """An XDG user folder (PICTURES, VIDEOS) from user-dirs.dirs."""
@@ -31,7 +41,7 @@ def user_dir(name, fallback):
 
 
 def default_folders():
-    return [user_dir("PICTURES", "Pictures"), user_dir("VIDEOS", "Videos")]
+    return [user_dir("PICTURES", "Pictures"), user_dir("VIDEOS", "Videos"), *sample_dirs("Wallpapers", "Videos")]
 
 
 def kind_of(path):
