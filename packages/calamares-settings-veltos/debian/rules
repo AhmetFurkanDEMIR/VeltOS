@@ -1,21 +1,35 @@
 #!/usr/bin/make -f
 
 PKG = debian/calamares-settings-veltos
+STYLE_BUILD = build-style
 
 %:
 	dh $@
 
+# The installer's Qt style (style/: a C++ Qt plugin, the package's only
+# compiled part).
+override_dh_auto_configure:
+	dh_auto_configure --buildsystem=cmake --sourcedirectory=style --builddirectory=$(STYLE_BUILD)
+
 override_dh_auto_build:
+	dh_auto_build --buildsystem=cmake --builddirectory=$(STYLE_BUILD)
 	mkdir -p build-assets
 	rsvg-convert --width 256 --height 256 branding/veltos-logo.svg --output build-assets/logo.png
 	# The installer's dark look, made from the light style sheet.
 	python3 tools/dark-stylesheet.py calamares/branding/veltos/stylesheet-light.qss build-assets/stylesheet-dark.qss
 
 override_dh_auto_test:
-	python3 -m unittest discover -s tests -v
+	VELTOS_STYLE_PLUGIN=$(CURDIR)/$(STYLE_BUILD)/libveltos-installer-style.so python3 -m unittest discover -s tests -v
+
+override_dh_auto_install:
+	dh_auto_install --buildsystem=cmake --builddirectory=$(STYLE_BUILD)
+
+# No -dbgsym package: the image installs every .deb that is built.
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym
 
 override_dh_auto_clean:
-	rm -rf build-assets
+	rm -rf build-assets $(STYLE_BUILD)
 
 execute_after_dh_fixperms:
 	chmod 755 $(PKG)/usr/bin/* $(PKG)/usr/libexec/veltos-installer/*

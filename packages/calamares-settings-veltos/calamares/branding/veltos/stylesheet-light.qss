@@ -136,6 +136,11 @@ QLineEdit:disabled {
     color: #A3A9B8;
 }
 
+/* Drop-down lists open under their box, as in Windows 11: Kvantum's own
+   list opened over the box, shifted, with its rows over the box's text
+   (product owner, 2026-10-23: "the area that opens overlaps"). The rows
+   are drawn by a styled delegate (the veltos-installer style), so the
+   ::item rules below reach them. */
 QComboBox {
     background-color: #FFFFFF;
     color: #1B1D24;
@@ -143,6 +148,7 @@ QComboBox {
     border-radius: 5px;
     padding: 5px 10px;
     min-height: 22px;
+    combobox-popup: 0;
 }
 QComboBox:hover {
     background-color: #F7F8FC;
@@ -163,6 +169,19 @@ QComboBox QAbstractItemView {
     outline: 0;
     selection-background-color: #E4E8F3;
     selection-color: #1B1D24;
+}
+QComboBox QAbstractItemView::item {
+    min-height: 30px;
+    padding: 0px 8px;
+    border-radius: 4px;
+    color: #1B1D24;
+}
+QComboBox QAbstractItemView::item:hover {
+    background-color: #F1F3F9;
+}
+QComboBox QAbstractItemView::item:selected {
+    background-color: #E4E8F3;
+    color: #1B1D24;
 }
 
 QListView, QTreeView, QTableView {
@@ -320,11 +339,15 @@ QToolBar {
 }
 
 /* Partition page (Calamares' ChoicePage, a C++ page): the Windows 11 look
-   QSS can give it. The boot mode ("EFI") and partition table type are
-   technical and Windows does not show them. The options' old-style disk
-   pictures are compiled into Calamares and cannot be replaced, so they are
-   left out (icon size 0) and the page carries the installer's own drive
-   picture in its free space instead, like the other pages. */
+   QSS can give it; the disk bars, their legend and the resize bar are
+   drawn by the veltos-installer style (style/installerstyle.cpp). The boot
+   mode ("EFI") and partition table type are technical and Windows does
+   not show them. The options' old-style disk pictures are compiled into
+   Calamares and cannot be replaced, so they are left out (icon size 0)
+   and the page carries the installer's own drive picture in its free
+   space instead, like the other pages. The passphrase check's status
+   picture is shown at the size of a line of text (Calamares made it as
+   tall as the passphrase fields). */
 BootInfoWidget, DeviceInfoWidget {
     max-width: 0px;
     max-height: 0px;
@@ -333,6 +356,13 @@ BootInfoWidget, DeviceInfoWidget {
 }
 Calamares--Widgets--PrettyRadioButton QRadioButton {
     qproperty-iconSize: 0px 0px;
+}
+EncryptWidget QLabel#m_iconLabel {
+    qproperty-scaledContents: true;
+    min-width: 20px;
+    max-width: 20px;
+    min-height: 20px;
+    max-height: 20px;
 }
 QScrollArea#m_itemsScrollArea QWidget#scrollAreaWidgetContents {
     background-image: url(/etc/calamares/branding/veltos/images/ill-disk.svg);

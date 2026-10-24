@@ -81,7 +81,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook), start-up screen at the screen's resolution (`resolution/`: set at installation, kept in step at sign-in), GRUB start counting with the Recovery and safe-graphics entries (`grub.d/10_linux`) |
 | `packages/veltos-recovery/` | VeltOS Automatic Repair: after two starts that did not finish, GRUB starts `veltos-recovery.target`, a full-screen Windows 11 style recovery window on Qt's linuxfb (Restart, Startup Repair, Safe mode, Command Prompt as a console sign-in, last start's problems, Turn off); the services that clear the count or restart after a failed start; `veltos-safe-graphics` (starts without a graphics driver sign in to Plasma on X11); persistent journal |
-| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), live welcome window (Try/Install), live session settings |
+| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format, delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window; `programs.py` reads installed Windows programs from Wine's registry files (Settings' Windows programs page) |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
@@ -887,6 +887,25 @@ and JavaScript with no build step, no external requests and no cookies:
   Grep VBox.log for those lines before trusting a VirtualBox timing,
   "stutter" or a screenshot (a stalled VM's screenshots repeat byte for
   byte); measure in QEMU.
+- Kvantum's combo box lists (with `combo_menu`, as in VeltOS' theme) are
+  translucent menus: it reserves its shadow in `SC_ComboBoxListBoxPopup`
+  (the list opened 15 px up and left, over its own box) and gives the list
+  a transparent style sheet when it finds Qt's `QComboMenuDelegate`; the
+  style sheet's `combobox-popup: 0` alone did not help. The installer's
+  style keeps Kvantum off `QComboBoxPrivateContainer`/`QComboBoxListView`,
+  sets a styled delegate first and returns the box's rect for the list.
+- Calamares' partition pictures (PartitionBarsView, PartitionLabelsView,
+  PartitionSplitterWidget) are painted in C++ with fixed colours; a style
+  can take over their paint events by class name, but the splitter must
+  paint first (it sets its resize handle position while painting). Its
+  `partitionResized(QString,qint64,qint64)` signal can be connected by
+  name without Calamares' headers. Calamares' Turkish translation writes
+  its MiB values as "MB". PySide6 classes carry their Python class name
+  as meta-object name, so stand-ins named like Calamares' classes test
+  such a plugin offscreen. Start a dark installer in the VM with
+  `systemd-run --machine=velt@.host --user --collect -p KillMode=process
+  sh -c 'pkexec /usr/libexec/veltos-installer/start-calamares --dark
+  --accent "#E81123"'` (pkexec refuses when its parent has exited).
 - Wine's Start shortcuts have spaces in their file names ("7-Zip File
   Manager.desktop"): pipe file lists with `-print0`/`-0` or use `find
   -exec`, never plain `xargs` (the Windows program test reported a

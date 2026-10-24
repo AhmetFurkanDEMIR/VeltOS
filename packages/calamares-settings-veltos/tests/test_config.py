@@ -128,7 +128,7 @@ class ConfigTests(unittest.TestCase):
         launcher = (PKG / "bin/install-veltos").read_text(encoding="utf-8")
         self.assertIn("pkexec /usr/libexec/veltos-installer/start-calamares $theme", launcher)
         start = (PKG / "helpers/start-calamares").read_text(encoding="utf-8")
-        self.assertIn('-style kvantum -stylesheet "$run_dir/stylesheet.qss"', start)
+        self.assertIn('-style veltos-installer -stylesheet "$run_dir/stylesheet.qss"', start)
         # Calamares also applies the branding's stylesheet.qss to its main
         # window: a link to the same generated sheet (light or dark).
         links = (PKG / "debian/calamares-settings-veltos.links").read_text(encoding="utf-8").splitlines()

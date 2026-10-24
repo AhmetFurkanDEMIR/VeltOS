@@ -57,6 +57,9 @@ class DarkStyleSheetTests(unittest.TestCase):
                                     r"\s*border: 1px solid #2A55D4;\s*color: #FFFFFF;")
         self.assertIn("image: url(/etc/calamares/branding/veltos/images/chevron-down-dark.svg);", self.dark)
         self.assertTrue((BRANDING / "images/chevron-down-dark.svg").is_file())
+        # The disk page's picture has a dark variant too.
+        self.assertIn("background-image: url(/etc/calamares/branding/veltos/images/ill-disk-dark.svg);", self.dark)
+        self.assertTrue((BRANDING / "images/ill-disk-dark.svg").is_file())
         # The failed step's log keeps its terminal colours.
         self.assertIn("background-color: #0C0C0C;", self.dark)
 
@@ -131,7 +134,7 @@ class StartCalamaresTests(unittest.TestCase):
     def test_dark_with_the_users_accent_in_software(self):
         lines, sheet, kvantum = self.start("--dark", "--accent", "#E81123", "--software")
         self.assertEqual(lines[0], "backend=software")
-        self.assertEqual(lines[1:5], ["-style", "kvantum", "-stylesheet", str(self.tmp / "run/stylesheet.qss")])
+        self.assertEqual(lines[1:5], ["-style", "veltos-installer", "-stylesheet", str(self.tmp / "run/stylesheet.qss")])
         self.assertEqual(lines[5], "veltos-theme=dark=1;accent=#E81123;software=1")
         self.assertIn("background-color: #1C1E24;", sheet)
         self.assertIn("background-color: #E81123;", sheet)

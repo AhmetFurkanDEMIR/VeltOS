@@ -38,7 +38,18 @@ helper scripts are derived, ISC licence).
     a box to try the keys.
   - **Partitioning**: Calamares' own C++ page, styled by the style sheet
     (no technical boot-mode/partition-table labels, no old-style disk
-    pictures, a drive picture in the free space).
+    pictures, a drive picture in the free space, dark in the dark look).
+    Its disk bars, their legend and the "Install alongside" resize bar are
+    drawn by the installer's Qt style `veltos-installer` (`style/`, C++):
+    rounded bars in VeltOS' colours (partitions on the disk by number,
+    VeltOS' new ones in the accent colour, unallocated space hatched as in
+    Disk Management), a Windows 11 focus ring on the chosen partition, a
+    slider thumb as the resize handle, theme colours for the text (Calamares
+    painted black and grey text in a white box) and sizes as Disk
+    Management writes them ("40.00 GB", "300 MB"; decimal comma in
+    Turkish), also in the disk list and in the page's sentences. Drop-down
+    lists open under their box (Kvantum's menu-style list covered the box,
+    product owner 2026-10-23).
   - **Account** (`usersq`): name, account name and PC name (suggested from
     the name), password twice, automatic sign-in as a toggle switch. Any
     non-empty password is accepted, as on Windows.
@@ -146,6 +157,7 @@ centred and Windows-like, and nothing stutters.
 | `helpers/*` (job scripts; `installer-theme`, `start-calamares`, `open-website`) | `/usr/libexec/veltos-installer/` |
 | `data/org.veltos.installer.policy` (pkexec for `start-calamares`) | `/usr/share/polkit-1/actions/` |
 | `tools/dark-stylesheet.py` (build time) | `stylesheet-dark.qss` in the branding folder |
+| `style/` (C++ Qt style plugin, CMake) | `/usr/lib/x86_64-linux-gnu/qt6/plugins/styles/libveltos-installer-style.so` |
 | `bin/install-veltos`, `bin/veltos-install-desktop-icon` | `/usr/bin/` |
 | `data/install-veltos.desktop` / `veltos-install-icon.desktop` | `/usr/share/applications/` / `/etc/xdg/autostart/` |
 | `welcome/veltos-live-welcome`, `welcome/Main.qml` | `/usr/libexec/veltos-installer/`, `/usr/share/veltos-live-welcome/` (PySide6 + QML) |
@@ -166,8 +178,9 @@ keyboard, account, a failing first step and a full installation,
 2026-10-22); Calamares' QML cannot be loaded outside Calamares.
 
 Notes for changing the pages (learned in the VM, 2026-10-22):
-- Calamares starts with `-style kvantum`; `import QtQuick.Controls` then
-  looks for a QML style called "kvantum" and the page fails to load. The
+- Calamares starts with `-style veltos-installer` (before 2026-10-24
+  `-style kvantum`); `import QtQuick.Controls` then looks for a QML style
+  of that name and the page fails to load. The
   pages import `QtQuick.Controls.Basic` and use versionless imports
   (`QtQuick.Layouts 1.15` lacks `uniformCellSizes`).
 - Calamares does not retranslate its QML pages when the language changes,
@@ -180,6 +193,18 @@ Notes for changing the pages (learned in the VM, 2026-10-22):
 welcome window loads offscreen without QML warnings and comes back when
 the installer closes, and the live session
 script writes the no-lock/no-sleep settings only on the install medium.
+
+`tests/test_style.py` runs the built style plugin (debian/rules passes
+its path) in light, dark and Turkish against PySide6 stand-ins with the
+class names of Calamares' partition views, splitter and disk model
+(`tests/style_probe.py`, marked TEST DOUBLES): colours at the partitions'
+places, no black text, the resize handle where Calamares' arithmetic puts
+it, sizes in labels and the disk list, the chosen disk kept without a
+change signal, and the drop-down list under its box. The real page was
+checked in the dev VM against a disk with an EFI, an MSR, an NTFS
+"Windows" and a recovery partition: install alongside (choosing and
+dragging), replace, erase, encryption, both lists, light, dark with a red
+accent and Turkish (`tests/results/2026-10-24-installer-disk-page/`).
 
 `tests/test_efi_label.py`, `tests/test_crypttab_tries.py` and
 `tests/test_boot_check.py` run the job scripts against fake firmware

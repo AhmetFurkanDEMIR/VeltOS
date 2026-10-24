@@ -3,6 +3,51 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (noon) — The installer's disk page: lists under their box, Windows 11 disk pictures
+
+Item 2 of the product owner's list: "the area that opens overlaps, the disk
+sizes look bad". Reproduced in the dev VM with a disk laid out like a
+Windows PC (EFI, MSR, NTFS "Windows", recovery; `parted` on the VM's test
+disk) at 1920x1080, 1024x768 and 800x600.
+
+- **What overlapped**: the disk list (and the swap list) opened over its
+  own box, 15 px up and left, its row's text over the box's text. Kvantum
+  turns combo box lists into translucent menus with a shadow, reserves the
+  shadow in `SC_ComboBoxListBoxPopup` and gives the list a transparent
+  style sheet when it finds Qt's menu delegate. A style sheet alone
+  (`combobox-popup: 0`) moved the list but not Kvantum's offset.
+- **What looked bad**: Calamares paints the disk bars, the legend and the
+  resize bar itself (PartitionBarsView, PartitionLabelsView,
+  PartitionSplitterWidget) with Breeze colours, a white box behind the
+  legend, `Qt::black`/`Qt::gray` text (unreadable in the dark look) and
+  sizes such as "300.00 MiB" and "1628MiB"; no style sheet reaches that.
+- **Decision** (architecture 2.25): an installer Qt style,
+  `veltos-installer`, a QProxyStyle over Kvantum in a small C++ plugin in
+  `calamares-settings-veltos/style/`. It takes over the paint events of
+  those three classes and draws the same model at the places Calamares
+  computes (`visualRect`; the splitter after Calamares has painted, which
+  sets its handle position, with the same arithmetic), so choosing and
+  dragging work unchanged; it keeps Kvantum off combo lists and puts them
+  under their box; it writes sizes as VeltOS Disk Management does, also
+  in the disk list (an identity proxy model, rows unchanged, no change
+  signal) and in labels. Alternatives: patching or copying Calamares'
+  partition module (a fork of ~20,000 lines), or hiding the pictures with
+  the style sheet (no sizes at all).
+- **Found on the way**: the Turkish translation writes Calamares' MiB as
+  "MB" ("1628 MB olarak küçültülecek"); sizes without "i" are rewritten
+  from 1024 on. Dragging right did nothing because Calamares limits the
+  shrinking partition to leave VeltOS its required space; dragging left
+  worked (1.59 GB -> 1.12 GB). At 800x600 the installer window does not fit
+  the screen (Next below the taskbar); Windows 11 itself needs 720p, noted
+  in Known gaps.
+- **Verified**: 65 package tests (5 new: the plugin in light, dark and
+  Turkish against PySide6 stand-ins named like Calamares' classes); the
+  dev VM with the rebuilt package: alongside, replace, erase, encryption,
+  both lists, light, dark with a red accent, Turkish. Screenshots before
+  and after: `tests/results/2026-10-24-installer-disk-page/`.
+- Not checked: a full installation with the new style (no job changed),
+  VirtualBox.
+
 ## 2026-10-24 (morning) — VeltOS Mail rewritten in the layout of the new Outlook
 
 The product owner's new list of 37 items (2026-10-23, in Turkish; tracked

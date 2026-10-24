@@ -11,9 +11,12 @@
 # Calamares applies to its main window itself, is a link to it), gives
 # root the matching Kvantum style for Calamares' dialogs, and starts
 # Calamares with:
-#   -style kvantum -stylesheet FILE: Calamares applies the branding sheet to
-#     its main window only; its parentless error window stayed unstyled,
-#     and Qt's -stylesheet gives the sheet to every window;
+#   -style veltos-installer: Kvantum with Calamares' disk pictures (bars,
+#     legend, resize bar) drawn in VeltOS' colours and sizes written as
+#     Disk Management writes them (style/installerstyle.cpp);
+#   -stylesheet FILE: Calamares applies the branding sheet to its main
+#     window only; its parentless error window stayed unstyled, and Qt's
+#     -stylesheet gives the sheet to every window;
 #   veltos-theme=...: one argument for the installer's QML (VeltTheme.js),
 #     which Calamares itself ignores (it parses only options);
 #   QT_QUICK_BACKEND=software with --software: in VMs without 3D Qt Quick's
@@ -67,5 +70,5 @@ dark=0
 if [ "$software" = 1 ]; then
     export QT_QUICK_BACKEND=software
 fi
-exec "${VELTOS_CALAMARES:-calamares}" -style kvantum -stylesheet "$run_dir/stylesheet.qss" \
+exec "${VELTOS_CALAMARES:-calamares}" -style veltos-installer -stylesheet "$run_dir/stylesheet.qss" \
     "veltos-theme=dark=$dark;accent=$accent;software=$software"

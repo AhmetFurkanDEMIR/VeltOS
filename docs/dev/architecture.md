@@ -999,6 +999,33 @@ were measured (below).
   on Plasma), otherwise a file only the user can read, as mail programs
   without a keyring do.
 
+### 2.25 The installer's own Qt style for Calamares' disk page (2026-10-24)
+
+- Calamares' partition page is C++ and paints its disk bars, their legend
+  and the "Install alongside" resize bar itself with fixed Breeze colours,
+  black and grey text and "MiB" sizes; Kvantum opened its drop-down lists
+  over their own box. The product owner found the page overlapping and its
+  sizes ugly.
+- Decision: the installer runs with a VeltOS Qt style, `veltos-installer`
+  (`calamares-settings-veltos/style/`, a QProxyStyle over Kvantum in a
+  small C++ plugin, the package's only compiled part). It recognises
+  Calamares' classes by their meta-object names, takes over their paint
+  events and draws the same model at the geometry Calamares computes
+  (`visualRect`, or the splitter's own arithmetic after Calamares has
+  painted), so all interaction stays Calamares'. It keeps Kvantum off combo
+  box lists and writes sizes as VeltOS Disk Management does, through an
+  identity proxy model for the disk list and in labels.
+- Alternatives: a patched or copied Calamares partition module (exact
+  control, but a fork of about 20,000 lines to follow upstream); hiding the
+  pictures with the style sheet (no sizes left); a VeltOS disk page in QML
+  (Calamares 3.3 has no QML partition module, and its partitioning jobs
+  are built from that C++ page).
+- Trade-off: the plugin depends on Calamares' class names, model roles and
+  the splitter's arithmetic (Calamares 3.3.14, Debian 13). A Calamares
+  update that changes them makes the pictures wrong but leaves the page
+  working; `tests/test_style.py` pins the expectations and the dev VM
+  check (README) has to be repeated after Calamares updates.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:
