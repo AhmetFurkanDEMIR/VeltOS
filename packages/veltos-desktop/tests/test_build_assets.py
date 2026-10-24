@@ -512,54 +512,24 @@ class FullBuildTest(unittest.TestCase):
         self.assertFalse((root / "etc/skel").exists())     # Debian policy: no package files in skel
         self.assertIn("FacesDir=/usr/share/veltos/faces\n",
                       (root / "usr/lib/sddm/sddm.conf.d/10-veltos.conf").read_text())
-        # Firefox and Mail (Thunderbird): autoconfig loads the caption buttons.
+        # Firefox: autoconfig loads the caption buttons and the downloads panel.
         css = "file:///usr/share/veltos/firefox/caption-buttons.css"
         self.assertTrue((root / "usr/share/veltos/firefox/caption-buttons.css").is_file())
-        for prefs, cfg in (("usr/lib/firefox-esr/defaults/pref/veltos.js", "usr/lib/firefox-esr/veltos.cfg"),
-                           ("usr/share/thunderbird/defaults/pref/veltos.js", "usr/lib/thunderbird/veltos.cfg")):
-            self.assertIn('pref("general.config.filename", "veltos.cfg");', (root / prefs).read_text())
-            # File dialogs through the portal (VeltOS File Explorer's dialog).
-            self.assertIn('pref("widget.use-xdg-desktop-portal.file-picker", 1);', (root / prefs).read_text())
-            text = (root / cfg).read_text()
-            self.assertTrue(text.startswith("//"), cfg)       # autoconfig skips the first line
-            self.assertIn(css, text)
-        mail = (root / "usr/share/thunderbird/defaults/pref/veltos.js").read_text()
-        self.assertIn('pref("mail.shell.checkDefaultClient", false);', mail)
-        self.assertIn("file:///usr/share/veltos/mail/mail.css", (root / "usr/lib/thunderbird/veltos.cfg").read_text())
-        self.assertNotIn("mail.css", (root / "usr/lib/firefox-esr/veltos.cfg").read_text())
-        # Firefox's downloads panel in the Windows 11 look.
-        self.assertIn("file:///usr/share/veltos/firefox/downloads.css", (root / "usr/lib/firefox-esr/veltos.cfg").read_text())
+        prefs = (root / "usr/lib/firefox-esr/defaults/pref/veltos.js").read_text()
+        self.assertIn('pref("general.config.filename", "veltos.cfg");', prefs)
+        # File dialogs through the portal (VeltOS File Explorer's dialog).
+        self.assertIn('pref("widget.use-xdg-desktop-portal.file-picker", 1);', prefs)
+        cfg = (root / "usr/lib/firefox-esr/veltos.cfg").read_text()
+        self.assertTrue(cfg.startswith("//"))                   # autoconfig skips the first line
+        self.assertIn(css, cfg)
+        # File URLs with "/" also when the assets are built on Windows (VM).
+        self.assertNotIn("\\", cfg.split("for (let sheet of [", 1)[1].split("]", 1)[0])
+        self.assertIn("file:///usr/share/veltos/firefox/downloads.css", cfg)
         self.assertIn("#downloadsPanel", (root / "usr/share/veltos/firefox/downloads.css").read_text())
-        css = (root / "usr/share/veltos/mail/mail.css").read_text()
-        self.assertIn('@-moz-document url-prefix("chrome://messenger/content/")', css)   # never inside mails
-        # The add-account page is about:accountsetup (Thunderbird 140), not a
-        # chrome:// URL: without it the page kept Thunderbird's look (VM).
-        self.assertIn('url("about:accountsetup")', css)
-        self.assertIn('content: "Add your account";', css)
-        self.assertIn('content: "Hesabınızı ekleyin";', css)
-        # VeltOS Mail in Outlook's look (product owner, 2026-10-22): the blue
-        # band with the name, the search box and the ribbon below it.
-        self.assertIn('content: "VeltOS Mail";', css)
-        self.assertIn("#unifiedToolbarContent > li:has(global-search-bar)", css)
-        cfg = (root / "usr/lib/thunderbird/veltos.cfg").read_text()
-        sheets = cfg.split("for (let sheet of [", 1)[1].split("]", 1)[0]
-        self.assertIn("file:///usr/share/veltos/mail/mail-header.css", sheets)
-        # File URLs with "/" also when the assets are built on Windows: a "\"
-        # path kept every Mail style sheet from loading (VM).
-        self.assertNotIn("\\", sheets)
-        self.assertIn('const NAME = "VeltOS Mail";', cfg)
-        self.assertIn('doc.querySelector("title")', cfg)        # the new message window's title
-        # Outlook's defaults, only where the user has none: the ribbon, the
-        # reading pane header, no menu bar in the new message window.
-        self.assertIn('"unifiedToolbar", "state", JSON.stringify({ mail: ["write-message", "delete"', cfg)
-        self.assertIn('"buttonStyle": "only-icons"', cfg)
-        self.assertIn('if (!store.hasValue(compose, "compose-toolbar-menubar2", "autohide"))', cfg)
-        self.assertIn('pref("mail.tabs.autoHide", true);', mail)
-        self.assertIn('pref("mail.addressDisplayFormat", 2);', mail)
-        header = (root / "usr/share/veltos/mail/mail-header.css").read_text()
-        # No default XUL namespace: the band is an HTML div (VM).
-        self.assertNotIn("@namespace", header)
-        self.assertIn(f"--veltos-caption-width: {3 * fluent.CAPTION_W}px;", header)
+        # VeltOS Mail is its own app (veltos-mail) since 2026-10-23: nothing
+        # for Thunderbird any more.
+        self.assertFalse((root / "usr/lib/thunderbird").exists())
+        self.assertFalse((root / "usr/share/veltos/mail").exists())
         restrictions = kdeglobals["[KDE Control Module Restrictions]"]
         self.assertEqual(restrictions["kcm_kdeconnect"], "false")
         self.assertIn("ToolButtonStyle=IconOnly", (root / "etc/xdg/dolphinrc").read_text())

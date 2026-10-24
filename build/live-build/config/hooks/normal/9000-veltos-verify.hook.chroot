@@ -92,12 +92,13 @@ grep -q '^X-KDE-Shortcuts=Print,Meta+Shift+S$' /usr/share/applications/veltos-sn
     || fail "Snipping Tool shortcuts missing"
 grep -q '^NoDisplay=true$' /var/lib/veltos/xdg/kglobalaccel/org.kde.spectacle.desktop \
     || fail "Spectacle's global shortcuts are not switched off"
-# The e-mail app is "VeltOS Mail" (product owner, 2026-10-22): Thunderbird
-# under that name, in Outlook's look (autoconfig beside the program).
-installed thunderbird || fail "VeltOS Mail (thunderbird) is not installed"
-grep -q '^Name=VeltOS Mail$' /var/lib/veltos/xdg/applications/thunderbird.desktop || fail "Thunderbird is not named VeltOS Mail"
-[ -f /usr/lib/thunderbird/veltos.cfg ] || fail "VeltOS Mail autoconfig missing"
-[ -f /usr/share/veltos/mail/mail-header.css ] || fail "VeltOS Mail title band style sheet missing"
+# The e-mail app is VeltOS Mail, its own app in the layout of Windows 11's
+# new Outlook (2026-10-23); Thunderbird is no longer in the image.
+installed veltos-mail || fail "VeltOS Mail is not installed"
+installed thunderbird && fail "Thunderbird must not be installed (VeltOS Mail replaces it)"
+grep -q '^x-scheme-handler/mailto=veltos-mail.desktop;$' /var/lib/veltos/xdg/applications/kde-mimeapps.list \
+    || fail "mailto: links do not open VeltOS Mail"
+python3 -c 'import PySide6.QtWebEngineQuick' || fail "VeltOS Mail's reading pane (QtWebEngine for PySide6) missing"
 # Archives open in VeltOS Archive (KDE's Ark is not installed); RAR through 7zip-rar.
 installed ark && fail "Ark must not be installed (VeltOS Archive replaces it)"
 # Text files open in VeltOS Notepad (KWrite and Kate are not installed).
@@ -256,8 +257,8 @@ done
 for pkg in fonts-noto-core fonts-noto-ui-core fonts-noto-cjk fonts-noto-color-emoji; do
     installed "$pkg" || fail "required font package $pkg is not installed"
 done
-[ -f /usr/share/doc/thunderbird/copyright ] || fail "licence files must stay in /usr/share/doc"
-[ ! -e /usr/share/doc/thunderbird/changelog.Debian.gz ] || fail "documentation is not left out (dpkg.cfg.d/veltos-lean)"
+[ -f /usr/share/doc/firefox-esr/copyright ] || fail "licence files must stay in /usr/share/doc"
+[ ! -e /usr/share/doc/firefox-esr/changelog.Debian.gz ] || fail "documentation is not left out (dpkg.cfg.d/veltos-lean)"
 [ -s /etc/.updated ] && [ -s /var/.updated ] || fail "/etc or /var not stamped (8900-veltos-update-done)"
 
 # User-visible text audit: no launcher in the menus may mention Debian.

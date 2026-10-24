@@ -43,7 +43,7 @@ Windows program support through Wine.
   Windows 11 counterpart, in English and Turkish, light and dark.
 - **Office and Mail.** Microsoft 365's start screen in front of LibreOffice
   (Word, Excel and PowerPoint, saving in Microsoft's formats by default) and
-  Thunderbird in Outlook's look.
+  VeltOS Mail in the layout of the new Outlook (IMAP and SMTP).
 - **Windows programs with a double click.** `.exe` and `.msi` files install
   through Wine into one Windows environment and appear in Start and in
   Settings › Apps. Wine does not run every program and is not a security
@@ -82,7 +82,7 @@ More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#galle
 | Settings | Settings | NetworkManager, BlueZ, PipeWire, KScreen |
 | Store | Microsoft Store | AppStream, PackageKit |
 | Word, Excel, PowerPoint | Microsoft 365's start screen | LibreOffice 25.2 |
-| Mail | Outlook | Thunderbird |
+| Mail | Outlook (the new Outlook's layout) | Python's imaplib/smtplib, Qt WebEngine |
 | Calendar, Clock, Calculator, Notepad | The apps of the same name | Qt Quick |
 | Photos, Media Player, Camera | The apps of the same name | Pillow, Qt Multimedia |
 | Snipping Tool | Snipping Tool (Print Screen, Win+Shift+S) | Spectacle |
@@ -159,7 +159,7 @@ Options, mirrors and troubleshooting are in the
 | Graphics | Mesa 25.0; software rendering where a virtual machine has no 3D |
 | Boot | GRUB 2.12 for BIOS and UEFI, Secure Boot through shim, Plymouth |
 | Installer | Calamares 3.3.14 with VeltOS' pages |
-| Office, web, mail | LibreOffice 25.2, Firefox ESR, Thunderbird ESR |
+| Office, web, mail | LibreOffice 25.2, Firefox ESR, VeltOS Mail (IMAP/SMTP) |
 | Windows programs | Wine 10.0, DXVK 2.6, Wine Mono and Gecko |
 | VeltOS apps | Python 3.13, PySide6 6.8 (Qt Quick) |
 | Languages | English and Turkish |

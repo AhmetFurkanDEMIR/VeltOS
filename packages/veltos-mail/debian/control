@@ -1,0 +1,58 @@
+Source: veltos-mail
+Section: mail
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtcore,
+               python3-pyside6.qtgui,
+               python3-pyside6.qtnetwork,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               python3-pyside6.qtwebenginequick,
+               python3-pyside6.qtwebenginecore,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-dialogs,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qml6-module-qtwebengine,
+               qml6-module-qtqml-workerscript
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-mail
+Architecture: all
+Depends: ${python3:Depends},
+         python3-pyside6.qtcore,
+         python3-pyside6.qtgui,
+         python3-pyside6.qtnetwork,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         python3-pyside6.qtwebenginequick,
+         python3-pyside6.qtwebenginecore,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-dialogs,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qml6-module-qtwebengine,
+         qml6-module-qtqml-workerscript,
+         xdg-utils,
+         ${misc:Depends}
+Recommends: python3-secretstorage
+Description: VeltOS Mail, e-mail in the layout of Windows 11's new Outlook
+ The blue header with the search box, the app bar (Mail, Calendar,
+ People), the Home / View / Help ribbon, the folder pane with Favorites,
+ the message list with Focused / Other and date groups, the reading pane,
+ and new mail, reply and forward in the reading pane; "Add your account"
+ on the first start. English and Turkish.
+ .
+ Mail is read over IMAP and sent over SMTP (Python's imaplib and smtplib,
+ SSL/TLS or STARTTLS). Gmail, Yahoo, iCloud, Yandex, AOL, GMX and others
+ are set up from the address alone; their mail programs need an app
+ password. Outlook.com accounts need Microsoft's own sign-in (OAuth 2.0),
+ which works once VeltOS Mail's client registration is configured.
+ Messages are shown with JavaScript off and pictures from the internet
+ blocked until the user allows them.

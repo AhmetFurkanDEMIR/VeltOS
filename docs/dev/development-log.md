@@ -3,6 +3,58 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (morning) — VeltOS Mail rewritten in the layout of the new Outlook
+
+The product owner's new list of 37 items (2026-10-23, in Turkish; tracked
+in `docs/dev/status.md`), first priority: "write VeltOS Mail again, exactly
+Outlook: the icon, the sign-in screen, the mail environment, everything".
+
+- **Decision** (architecture 2.24): VeltOS Mail is its own app now,
+  `packages/veltos-mail` (PySide6/QML), and Thunderbird leaves the image;
+  its autoconfig and style sheets left veltos-desktop. Protocols come from
+  Python's imaplib, smtplib and email; HTML mail is shown by Qt WebEngine
+  with JavaScript off, a script-free Content-Security-Policy, cleaned
+  markup and internet pictures blocked until "Show pictures".
+- **Window**: the new Outlook's layout (README of the package lists every
+  part): blue header with the centred search, app bar, Home/View/Help with
+  the simplified ribbon, folder pane with Favorites, Focused/Other with
+  date groups, reading pane, compose in the reading pane, Settings, People,
+  "Add your account". Icon in the Office family's composition (a blue tile
+  with an O ring in front of an envelope; a VeltOS drawing).
+- **Accounts**: provider settings for Gmail, Yahoo, iCloud, Yandex, AOL,
+  GMX, Zoho, Mail.ru, Fastmail (app-password note and link where needed);
+  other domains: the IMAP hosts imap./mail./DOMAIN are tried with a 10 s
+  limit each, then the first SMTP server that takes a connection; a
+  refused password ends the search. Outlook.com accounts need OAuth
+  (Microsoft ended passwords for IMAP on 2024-09-16; checked on the web):
+  implemented (PKCE, loopback), but VeltOS has no registered client id, so
+  the page says so and offers Outlook on the web.
+- **Bugs found while testing** (all now covered by tests): Python 3.13's
+  strict `getaddresses` returned no recipient when Cc/Bcc were empty
+  (mail went to nobody); headers with raw UTF-8 came back as
+  `Header(unknown-8bit)` with replacement characters ("Toplant��"); the
+  message list's rows read deleted model objects on every reset (54 QML
+  errors); WebEngine aborted when another test module had made the
+  QCoreApplication first; a send failure marked the account's IMAP as
+  unreachable; the server search took minutes (every IMAP guess repeated
+  for each SMTP guess, 25 s each); a QML binding closed the add-account page
+  before "You're all set!"; the Turkish ribbon ran out of the window (now
+  measured: labels when they fit, else icons).
+- **Verified**: 24 tests in the package build (as root in the builder,
+  WebEngine offscreen) and in the VM; in the dev VM against real servers
+  (Dovecot IMAPS with its certificate trusted, Postfix submission with
+  STARTTLS and Dovecot SASL, set up by `out/vm/mailseed.py` and
+  `mailsmtp.sh`): sync, reading, Other tab, blocked pictures bar, reply
+  delivered (`/var/mail/velt`) with a copy in Sent Items and the answered
+  arrow on the original, the add-account flow typed through the UI, dark
+  mode and Turkish, Start search "outlook". Screenshots:
+  `tests/results/2026-10-24-veltos-mail/`.
+- **Host clock**: the developer PC's clock is 3 hours behind (Windows time
+  not synchronised), so apt refused fresh Debian signatures; builds used a
+  snapshot.debian.org mirror of 2026-10-23 12:00 UTC (AGENTS.md).
+- Not checked: real Gmail/Yahoo/iCloud accounts (needs the owner's app
+  passwords), OAuth, mailboxes with thousands of messages, printing.
+
 ## 2026-10-23 (late evening) — Website: minimum requirements, both languages proofread, opaque header, logo link
 
 The product owner on the website: put the minimum system requirements where

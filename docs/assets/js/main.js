@@ -195,7 +195,7 @@
     "foot.source": "Kaynak kodu",
     "foot.status": "Proje durumu",
     "foot.issues": "Sorun bildirin",
-    "foot.legal": "VeltOS; Debian, KDE Plasma, LibreOffice, Firefox, Thunderbird, Wine ve Calamares üzerine kurulu bağımsız bir projedir. Microsoft ile bağlantılı değildir ve Microsoft tarafından desteklenmez. Windows, Word, Excel, PowerPoint ve Outlook, Microsoft Corporation'ın ticari markalarıdır; burada yalnızca VeltOS'un neye benzediğini anlatmak için anılır. VeltOS görselleri © VeltOS Geliştiricileri, CC BY-SA 4.0.",
+    "foot.legal": "VeltOS; Debian, KDE Plasma, LibreOffice, Firefox, Wine ve Calamares üzerine kurulu bağımsız bir projedir. Microsoft ile bağlantılı değildir ve Microsoft tarafından desteklenmez. Windows, Word, Excel, PowerPoint ve Outlook, Microsoft Corporation'ın ticari markalarıdır; burada yalnızca VeltOS'un neye benzediğini anlatmak için anılır. VeltOS görselleri © VeltOS Geliştiricileri, CC BY-SA 4.0.",
     "aria.shot": "Ekran görüntüsü",
     "lb.close": "Kapat",
     "d.copied": "Kopyalandı"

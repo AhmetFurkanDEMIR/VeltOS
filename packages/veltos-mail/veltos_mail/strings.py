@@ -1,0 +1,228 @@
+"""Texts of VeltOS Mail in English and Turkish, with Outlook's words for
+folders and commands ("Gelen Kutusu", "Gönderilmiş Öğeler", "YNT:")."""
+
+import os
+
+TEXTS = {
+    "app_title": ("VeltOS Mail", "VeltOS Mail"),
+    "search": ("Search", "Ara"),
+    "settings": ("Settings", "Ayarlar"),
+    "minimize": ("Minimize", "Simge durumuna küçült"),
+    "maximize": ("Maximize", "Ekranı kapla"),
+    "restore": ("Restore down", "Önceki boyut"),
+    "close": ("Close", "Kapat"),
+    # App bar
+    "rail_mail": ("Mail", "Posta"),
+    "rail_calendar": ("Calendar", "Takvim"),
+    "rail_people": ("People", "Kişiler"),
+    # Ribbon
+    "tab_home": ("Home", "Giriş"),
+    "tab_view": ("View", "Görünüm"),
+    "tab_help": ("Help", "Yardım"),
+    "tab_message": ("Message", "İleti"),
+    "tab_format": ("Format text", "Metni Biçimlendir"),
+    "folder_pane": ("Folder pane", "Klasör bölmesi"),
+    "new_mail": ("New mail", "Yeni posta"),
+    "delete": ("Delete", "Sil"),
+    "archive": ("Archive", "Arşivle"),
+    "report": ("Report", "Bildir"),
+    "report_junk": ("Report junk", "Gereksiz olarak bildir"),
+    "move_to": ("Move to", "Taşı"),
+    "reply": ("Reply", "Yanıtla"),
+    "reply_all": ("Reply all", "Tümünü yanıtla"),
+    "forward": ("Forward", "İlet"),
+    "read_unread": ("Read / Unread", "Okundu / Okunmadı"),
+    "mark_read": ("Mark as read", "Okundu olarak işaretle"),
+    "mark_unread": ("Mark as unread", "Okunmadı olarak işaretle"),
+    "flag": ("Flag / Unflag", "Bayrak ekle / kaldır"),
+    "flag_message": ("Flag", "Bayrak ekle"),
+    "clear_flag": ("Clear flag", "Bayrağı kaldır"),
+    "pin": ("Pin / Unpin", "Sabitle / Kaldır"),
+    "pin_message": ("Pin", "Sabitle"),
+    "unpin_message": ("Unpin", "Sabitlemeyi kaldır"),
+    "mark_all_read": ("Mark all as read", "Tümünü okundu olarak işaretle"),
+    "sync": ("Sync", "Eşitle"),
+    "focused_inbox": ("Focused Inbox", "Odaklanmış Gelen Kutusu"),
+    "message_preview": ("Message preview", "İleti önizlemesi"),
+    "sender_images": ("Sender images", "Gönderen resimleri"),
+    "about": ("About VeltOS Mail", "VeltOS Mail Hakkında"),
+    "shortcuts": ("Keyboard shortcuts", "Klavye kısayolları"),
+    "about_text": ("VeltOS Mail reads your mail over IMAP and sends it over SMTP, with the encryption your provider "
+                   "offers. Pictures from the internet stay blocked until you allow them, and scripts in messages "
+                   "never run.",
+                   "VeltOS Mail postalarınızı IMAP ile okur ve SMTP ile gönderir; sağlayıcınızın sunduğu şifrelemeyi "
+                   "kullanır. İnternetteki resimler siz izin verene kadar engellenir, iletilerdeki betikler hiçbir "
+                   "zaman çalışmaz."),
+    "shortcuts_text": ("Ctrl+N new mail · Ctrl+R reply · Ctrl+Shift+R reply all · Ctrl+F forward · Delete delete · "
+                       "Ctrl+Q mark as read · Ctrl+U mark as unread · Ctrl+E search · Ctrl+Enter send · F5 sync",
+                       "Ctrl+N yeni posta · Ctrl+R yanıtla · Ctrl+Shift+R tümünü yanıtla · Ctrl+F ilet · Delete sil · "
+                       "Ctrl+Q okundu · Ctrl+U okunmadı · Ctrl+E ara · Ctrl+Enter gönder · F5 eşitle"),
+    # Folders
+    "favorites": ("Favorites", "Sık Kullanılanlar"),
+    "add_account": ("Add account", "Hesap ekle"),
+    "folder_inbox": ("Inbox", "Gelen Kutusu"),
+    "folder_drafts": ("Drafts", "Taslaklar"),
+    "folder_sent": ("Sent Items", "Gönderilmiş Öğeler"),
+    "folder_trash": ("Deleted Items", "Silinmiş Öğeler"),
+    "folder_junk": ("Junk Email", "Gereksiz E-posta"),
+    "folder_archive": ("Archive", "Arşiv"),
+    "no_folder_archive": ("This account has no Archive folder.", "Bu hesabın Arşiv klasörü yok."),
+    "no_folder_junk": ("This account has no Junk Email folder.", "Bu hesabın Gereksiz E-posta klasörü yok."),
+    # Message list
+    "focused": ("Focused", "Odaklanmış"),
+    "other": ("Other", "Diğer"),
+    "filter": ("Filter", "Filtre"),
+    "search_results": ("Search results", "Arama sonuçları"),
+    "group_pinned": ("Pinned", "Sabitlenmiş"),
+    "group_today": ("Today", "Bugün"),
+    "group_yesterday": ("Yesterday", "Dün"),
+    "group_this_week": ("This week", "Bu hafta"),
+    "group_last_week": ("Last week", "Geçen hafta"),
+    "group_this_month": ("This month", "Bu ay"),
+    "group_last_month": ("Last month", "Geçen ay"),
+    "group_older": ("Older", "Daha eski"),
+    "no_subject": ("(No subject)", "(Konu yok)"),
+    "empty_list": ("All caught up", "Hepsini okudunuz"),
+    "empty_list_sub": ("Nothing to see here.", "Burada gösterilecek bir şey yok."),
+    "empty_search": ("We didn't find anything", "Hiçbir şey bulunamadı"),
+    "empty_search_sub": ("Check the spelling or try other words.", "Yazımı denetleyin veya başka sözcükler deneyin."),
+    "updating": ("Updating…", "Güncelleştiriliyor…"),
+    "error_auth": ("Couldn't sign in to {value}. Check the password in Settings.",
+                   "{value} hesabında oturum açılamadı. Parolayı Ayarlar'da denetleyin."),
+    "error_connect": ("Can't reach the server of {value} right now.",
+                      "{value} hesabının sunucusuna şu anda ulaşılamıyor."),
+    # Reading pane
+    "select_item": ("Select an item to read", "Okumak için bir öğe seçin"),
+    "nothing_selected": ("Nothing is selected", "Hiçbir şey seçilmedi"),
+    "to_label": ("To:", "Kime:"),
+    "cc_label": ("Cc:", "Bilgi:"),
+    "pictures_blocked": ("To protect your privacy, some pictures in this message were not downloaded.",
+                         "Gizliliğinizi korumak için bu iletideki bazı resimler indirilmedi."),
+    "show_pictures": ("Show pictures", "Resimleri göster"),
+    "loading": ("Loading…", "Yükleniyor…"),
+    "load_failed": ("This message couldn't be loaded. Check your connection.",
+                    "Bu ileti yüklenemedi. Bağlantınızı denetleyin."),
+    "open": ("Open", "Aç"),
+    "save": ("Save", "Kaydet"),
+    "saved_to": ("Saved to {value}", "{value} konumuna kaydedildi"),
+    "more_actions": ("More actions", "Diğer eylemler"),
+    # Writing
+    "send": ("Send", "Gönder"),
+    "discard": ("Discard", "At"),
+    "from_label": ("From", "Kimden"),
+    "to": ("To", "Kime"),
+    "cc": ("Cc", "Bilgi"),
+    "bcc": ("Bcc", "Gizli"),
+    "add_subject": ("Add a subject", "Konu ekleyin"),
+    "attach": ("Attach file", "Dosya ekle"),
+    "bold": ("Bold", "Kalın"),
+    "italic": ("Italic", "İtalik"),
+    "underline": ("Underline", "Altı çizili"),
+    "bullets": ("Bullets", "Madde İşaretleri"),
+    "numbering": ("Numbering", "Numaralandırma"),
+    "need_recipient": ("Add at least one recipient.", "En az bir alıcı ekleyin."),
+    "sending": ("Sending…", "Gönderiliyor…"),
+    "sent_ok": ("Message sent.", "İleti gönderildi."),
+    "send_auth": ("The message wasn't sent: the server didn't accept the sign-in.",
+                  "İleti gönderilmedi: sunucu oturum açmayı kabul etmedi."),
+    "send_recipients": ("The message wasn't sent: the server refused a recipient. Check the addresses.",
+                        "İleti gönderilmedi: sunucu bir alıcıyı reddetti. Adresleri denetleyin."),
+    "send_failed": ("The message wasn't sent. Check your connection and try again.",
+                    "İleti gönderilmedi. Bağlantınızı denetleyip yeniden deneyin."),
+    "draft": ("Draft", "Taslak"),
+    "prefix_reply": ("RE:", "YNT:"),
+    "prefix_forward": ("FW:", "İLT:"),
+    "header_from": ("From:", "Kimden:"),
+    "header_sent": ("Sent:", "Gönderildi:"),
+    "header_to": ("To:", "Kime:"),
+    "header_subject": ("Subject:", "Konu:"),
+    # Adding an account
+    "welcome_title": ("Welcome to VeltOS Mail", "VeltOS Mail'e hoş geldiniz"),
+    "add_title": ("Add your account", "Hesabınızı ekleyin"),
+    "add_sub": ("VeltOS Mail works with Gmail, Yahoo, iCloud, Yandex and other email accounts.",
+                "VeltOS Mail; Gmail, Yahoo, iCloud, Yandex ve diğer e-posta hesaplarıyla çalışır."),
+    "email_label": ("Email address", "E-posta adresi"),
+    "email_placeholder": ("someone@example.com", "biri@ornek.com"),
+    "continue": ("Continue", "Devam"),
+    "back": ("Back", "Geri"),
+    "cancel": ("Cancel", "İptal"),
+    "your_name": ("Your name", "Adınız"),
+    "password": ("Password", "Parola"),
+    "app_password": ("App password", "Uygulama parolası"),
+    "sync_title": ("Sync your {value} account", "{value} hesabınızı eşitleyin"),
+    "sync_title_plain": ("Sync your email account", "E-posta hesabınızı eşitleyin"),
+    "app_password_note": ("{value} accepts an app password from mail programs, not your normal password. Create one "
+                          "in your account's security settings, then enter it here.",
+                          "{value}, posta programlarından normal parolanızı değil bir uygulama parolası kabul eder. "
+                          "Hesabınızın güvenlik ayarlarında bir tane oluşturup buraya girin."),
+    "create_app_password": ("Create an app password", "Uygulama parolası oluştur"),
+    "advanced": ("Advanced settings", "Gelişmiş ayarlar"),
+    "incoming": ("Incoming mail (IMAP)", "Gelen posta (IMAP)"),
+    "outgoing_mail": ("Outgoing mail (SMTP)", "Giden posta (SMTP)"),
+    "server": ("Server", "Sunucu"),
+    "port": ("Port", "Bağlantı noktası"),
+    "security": ("Security", "Güvenlik"),
+    "security_ssl": ("SSL/TLS", "SSL/TLS"),
+    "security_starttls": ("STARTTLS", "STARTTLS"),
+    "username": ("User name", "Kullanıcı adı"),
+    "checking": ("Signing in…", "Oturum açılıyor…"),
+    "privacy_note": ("Your password is kept on this PC only.", "Parolanız yalnızca bu bilgisayarda saklanır."),
+    "bad_address": ("Enter a valid email address.", "Geçerli bir e-posta adresi girin."),
+    "wrong_password": ("That password didn't work. Check it and try again.",
+                       "Bu parola işe yaramadı. Denetleyip yeniden deneyin."),
+    "app_password_error": ("Your provider didn't accept this password. Mail programs need an app password: create "
+                           "one in your account's security settings.",
+                           "Sağlayıcınız bu parolayı kabul etmedi. Posta programları için bir uygulama parolası "
+                           "gerekir: hesabınızın güvenlik ayarlarında bir tane oluşturun."),
+    "no_server": ("VeltOS Mail couldn't find the server for this address. Enter it under Advanced settings.",
+                  "VeltOS Mail bu adresin sunucusunu bulamadı. Gelişmiş ayarlar'dan girin."),
+    "oauth_needed": ("Outlook.com, Hotmail and Live accounts accept only Microsoft's own sign-in, which this version "
+                     "of VeltOS Mail can't do yet. You can read this account in Outlook on the web.",
+                     "Outlook.com, Hotmail ve Live hesapları yalnızca Microsoft'un kendi oturum açmasını kabul eder; "
+                     "VeltOS Mail'in bu sürümü bunu henüz yapamıyor. Bu hesabı web'deki Outlook'ta okuyabilirsiniz."),
+    "open_web": ("Open Outlook on the web", "Web'de Outlook'u aç"),
+    "done_title": ("You're all set!", "Her şey hazır!"),
+    "done_sub": ("{value} was added to VeltOS Mail.", "{value} VeltOS Mail'e eklendi."),
+    "done": ("Done", "Bitti"),
+    # Settings
+    "accounts": ("Accounts", "Hesaplar"),
+    "email_accounts": ("Email accounts", "E-posta hesapları"),
+    "email_accounts_sub": ("Add or remove an email account.", "E-posta hesabı ekleyin veya kaldırın."),
+    "remove": ("Remove", "Kaldır"),
+    "remove_confirm": ("Remove {value} from VeltOS Mail? Its mail stays on the server.",
+                       "{value} VeltOS Mail'den kaldırılsın mı? Postaları sunucuda kalır."),
+    "signature": ("Signature", "İmza"),
+    "signature_sub": ("Added to new messages, replies and forwards.",
+                      "Yeni iletilere, yanıtlara ve iletilenlere eklenir."),
+    "general": ("General", "Genel"),
+    "appearance": ("Appearance", "Görünüm"),
+    "appearance_text": ("VeltOS Mail follows the light or dark mode chosen in Settings > Personalization.",
+                        "VeltOS Mail, Ayarlar > Kişiselleştirme'de seçilen açık veya koyu modu izler."),
+    "mail": ("Mail", "Posta"),
+    "layout": ("Layout", "Düzen"),
+    "focused_inbox_sub": ("Sort newsletters and notifications into Other.",
+                          "Bültenleri ve bildirimleri Diğer sekmesine ayır."),
+    "save_button": ("Save", "Kaydet"),
+    "ok": ("OK", "Tamam"),
+    # People
+    "people_title": ("People", "Kişiler"),
+    "people_empty": ("People you get mail from appear here.", "Posta aldığınız kişiler burada görünür."),
+    "send_email": ("Send email", "E-posta gönder"),
+    "messages_count": ("{value} messages", "{value} ileti"),
+}
+
+
+def language(environ=None):
+    environ = os.environ if environ is None else environ
+    for variable in ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"):
+        value = environ.get(variable)
+        if value:
+            return "tr" if value.lower().startswith("tr") else "en"
+    return "en"
+
+
+def text(lang, key):
+    pair = TEXTS.get(key)
+    if pair is None:
+        return key
+    return pair[1] if lang == "tr" else pair[0]

@@ -11,7 +11,7 @@
     </entry>
     <entry name="favorites" type="StringList">
       <label>Apps pinned to Start for new users (desktop file names or preferred:// URLs).</label>
-      <default>preferred://browser,libreoffice-writer.desktop,libreoffice-calc.desktop,libreoffice-impress.desktop,veltos-explorer.desktop,veltos-settings.desktop,veltos-store.desktop,veltos-photos.desktop,veltos-notepad.desktop,veltos-pdf.desktop,veltos-calculator.desktop,veltos-clock.desktop,veltos-snip.desktop,veltos-taskmanager.desktop,veltos-archive.desktop,org.kde.konsole.desktop</default>
+      <default>preferred://browser,libreoffice-writer.desktop,libreoffice-calc.desktop,libreoffice-impress.desktop,veltos-mail.desktop,veltos-explorer.desktop,veltos-settings.desktop,veltos-store.desktop,veltos-photos.desktop,veltos-notepad.desktop,veltos-pdf.desktop,veltos-calculator.desktop,veltos-clock.desktop,veltos-snip.desktop,veltos-taskmanager.desktop,veltos-archive.desktop,org.kde.konsole.desktop</default>
     </entry>
     <entry name="explorerPinned" type="Bool">
       <label>Whether Dolphin in the pinned apps was replaced by File Explorer (VeltOS 0.1, once).</label>
@@ -43,6 +43,10 @@
     </entry>
     <entry name="calculatorPinned" type="Bool">
       <label>Whether VeltOS Calculator was pinned to Start (VeltOS 0.1, once).</label>
+      <default>false</default>
+    </entry>
+    <entry name="mailPinned" type="Bool">
+      <label>Whether VeltOS Mail (its own app since 2026-10-23) was pinned to Start (once).</label>
       <default>false</default>
     </entry>
     <entry name="clockPinned" type="Bool">

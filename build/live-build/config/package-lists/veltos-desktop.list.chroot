@@ -77,9 +77,9 @@ libreoffice-l10n-tr
 kde-spectacle
 firefox-esr
 firefox-esr-l10n-tr
-# Mail (renamed by veltos-desktop): Thunderbird ESR from Debian.
-thunderbird
-thunderbird-l10n-tr
+# VeltOS Mail: e-mail in the layout of Windows 11's new Outlook (its own
+# app since 2026-10-23; Thunderbird is no longer in the image).
+veltos-mail
 
 pipewire-audio
 

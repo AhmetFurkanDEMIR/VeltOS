@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-mail
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-mail/usr/lib/python3/dist-packages
+	cp -r veltos_mail debian/veltos-mail/usr/lib/python3/dist-packages/
+	find debian/veltos-mail -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-mail debian/veltos-mail/usr/bin/veltos-mail
+	install -D -m 644 data/veltos-mail.desktop debian/veltos-mail/usr/share/applications/veltos-mail.desktop
+	# App icon (VeltOS artwork, Outlook's composition; veltos-fluent-icons has the same).
+	install -D -m 644 data/veltos-mail.svg debian/veltos-mail/usr/share/icons/hicolor/scalable/apps/veltos-mail.svg
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

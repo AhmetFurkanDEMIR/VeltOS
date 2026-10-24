@@ -85,15 +85,24 @@ def camera():
 
 
 def mail():
-    env_d = "M 24 104 L 128 36 L 232 104 V 196 Q 232 214 214 214 H 42 Q 24 214 24 196 Z"
-    return svg("Mail", grad("back", "#1A64C8", "#0F4AA0") + grad("front", "#45B9F9", "#1F86E8", "0.2", "1")
-               + grad("paper", "#FFFFFF", "#E8EEF5"),
-               shadow(env_d)
-               + f'  <path d="{env_d}" fill="url(#back)"/>\n'
-               + '  <rect x="58" y="70" width="140" height="104" rx="8" fill="url(#paper)"/>\n'
-               + '  <path d="M 80 98 H 176 M 80 118 H 150" stroke="#9FB4CC" stroke-width="7" stroke-linecap="round"/>\n'
-               + '  <path d="M 24 112 L 128 176 L 232 112 V 196 Q 232 214 214 214 H 42 Q 24 214 24 196 Z" fill="url(#front)"/>\n'
-               + '  <path d="M 24 214 L 108 152 Q 128 140 148 152 L 232 214 Z" fill="#5CC7FF" opacity="0.55"/>\n')
+    """VeltOS Mail in the composition of Outlook's Windows 11 icon, like
+    the Office family below (product owner, 2026-10-23: "the Outlook icon"):
+    a blue tile with a white O ring in front of a blue envelope. A VeltOS
+    drawing; Microsoft's icon files are not used."""
+    body = rrect(84, 60, 156, 140, 22)
+    return svg("Mail", grad("env", "#28A8EA", "#0A64AD") + grad("flap", "#50D9FF", "#1490DF")
+               + grad("low", "#1490DF", "#0F6CBD") + grad("tile", "#1490DF", "#0A4F8F", x2="1", y2="1")
+               + grad("edge", "#0F6CBD", "#0A4F8F"),
+               shadow(body)
+               + f'  <path d="{body}" fill="url(#env)"/>\n'
+               + '  <path d="M 84 92 L 162 142 L 240 92 V 82 Q 240 60 218 60 H 106 Q 84 60 84 82 Z" fill="url(#flap)"/>\n'
+               + '  <path d="M 84 120 L 162 168 L 240 120 V 178 Q 240 200 218 200 H 106 Q 84 200 84 178 Z" '
+                 'fill="url(#low)" opacity="0.9"/>\n'
+               + shadow(OFFICE_TILE_D)
+               + f'  <path d="{OFFICE_TILE_D}" fill="url(#tile)"/>\n'
+               + '  <path d="M 16 134 V 174 Q 16 196 38 196 H 118 Q 140 196 140 174 V 134 Z" fill="url(#edge)" '
+                 'opacity="0.55"/>\n'
+               + '  <ellipse cx="78" cy="134" rx="25" ry="30" fill="none" stroke="#FFFFFF" stroke-width="15"/>\n')
 
 
 def snipping_tool():

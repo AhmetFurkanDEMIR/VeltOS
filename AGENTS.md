@@ -60,7 +60,7 @@ owner sets priorities; agents act as the engineering team.
 | `build/scripts/` | In-container scripts: package build, ISO build |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin script `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop); VeltOS Mail (Thunderbird in Outlook's look: `mail/mail.css`, autoconfig in `tools/firefox.py`) |
+| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin script `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
 | `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`) |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`), and the Windows 11 Properties window (`--properties`, also from the desktop) |
 | `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
@@ -72,6 +72,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-photos/` | VeltOS Photos: Windows 11 Photos (gallery by month, favorites, folders, viewer with filmstrip and file information, Edit image with crop/rotate/adjust via Pillow, slideshow); default for pictures |
 | `packages/veltos-media/` | VeltOS Media Player: Windows 11 Media Player (music library with tags/covers via mutagen, video library, play queue with shuffle/repeat, playlists, player bar, now playing) on Qt Multimedia; default for audio and video |
 | `packages/veltos-pdf/` | VeltOS PDF Reader: modern PDF reader layout (Home with recent files, tabs, search, thumbnails, bookmarks, zoom/fit, read mode, properties, passwords, printing) on QtQuick Pdf; replaces Okular, default for PDF |
+| `packages/veltos-mail/` | VeltOS Mail: e-mail in the layout of Windows 11's new Outlook (PySide6/QML: blue header with search, app bar, Home/View/Help ribbon, folder pane with Favorites, Focused/Other list, reading pane in Qt WebEngine with JavaScript off, compose in the reading pane, "Add your account"); IMAP/SMTP with Python's imaplib/smtplib, local copy in SQLite; OAuth 2.0 only with a configured client id (`/etc/veltos/mail-oauth.json`); replaces Thunderbird (2026-10-23) |
 | `packages/veltos-office/` | VeltOS Office: Microsoft 365's start screen (Home / New / Open / Account / Options, the app's colour, Windows 11 animations; PySide6/QML, `veltos-office word|sheet|slides`) in front of LibreOffice Writer/Calc/Impress (Debian), VeltOS' own templates (built from flat ODF by LibreOffice at package build time) and a configuration layer for Windows users (Tabbed interface, Colibre icons, MS formats by default, Carlito font, "VeltOS Office" in titles, no bars); app names, icons and defaults live in veltos-desktop/veltos-fluent-icons, the coloured title bars in veltos-desktop's Aurorae change |
 | `packages/veltos-archive/` | VeltOS Archive: WinRAR's layout (toolbar, archive list, Extract To, Add, Test, passwords) on 7-Zip (+ 7zip-rar) and bsdtar; File Explorer's extract/compress |
 | `packages/veltos-camera/` | VeltOS Camera: Windows 11 Camera layout (photo, video, timer, framing grid, Camera Roll) on Qt Multimedia (FFmpeg backend, V4L2) |
@@ -746,7 +747,7 @@ and JavaScript with no build step, no external requests and no cookies:
   --cache-loc /var/cache/apparmor /etc/apparmor.d/` builds the same
   directory in the image (hook 8500). Cache files get the newest source's
   mtime and squashfs keeps mtimes, so the cache stays valid.
-- Thunderbird (VeltOS Mail): a user style sheet with a default
+- Thunderbird (VeltOS Mail until 2026-10-23; now its own app): a user style sheet with a default
   `@namespace` (XUL) does not match HTML elements such as
   `#unifiedToolbarContainer` (mail-header.css did nothing); generated
   `file://` URLs must use "/" (`Path.as_posix()`: a file generated on
@@ -890,3 +891,32 @@ and JavaScript with no build step, no external requests and no cookies:
   Manager.desktop"): pipe file lists with `-print0`/`-0` or use `find
   -exec`, never plain `xargs` (the Windows program test reported a
   missing shortcut that existed).
+- VeltOS Mail (2026-10-24): Qt WebEngine must be initialised
+  (`QtWebEngineQuick.initialize()`) before the first QCoreApplication of a
+  process, also in tests: one test module that made a QCoreApplication
+  first left the next module's WebEngine window aborting ("core dumped");
+  the tests share `tests/qtapp.py`. As root (package builds) Chromium needs
+  `QTWEBENGINE_DISABLE_SANDBOX=1`; offscreen WebEngine then works.
+- Python 3.13's `email.utils.getaddresses` is strict: one empty field in
+  the list (`["a@b.c", "", ""]`) returns no address at all (Mail sent to
+  nobody); pass only non-empty fields. With `policy.compat32`, a header with
+  raw 8-bit bytes (UTF-8 without RFC 2047 words, common) comes back as an
+  `email.header.Header` with charset `unknown-8bit`, and `str()` of it has
+  replacement characters: decode its chunks yourself (`mime.decode`).
+- A QML ListView whose model is reset deletes the model's per-row QObject
+  wrappers while delegate bindings still read them ("Cannot read property
+  'label' of null", dozens per reset). Rows that need many roles read a
+  plain object instead: `readonly property var row: { model.revision;
+  return model.get(index); }` (VeltOS Mail's MessageModel).
+- The developer host's clock was 3 hours behind (Windows time service not
+  synchronised, source "Local CMOS Clock", 2026-10-23): apt in the builder
+  refused freshly signed Debian Release files ("Not live until ..."). Until
+  the clock is right, build with a snapshot that is older than the host's
+  clock: `VELTOS_DEBIAN_MIRROR=http://snapshot.debian.org/archive/debian/
+  20261023T120000Z VELTOS_SECURITY_MIRROR=http://snapshot.debian.org/
+  archive/debian-security/20261023T120000Z build/run.sh packages ...`.
+- Testing VeltOS Mail against real servers in the dev VM:
+  `out/vm/mailseed.py` (Dovecot IMAP on localhost:993 with its self-signed
+  certificate added to the VM's trust store, sample mail, the account) and
+  `out/vm/mailsmtp.sh` (Postfix with STARTTLS on 587 and Dovecot's SASL,
+  `ayse@`/`ali@example.com` aliased to velt). Dev VM only.

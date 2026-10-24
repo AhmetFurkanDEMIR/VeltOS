@@ -19,6 +19,7 @@ not been run on real hardware yet.**
 | `veltos-disks` (new, 2026-10-22): Disk Management in the Windows 11 layout — volume list (Volume, Layout, Type, File System, Status, Capacity, Free Space, % Free) over the disk map (Disk 0 …, CD-ROM 0, partitions and unallocated space to scale with Disk Management's colours), right-click menus (Open/Explore, Mount/Unmount, Eject, Change Volume Label, Format, Delete Volume, New Simple Volume, Initialize Disk, Properties) and Windows 11 dialogs; UDisks2 through busctl (polkit asks through the VeltOS prompt); the running system's volumes, EFI/reserved partitions, optical and read-only devices protected, a disk with a table never initialized again; replaces KDE Partition Manager (hidden; Settings > Storage and Win+X open VeltOS') | Unit tests (recorded UDisks2 objects → Windows' disks/volumes, the calls, permissions EN/TR, the window offscreen with every menu and dialog); VM (live, 2026-10-22): see the development log |
 | `veltos-taskmanager` (new): Task Manager in the Windows 11 layout — Processes (Apps / Background / System, summed per app, busy cells tinted, search, End task), Performance (60-second CPU/memory/disk/network graphs and figures), Startup apps (enable/disable); Ctrl+Shift+Esc, one instance; KDE System Monitor kept as "Resource Monitor" | 19 unit tests (fake psutil; window offscreen EN/TR, Turkish locale); VM: opened with Ctrl+Shift+Esc, Firefox grouped with its 11 processes, second Ctrl+Shift+Esc does not open a second window, all three pages |
 | `veltos-media` (new): Media Player in the Windows 11 layout — Home with recent media, music library (songs, albums with covers, artists, shuffle and play), video library with frames, play queue (shuffle, repeat, play next), playlists, search, player bar, now playing (video or album picture), full screen; Qt Multimedia (FFmpeg); default for audio and video | 11 unit tests (queue logic, tags of real WAV files, window offscreen EN/TR); VM (live, 2026-10-21): albums with embedded covers, an album played (position advancing), video library thumbnails, an MJPEG AVI played to its end. No MPRIS yet; sound output itself not heard (VM) |
+| `veltos-mail` (new, 2026-10-24): VeltOS Mail in the layout of Windows 11's new Outlook: blue header with search, app bar (Mail, Calendar, People), Home/View/Help ribbon (labels or icons by width), folder pane with Favorites and Outlook's folder names, message list with Focused/Other and date groups, unread bar, hover actions, right-click menu, reading pane (Qt WebEngine, JavaScript off, remote pictures blocked until allowed, attachments), compose/reply/forward in the reading pane with completion and rich text, "Add your account" with provider settings and app-password guidance, settings (accounts, signature, layout), People, notifications, mailto:; IMAP/SMTP via imaplib/smtplib; replaces Thunderbird | 24 unit tests (core, sync engine and window offscreen EN/TR against an in-memory test server; also run in the builder as root); dev VM (live, 2026-10-24) against real Dovecot IMAP and Postfix SMTP (STARTTLS, SASL): first sync of 8 messages, Focused/Other, reading, blocked pictures, reply sent and delivered with a copy in Sent Items and the answered flag, add-account flow through the UI (no server found -> Advanced settings -> signed in), dark mode, Turkish, Start search "outlook". Not checked: Gmail/Yahoo/iCloud with real app passwords, OAuth (no client id), large mailboxes |
 | `veltos-pdf` (new): PDF Reader in a modern reader layout (own name and artwork, no Adobe marks) — Home with recent files, one tab per document, continuous pages with selectable text, search with results and highlights, page thumbnails, bookmarks (outline), zoom, fit width/page that stays fitted, rotate, read mode, full screen, document properties, passwords, printing; Qt PDF (PDFium); replaces Okular, default for PDF files | 6 unit tests (real PDFs written with QPdfWriter, window offscreen EN/TR, damaged file refused); VM (live, 2026-10-21): a 19-page PDF opened as the default app (`xdg-open`), thumbnails, bookmarks, search (160 results), zoom out/in, properties, app menu, Home with the recent file. Printing untested |
 | `veltos-office`: Microsoft 365's start screen in front of LibreOffice 25.2 (Debian) Writer/Calc/Impress — Home (greeting, blank tile, templates with thumbnails, Recent/Pinned with search, grouped by date, pin, right-click menu), New (template grid with search), Open (Recent, This PC, Browse via the VeltOS dialog), Account, Options; title bar and rail in the app's colour (Word blue / Excel green / PowerPoint orange), Windows 11 entrance and hover animations, text size, English/Turkish; VeltOS' own templates (meeting notes, report, to-do list, monthly budget, invoice, expense tracker, weekly schedule) built from flat ODF by LibreOffice at package build time, LibreOffice's and the user's templates; LibreOffice set up for Windows users — Tabbed interface, Colibre icons, .docx/.xlsx/.pptx by default, Carlito, "VeltOS Office" in titles, no bars; Start entries run the start screen; coloured title bars on LibreOffice's windows (veltos-desktop Aurorae change); light Start Center; Office icons in the composition of Microsoft 365's (W/X/P tiles in front of a page, sheet, slide); the apps are named Word, Excel and PowerPoint in Start and on the start screens (product owner, 2026-10-22) | 24 unit tests (texts, PickList, pins, templates, command lines, the window for each app in EN/TR offscreen) + 7 configuration tests against LibreOffice's schema; VM (live, 2026-10-22, `tests/results/2026-10-22-office-start-screen/`): all pages in the three colours and in Turkish, opened from Start's pinned entry, templates and blank documents opening Writer with the Tabbed interface, Writer's title bar in Word blue after a sign-out, the Save dialog offering .docx. Not checked: dark mode, the Calc/Impress templates on screen, real Office documents |
 | `veltos-photos` (new): Photos in the Windows 11 layout — search in the title bar, Gallery/Favorites/folders, gallery by month (EXIF date) with filter, sort, tile size and slideshow, viewer (zoom, rotate, delete, heart, file information, copy, set as background/lock screen, filmstrip), Edit image (crop, aspect ratios, rotate, flip, brightness, contrast, saturation, warmth; save or save as copy); video thumbnails (ffmpegthumbnailer); default for pictures; replaces Gwenview | 17 unit tests (scan, EXIF, edits with Pillow; window offscreen EN/TR; search matches within the library, not the absolute path); VM (live, 2026-10-21): gallery of sample pictures, viewer, edit with live preview, save as copy. Not yet checked: lock-screen picture, very large libraries |
@@ -91,6 +92,49 @@ checks that passed.
   and drop between windows, large folders, network shares.
 - Anything on real hardware.
 
+## Product owner's list of 2026-10-23
+
+In the owner's message order, Mail first (owner's priority). `[x]` = done
+and seen working (development log says where); `[ ]` = open.
+
+1. [x] VeltOS Mail rewritten as its own app in the layout of Windows 11's new Outlook (icon, add-account screen, the whole window) - first priority. `veltos-mail`; seen in the dev VM against real Dovecot (IMAP) and Postfix (SMTP) servers (`tests/results/2026-10-24-veltos-mail/`). Outlook.com needs an OAuth registration (Known gaps)
+2. [ ] Installer: the disk (partition) page overlaps and shows disk sizes badly
+3. [ ] Taskbar Wi-Fi and Bluetooth flyouts list networks and devices (not only a link to Settings)
+4. [ ] File Explorer: a nicer USB flash drive icon and a Windows 11 drive icon for NTFS (Windows) drives
+5. [ ] Installed system: no boot menu; a small, plain "F6: recovery" hint with a key icon at the bottom right, F6 opens the menu
+6. [ ] "Not responding" (end the program) window in Windows 11's design
+7. [ ] Taskbar follows the theme and accent every time (it did not change once, later it did)
+8. [ ] Search's best match "Search in Google" instead of DuckDuckGo, with an icon
+9. [ ] VeltOS Graphics Cards app: finds NVIDIA/AMD/Intel GPUs, installs and updates drivers, shows the GPU's details; also in Settings
+10. [ ] Terminal: no crash on right-click, Ctrl+C / Ctrl+V work, other terminal bugs
+11. [ ] "Open with": the extra line pointing down
+12. [ ] Num Lock on by default, the user's later choice remembered
+13. [ ] Task Manager: GPU usage
+14. [ ] Photos: the desktop wallpapers, and a sample video and sound file
+15. [ ] Apps open faster after a click; more stable
+16. [ ] Settings Home: the line left of the scroll bar
+17. [ ] Crash notification (DrKonqi, "closed unexpectedly") in Windows 11's design
+18. [ ] Windows programs: uninstalled programs disappear completely
+19. [ ] Desktop/Explorer "New" menu: blank Word, Excel and PowerPoint documents
+20. [ ] Text file right-click shows two menus: keep the Windows one
+21. [ ] Weather app like Windows 11's, without an API key (open data)
+22. [ ] VeltOS AI: a Copilot-like assistant from the right edge; ChatGPT, Claude, Gemini and Copilot with the user's own API keys; can act on the system
+23. [ ] Monitors: plugging one in shows a picture; Windows 11's Project (Win+P) chooser; monitors in Settings > Display
+24. [ ] Lock screen / waking from sleep: Windows 11's sign-in animation
+25. [ ] Brightness on-screen bar uses the same icon as the quick settings brightness slider
+26. [ ] Taskbar date follows the language (it stayed English)
+27. [ ] Taskbar media controls flyout like Windows 11 (animations, artwork)
+28. [ ] Programs come to the front when something opens in them (a link opening in Firefox)
+29. [ ] Taskbar aligned left: Start and search open on the left too
+30. [ ] Safely Remove Hardware flyout in Windows 11's design
+31. [ ] Taskbar search hidden: the search icon no longer overlaps Task View
+32. [ ] Sign-in screen: account pictures in the user list at the bottom left
+33. [ ] VeltOS Store: a standard user is asked for an administrator password (VeltOS prompt) and the app installs
+34. [ ] Start button in light/dark mode: no box inside a box
+35. [ ] Light mode Start and search: one colour that matches the theme, not grey with a white field
+36. [ ] Flyouts of Start and the taskbar's right side: no white (dark mode) or black (light mode) frame around them
+37. [ ] Light mode: Settings' white instead of grey in Start and search; livelier colours and animations
+
 ## Known gaps
 
 - Product owner's requests still open (2026-10-20 list): taskbar transparency/colour/animations closer
@@ -133,10 +177,11 @@ checks that passed.
 - Wine's DLLs are stripped of debug information by veltos-winapps:
   `dpkg --verify` reports them as changed, and Wine's own crash
   backtraces have no symbols.
-- VeltOS Mail: Thunderbird's own dialogs and some menu entries ("About
-  Thunderbird", update texts) keep Thunderbird's look and name; only
-  windows, pages and texts listed in `mail.css` are changed, and they
-  must be checked again with each Thunderbird ESR.
+- VeltOS Mail (own app since 2026-10-24): Outlook.com, Hotmail and Live accounts
+  need Microsoft's OAuth sign-in, which needs VeltOS Mail registered with
+  Microsoft (`/etc/veltos/mail-oauth.json`, product owner's decision); until then
+  such accounts are refused with a link to Outlook on the web. No server-side
+  drafts, folder creation, conversations or calendar invitations yet.
 - KDE's "open with" dialog remains for programs that open files through
   KIO without a default app (not through File Explorer). Plasma's own
   confirmation when deleting permanently (Shift+Delete) is still KDE's;

@@ -1,0 +1,19 @@
+[Desktop Entry]
+Type=Application
+Name=VeltOS Mail
+GenericName=Mail
+GenericName[tr]=Posta
+Comment=Read and write email in the layout of Windows 11's Outlook
+Comment[tr]=Windows 11'deki Outlook düzeninde e-posta okuyun ve yazın
+Exec=veltos-mail %u
+Icon=veltos-mail
+Categories=Office;Email;Network;
+Keywords=Mail;Email;E-mail;Outlook;Inbox;Gmail;Posta;E-posta;Gelen Kutusu;
+MimeType=x-scheme-handler/mailto;
+StartupNotify=true
+Actions=NewMail;
+
+[Desktop Action NewMail]
+Name=New mail
+Name[tr]=Yeni posta
+Exec=veltos-mail mailto:

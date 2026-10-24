@@ -103,15 +103,12 @@ class AppNameTests(unittest.TestCase):
         self.assertIn("\nExec=libreoffice --nologo --writer %U\n", text)
         self.assertIn("\nExec=libreoffice --nologo --writer\n", text)
 
-    def test_mail_is_veltos_mail(self):
-        # The product owner's name for Thunderbird (2026-10-22), also in Turkish.
-        thunderbird = "[Desktop Entry]\nName=Thunderbird\nExec=thunderbird %u\n"
-        text = app_names.rewrite(thunderbird, "thunderbird", app_names.APPS["thunderbird.desktop"])
-        self.assertIn("\nName=VeltOS Mail\n", text)
-        self.assertIn("\nName[tr]=VeltOS Mail\n", text)
-        keywords = text.split("Keywords=", 1)[1].splitlines()[0]
-        for word in ("Mail;", "Posta;", "Outlook;", "Thunderbird;"):
-            self.assertIn(word, keywords)
+    def test_thunderbird_keeps_its_name(self):
+        # VeltOS Mail is its own app since 2026-10-23; a Thunderbird the user
+        # installs is not renamed to it.
+        self.assertNotIn("thunderbird.desktop", app_names.APPS)
+        # VeltOS Mail answers mailto: links.
+        self.assertIn(("veltos-mail.desktop", ["x-scheme-handler/mailto"]), app_names.DEFAULT_APPS)
 
     def test_spectacle_loses_its_shortcuts(self):
         spectacle = ("[Desktop Entry]\nName=Spectacle\nExec=/usr/bin/spectacle\nX-KDE-Shortcuts=Print,Meta+Shift+S\n"

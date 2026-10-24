@@ -867,7 +867,7 @@ Snapshot-based rollback (e.g. Btrfs + snapper) is a candidate to evaluate.
   program's own uninstaller through Wine (`uninstaller --remove`), as
   Windows does.
 
-### 2.22 VeltOS Mail: Thunderbird in Outlook's look (2026-10-22)
+### 2.22 VeltOS Mail: Thunderbird in Outlook's look (2026-10-22; replaced by 2.24)
 
 - The product owner wants the mail app "exactly like Outlook", named
   VeltOS Mail. Writing a mail client is out of scope (IMAP, SMTP,
@@ -964,6 +964,40 @@ were measured (below).
   mostly AMD and NVIDIA firmware the kernel needs before the root
   filesystem is mounted; leaving it out risks a black screen on those
   GPUs.
+
+### 2.24 VeltOS Mail as its own app (2026-10-24)
+
+- The product owner judged the restyled Thunderbird (2.22) "still bad" and
+  asked for VeltOS Mail to be written again, "exactly Outlook: icon, sign-in
+  screen, everything". Thunderbird's structure (tabs, spaces, its folder
+  tree, its account pages and dialogs) only partly yields to style sheets,
+  and every ESR update can break the selectors.
+- Decision: a VeltOS app (`packages/veltos-mail`, PySide6/QML) in the
+  layout of Windows 11's new Outlook, on mature parts: Python's `imaplib`,
+  `smtplib` and `email` (IMAP4rev1, SMTP, MIME), SQLite for the local copy,
+  Qt WebEngine (Chromium) for HTML mail with JavaScript off, a
+  Content-Security-Policy without scripts, remote pictures blocked until the
+  user allows them, links opened in the web browser, and a cleaning pass
+  that removes scripts, frames, forms and event handlers anyway.
+  Thunderbird leaves the image.
+- Alternatives: keep Thunderbird and replace its pages by overriding its
+  chrome files from autoconfig (exact look, but copies of Mozilla's files
+  that break with every ESR); Evolution or KMail (GTK / KDE layouts,
+  Akonadi); a window around Outlook on the web (Microsoft accounts only,
+  Microsoft's product); GNOME Online Accounts for OAuth (GNOME's dialogs,
+  a daemon, no Microsoft personal accounts).
+- Trade-off, stated plainly: Outlook.com, Hotmail and Live accept only
+  Microsoft's sign-in since 2024-09-16, and Google and Microsoft give OAuth
+  tokens only to registered programs. VeltOS Mail implements OAuth 2.0
+  (PKCE, loopback redirect) but has no registration yet: such accounts are
+  refused with an explanation and a link to Outlook on the web; Gmail,
+  Yahoo, iCloud, Yandex and AOL work with app passwords, other providers
+  with their passwords. Registering VeltOS Mail with Microsoft (and Google)
+  is the product owner's decision; the client id then goes into
+  `/etc/veltos/mail-oauth.json`.
+- Passwords: the Secret Service when it is unlocked without asking (KWallet
+  on Plasma), otherwise a file only the user can read, as mail programs
+  without a keyring do.
 
 ## 3. Licensing and redistribution
 
