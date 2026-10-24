@@ -520,8 +520,16 @@ class FullBuildTest(unittest.TestCase):
         self.assertIn("PathChanged=%h/.local/share/Trash/files\n", (units / "veltos-trash-icon.path").read_text())
         self.assertIn("ExecStart=/usr/libexec/veltos/trash-icon\n", (units / "veltos-trash-icon.service").read_text())
         self.assertTrue((units / "plasma-workspace.target.wants/veltos-trash-icon.path").is_symlink())
+        # Num Lock: on by default, saved before KWin stops at the session's end.
+        numlock = (units / "veltos-numlock.service").read_text()
+        self.assertIn("After=plasma-kwin_wayland.service\n", numlock)
+        self.assertIn("ExecStop=/usr/libexec/veltos/numlock-state\n", numlock)
+        self.assertTrue((units / "plasma-workspace.target.wants/veltos-numlock.service").is_symlink())
+        kcminputrc = build_assets.parse_kconfig((root / "etc/xdg/kcminputrc").read_text())
+        self.assertEqual(kcminputrc["[Keyboard]"]["NumLock"], "0")
         for helper in ("session-defaults", "update-app-names", "start-categories", "greeter-compositor",
-                       "sddm-virtualbox-env", "needs-software-rendering", "trash-icon", "desktop-new"):
+                       "sddm-virtualbox-env", "needs-software-rendering", "trash-icon", "desktop-new",
+                       "numlock-state"):
             path = root / "usr/libexec/veltos" / helper
             self.assertTrue(path.stat().st_mode & 0o111, f"{helper} is not executable")
         # The desktop's Windows 11 menus (plasma override) read their texts

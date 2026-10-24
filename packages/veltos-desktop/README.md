@@ -159,6 +159,7 @@ files that do not exist yet.
 | `plasma/clock/` | Taskbar clock; its flyout is the Windows 11 notification centre (`NotificationCenter.qml`) above a calendar (`Calendar.qml`) |
 | `plasma-overrides/` | Changes to Plasma and KWin components (see `update-plasma-overrides`); `files/` holds whole replacement files |
 | `desktop/` | Desktop icons: This PC, Recycle Bin, VeltOS Store |
+| `system/numlock-state` | Num Lock on when a session starts (`/etc/xdg/kcminputrc`), the state the user left saved at the end of the session (`veltos-numlock.service`) for the next one |
 | `qml/org/veltos/controls/`, `system/veltos_controls.py` | VeltOS' Qt Quick Controls style for VeltOS' apps: Windows 11 scroll bars (no Breeze separator line), the rest from Breeze; apps call `veltos_controls.use()` after creating their QGuiApplication |
 | `konsole/` | Terminal profile, Campbell colour scheme, Konsole window layout with hidden toolbars, Windows Terminal's Ctrl+C/Ctrl+V and right-click menu |
 | `kwin/` | KWin effects (`effects/veltostaskview`: Task View; `effects/veltostoast`: the toast animation) and scripts (`scripts/veltostaskbarpreview`: the taskbar's window previews) |

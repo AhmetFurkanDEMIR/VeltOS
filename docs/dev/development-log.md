@@ -3,6 +3,26 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (night) — Num Lock on by default, the user's choice kept
+
+Item 12 of the product owner's list.
+
+- KWin sets Num Lock only when it starts, from `kcminputrc` `[Keyboard]
+  NumLock` (0 on, 1 off, 2 unchanged; `Xkb::updateKeymap`, KWin 6.3).
+  `/etc/xdg/kcminputrc` now says 0, which also reaches the sign-in
+  screen's KWin.
+- Windows keeps the state the user left: `veltos-numlock.service` (user
+  unit, wanted by `plasma-workspace.target`, `After=plasma-kwin_wayland`
+  so it stops first) runs `/usr/libexec/veltos/numlock-state` when the
+  session ends. It reads the keyboards' Num Lock lights
+  (`/sys/class/leds/*::numlock/brightness`, which KWin keeps in step) and
+  writes the user's NumLock (0 or 1); without a light it changes nothing.
+- Verified: package tests (the script with recorded lights, the unit and
+  the default); dev VM: on in a new session, off after the key, saved as
+  1 when the unit stopped, off in the next session
+  (`tests/results/2026-10-24-numlock/`). Not observed: a sign-out through
+  Start (the `org.kde.Shutdown.logout` call did not end the live session).
+
 ## 2026-10-24 (evening) — Windows 11 scroll bars: no line beside them
 
 Items 11 and 16 of the product owner's list: "Open with" showed an extra

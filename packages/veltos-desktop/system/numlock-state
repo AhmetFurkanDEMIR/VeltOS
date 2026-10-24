@@ -1,0 +1,27 @@
+#!/bin/sh
+# VeltOS: Num Lock is on when a session starts, and later the state the user
+# left it in comes back at the next sign-in, as in Windows (product owner,
+# 2026-10-23).
+#
+#   numlock-state
+#
+# Run when the Plasma session ends (veltos-numlock.service, ExecStop, before
+# KWin stops). Reads the keyboards' Num Lock lights (the kernel's LED class,
+# which KWin keeps in step) and writes KWin's start-up setting:
+# kcminputrc [Keyboard] NumLock = 0 (on) or 1 (off). /etc/xdg/kcminputrc
+# has 0, so a new user starts with Num Lock on. Without a keyboard light
+# (some laptops) nothing is changed.
+set -u
+
+state=""
+for led in "${VELTOS_LEDS:-/sys/class/leds}"/*::numlock/brightness; do
+    [ -r "$led" ] || continue
+    state=off
+    if [ "$(cat "$led" 2>/dev/null)" != 0 ]; then
+        state=on
+        break
+    fi
+done
+[ -n "$state" ] || exit 0
+[ "$state" = on ] && value=0 || value=1
+exec kwriteconfig6 --file kcminputrc --group Keyboard --key NumLock "$value"

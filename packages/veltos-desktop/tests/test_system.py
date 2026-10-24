@@ -319,6 +319,35 @@ class TrashIconTests(unittest.TestCase):
         self.assertLess(launcher.stat().st_mtime, 3)
 
 
+class NumLockTests(unittest.TestCase):
+    """numlock-state: the keyboard light decides KWin's start-up setting
+    for the next session (kcminputrc [Keyboard] NumLock: 0 on, 1 off)."""
+
+    def run_script(self, lights):
+        leds = Path(tempfile.mkdtemp())
+        for name, value in lights.items():
+            (leds / f"{name}::numlock").mkdir()
+            (leds / f"{name}::numlock/brightness").write_text(f"{value}\n")
+        bin_dir = Path(tempfile.mkdtemp())
+        record = bin_dir / "calls"
+        fake = bin_dir / "kwriteconfig6"
+        fake.write_text(f'#!/bin/sh\necho "$*" >> "{record}"\n')
+        fake.chmod(0o755)
+        env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VELTOS_LEDS": str(leds)}
+        subprocess.run(["sh", str(PKG / "system/numlock-state")], env=env, check=True)
+        return record.read_text() if record.exists() else ""
+
+    def test_light_on_and_off(self):
+        self.assertEqual(self.run_script({"input3": 1}), "--file kcminputrc --group Keyboard --key NumLock 0\n")
+        self.assertEqual(self.run_script({"input3": 0}), "--file kcminputrc --group Keyboard --key NumLock 1\n")
+        # Two keyboards: on if either shows it.
+        self.assertEqual(self.run_script({"input3": 0, "input7": 1}),
+                         "--file kcminputrc --group Keyboard --key NumLock 0\n")
+
+    def test_no_light_changes_nothing(self):
+        self.assertEqual(self.run_script({}), "")
+
+
 class ControlsStyleTests(unittest.TestCase):
     """veltos_controls.use(): VeltOS' apps call it after creating their
     QGuiApplication (KDE's platform theme gives them Breeze otherwise)."""

@@ -478,8 +478,13 @@ def build_static_config(root):
             "[Greeter][Wallpaper][org.kde.image][General]\n"
             f"Image={wallpaper_url}\n"
             f"PreviewImage={wallpaper_url}\n"),
+        # Num Lock on when a session starts (KWin: 0 on, 1 off, 2 unchanged;
+        # also the sign-in screen's KWin); system/numlock-state keeps the
+        # user's later choice.
         "etc/xdg/kcminputrc": (
-            "[Mouse]\n"
+            "[Keyboard]\n"
+            "NumLock=0\n"
+            "\n[Mouse]\n"
             f"cursorTheme={CURSOR_THEME}\n"),
         # No application icon bouncing next to the pointer while a program
         # starts (KWin's startup feedback; Windows shows none). KWin on
@@ -627,7 +632,7 @@ def build_static_config(root):
     libexec.mkdir(parents=True, exist_ok=True)
     for helper in ("context-menus", "desktop-new", "display-scale", "greeter-compositor",
                    "needs-software-rendering", "sddm-virtualbox-env", "session-defaults", "session-fixups",
-                   "start-categories", "terminal-theme", "trash-icon", "update-app-names",
+                   "numlock-state", "start-categories", "terminal-theme", "trash-icon", "update-app-names",
                    "update-plasma-overrides", "veltos-desktop-guard"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
@@ -669,11 +674,21 @@ def build_static_config(root):
     (units_dir / "veltos-trash-icon.service").write_bytes(
         b"[Unit]\nDescription=VeltOS: refresh the desktop's Recycle Bin icon\n\n"
         b"[Service]\nType=oneshot\nExecStart=/usr/libexec/veltos/trash-icon\n")
+    # Num Lock comes back as the user left it (system/numlock-state): saved
+    # when the session ends, before KWin stops (After=: units stop in the
+    # reverse order), and read by KWin at the next start.
+    (units_dir / "veltos-numlock.service").write_bytes(
+        b"[Unit]\nDescription=VeltOS: keep Num Lock as the user left it\n"
+        b"After=plasma-kwin_wayland.service\n\n"
+        b"[Service]\nType=oneshot\nRemainAfterExit=yes\nExecStart=/bin/true\n"
+        b"ExecStop=/usr/libexec/veltos/numlock-state\n\n"
+        b"[Install]\nWantedBy=plasma-workspace.target\n")
     wants = units_dir / "plasma-workspace.target.wants"
     wants.mkdir(parents=True, exist_ok=True)
-    link = wants / "veltos-trash-icon.path"
-    if not link.is_symlink():
-        link.symlink_to("../veltos-trash-icon.path")
+    for unit in ("veltos-trash-icon.path", "veltos-numlock.service"):
+        link = wants / unit
+        if not link.is_symlink():
+            link.symlink_to(f"../{unit}")
     # Plasma's own services start with KDE's platform theme, not the
     # portal's. veltos-session.sh gives every program
     # QT_QPA_PLATFORMTHEME=xdgdesktopportal (Windows 11 file dialogs), and a
