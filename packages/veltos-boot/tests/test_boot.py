@@ -244,19 +244,23 @@ class GrubTests(unittest.TestCase):
             out = subprocess.run(["sh", "-c", wrapper], capture_output=True, text=True,
                                  check=True, env=env).stdout
             self.assertIn("function veltos_count_start {", out)
+            self.assertIn("function veltos_start_screen {", out)
+            self.assertIn('background_image -m stretch "${veltos_screen}"; clear; fi', out)
             self.assertIn("menuentry 'VeltOS' --class veltos --class os $menuentry_id_option "
-                          "'gnulinux-simple-1234' {\n\tveltos_count_start\n", out)
-            self.assertIn("'gnulinux-6.12-advanced-1234' {\n\t\tveltos_count_start\n", out)
+                          "'gnulinux-simple-1234' {\n\tveltos_count_start\n\tveltos_start_screen\n", out)
+            self.assertIn("'gnulinux-6.12-advanced-1234' {\n\t\tveltos_count_start\n\t\tveltos_start_screen\n", out)
             # Debian's recovery mode is a deliberate start: not counted.
             self.assertIn("'gnulinux-6.12-recovery-1234' {\n\t\tlinux", out)
-            self.assertIn("menuentry 'VeltOS Recovery' --class veltos --class os "
-                          "$menuentry_id_option 'veltos-recovery' {\n\tload_video\n", out)
+            # F6 while GRUB waits starts it (like Windows' F8).
+            self.assertIn("menuentry 'VeltOS Recovery' --class veltos --class os --hotkey=f6 "
+                          "$menuentry_id_option 'veltos-recovery' {\n\tveltos_start_screen\n\tload_video\n", out)
+            self.assertEqual(out.count("--hotkey="), 1)
             self.assertIn("\tlinux\t/vmlinuz-6.12.113+deb13-amd64 root=UUID=1234 ro "
                           "quiet splash nomodeset systemd.unit=veltos-recovery.target\n", out)
             recovery = out.split("menuentry 'VeltOS Recovery'")[1].split("}")[0]
             self.assertNotIn("veltos_count_start", recovery)
             safe = out.split("menuentry 'VeltOS (safe graphics)'")[1].split("}")[0]
-            self.assertIn("$menuentry_id_option 'veltos-safe' {\n\tveltos_count_start\n", safe)
+            self.assertIn("$menuentry_id_option 'veltos-safe' {\n\tveltos_count_start\n\tveltos_start_screen\n", safe)
             self.assertIn("ro  quiet splash loglevel=3 nomodeset\n", safe)
             self.assertTrue(out.rstrip().endswith('if [ "${veltos_failed}" = 2 ]; then\n'
                                                   '  set default="veltos-recovery"\nfi'), out[-200:])
@@ -315,6 +319,134 @@ class GrubTests(unittest.TestCase):
                                      env={"PATH": f"{bin_dir}:/usr/bin:/bin"}).stdout
                 self.assertEqual("set timeout_style=menu" in out, expect, out)
                 self.assertIn("set color_normal=black/black", out)
+
+
+class StartScreenTests(unittest.TestCase):
+    """GRUB's wait before VeltOS starts: no menu, the start screen with the
+    "F6  Recovery" hint (product owner, 2026-10-23)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = Path(tempfile.mkdtemp())
+        root = cls.tmp / "root"
+        (cls.tmp / "work").mkdir()
+        build_assets.build_start_screen(root, cls.tmp / "work")
+        cls.assets = root / build_assets.START_SCREEN_DIR
+        cls.tool = root / "usr/libexec/veltos-boot/start-screen"
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp)
+
+    @staticmethod
+    def read_tga(path):
+        """Width, height and the BGR pixels of a run-length encoded TGA."""
+        data = path.read_bytes()
+        assert data[2] == 10 and data[16] == 24 and data[17] == 0x20, data[:18]
+        width, height = int.from_bytes(data[12:14], "little"), int.from_bytes(data[14:16], "little")
+        pixels, pos = bytearray(), 18
+        while len(pixels) < width * height * 3:
+            head = data[pos]
+            pos += 1
+            count = (head & 0x7F) + 1
+            if head & 0x80:
+                pixels += data[pos:pos + 3] * count
+                pos += 3
+            else:
+                pixels += data[pos:pos + 3 * count]
+                pos += 3 * count
+        assert pos == len(data)
+        return width, height, bytes(pixels)
+
+    def make(self, *args):
+        out = self.tmp / "out"
+        env = dict(os.environ, VELTOS_START_SCREEN_ASSETS=str(self.assets))
+        subprocess.run(["python3", str(self.tool), *args, "--out", str(out)], check=True, env=env)
+        return self.read_tga(out / "start-hint.tga"), self.read_tga(out / "start.tga"), out
+
+    @staticmethod
+    def pixel(picture, x, y):
+        width, _, data = picture
+        at = (y * width + x) * 3
+        return data[at + 2], data[at + 1], data[at]
+
+    def test_start_screen_at_the_screen_mode(self):
+        hint, plain, out = self.make("--mode", "1920x1080,1024x768,800x600,auto", "--lang", "en_US.UTF-8")
+        self.assertEqual(hint[:2], (1920, 1080))
+        background = (0x05, 0x08, 0x18)            # the boot splash's (veltos.plymouth)
+        self.assertEqual(self.pixel(plain, 0, 0), background)
+        self.assertEqual(self.pixel(plain, 1919, 1079), background)
+        # The logo where the boot splash draws it (centred, top at 42 %).
+        top, left = round((1080 - 168) * 0.42), (1920 - 168) // 2
+        box = [(x, y) for x in range(left, left + 168, 4) for y in range(top, top + 168, 4)]
+        self.assertTrue(any(self.pixel(plain, x, y) != background for x, y in box))
+        self.assertTrue(all(self.pixel(plain, x, top - 10) == background for x in range(left, left + 168)))
+        # The hint in the bottom right corner only while GRUB waits.
+        corner = [(x, y) for x in range(1600, 1892) for y in range(1020, 1052)]
+        self.assertTrue(any(self.pixel(hint, x, y) != background for x, y in corner))
+        self.assertTrue(all(self.pixel(plain, x, y) == background for x, y in corner))
+        # Small: a flat screen is mostly runs.
+        self.assertLess((out / "start-hint.tga").stat().st_size, 200_000)
+
+    def test_language_and_large_screens(self):
+        english = self.make("--mode", "1920x1080", "--lang", "en_US.UTF-8")[0]
+        turkish = self.make("--mode", "1920x1080", "--lang", "tr_TR.UTF-8")[0]
+        self.assertNotEqual(english[2], turkish[2])
+        meta = json.loads((self.assets / "assets.json").read_text())
+        self.assertNotEqual(meta["hint"]["en"]["1"][0], meta["hint"]["tr"]["1"][0])
+        self.assertEqual(meta["logo"]["2"][:2], [336, 336])
+        four_k = self.make("--mode", "3840x2160", "--lang", "en")[1]
+        top, left = round((2160 - 336) * 0.42), (3840 - 336) // 2
+        box = [(x, y) for x in range(left, left + 336, 8) for y in range(top, top + 336, 8)]
+        self.assertTrue(any(self.pixel(four_k, x, y) != (0x05, 0x08, 0x18) for x, y in box))
+        # No usable mode in GRUB_GFXMODE: GRUB's fallback mode.
+        self.assertEqual(self.make("--mode", "auto", "--lang", "")[0][:2], (1024, 768))
+
+    def test_grub_script_shows_the_hint_and_hides_the_menu(self):
+        script = PKG / "grub.d/35_veltos"
+        subprocess.run(["sh", "-n", str(script)], check=True)
+        bin_dir, unit = self.tmp / "bin35", self.tmp / "veltos-recovery.target"
+        bin_dir.mkdir(exist_ok=True)
+        unit.write_text("[Unit]\n")
+        log = self.tmp / "start-screen.log"
+        fake = self.tmp / "fake-start-screen"
+        fake.write_text(f'#!/bin/sh\necho "$@" > "{log}"\nexit ${{FAIL:-0}}\n')
+        fake.chmod(0o755)
+        locale = self.tmp / "locale"
+        locale.write_text('LANG="tr_TR.UTF-8"\n')
+        env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VELTOS_RECOVERY_UNIT": str(unit),
+               "VELTOS_START_SCREEN": str(fake), "VELTOS_START_SCREEN_DIR": "/boot/grub/veltos",
+               "VELTOS_LOCALE_FILE": str(locale), "GRUB_GFXMODE": "1920x1080,1024x768"}
+        out = subprocess.run(["sh", str(script)], capture_output=True, text=True, check=True, env=env).stdout
+        self.assertEqual(log.read_text().split(),
+                         ["--mode", "1920x1080,1024x768", "--lang", "tr_TR.UTF-8", "--out", "/boot/grub/veltos"])
+        self.assertIn('background_image -m stretch "${prefix}/veltos/start-hint.tga"', out)
+        self.assertIn('set veltos_screen="${prefix}/veltos/start.tga"', out)
+        # Without "clear" GRUB did not paint the picture while it waited.
+        self.assertRegex(out, r'start\.tga"\n(?:\s*#.*\n)*\s*clear\n')
+        # Debian's 30 s menu after an unfinished start stays hidden.
+        self.assertIn('if [ "${recordfail}" = 1 ]; then\n  set timeout_style=hidden\n  set timeout=2\n', out)
+        self.assertNotIn("timeout_style=menu", out)
+        # Dual boot: the menu for 5 s, no start screen.
+        log.unlink()
+        prober = bin_dir / "os-prober"
+        prober.write_text("#!/bin/sh\necho '/dev/sda1:Windows Boot Manager:Windows:efi'\n")
+        prober.chmod(0o755)
+        out = subprocess.run(["sh", str(script)], capture_output=True, text=True, check=True, env=env).stdout
+        self.assertIn("set timeout_style=menu\nset timeout=5", out)
+        self.assertNotIn("background_image", out)
+        self.assertFalse(log.exists())
+        prober.unlink()
+        # The pictures could not be made: GRUB waits as before, no error.
+        result = subprocess.run(["sh", str(script)], capture_output=True, text=True, check=True,
+                                env=dict(env, FAIL="1"))
+        self.assertNotIn("background_image", result.stdout)
+        self.assertIn("start screen could not be made", result.stderr)
+        # Without veltos-recovery (no F6 entry): no hint.
+        unit.unlink()
+        out = subprocess.run(["sh", str(script)], capture_output=True, text=True, check=True, env=env).stdout
+        self.assertNotIn("background_image", out)
+        self.assertIn("set color_normal=black/black", out)
 
 
 class ResolutionTests(unittest.TestCase):

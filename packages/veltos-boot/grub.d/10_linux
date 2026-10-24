@@ -15,9 +15,11 @@
 # and after two starts that did not finish GRUB starts "VeltOS Recovery"
 # (Automatic Repair, systemd.unit=veltos-recovery.target) by itself. It
 # also gets "VeltOS (safe graphics)" (nomodeset), which Automatic Repair's
-# Safe mode starts once. Only where GRUB can write its environment file
-# (not on Btrfs/ZFS, LVM, RAID or an encrypted /boot), as Debian's
-# recordfail.
+# Safe mode starts once. F6 while GRUB waits starts VeltOS Recovery (like
+# Windows' F8; 35_veltos shows the hint), and every VeltOS entry puts the
+# start screen without the hint back before Linux loads. Only where GRUB
+# can write its environment file (not on Btrfs/ZFS, LVM, RAID or an
+# encrypted /boot), as Debian's recordfail.
 set -e
 
 original=/etc/grub.d/10_linux.dpkg-veltos
@@ -58,6 +60,9 @@ function veltos_count_start {
     save_env veltos_failed
   fi
 }
+function veltos_start_screen {
+  if [ -n "${veltos_screen}" ]; then background_image -m stretch "${veltos_screen}"; clear; fi
+}
 GRUB
 
 # Count the start in every VeltOS entry except Debian's recovery mode; copy
@@ -68,7 +73,8 @@ printf '%s\n' "$entries" | awk -v name="$distributor" '
             line = first[i]
             if (i == 1) {
                 sub(/^menuentry \047[^\047]*\047/, "menuentry \047" title "\047", line)
-                sub(/\$menuentry_id_option \047[^\047]*\047/, "$menuentry_id_option \047" id "\047", line)
+                sub(/\$menuentry_id_option \047[^\047]*\047/, (id == "veltos-recovery" ? "--hotkey=f6 " : "") \
+                    "$menuentry_id_option \047" id "\047", line)
             } else if (line ~ /veltos_count_start/ && !count) {
                 continue
             } else if (line ~ /^[[:space:]]*linux[[:space:]]/) {
@@ -87,12 +93,14 @@ printf '%s\n' "$entries" | awk -v name="$distributor" '
         if ($0 ~ /^[[:space:]]*menuentry \047/ && $0 ~ /\{[[:space:]]*$/ && $0 !~ /\(recovery mode\)/) {
             match($0, /^[[:space:]]*/)
             counted = substr($0, 1, RLENGTH) "\tveltos_count_start"
+            screen = substr($0, 1, RLENGTH) "\tveltos_start_screen"
             print counted
+            print screen
         }
         if (!done && $0 ~ /^menuentry \047/) { capturing = 1 }
         if (capturing) {
             first[++nfirst] = $0
-            if ($0 ~ /^menuentry \047/) first[++nfirst] = counted
+            if ($0 ~ /^menuentry \047/) { first[++nfirst] = counted; first[++nfirst] = screen }
             if ($0 ~ /^\}/) { capturing = 0; done = 1 }
         }
     }

@@ -31,6 +31,10 @@ execute_after_dh_install:
 	# Password screen font and texts (initramfs hook).
 	test -x $(CURDIR)/debian/veltos-boot/usr/share/initramfs-tools/hooks/veltos-boot
 	test -x $(CURDIR)/debian/veltos-boot/usr/lib/veltos-boot/unlock-texts
+	# GRUB's start screen with the F6 hint (made by start-screen at update-grub).
+	test -x $(CURDIR)/debian/veltos-boot/usr/libexec/veltos-boot/start-screen
+	test -s $(CURDIR)/debian/veltos-boot/usr/share/veltos-boot/start-screen/assets.json
+	test $$(ls $(CURDIR)/debian/veltos-boot/usr/share/veltos-boot/start-screen/*.rgba | wc -l) -eq 6
 	# Start-up screen at the screen's resolution.
 	test -x $(CURDIR)/debian/veltos-boot/usr/libexec/veltos-boot/boot-resolution
 	test -x $(CURDIR)/debian/veltos-boot/usr/libexec/veltos-boot/boot-resolution-sync

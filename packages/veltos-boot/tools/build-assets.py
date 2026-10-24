@@ -8,16 +8,21 @@
   * GRUB theme "veltos" for installed systems: background with the logo and
     name (the menu is drawn by GRUB on top), Inter fonts converted for GRUB
     and a rounded highlight for the selected entry. The live ISO's boot menu
-    reuses the fonts and highlight (build/scripts/build-iso.sh).
+    reuses the fonts and highlight (build/scripts/build-iso.sh);
+  * the start screen's pieces (startscreen/start-screen puts them together
+    at the screen's resolution on the installed system): the logo at the
+    boot splash's size and the "F6  Recovery" hint, as raw RGBA pixels.
 
 Requires the Python standard library, rsvg-convert, grub-mkfont and Inter.
 """
 
 import argparse
+import json
 import math
 import shutil
 import subprocess
 import sys
+import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -122,6 +127,77 @@ def grub_background():
     )
 
 
+# --- Start screen (GRUB's wait before VeltOS starts) --------------------------------
+START_SCREEN_DIR = Path("usr/share/veltos-boot/start-screen")
+# The boot splash draws its logo at 168 px (watermark.png); 4K screens get
+# everything twice as large.
+START_LOGO = 168
+HINT_TEXTS = {"en": "Recovery", "tr": "Kurtarma"}
+HINT_HEIGHT, HINT_WIDTH = 28, 220
+
+
+def hint_svg(label):
+    """The hint as Windows shows such keys: a small key cap with "F6" and a
+    word next to it, quiet colours on the boot splash's background."""
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{HINT_WIDTH}" height="{HINT_HEIGHT}" '
+            f'viewBox="0 0 {HINT_WIDTH} {HINT_HEIGHT}">'
+            '<rect x="0.75" y="2.75" width="30.5" height="22.5" rx="5" fill="#FFFFFF" fill-opacity="0.06" '
+            'stroke="#6E7BA8" stroke-width="1.5"/>'
+            '<text x="16" y="18.5" text-anchor="middle" font-family="Inter" font-weight="600" font-size="12" '
+            'fill="#E6EBFA">F6</text>'
+            f'<text x="40" y="18.5" font-family="Inter" font-size="13" fill="#A9B4D6">{label}</text>'
+            '</svg>')
+
+
+def rgba(png):
+    """Width, height and RGBA bytes of an 8-bit RGBA PNG from rsvg-convert."""
+    header, idat = None, b""
+    for kind, body in plain_png.chunks(png):
+        if kind == b"IHDR":
+            header = body
+        elif kind == b"IDAT":
+            idat += body
+    width, height = int.from_bytes(header[0:4], "big"), int.from_bytes(header[4:8], "big")
+    if header[8:10] != b"\x08\x06":
+        raise SystemExit("start screen: rsvg-convert did not write 8-bit RGBA")
+    rows = plain_png.unfilter(zlib.decompress(idat), width, height, 4)
+    return width, height, b"".join(rows)
+
+
+def trim_right(width, height, data):
+    """Cut transparent columns off the right (the hint's text width varies)."""
+    last = 0
+    for x in range(width):
+        if any(data[(y * width + x) * 4 + 3] for y in range(height)):
+            last = x
+    keep = last + 1
+    return keep, height, b"".join(data[y * width * 4:(y * width + keep) * 4] for y in range(height))
+
+
+def build_start_screen(root, tmp):
+    dest = root / START_SCREEN_DIR
+    dest.mkdir(parents=True)
+    assets = {"logo": {}, "hint": {lang: {} for lang in HINT_TEXTS}}
+    for scale in (1, 2):
+        size = START_LOGO * scale
+        render(LOGO.read_text(encoding="utf-8"), size, size, tmp / "logo.png", tmp / "logo.svg")
+        width, height, data = rgba((tmp / "logo.png").read_bytes())
+        name = f"logo-{scale}x.rgba"
+        (dest / name).write_bytes(data)
+        assets["logo"][str(scale)] = [width, height, name]
+        for lang, label in HINT_TEXTS.items():
+            render(hint_svg(label), HINT_WIDTH * scale, HINT_HEIGHT * scale, tmp / "hint.png", tmp / "hint.svg")
+            width, height, data = trim_right(*rgba((tmp / "hint.png").read_bytes()))
+            name = f"hint-{lang}-{scale}x.rgba"
+            (dest / name).write_bytes(data)
+            assets["hint"][lang][str(scale)] = [width, height, name]
+    (dest / "assets.json").write_text(json.dumps(assets, indent=1) + "\n", encoding="utf-8")
+    libexec = root / "usr/libexec/veltos-boot"
+    libexec.mkdir(parents=True, exist_ok=True)
+    shutil.copy(SRC / "startscreen/start-screen", libexec / "start-screen")
+    (libexec / "start-screen").chmod(0o755)
+
+
 def grub_font_file(face, size):
     return f"inter-{face.lower()}-{size}.pf2"
 
@@ -203,6 +279,7 @@ def main():
     tmp.mkdir()
     build_plymouth(root, tmp)
     build_grub(root, tmp)
+    build_start_screen(root, tmp)
     defaults = root / "etc/default/grub.d"
     defaults.mkdir(parents=True)
     shutil.copy(SRC / "default/veltos.cfg", defaults / "veltos.cfg")

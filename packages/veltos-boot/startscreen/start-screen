@@ -1,0 +1,158 @@
+#!/usr/bin/python3
+"""Pictures GRUB shows while it waits to start VeltOS (veltos-boot).
+
+    start-screen --mode 1920x1080 --lang tr --out /boot/grub/veltos
+
+Like Windows there is no boot menu (product owner, 2026-10-23); during
+GRUB's short wait the screen shows the VeltOS start screen - the boot
+splash's background and logo at the boot splash's place - with a small
+"F6  Recovery" hint in the bottom right corner. F6 starts VeltOS Recovery
+(Automatic Repair). Writes two pictures at the given screen mode:
+
+  start-hint.tga  the start screen with the hint (while GRUB waits);
+  start.tga       the start screen alone (from the moment VeltOS starts,
+                  so the hint does not stay on the screen while Linux loads).
+
+TGA with run-length encoding: GRUB reads it (its PNG reader once failed on
+a compressed picture) and a flat screen stays a few kilobytes. Run by
+/etc/grub.d/35_veltos during update-grub. The logo and the hint come
+pre-rendered from /usr/share/veltos-boot/start-screen (tools/build-assets.py).
+Python's standard library only.
+"""
+
+import argparse
+import json
+import os
+import re
+import struct
+import sys
+from pathlib import Path
+
+ASSETS = Path(os.environ.get("VELTOS_START_SCREEN_ASSETS", "/usr/share/veltos-boot/start-screen"))
+# The boot splash's background (plymouth/veltos.plymouth) and its logo's
+# place: the watermark is centred and its top at 42 % of the free height.
+BACKGROUND = (0x05, 0x08, 0x18)
+LOGO_ALIGN = (0.5, 0.42)
+DEFAULT_MODE = (1024, 768)
+
+
+def parse_mode(text):
+    """The first "WxH" of a GRUB_GFXMODE value ("1920x1080,1024x768,auto");
+    GRUB's fallback mode when there is none."""
+    for part in (text or "").split(","):
+        match = re.fullmatch(r"\s*(\d{3,5})x(\d{3,5})(?:x\d+)?\s*", part)
+        if match:
+            return int(match.group(1)), int(match.group(2))
+    return DEFAULT_MODE
+
+
+def language(lang):
+    return "tr" if (lang or "").lower().startswith("tr") else "en"
+
+
+def load(entry):
+    width, height, name = entry
+    data = (ASSETS / name).read_bytes()
+    if len(data) != width * height * 4:
+        raise SystemExit(f"start-screen: {name} has the wrong size")
+    return width, height, data
+
+
+def scale_for(width, height):
+    """Pictures twice as large on 4K screens, as the boot splash scales."""
+    return "2" if min(width, height) >= 2000 else "1"
+
+
+class Canvas:
+    def __init__(self, width, height):
+        self.width, self.height = width, height
+        self.rows = {}          # only rows with something on them
+
+    def blend(self, picture, left, top):
+        pw, ph, data = picture
+        for y in range(ph):
+            ty = top + y
+            if not 0 <= ty < self.height:
+                continue
+            row = self.rows.get(ty)
+            if row is None:
+                row = self.rows[ty] = bytearray(bytes(BACKGROUND) * self.width)
+            for x in range(pw):
+                tx = left + x
+                if not 0 <= tx < self.width:
+                    continue
+                r, g, b, a = data[(y * pw + x) * 4:(y * pw + x) * 4 + 4]
+                if a == 0:
+                    continue
+                at = tx * 3
+                for i, value in enumerate((r, g, b)):
+                    row[at + i] = (value * a + row[at + i] * (255 - a)) // 255
+
+    def tga(self):
+        """Run-length encoded, 24 bits, top-left origin; packets never cross a
+        row. Rows without anything are runs of the background."""
+        out = bytearray(struct.pack("<BBBHHBHHHHBB", 0, 0, 10, 0, 0, 0, 0, 0,
+                                    self.width, self.height, 24, 0x20))
+        background = bytes((BACKGROUND[2], BACKGROUND[1], BACKGROUND[0]))
+
+        def run(count):
+            while count > 0:
+                n = min(count, 128)
+                out.append(0x80 | (n - 1))
+                out.extend(background)
+                count -= n
+
+        for y in range(self.height):
+            row = self.rows.get(y)
+            if row is None:
+                run(self.width)
+                continue
+            # Background on both sides as runs, the middle as raw packets.
+            pixels = [bytes((row[i + 2], row[i + 1], row[i])) for i in range(0, len(row), 3)]
+            first = next((i for i, p in enumerate(pixels) if p != background), self.width)
+            last = next((i for i in range(self.width - 1, -1, -1) if pixels[i] != background), -1)
+            run(first)
+            x = first
+            while x <= last:
+                n = min(128, last - x + 1)
+                out.append(n - 1)
+                out.extend(b"".join(pixels[x:x + n]))
+                x += n
+            run(self.width - 1 - last if last >= first else 0)
+        return bytes(out)
+
+
+def write(path, data):
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_bytes(data)
+    os.replace(temporary, path)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--mode", default="", help="GRUB_GFXMODE (the first WxH is used)")
+    parser.add_argument("--lang", default="", help="the system's LANG (tr_* gives Turkish)")
+    parser.add_argument("--out", type=Path, required=True)
+    args = parser.parse_args(argv)
+
+    width, height = parse_mode(args.mode)
+    assets = json.loads((ASSETS / "assets.json").read_text(encoding="utf-8"))
+    scale = scale_for(width, height)
+    logo = load(assets["logo"][scale])
+    hint = load(assets["hint"][language(args.lang)][scale])
+
+    screen = Canvas(width, height)
+    screen.blend(logo, round((width - logo[0]) * LOGO_ALIGN[0]), round((height - logo[1]) * LOGO_ALIGN[1]))
+    plain = screen.tga()
+    margin = 28 * int(scale)
+    screen.blend(hint, width - hint[0] - margin, height - hint[1] - margin)
+    with_hint = screen.tga()
+
+    args.out.mkdir(parents=True, exist_ok=True)
+    write(args.out / "start.tga", plain)
+    write(args.out / "start-hint.tga", with_hint)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

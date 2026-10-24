@@ -3,6 +3,41 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (afternoon) — No boot menu: start screen with "F6  Recovery"
+
+Item 5 of the product owner's list: after installing, the boot menu
+(VeltOS, Advanced options, Recovery) appeared; it should not, a small
+"F6 for recovery" hint with a key icon should sit in the bottom right
+corner instead, and F6 should open recovery.
+
+- **Why the menu appeared**: VeltOS' menu was already hidden, but Debian's
+  `00_header` shows it for 30 s after a start that did not finish
+  (`recordfail`), common in VirtualBox (stalls) and after a power loss.
+  `35_veltos` now keeps it hidden then (VeltOS counts such starts and opens
+  Automatic Repair after two); dual-boot PCs still get it for 5 s.
+- **Start screen**: `start-screen` (veltos-boot, standard library) writes
+  `/boot/grub/veltos/start-hint.tga` and `start.tga` at update-grub for the
+  first mode of `GRUB_GFXMODE` and the system's language: the boot
+  splash's background and logo at the splash's place, and the hint (a key
+  cap "F6" and "Recovery" / "Kurtarma") 28 px from the bottom right corner,
+  pre-rendered at build time (twice as large for 4K). `35_veltos` shows it
+  with `background_image -m stretch` while GRUB waits; every VeltOS entry
+  puts the picture without the hint back before Linux loads.
+- **F6**: `--hotkey=f6` on "VeltOS Recovery"; GRUB 2.12's hidden wait
+  starts an entry's hotkey (read in `grub-core/normal/menu.c`; `f6` is one
+  of `menuentry.c`'s key names).
+- **Found in QEMU**: GRUB loaded the picture but the screen stayed black
+  while it waited: gfxterm paints a new background only when it next draws;
+  `clear` after `background_image` fixed it (also in the entries).
+- **Verified**: 33 package tests (start screen at a mode, 4K, languages,
+  fallback mode; the GRUB scripts with stand-ins: hint, recordfail, dual
+  boot, failure, no recovery; F6 and the start screen in the entries);
+  GRUB 2.12 (grub-pc-bin, grub-mkrescue) in QEMU with the generated
+  pictures: the start screen with "[F6] Kurtarma" while waiting, F6 started
+  the Recovery entry with the plain start screen
+  (`tests/results/2026-10-24-start-screen-f6/`). Not yet seen in a full
+  installation: the next ISO's installation test checks it.
+
 ## 2026-10-24 (afternoon) — Drive icons: USB stick and Windows drive
 
 Item 4 of the product owner's list: "make the flash drive icon nicer, like

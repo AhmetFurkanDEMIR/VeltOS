@@ -1026,6 +1026,29 @@ were measured (below).
   working; `tests/test_style.py` pins the expectations and the dev VM
   check (README) has to be repeated after Calamares updates.
 
+### 2.26 No boot menu: a start screen with "F6  Recovery" (2026-10-24)
+
+- The product owner saw the boot menu (VeltOS, Advanced options, VeltOS
+  Recovery) after installing; Windows shows none. VeltOS hid it already,
+  but Debian shows it for 30 s after any start that did not finish
+  (`recordfail`), which happens often in VMs and after power loss.
+- Decision: the menu stays hidden then too (VeltOS counts unfinished starts
+  itself and opens Automatic Repair after two); during GRUB's 2 s wait a
+  start screen is shown with GRUB's `background_image` (the boot splash's
+  background and logo, and a small "F6  Recovery" hint at the bottom
+  right), and F6 is the hotkey of VeltOS Recovery. The picture is made at
+  update-grub for the screen's mode and the system's language by
+  `veltos-boot`'s `start-screen` (TGA with run-length encoding).
+- Alternatives: a GRUB theme with an invisible menu and only the hint
+  (any key would stop the countdown and leave a screen without a visible
+  menu); the menu with a countdown (what the owner did not want); no hint
+  (F6 would be undiscoverable).
+- Trade-offs: the hint's language is the one update-grub saw (changing
+  the system language later keeps it until the next update-grub); on a
+  screen whose mode GRUB cannot set, the picture is stretched from the
+  configured mode; dual-boot PCs still get the menu for 5 s so Windows can
+  be chosen.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:
