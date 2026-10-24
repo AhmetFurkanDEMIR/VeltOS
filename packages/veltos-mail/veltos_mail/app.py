@@ -1117,6 +1117,11 @@ def main(argv=None):
     from PySide6.QtWebEngineQuick import QtWebEngineQuick
     QtWebEngineQuick.initialize()
     app = QGuiApplication(argv)
+    try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
+        from veltos_controls import use as use_veltos_controls
+        use_veltos_controls()
+    except ImportError:
+        pass
     QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
     app.setApplicationName("veltos-mail")
     app.setDesktopFileName("veltos-mail")

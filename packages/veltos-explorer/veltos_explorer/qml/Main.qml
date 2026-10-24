@@ -263,8 +263,10 @@ ApplicationWindow {
             const apps = backend.appsFor(one.path).map(a => ({ text: a.name, icon: a.icon, action: "with:" + a.path }));
             if (apps.length > 0)
                 apps.push({ separator: true });
-            // Windows 11's "Select an app" window (VeltOS, not KDE's dialog).
-            apps.push({ text: backend.text("choose_another_app"), icon: "application-x-executable", action: "choose-app" });
+            // Windows 11's "Select an app" window (VeltOS, not KDE's dialog);
+            // no icon, as in Windows 11 (Fluent's application-x-executable is a
+            // window with an exclamation mark).
+            apps.push({ text: backend.text("choose_another_app"), icon: "", action: "choose-app" });
             items.push({ text: backend.text("open_with"), icon: "document-open", submenu: apps });
         }
         items.push({ separator: true });

@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -427,6 +428,24 @@ class FullBuildTest(unittest.TestCase):
             self.assertTrue((root / image.lstrip("/")).is_file(), image)
             self.check_fluent_themes(root, kdeglobals)
             self.check_terminal(root)
+            self.check_controls_style(root)
+
+    def check_controls_style(self, root):
+        """VeltOS' Qt Quick Controls style: Windows 11 scroll bars, everything
+        else from Breeze, and Kirigami's platform plugin found by its name."""
+        style = root / "usr/share/veltos/qml/org/veltos/controls"
+        qmldir = (style / "qmldir").read_text().splitlines()
+        self.assertEqual(qmldir[0], "module org.veltos.controls")
+        self.assertIn("import org.kde.breeze", qmldir)
+        for name in ("ScrollBar", "ScrollView"):
+            self.assertIn(f"{name} 1.0 {name}.qml", qmldir)
+            self.assertTrue((style / f"{name}.qml").is_file())
+        # Breeze's separator line beside the bar is what the owner saw.
+        self.assertNotIn("Separator", (style / "ScrollBar.qml").read_text())
+        link = root / "usr/share/veltos/qt-plugins/kf6/kirigami/platform/org.veltos.controls.so"
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(os.readlink(link), "/usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kirigami/platform/org.kde.breeze.so")
+        self.assertTrue((root / "usr/lib/python3/dist-packages/veltos_controls.py").is_file())
 
     def check_terminal(self, root):
         import re

@@ -326,6 +326,15 @@ and JavaScript with no build step, no external requests and no cookies:
   notifications with `gdbus call ... org.freedesktop.Notifications.Notify`.
 - In Git Bash, `\n` inside a quoted heredoc can reach Python as a real
   newline; write code containing escapes with the editor tools instead.
+- KDE's platform theme forces `org.kde.breeze` as the Qt Quick style of
+  every QGuiApplication (`QT_QUICK_CONTROLS_STYLE` is ignored);
+  `QQuickStyle.setStyle` after creating the application wins. VeltOS'
+  apps do that with `veltos_controls.use()` (style `org.veltos.controls`,
+  veltos-desktop). Kirigami picks its platform plugin by the style's name
+  (`kf6/kirigami/platform/<name>*.so` in the library paths): a style
+  without one gets Kirigami's plain colours. A style module's qmldir
+  falls back with `import org.kde.breeze` (no version: `auto` took the
+  module's own 1.0 and failed).
 - Konsole 25.04 builds its hamburger menu (shown in the right-click menu
   while the menu bar is hidden) from the toolbars; layout files without
   them crashed it on every right-click. Hide toolbars with

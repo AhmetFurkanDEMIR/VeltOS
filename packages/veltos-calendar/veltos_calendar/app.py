@@ -490,6 +490,11 @@ def main(argv=None):
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
     os.environ["QML_DISABLE_DISK_CACHE"] = "1"
     app = QGuiApplication(argv)
+    try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
+        from veltos_controls import use as use_veltos_controls
+        use_veltos_controls()
+    except ImportError:
+        pass
     QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
     app.setApplicationName("veltos-calendar")
     app.setApplicationDisplayName(strings.text(strings.language(), "app_title"))

@@ -631,6 +631,20 @@ def build_static_config(root):
                    "update-plasma-overrides", "veltos-desktop-guard"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)
+    # VeltOS' Qt Quick Controls style (qml/org/veltos/controls): Windows 11
+    # scroll bars over KDE's Breeze for VeltOS' apps, which select it with
+    # veltos_controls.use(). Kirigami picks its platform plugin by the
+    # style's name; a link named after the style gives it Breeze's (VeltOS
+    # is amd64 only).
+    shutil.copytree(SRC / "qml", root / "usr/share/veltos/qml", dirs_exist_ok=True)
+    python_dir = root / "usr/lib/python3/dist-packages"
+    python_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy(SRC / "system/veltos_controls.py", python_dir / "veltos_controls.py")
+    platform = root / "usr/share/veltos/qt-plugins/kf6/kirigami/platform"
+    platform.mkdir(parents=True, exist_ok=True)
+    plugin_link = platform / "org.veltos.controls.so"
+    if not plugin_link.is_symlink():
+        plugin_link.symlink_to("/usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kirigami/platform/org.kde.breeze.so")
     # The desktop guard (system/veltos-desktop-guard): a D-Bus system
     # service started on demand, as root, that keeps This PC, the Recycle
     # Bin and the Store on the caller's own desktop. Hardened: it can only

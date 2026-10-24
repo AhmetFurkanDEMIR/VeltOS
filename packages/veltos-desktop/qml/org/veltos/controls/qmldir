@@ -1,0 +1,4 @@
+module org.veltos.controls
+ScrollBar 1.0 ScrollBar.qml
+ScrollView 1.0 ScrollView.qml
+import org.kde.breeze

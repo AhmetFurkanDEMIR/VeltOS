@@ -1081,6 +1081,27 @@ were measured (below).
   (`nvidia-open-kernel-dkms`) are not offered yet, the proprietary module
   covers every card the 550 series supports. Not tested on real GPUs.
 
+### 2.28 VeltOS' own Qt Quick Controls style (2026-10-24)
+
+- VeltOS' apps are QGuiApplications; KDE's platform theme forces the
+  `org.kde.breeze` Qt Quick style on them, and its scroll bars carry a
+  separator line the product owner saw as a stray line.
+- Decision: a minimal style module `org.veltos.controls` (ScrollBar and
+  ScrollView only, everything else from Breeze through the qmldir's
+  fallback import) that apps select with `veltos_controls.use()` after
+  creating the application object. Kirigami gets Breeze's platform plugin
+  through a link named after the style.
+- Alternatives: diverting Breeze's QML files (the module prefers its
+  compiled resources, so on-disk copies are ignored unless its qmldir is
+  changed too, which would affect every KDE program and slow their
+  start); a `ScrollBar.vertical` override in every view (hundreds of
+  places, and Breeze's ScrollView would still create its own bars);
+  turning the apps into QApplications (KDE's desktop style, drawn by
+  Kvantum, a different look for every control).
+- Trade-offs: Breeze-internal lists (combo box pop-ups) keep Breeze's bar;
+  an app that forgets the call keeps the line. The style is the place for
+  further Windows 11 controls.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

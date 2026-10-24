@@ -358,6 +358,11 @@ class Runner(QObject):
 def main(argv=None):
     argv = sys.argv if argv is None else argv
     app = QGuiApplication(argv)
+    try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
+        from veltos_controls import use as use_veltos_controls
+        use_veltos_controls()
+    except ImportError:
+        pass
     # Text drawn like KDE programs (FreeType, hinted) instead of Qt Quick's
     # distance-field glyphs, which looked uneven at fractional display
     # scales ("kal dır", "program lar" at 105 %, VM 2026-10-20).

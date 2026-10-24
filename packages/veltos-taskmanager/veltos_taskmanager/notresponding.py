@@ -201,6 +201,11 @@ def main(argv=None, run_kde_helper=kde_helper):
         return run_kde_helper(argv)
 
     app = QGuiApplication(sys.argv[:1])
+    try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
+        from veltos_controls import use as use_veltos_controls
+        use_veltos_controls()
+    except ImportError:
+        pass
     # The program's own icon in the title bar and on the taskbar (Wayland
     # takes it from the desktop file).
     app.setDesktopFileName(args.applicationname)

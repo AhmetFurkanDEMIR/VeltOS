@@ -480,6 +480,11 @@ def main(argv=None):
         start_detached(launch_command(kind))
         return 0
     app = QGuiApplication(argv)
+    try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
+        from veltos_controls import use as use_veltos_controls
+        use_veltos_controls()
+    except ImportError:
+        pass
     QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
     app.setApplicationName("veltos-office")
     app.setApplicationDisplayName(strings.app_title(strings.language(), kind))

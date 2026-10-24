@@ -319,6 +319,37 @@ class TrashIconTests(unittest.TestCase):
         self.assertLess(launcher.stat().st_mtime, 3)
 
 
+class ControlsStyleTests(unittest.TestCase):
+    """veltos_controls.use(): VeltOS' apps call it after creating their
+    QGuiApplication (KDE's platform theme gives them Breeze otherwise)."""
+
+    def setUp(self):
+        self.controls = load("veltos_controls", PKG / "system/veltos_controls.py")
+        self.saved = {k: os.environ.get(k) for k in ("QT_QUICK_CONTROLS_STYLE", "QML_IMPORT_PATH")}
+        self.addCleanup(self.restore)
+
+    def restore(self):
+        for key, value in self.saved.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+    def test_other_styles_and_missing_style_are_left_alone(self):
+        qml = Path(tempfile.mkdtemp())
+        (qml / "org/veltos/controls").mkdir(parents=True)
+        (qml / "org/veltos/controls/qmldir").write_text("module org.veltos.controls\n")
+        os.environ["QT_QUICK_CONTROLS_STYLE"] = "Basic"          # the apps' offscreen tests
+        self.assertFalse(self.controls.use(qml_dir=str(qml)))
+        os.environ["QT_QUICK_CONTROLS_STYLE"] = "org.kde.desktop"
+        self.assertFalse(self.controls.use(qml_dir=tempfile.mkdtemp()))   # not installed
+
+    def test_the_package_ships_the_style(self):
+        qmldir = PKG / "qml/org/veltos/controls/qmldir"
+        self.assertEqual(qmldir.read_text().splitlines()[0], f"module {self.controls.STYLE}")
+        self.assertEqual(self.controls.QML_DIR, "/usr/share/veltos/qml")
+
+
 class SessionScriptTests(unittest.TestCase):
     SCRIPT = PKG / "system/veltos-session.sh"
 

@@ -3,6 +3,35 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (evening) — Windows 11 scroll bars: no line beside them
+
+Items 11 and 16 of the product owner's list: "Open with" showed an extra
+line pointing down, Settings Home a straight line left of the scroll bar.
+
+- Both were the same thing: KDE's platform theme gives every
+  QGuiApplication the `org.kde.breeze` Qt Quick style, whatever
+  `QT_QUICK_CONTROLS_STYLE` says (plasma-integration
+  `setQtQuickControlsTheme`), and Breeze's ScrollBar draws a
+  `Kirigami.Separator` along the bar whenever it is shown.
+- veltos-desktop ships a Qt Quick Controls style of its own,
+  `org.veltos.controls` (`/usr/share/veltos/qml`): a Windows 11 ScrollBar
+  (a 2 px rounded bar at the edge that widens to 6 px with a faint
+  rounded track under the pointer) and a ScrollView that uses it (Breeze's
+  ScrollView would create Breeze's bars); every other control falls back
+  to Breeze (`import org.kde.breeze` in its qmldir). Every VeltOS app that
+  is a QGuiApplication calls `veltos_controls.use()` right after creating
+  it, which sets the style with QQuickStyle (after the platform theme has
+  chosen) and adds the import path; tests keep "Basic". Kirigami chooses
+  its platform plugin (KDE's colours) by the style's name, so a link
+  `org.veltos.controls.so` to Breeze's plugin sits in
+  `/usr/share/veltos/qt-plugins` (without it Kirigami said "Failed to
+  find a Kirigami platform plugin" and fell back to its plain colours).
+- File Explorer's "Open with" submenu: "Choose another app" had Fluent's
+  `application-x-executable` icon (a window with "!"); no icon now.
+- Verified: all twenty packages' tests; dev VM: "Select an app" with More
+  apps, Settings Home, File Explorer, the submenu; pixel rows beside the
+  bar show only the bar (`tests/results/2026-10-24-scroll-bars/`).
+
 ## 2026-10-24 (evening) — Terminal: right-click, Ctrl+C / Ctrl+V, its name
 
 Item 10 of the product owner's list: the Terminal closed on a

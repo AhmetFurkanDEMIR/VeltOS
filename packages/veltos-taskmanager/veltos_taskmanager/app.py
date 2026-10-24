@@ -269,6 +269,11 @@ def listen_for_raise(window):
 def main(argv=None):
     argv = sys.argv if argv is None else argv
     app = QGuiApplication(argv)
+    try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
+        from veltos_controls import use as use_veltos_controls
+        use_veltos_controls()
+    except ImportError:
+        pass
     if raise_running():
         return 0
     QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
