@@ -22,8 +22,6 @@ msgstr "En çok kullanılan uygulamalar"
 msgid "Best match"
 msgstr "En iyi eşleşme"
 
-msgid "No results for “%1”"
-msgstr "“%1” için sonuç yok"
 
 msgid "App"
 msgstr "Uygulama"
@@ -34,5 +32,11 @@ msgstr "Aç"
 msgid "Start typing to search for apps, settings and documents."
 msgstr "Uygulama, ayar ve belge aramak için yazmaya başlayın."
 
-msgid "Check the spelling or try a different search."
-msgstr "Yazımı denetleyin veya farklı bir arama deneyin."
+msgid "Search the web"
+msgstr "Web'de ara"
+
+msgid "Search with Google"
+msgstr "Google'da ara"
+
+msgid "Open results in browser"
+msgstr "Sonuçları tarayıcıda aç"

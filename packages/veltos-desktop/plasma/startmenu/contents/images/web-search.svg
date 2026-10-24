@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- "Search the web with Google": a magnifier whose ring has Google's four
+       colours. VeltOS artwork (not Google's "G" logo). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E8F0FE"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5F6368"/>
+      <stop offset="1" stop-color="#3C4043"/>
+    </linearGradient>
+  </defs>
+  <path d="M 39.5 39.5 L 54 54" stroke="url(#handle)" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="27" cy="27" r="17.5" fill="url(#glass)"/>
+  <!-- the ring: blue, red, yellow, green quarters -->
+  <path d="M 27 9.5 A 17.5 17.5 0 0 1 44.5 27" fill="none" stroke="#EA4335" stroke-width="6"/>
+  <path d="M 44.5 27 A 17.5 17.5 0 0 1 27 44.5" fill="none" stroke="#34A853" stroke-width="6"/>
+  <path d="M 27 44.5 A 17.5 17.5 0 0 1 9.5 27" fill="none" stroke="#FBBC05" stroke-width="6"/>
+  <path d="M 9.5 27 A 17.5 17.5 0 0 1 27 9.5" fill="none" stroke="#4285F4" stroke-width="6"/>
+  <path d="M 19 22 A 9 9 0 0 1 27 17" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+</svg>

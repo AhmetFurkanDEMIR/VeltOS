@@ -78,6 +78,10 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   address and command rows, Details view, "Quick access" / "This PC" side
   bar, every window at Home) only matter on a system where a user
   installs Dolphin themselves.
+- **Web search** (taskbar search and Start, 2026-10-24): the last row
+  searches the web with Google ("Search with Google", a four-colour
+  magnifier drawn by VeltOS), the best match when nothing else is found;
+  KDE's web shortcuts runner (DuckDuckGo) is not used.
 - **Quick Settings** (`org.veltos.quicksettings`): one taskbar button with
   the network, sound and battery icons opens a Windows 11 style panel —
   Wi-Fi, Bluetooth, Airplane mode and Night light tiles, brightness and

@@ -4,7 +4,9 @@
     top, the most used apps as "Top apps" while it is empty, and while
     typing the results on the left with the best match on the right
     ("Open"). Results come from Plasma's runners (apps, documents, the
-    calculator, ...; not KDE's settings modules), as in Start.
+    calculator, ...; not KDE's settings modules), as in Start. The last row
+    searches the web with Google, the best match when nothing else is
+    found (product owner, 2026-10-23: Google, not DuckDuckGo).
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -59,9 +61,10 @@ PlasmoidItem {
         // (krunner_systemsettings: the product owner must never see KDE's
         // settings, 2026-10-22), nor shell commands, process killing, KWin
         // commands or activities. KF6 runner ids are the plugin file names.
+        // The web is VeltOS' own row below (KDE's web shortcuts runner
+        // offered "Search DuckDuckGo for ..." as an app).
         runners: ["krunner_services", "krunner_recentdocuments", "krunner_placesrunner", "baloosearch",
-                  "locations", "krunner_webshortcuts", "calculator", "windows", "krunner_sessions",
-                  "krunner_powerdevil"]
+                  "locations", "calculator", "windows", "krunner_sessions", "krunner_powerdevil"]
     }
 
     // --- The taskbar box ---------------------------------------------------
@@ -138,7 +141,11 @@ PlasmoidItem {
         // Windows lists a handful of results; the rest would need scrolling.
         readonly property int maxResults: 12
         readonly property int resultCount: results ? Math.min(results.count, maxResults) : 0
-        // The highlighted result (keyboard or pointer); 0 is the best match.
+        // The web search row comes after the results.
+        readonly property int webIndex: resultCount
+        readonly property int rowCount: resultCount + 1
+        readonly property string query: searchField.text.trim()
+        // The highlighted row (keyboard or pointer); 0 is the best match.
         property int current: 0
         // Counts every row the Repeater makes or drops: the model is reset
         // on every keystroke and its rows are made anew with the same
@@ -147,8 +154,8 @@ PlasmoidItem {
         property int rowsGeneration: 0
         readonly property var best: {
             const generation = rowsGeneration;
-            if (resultCount <= 0 || resultRows.count <= 0)
-                return null;
+            if (current >= resultCount || resultRows.count <= 0)
+                return webRow;
             return resultRows.itemAt(Math.min(current, resultCount - 1, resultRows.count - 1));
         }
 
@@ -164,13 +171,21 @@ PlasmoidItem {
                 root.expanded = false;
             }
         }
+        function searchWeb() {
+            if (panel.query !== "") {
+                Qt.openUrlExternally("https://www.google.com/search?q=" + encodeURIComponent(panel.query));
+                root.expanded = false;
+            }
+        }
         function launchCurrent() {
-            if (panel.resultCount > 0)
-                launch(panel.results, Math.min(panel.current, panel.resultCount - 1));
+            if (panel.current >= panel.resultCount)
+                searchWeb();
+            else
+                launch(panel.results, panel.current);
         }
 
         onResultsChanged: current = 0
-        onResultCountChanged: current = Math.min(current, Math.max(0, resultCount - 1))
+        onResultCountChanged: current = Math.min(current, Math.max(0, rowCount - 1))
 
         Connections {
             target: root
@@ -212,10 +227,7 @@ PlasmoidItem {
                 }
                 onTextChanged: runnerModel.query = text
                 onAccepted: panel.launchCurrent()
-                Keys.onDownPressed: {
-                    if (panel.resultCount > 0)
-                        panel.current = Math.min(panel.current + 1, panel.resultCount - 1);
-                }
+                Keys.onDownPressed: panel.current = Math.min(panel.current + 1, panel.rowCount - 1)
                 Keys.onUpPressed: panel.current = Math.max(0, panel.current - 1)
                 Keys.onEscapePressed: {
                     if (text !== "")
@@ -295,53 +307,9 @@ PlasmoidItem {
                 Item { Layout.fillHeight: true }
             }
 
-            // Nothing found: Windows 11's message in the middle of the window,
-            // a search glyph in a soft circle above "No results for ...".
-            ColumnLayout {
-                objectName: "noResults"
-                visible: panel.searching && panel.resultCount === 0
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                spacing: Kirigami.Units.largeSpacing
-                Item { Layout.fillHeight: true }
-                Rectangle {
-                    Layout.alignment: Qt.AlignHCenter
-                    implicitWidth: Kirigami.Units.gridUnit * 4
-                    implicitHeight: implicitWidth
-                    radius: width / 2
-                    color: Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
-                    Kirigami.Icon {
-                        anchors.centerIn: parent
-                        width: Kirigami.Units.iconSizes.medium
-                        height: width
-                        source: "search"
-                        color: Kirigami.Theme.highlightColor
-                        isMask: true
-                    }
-                }
-                PC3.Label {
-                    Layout.fillWidth: true
-                    Layout.topMargin: Kirigami.Units.smallSpacing
-                    horizontalAlignment: Text.AlignHCenter
-                    text: i18n("No results for “%1”", searchField.text)
-                    font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.25
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideMiddle
-                }
-                PC3.Label {
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    text: i18n("Check the spelling or try a different search.")
-                    opacity: 0.7
-                    wrapMode: Text.WordWrap
-                }
-                Item { Layout.fillHeight: true }
-                Item { Layout.preferredHeight: Kirigami.Units.gridUnit * 2 }
-            }
-
             // Typing: results on the left, the best match on the right.
             RowLayout {
-                visible: panel.searching && panel.resultCount > 0
+                visible: panel.searching
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: Kirigami.Units.gridUnit
@@ -358,7 +326,6 @@ PlasmoidItem {
                         Layout.leftMargin: Kirigami.Units.largeSpacing
                         text: i18n("Best match")
                         font.weight: Font.DemiBold
-                        visible: panel.resultCount > 0
                     }
                     // One row under the other (a Column: rows cannot overlap,
                     // as they did in a list view whose rows changed height,
@@ -428,6 +395,73 @@ PlasmoidItem {
                             }
                         }
                     }
+                    // Search the web with Google: its own heading under other
+                    // results, the best match when nothing else was found.
+                    PC3.Label {
+                        Layout.leftMargin: Kirigami.Units.largeSpacing
+                        Layout.topMargin: Kirigami.Units.smallSpacing
+                        visible: panel.resultCount > 0
+                        text: i18n("Search the web")
+                        font.weight: Font.DemiBold
+                    }
+                    MouseArea {
+                        id: webRow
+                        objectName: "webRow"
+                        readonly property bool first: panel.resultCount === 0
+                        readonly property string title: panel.query
+                        readonly property string subtitle: i18n("Search with Google")
+                        readonly property string decoration: Qt.resolvedUrl("../images/web-search.svg")
+                        readonly property string action: i18n("Open results in browser")
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Kirigami.Units.gridUnit * (first ? 3.2 : 2.6)
+                        hoverEnabled: true
+                        Accessible.role: Accessible.Button
+                        Accessible.name: i18n("Search with Google") + ": " + title
+                        onClicked: panel.searchWeb()
+                        onContainsMouseChanged: if (containsMouse) panel.current = panel.webIndex
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: 1
+                            radius: 6
+                            color: Kirigami.Theme.textColor
+                            opacity: webRow.pressed ? 0.14 : (panel.current === panel.webIndex ? 0.1
+                                     : (webRow.containsMouse ? 0.07 : 0))
+                        }
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Kirigami.Units.largeSpacing
+                            anchors.rightMargin: Kirigami.Units.largeSpacing
+                            spacing: Kirigami.Units.largeSpacing
+                            Kirigami.Icon {
+                                implicitWidth: webRow.first ? Kirigami.Units.iconSizes.medium
+                                                            : Kirigami.Units.iconSizes.smallMedium
+                                implicitHeight: implicitWidth
+                                source: webRow.decoration
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                PC3.Label {
+                                    Layout.fillWidth: true
+                                    text: webRow.title
+                                    elide: Text.ElideRight
+                                }
+                                PC3.Label {
+                                    Layout.fillWidth: true
+                                    text: webRow.subtitle
+                                    opacity: 0.65
+                                    elide: Text.ElideRight
+                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                }
+                            }
+                            Kirigami.Icon {
+                                implicitWidth: Kirigami.Units.iconSizes.small
+                                implicitHeight: implicitWidth
+                                source: "go-next-symbolic"
+                                opacity: 0.6
+                            }
+                        }
+                    }
                     Item { Layout.fillHeight: true }
                 }
 
@@ -436,7 +470,6 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     Layout.minimumWidth: Kirigami.Units.gridUnit * 12
                     Layout.fillHeight: true
-                    visible: panel.resultCount > 0
                     radius: 8
                     color: Qt.alpha(Kirigami.Theme.textColor, 0.04)
                     border.width: 1
@@ -469,11 +502,38 @@ PlasmoidItem {
                             elide: Text.ElideRight
                         }
                         Item { Layout.fillHeight: true }
-                        PC3.Button {
-                            Layout.alignment: Qt.AlignHCenter
-                            icon.name: "window-new"
-                            text: i18n("Open")
+                        // Windows 11's action under the best match: an icon and
+                        // a word in a row that lights up under the pointer (the
+                        // Plasma button drew white on white in the dark theme).
+                        MouseArea {
+                            id: openAction
+                            objectName: "openAction"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
+                            hoverEnabled: true
+                            Accessible.role: Accessible.Button
+                            Accessible.name: openLabel.text
                             onClicked: panel.launchCurrent()
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 6
+                                color: Kirigami.Theme.textColor
+                                opacity: openAction.pressed ? 0.14 : (openAction.containsMouse ? 0.07 : 0)
+                            }
+                            RowLayout {
+                                anchors.centerIn: parent
+                                spacing: Kirigami.Units.smallSpacing * 2
+                                Kirigami.Icon {
+                                    implicitWidth: Kirigami.Units.iconSizes.small
+                                    implicitHeight: implicitWidth
+                                    source: panel.best === webRow ? "internet-web-browser-symbolic" : "window-new"
+                                    color: Kirigami.Theme.textColor
+                                }
+                                PC3.Label {
+                                    id: openLabel
+                                    text: panel.best === webRow ? webRow.action : i18n("Open")
+                                }
+                            }
                         }
                     }
                 }

@@ -295,6 +295,26 @@ class SearchTests(StartMenuTests):
         self.assertLess(here, tasks)
 
 
+class WebSearchTests(unittest.TestCase):
+    """Search and Start search the web with Google in a row of their own,
+    not with KDE's web shortcuts runner (DuckDuckGo shown as an app;
+    product owner, 2026-10-23)."""
+
+    def test_google_row_in_search_and_start(self):
+        for ui in (PKG / "plasma/search/contents/ui/main.qml", PKG / "plasma/startmenu/contents/ui/StartMenu.qml"):
+            qml = ui.read_text(encoding="utf-8")
+            runners = qml.split("runners: [", 1)[1].split("]", 1)[0]
+            self.assertNotIn("webshortcuts", runners, ui)
+            self.assertNotIn("systemsettings", runners, ui)
+            self.assertIn('"https://www.google.com/search?q=" + encodeURIComponent(', qml, ui)
+            self.assertIn('Qt.resolvedUrl("../images/web-search.svg")', qml, ui)
+            self.assertIn('i18n("Search with Google")', qml, ui)
+            icon = ui.parent.parent / "images/web-search.svg"
+            self.assertTrue(icon.is_file(), icon)
+        self.assertEqual((PKG / "plasma/search/contents/images/web-search.svg").read_bytes(),
+                         (PKG / "plasma/startmenu/contents/images/web-search.svg").read_bytes())
+
+
 class TaskViewTests(SearchTests):
     STARTMENU = PKG / "plasma/taskview"
     PLUGIN_ID = build_assets.TASKVIEW_ID

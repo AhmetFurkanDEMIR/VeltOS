@@ -69,8 +69,6 @@ msgstr "Son açtığınız dosyalar burada görünür."
 msgid "Best match"
 msgstr "En iyi eşleşme"
 
-msgid "No results for “%1”"
-msgstr "“%1” için sonuç bulunamadı"
 
 msgid "Pin to Start"
 msgstr "Başlat'a sabitle"
@@ -137,3 +135,9 @@ msgstr "Yardımcı Programlar ve Araçlar"
 
 msgid "Other"
 msgstr "Diğer"
+
+msgid "Search the web"
+msgstr "Web'de ara"
+
+msgid "Search with Google"
+msgstr "Google'da ara"

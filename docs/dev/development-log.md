@@ -3,6 +3,30 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (afternoon) — Search the web with Google
+
+Item 8 of the product owner's list: the best match said "Search
+DuckDuckGo for …"; it should search Google, with a nice icon and text.
+
+- The row came from KDE's web shortcuts runner (DuckDuckGo is KDE's
+  default web shortcut): a generic icon, the kind "App", and in the dark
+  theme the Plasma "Open" button drew white on white.
+- The taskbar's search window and Start leave that runner out (and KDE's
+  settings modules, which Start still listed) and add a row of their own
+  under the results: the query, "Search with Google" / "Google'da ara" and
+  a magnifier whose ring has Google's four colours (VeltOS artwork, not
+  Google's "G" logo), under a "Search the web" heading; with no other
+  result it is the best match. The card on the right says "Open results
+  in browser"; it opens `https://www.google.com/search?q=` with the query in
+  the default browser. Keyboard: Down reaches the row, Enter opens it. The
+  "No results" message went (the web row is always there), and the
+  card's action is now a Windows 11 style row instead of Plasma's button.
+- Verified: 115 package tests (runners, the Google URL, the icon in both
+  packages); dev VM: no results (Google row as best match), "not" (Notepad,
+  Snipping Tool, then the web row), Down Down Enter opened
+  `firefox-esr https://www.google.com/search?q=not`; Start the same
+  (`tests/results/2026-10-24-search-google/`).
+
 ## 2026-10-24 (afternoon) — The taskbar follows light/dark and the accent every time
 
 Item 7 of the product owner's list: "the taskbar did not change with the

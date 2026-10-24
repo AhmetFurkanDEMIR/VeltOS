@@ -87,6 +87,23 @@ FocusScope {
         favoritesModel: menu.favoritesModel
         mergeResults: true
         query: searchField.text
+        // As the taskbar's search: apps, documents, folders, the calculator,
+        // sessions and power; not KDE's settings modules (product owner,
+        // 2026-10-22) and not KDE's web shortcuts ("Search DuckDuckGo for
+        // ..." as an app): the web is the Google row under the results.
+        runners: ["krunner_services", "krunner_recentdocuments", "krunner_placesrunner", "baloosearch",
+                  "locations", "calculator", "windows", "krunner_sessions", "krunner_powerdevil"]
+    }
+
+    // The Google row under the search results is chosen (keyboard).
+    property bool webSelected: false
+
+    function searchWeb() {
+        const query = searchField.text.trim();
+        if (query !== "") {
+            Qt.openUrlExternally("https://www.google.com/search?q=" + encodeURIComponent(query));
+            close();
+        }
     }
 
     KCoreAddons.KUser {
@@ -137,7 +154,10 @@ FocusScope {
 
     function launchBestMatch() {
         if (searching) {
-            launch(searchResults, Math.max(searchList.currentIndex, 0));
+            if (webSelected || searchList.count === 0)
+                searchWeb();
+            else
+                launch(searchResults, Math.max(searchList.currentIndex, 0));
         }
     }
 
@@ -636,10 +656,12 @@ FocusScope {
                                                       : Qt.alpha(Kirigami.Theme.textColor, 0.14)
             }
 
+            onTextChanged: menu.webSelected = false
             Keys.onDownPressed: event => {
                 if (menu.searching) {
                     searchList.forceActiveFocus();
                     searchList.currentIndex = 0;
+                    menu.webSelected = searchList.count === 0;
                 } else if (menu.page === "home") {
                     pinnedGrid.forceActiveFocus();
                     pinnedGrid.currentIndex = 0;
@@ -1112,7 +1134,6 @@ FocusScope {
             SectionTitle {
                 Layout.leftMargin: Kirigami.Units.gridUnit * 0.6
                 text: i18n("Best match")
-                visible: searchList.count > 0
             }
 
             PC3.ScrollView {
@@ -1126,11 +1147,20 @@ FocusScope {
                     keyNavigationEnabled: true
                     boundsBehavior: Flickable.StopAtBounds
 
-                    Keys.onReturnPressed: menu.launch(model, currentIndex)
-                    Keys.onEnterPressed: menu.launch(model, currentIndex)
+                    Keys.onReturnPressed: menu.launchBestMatch()
+                    Keys.onEnterPressed: menu.launchBestMatch()
                     Keys.onEscapePressed: menu.goBack()
+                    Keys.onDownPressed: event => {
+                        if (currentIndex >= count - 1)
+                            menu.webSelected = true;
+                        else
+                            incrementCurrentIndex();
+                    }
                     Keys.onUpPressed: event => {
-                        if (currentIndex === 0) {
+                        if (menu.webSelected && count > 0) {
+                            menu.webSelected = false;
+                        } else if (currentIndex <= 0) {
+                            menu.webSelected = false;
                             searchField.forceActiveFocus();
                         } else {
                             decrementCurrentIndex();
@@ -1142,18 +1172,34 @@ FocusScope {
                         view: searchList
                         showDescription: true
                         // First result is highlighted: Enter in the field launches it.
-                        selected: searchList.currentIndex === resultRow.index
+                        selected: searchList.currentIndex === resultRow.index && !menu.webSelected
                         onActivated: menu.launch(searchList.model, resultRow.index)
                         onContextMenuRequested: menu.openActionMenu(resultRow, searchList.model, resultRow.index,
                                                                     resultRow.model.actionList, resultRow.model.favoriteId)
                     }
 
-                    PlasmaExtras.PlaceholderMessage {
-                        anchors.centerIn: parent
-                        width: parent.width - Kirigami.Units.gridUnit * 4
-                        visible: searchList.count === 0 && menu.searching
-                        iconName: "edit-none"
-                        text: i18n("No results for “%1”", searchField.text)
+                    // Search the web with Google: under the results with its
+                    // own heading, the best match when nothing else is found.
+                    footer: ColumnLayout {
+                        width: searchList.width
+                        spacing: Kirigami.Units.smallSpacing
+                        SectionTitle {
+                            Layout.leftMargin: Kirigami.Units.gridUnit * 0.6
+                            Layout.topMargin: Kirigami.Units.largeSpacing
+                            visible: searchList.count > 0
+                            text: i18n("Search the web")
+                        }
+                        AppRow {
+                            objectName: "webRow"
+                            index: -1
+                            view: searchList
+                            showDescription: true
+                            model: ({ display: searchField.text.trim(), description: i18n("Search with Google"),
+                                      decoration: Qt.resolvedUrl("../images/web-search.svg") })
+                            selected: menu.webSelected || searchList.count === 0
+                            onActivated: menu.searchWeb()
+                            onContainsMouseChanged: if (containsMouse && searchList.count > 0) menu.webSelected = true
+                        }
                     }
                 }
             }
