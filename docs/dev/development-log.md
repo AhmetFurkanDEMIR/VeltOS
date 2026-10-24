@@ -3,6 +3,32 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Task Manager: GPU usage
+
+Item 13 of the product owner's list.
+
+- New `veltos_taskmanager/gpu.py`, no administrator rights needed: the
+  kernel's DRM fdinfo (`/proc/PID/fdinfo`, `drm-engine-<engine>` busy
+  nanoseconds, or `drm-cycles-*` for xe) of the user's processes gives
+  each engine's utilization per GPU and per process (the busiest engine,
+  as Windows shows); which fds are DRM is looked up every 5 s, the
+  counters every second. amdgpu adds `gpu_busy_percent`, VRAM/GTT memory
+  and the temperature; NVIDIA's driver reports through nvidia-smi.
+- Performance lists "GPU 0", "GPU 1" ... after the network (name from
+  lspci, utilization over 60 s, the 3D/compute/video/copy engines,
+  dedicated and shared GPU memory, temperature, driver, location); a
+  driver that reports nothing (nouveau, virtual machines) says so instead
+  of showing 0 %. Processes has a GPU column with the total above it,
+  empty when no driver publishes per-process figures.
+- Background processes without an icon showed Fluent's
+  `application-x-executable` (a window with "!", like a warning); a plain
+  program window drawn by VeltOS replaces it (also in "Open with").
+- Verified: 43 package tests (recorded i915, xe and amdgpu fdinfo, amdgpu
+  sysfs, nvidia-smi, the window with a fake GPU); dev VM: the virtio GPU
+  page and the empty GPU column
+  (`tests/results/2026-10-25-taskmanager-gpu/`). Not observed on a real
+  GPU.
+
 ## 2026-10-24 (night) — Num Lock on by default, the user's choice kept
 
 Item 12 of the product owner's list.

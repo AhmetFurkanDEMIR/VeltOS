@@ -1,4 +1,4 @@
-// Processes: like Windows 11 - the totals over the CPU and Memory columns,
+// Processes: like Windows 11 - the totals over the CPU, Memory and GPU columns,
 // apps / background processes / system processes, busy cells coloured,
 // "End task" for the selected row (also Delete and the context menu).
 import QtQuick
@@ -12,7 +12,7 @@ ColumnLayout {
 
     property string selectedKey: ""
     property string selectedName: ""
-    readonly property int nameWidth: Math.max(240, width - 2 * columnWidth - 32)
+    readonly property int nameWidth: Math.max(240, width - 3 * columnWidth - 32)
     readonly property int columnWidth: 110
 
     function endSelected() {
@@ -72,7 +72,8 @@ ColumnLayout {
                 color: Theme.subtext
             }
             Repeater {
-                model: [[backend.totals.cpu, backend.texts.cpu], [backend.totals.memory, backend.texts.memory]]
+                model: [[backend.totals.cpu, backend.texts.cpu], [backend.totals.memory, backend.texts.memory],
+                        [backend.totals.gpu, backend.texts.gpu]]
                 ColumnLayout {
                     required property var modelData
                     Layout.preferredWidth: page.columnWidth
@@ -123,6 +124,8 @@ ColumnLayout {
             required property var cpuText
             required property var memoryText
             required property var memoryShare
+            required property var gpu
+            required property var gpuText
             required property var title
             readonly property bool header: kind === "header"
 
@@ -205,6 +208,19 @@ ColumnLayout {
                         anchors.rightMargin: 8
                         anchors.verticalCenter: parent.verticalCenter
                         text: row.memoryText || ""
+                        color: Theme.text
+                    }
+                }
+                // GPU: the process' busiest graphics engine, as in Windows.
+                Rectangle {
+                    Layout.preferredWidth: page.columnWidth
+                    Layout.fillHeight: true
+                    color: Theme.heat(row.gpu || 0)
+                    Label {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: row.gpuText || ""
                         color: Theme.text
                     }
                 }

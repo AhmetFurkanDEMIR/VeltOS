@@ -26,6 +26,23 @@ from fakepsutil import FakePsutil  # noqa: E402
 from test_system import app_index, sample_processes  # noqa: E402
 
 
+def card(slot, name, driver, busy, engines=None):
+    return {"slot": slot, "name": name, "driver": driver, "busy": busy, "source": "fdinfo" if busy is not None else "",
+            "engines": engines or {}, "dedicatedUsed": None, "dedicatedTotal": None, "sharedUsed": None,
+            "sharedTotal": None, "temperature": None}
+
+
+class FakeGpus:
+    """An Intel GPU drawing for Firefox (pid 1100) and a virtual machine's
+    card without figures."""
+    per_process = {1100: 7.5}
+    tracking = True
+
+    def sample(self):
+        return [card("0000:00:02.0", "Intel Iris Xe Graphics", "i915", 7.5, {"render": 7.5, "video": 3.0}),
+                card("0000:00:01.0", "Virtio 1.0 GPU", "virtio-pci", None)]
+
+
 @unittest.skipUnless(HAVE_QT, "needs PySide6 (Build-Depends)")
 class WindowTests(unittest.TestCase):
     lang = "en"
@@ -52,7 +69,7 @@ class WindowTests(unittest.TestCase):
             processes=system.Processes(self.ps, apps=system.AppIndex(dirs=[app_index()], lang=self.lang), uid=1000),
             performance=system.Performance(FakePsutil()),
             startup=system.StartupApps(startup_dir, Path(tempfile.mkdtemp()), self.lang),
-            end_task=self.ended.append, start=lambda command: None)
+            end_task=self.ended.append, start=lambda command: None, gpus=FakeGpus())
         self.backend.refresh()
         self.messages.clear()
         self.engine = QQmlApplicationEngine()
@@ -91,6 +108,23 @@ class WindowTests(unittest.TestCase):
         self.assertEqual([r["name"] for r in rows], ["Firefox"])
         self.backend.endTask(rows[0]["key"])
         self.assertEqual([sorted(p) for p in self.ended], [[1100, 1101]])
+
+    def test_gpu_column_and_devices(self):
+        rows = {r["name"]: r for r in self.backend.rows.rows() if r["kind"] == "row"}
+        self.assertEqual(rows["Firefox"]["gpu"], 7.5)
+        self.assertEqual(rows["Firefox"]["gpuText"], "7,5%" if self.lang == "tr" else "7.5%")
+        self.assertEqual(self.backend.devices, ["cpu", "memory", "disk", "net", "gpu0", "gpu1"])
+        intel, virtio = self.backend.performance["gpu0"], self.backend.performance["gpu1"]
+        self.assertEqual((intel["title"], intel["subtitle"]), ("GPU 0", "Intel Iris Xe Graphics"))
+        labels = [label for label, _ in intel["stats"]]
+        self.assertIn("3B" if self.lang == "tr" else "3D", labels)
+        self.assertIn("Video Kod Çözme" if self.lang == "tr" else "Video Decode", labels)
+        self.assertEqual(virtio["value"], self.backend.texts["not_available"])
+        self.assertEqual(virtio["note"], self.backend.texts["gpu_no_data"])
+        self.assertEqual(self.backend.totals["gpu"], "7,5%" if self.lang == "tr" else "7.5%")
+        QMetaObject.invokeMethod(self.window, "showPage", Q_ARG("QVariant", "performance"))
+        self.app.processEvents()
+        self.assertEqual(self.problems(), [])
 
     def test_update_in_place(self):
         before = self.backend.rows.rowCount()

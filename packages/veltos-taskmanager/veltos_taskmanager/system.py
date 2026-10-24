@@ -149,7 +149,7 @@ class Processes:
 def group(rows, lang="en"):
     """Windows' three groups. An app is the topmost process of a visible
     application with its descendants of the same user; its CPU and memory
-    are the sums. Returns {"apps": [...], "background": [...], "system": [...]},
+    (and GPU share) are the sums. Returns {"apps": [...], "background": [...], "system": [...]},
     each entry: key, name, icon, pids, cpu, memory, count."""
     by_pid = {row["pid"]: row for row in rows}
     children = {}
@@ -170,7 +170,7 @@ def group(rows, lang="en"):
             continue
         key = row["app"]["id"]
         entry = apps.setdefault(key, {"key": key, "name": row["app"]["name"], "icon": row["app"]["icon"],
-                                      "pids": [], "cpu": 0.0, "memory": 0})
+                                      "pids": [], "cpu": 0.0, "memory": 0, "gpu": 0.0})
         stack = [row]
         while stack:
             current = stack.pop()
@@ -180,6 +180,7 @@ def group(rows, lang="en"):
             entry["pids"].append(current["pid"])
             entry["cpu"] += current["cpu"]
             entry["memory"] += current["memory"]
+            entry["gpu"] = min(100.0, entry["gpu"] + current.get("gpu", 0.0))
             stack.extend(children.get(current["pid"], []))
     background, system = [], []
     for row in rows:
@@ -188,7 +189,7 @@ def group(rows, lang="en"):
         app = row["app"]
         entry = {"key": f"pid:{row['pid']}", "name": (app["name"] if app else row["program"]),
                  "icon": (app["icon"] if app else "application-x-executable"),
-                 "pids": [row["pid"]], "cpu": row["cpu"], "memory": row["memory"]}
+                 "pids": [row["pid"]], "cpu": row["cpu"], "memory": row["memory"], "gpu": row.get("gpu", 0.0)}
         (background if row["user"] else system).append(entry)
     result = {}
     for name, items in (("apps", list(apps.values())), ("background", background), ("system", system)):

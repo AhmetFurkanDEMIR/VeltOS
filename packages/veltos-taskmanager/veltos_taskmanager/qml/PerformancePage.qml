@@ -9,8 +9,9 @@ ColumnLayout {
     spacing: 0
 
     property string current: "cpu"
-    readonly property var devices: ["cpu", "memory", "disk", "net"]
-    readonly property var info: backend.performance[current]
+    // CPU, memory, disk, network and every GPU ("GPU 0" ...), from the backend.
+    readonly property var devices: backend.devices
+    readonly property var info: backend.performance[current] || backend.performance["cpu"]
 
     Label {
         Layout.margins: 16
@@ -131,8 +132,16 @@ ColumnLayout {
                     }
                 }
                 Label {
-                    visible: page.current === "cpu"
+                    visible: page.current === "cpu" || page.current.startsWith("gpu")
                     text: backend.texts.over_60
+                    color: Theme.subtext
+                }
+                // A GPU whose driver reports no usage (nouveau, virtual machines).
+                Label {
+                    Layout.fillWidth: true
+                    visible: !!page.info.note
+                    text: page.info.note || ""
+                    wrapMode: Text.Wrap
                     color: Theme.subtext
                 }
                 Graph {

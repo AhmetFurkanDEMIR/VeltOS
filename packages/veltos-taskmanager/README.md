@@ -10,15 +10,23 @@ KDE's detailed system monitor stays installed as "Resource Monitor".
 - **Processes**: Apps, Background processes and System processes, like
   Windows. An app is the topmost process of a visible application (matched
   by the program its `.desktop` file starts, or `StartupWMClass`) with its
-  child processes; CPU (share of all CPUs) and memory are their sums. Busy
+  child processes; CPU (share of all CPUs), memory and GPU are their sums. Busy
   cells are tinted from pale to amber. Search box, "End task" (button,
   Delete key, context menu: SIGTERM, then SIGKILL after 3 s), "Run new
   task" (KRunner). Kernel threads are not listed. The list is updated in
   place every second (`model.py`), so scrolling, hover and selection stay.
-- **Performance**: CPU, Memory, Disk, Network with small graphs; the
-  selected one with a 60-second graph and figures (utilisation, speed,
-  processes, up time, cores; memory in use/available; disk read/write;
-  network send/receive).
+- **Performance**: CPU, Memory, Disk, Network and every GPU ("GPU 0" ...)
+  with small graphs; the selected one with a 60-second graph and figures
+  (utilisation, speed, processes, up time, cores; memory in
+  use/available; disk read/write; network send/receive; a GPU's busiest
+  engine, its 3D/video engines, dedicated and shared memory, temperature,
+  driver, location).
+- **GPU figures** (`gpu.py`, no administrator rights): the kernel's DRM
+  fdinfo of the user's processes (busy time per engine, per GPU and per
+  process: Intel i915/xe, AMD and others), amdgpu's sysfs counters and
+  memory, nvidia-smi for NVIDIA's driver. Drivers that publish nothing
+  (nouveau, virtual machines) show "Not available" and an empty GPU
+  column.
 - **Startup apps**: freedesktop autostart entries (not session internals,
   i.e. `NoDisplay=true`, or entries for other desktops) with Enable/Disable;
   disabling writes `~/.config/autostart/<name>` with `Hidden=true`.
@@ -28,6 +36,7 @@ KDE's detailed system monitor stays installed as "Resource Monitor".
 | Path | What |
 |---|---|
 | `veltos_taskmanager/system.py` | psutil data, grouping, End task, performance samples, autostart |
+| `veltos_taskmanager/gpu.py` | GPU utilization, memory and temperature; per-process GPU shares |
 | `veltos_taskmanager/app.py` | `Backend` (Qt properties/slots), `main()` |
 | `veltos_taskmanager/model.py` | Process rows model updated in place |
 | `veltos_taskmanager/strings.py` | English/Turkish texts |

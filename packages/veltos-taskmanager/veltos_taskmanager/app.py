@@ -13,10 +13,26 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import model, strings, system
+from . import gpu, model, strings, system
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 HISTORY = 60  # seconds shown in the graphs, as Windows
+# Windows' engine names (strings "engine_names", same order), and the
+# drivers' engine names that belong to each (amdgpu, i915, xe, msm ...).
+ENGINES = ("3d", "compute", "decode", "encode", "copy")
+ENGINE_WORDS = {"3d": ("gfx", "render", "3d", "rcs"), "compute": ("compute", "ccs"),
+                "decode": ("dec", "video", "vcs", "jpeg"), "encode": ("enc", "vecs", "video-enhance"),
+                "copy": ("copy", "blitter", "bcs", "sdma", "dma")}
+
+
+def engine_kind(engine):
+    """Which of Windows' engines a driver's engine name is ("render" -> 3d)."""
+    name = engine.lower()
+    for exact in (True, False):     # "video-enhance" is encode, not "video" (decode)
+        for kind, words in ENGINE_WORDS.items():
+            if any(name == w if exact else name.startswith(w) for w in words):
+                return kind
+    return ""
 
 
 def kde_value(group, key):
@@ -66,13 +82,15 @@ class Backend(QObject):
     startupChanged = Signal()
 
     def __init__(self, lang=None, processes=None, performance=None, startup=None,
-                 end_task=None, start=detached):
+                 end_task=None, start=detached, gpus=None):
         super().__init__()
         self.lang = lang or strings.language()
         self._texts = strings.texts(self.lang)
         self._processes = processes or system.Processes(apps=system.AppIndex(lang=self.lang))
         self._performance = performance or system.Performance()
         self._startup = startup or system.StartupApps(lang=self.lang)
+        self._gpus = gpus if gpus is not None else gpu.Gpus()
+        self._gpu = []
         self._end_task = end_task or system.end_task
         self._start = start
         self._search = ""
@@ -95,7 +113,13 @@ class Backend(QObject):
     def refresh(self):
         rows = self._processes.snapshot()
         self._process_count = sum(1 for r in rows if not r.get("kernel"))
+        self._gpu = self._gpus.sample()
+        for row in rows:
+            row["gpu"] = self._gpus.per_process.get(row["pid"], 0.0)
         self._groups = system.group(rows, self.lang)
+        for index, card in enumerate(self._gpu):
+            history = self._history.setdefault(f"gpu{index}", [0.0] * HISTORY)
+            self._history[f"gpu{index}"] = history[1:] + [card["busy"] or 0.0]
         perf = self._performance.sample()
         self._perf = perf
         net = perf["netSent"] + perf["netReceived"]
@@ -155,7 +179,9 @@ class Backend(QObject):
                 "cpuText": self._percent(item["cpu"]),
                 "memory": item["memory"],
                 "memoryText": system.human_bytes(item["memory"], self.lang),
-                "memoryShare": 100.0 * item["memory"] / max(1, self._perf.get("memoryTotal", 1))}
+                "memoryShare": 100.0 * item["memory"] / max(1, self._perf.get("memoryTotal", 1)),
+                "gpu": item.get("gpu", 0.0),
+                "gpuText": self._percent(item.get("gpu", 0.0)) if getattr(self._gpus, "tracking", True) else ""}
 
     def _percent(self, value):
         text = f"{value:.1f}%" if value < 10 else f"{value:.0f}%"
@@ -163,8 +189,41 @@ class Backend(QObject):
 
     @Property("QVariantMap", notify=changed)
     def totals(self):
+        busy = [card["busy"] for card in self._gpu if card["busy"] is not None]
         return {"cpu": self._percent(self._perf.get("cpu", 0.0)),
-                "memory": self._percent(self._perf.get("memory", 0.0))}
+                "memory": self._percent(self._perf.get("memory", 0.0)),
+                "gpu": self._percent(max(busy)) if busy else ""}
+
+    @Property("QVariantList", notify=changed)
+    def devices(self):
+        """The Performance page's list: CPU, memory, disk, network, then
+        every graphics device ("GPU 0", ...)."""
+        return ["cpu", "memory", "disk", "net"] + [f"gpu{i}" for i in range(len(self._gpu))]
+
+    def _gpu_info(self, index, card):
+        t = self._texts
+        human = lambda v: system.human_bytes(v, self.lang)    # noqa: E731
+        busy = card["busy"]
+        value = self._percent(busy) if busy is not None else t["not_available"]
+        stats = [[t["utilization"], value]]
+        labels = dict(zip(ENGINES, t["engine_names"].split("|")))
+        named = {}
+        for engine, share in card["engines"].items():
+            label = labels.get(engine_kind(engine))
+            if label:
+                named[label] = max(named.get(label, 0.0), share)
+        stats += [[label, self._percent(share)] for label, share in sorted(named.items(), key=lambda kv: -kv[1])[:3]]
+        if card["dedicatedTotal"]:
+            stats.append([t["dedicated_memory"],
+                          f"{human(card['dedicatedUsed'] or 0)} / {human(card['dedicatedTotal'])}"])
+        if card["sharedTotal"]:
+            stats.append([t["shared_memory"], f"{human(card['sharedUsed'] or 0)} / {human(card['sharedTotal'])}"])
+        if card["temperature"] is not None:
+            stats.append([t["gpu_temperature"], f"{card['temperature']:.0f} °C"])
+        stats += [[t["driver"], card["driver"]], [t["location"], card["slot"]]]
+        return {"title": t["gpu_n"].replace("{n}", str(index)), "subtitle": card["name"], "value": value,
+                "history": self._history.get(f"gpu{index}", [0.0] * HISTORY), "stats": stats,
+                "note": "" if busy is not None else t["gpu_no_data"]}
 
     @Property("QVariantMap", notify=changed)
     def performance(self):
@@ -197,6 +256,7 @@ class Backend(QObject):
                     "history": self._history["net"],
                     "stats": [[t["send"], rate(p.get("netSent", 0))],
                               [t["receive"], rate(p.get("netReceived", 0))]]},
+            **{f"gpu{i}": self._gpu_info(i, card) for i, card in enumerate(self._gpu)},
         }
 
     @Property("QVariantList", notify=startupChanged)

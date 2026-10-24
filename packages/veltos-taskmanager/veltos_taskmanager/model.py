@@ -4,7 +4,8 @@ only processes that start or end are inserted or removed."""
 
 from PySide6.QtCore import QAbstractListModel, QByteArray, QModelIndex, Qt
 
-ROLES = ("kind", "key", "name", "icon", "count", "cpuText", "cpu", "memoryText", "memoryShare", "title")
+ROLES = ("kind", "key", "name", "icon", "count", "cpuText", "cpu", "memoryText", "memoryShare", "title",
+         "gpu", "gpuText")
 
 
 class RowsModel(QAbstractListModel):

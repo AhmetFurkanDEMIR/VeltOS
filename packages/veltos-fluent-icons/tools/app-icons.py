@@ -331,6 +331,23 @@ def disk_management():
                  'stroke-linejoin="round"/>\n')
 
 
+def program():
+    """A program without an icon of its own (application-x-executable):
+    Windows' plain window with a blue title bar. Fluent's drew a window
+    with an exclamation mark, which looked like a warning in Task Manager's
+    background processes and in "Open with"."""
+    body = rrect(28, 48, 200, 164, 18)
+    return svg("Program", grad("body", "#FFFFFF", "#E9EDF3") + grad("bar", "#4F8DF0", "#2F6BE6"),
+               shadow(body)
+               + f'  <path d="{body}" fill="url(#body)" stroke="#C9D1DC" stroke-width="3"/>\n'
+               + '  <path d="M 46 48 H 210 Q 228 48 228 66 V 88 H 28 V 66 Q 28 48 46 48 Z" fill="url(#bar)"/>\n'
+               + '  <circle cx="198" cy="68" r="5" fill="#FFFFFF" opacity="0.9"/>\n'
+               + '  <circle cx="180" cy="68" r="5" fill="#FFFFFF" opacity="0.7"/>\n'
+               + '  <rect x="52" y="112" width="104" height="10" rx="5" fill="#C9D1DC"/>\n'
+               + '  <rect x="52" y="136" width="152" height="10" rx="5" fill="#DCE2EA"/>\n'
+               + '  <rect x="52" y="160" width="128" height="10" rx="5" fill="#DCE2EA"/>\n')
+
+
 def graphics_cards():
     """A graphics card seen from the side: the metal bracket with display
     ports, the shroud with two fans and the gold PCI Express edge."""
@@ -468,6 +485,7 @@ DOCUMENT_MIMETYPES = {
                    "application-vnd.oasis.opendocument.presentation",
                    "application-vnd.oasis.opendocument.presentation-template"],
     document_viewer: ["application-pdf", "application-x-pdf"],
+    program: ["application-x-executable"],
 }
 
 
