@@ -135,14 +135,46 @@ class SettingsWindowTests(unittest.TestCase):
         self.assertEqual(self.problems(), [])
 
     def test_theme_switch_applies_global_theme(self):
+        self.backend.setAccent("#E81123")
+        self.system.commands.clear()
         self.backend.setDarkMode(True)
         self.app.processEvents()
-        command = self.started[-1]
-        self.assertEqual(command[:2], ["sh", "-c"])
+        commands = self.system.commands
+        command = next(c for c in commands if c[:2] == ["sh", "-c"])
         self.assertEqual(command[3:], ["sh", "org.veltos.dark", "VeltOS-Dark", "dark"])
         self.assertIn("plasma-apply-lookandfeel --apply", command[2])
+        # The chosen accent again after the global theme, then the palette
+        # notice for the running taskbar.
+        joined = [" ".join(c) for c in commands]
+        self.assertGreater(joined.index("plasma-apply-colorscheme --accent-color #E81123"), commands.index(command))
+        self.assertIn("org.kde.KGlobalSettings.notifyChange", joined[-1])
         self.assertTrue(self.backend.darkMode)
         self.assertEqual(self.problems(), [])
+
+    def test_appearance_changes_run_one_after_another(self):
+        import threading
+        from veltos_settings import app
+        order, gate = [], threading.Event()
+        backend = self.backend
+        jobs = app.Jobs(threaded=True)
+        backend.jobs = jobs
+
+        def slow():
+            order.append("mode-start")
+            gate.wait(2)
+            order.append("mode-end")
+
+        backend._appearance(slow)
+        backend._appearance(lambda: order.append("accent"))
+        import time
+        time.sleep(0.2)
+        self.assertEqual(order, ["mode-start"])         # the accent waits
+        gate.set()
+        for _ in range(50):
+            if len(order) == 3:
+                break
+            time.sleep(0.05)
+        self.assertEqual(order, ["mode-start", "mode-end", "accent"])
 
     @unittest.skipUnless(os.name == "posix", "runs the theme command")
     def test_theme_command_writes_the_users_plasmarc(self):

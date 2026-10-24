@@ -569,6 +569,16 @@ class Personalization:
         self.run(PALETTE_CHANGED)
         return True
 
+    def set_mode(self, mode_command, accent=""):
+        """Light or dark (the global theme), then the chosen accent colour
+        again and the palette notice, so the running taskbar, Start and the
+        flyouts take the new colours at once."""
+        ok = self.run(mode_command, timeout=120)[0] == 0
+        if accent:
+            return self.set_accent(accent) and ok
+        self.run(PALETTE_CHANGED)
+        return ok
+
     def apply_theme(self, wallpaper, accent, mode_command=None):
         """Apply a theme in order: light/dark first (the global theme sets
         the colour scheme), then the wallpaper, then the accent colour on

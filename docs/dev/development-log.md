@@ -3,6 +3,30 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (afternoon) — The taskbar follows light/dark and the accent every time
+
+Item 7 of the product owner's list: "the taskbar did not change with the
+theme and colour once, later it did".
+
+- Scripted as Settings does it, every switch worked (6 light/dark, 7
+  accent/mode changes; taskbar background and the active app's line
+  sampled after each), so the Plasma side was sound.
+- The difference was in Settings: the light/dark switch ran as a detached
+  process (`plasma-apply-lookandfeel` takes seconds) and every accent change
+  as a separate thread; an accent chosen while the mode switch was still
+  running could be undone by the global theme's colour scheme, and the
+  mode switch alone sent no palette notice. Settings now runs appearance
+  changes one after another (`_appearance`, a lock around the job), and
+  the mode switch is `Personalization.set_mode`: the global theme, then the
+  chosen accent again (which sends KGlobalSettings' PaletteChanged), or the
+  notice alone.
+- Verified: 102 package tests (the mode switch applies the accent after
+  the global theme and ends with the notice; a second appearance change
+  waits for the first); dev VM through the window: dark then red within
+  0.5 s, and light, green, dark within about 2 s, both ended with the
+  taskbar, kdeglobals and plasmarc in the last state
+  (`tests/results/2026-10-24-taskbar-theme/`).
+
 ## 2026-10-24 (afternoon) — "is not responding" in Windows 11's design
 
 Item 6 of the product owner's list. KWin shows its helper

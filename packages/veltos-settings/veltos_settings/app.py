@@ -227,6 +227,11 @@ class Backend(QObject):
         self._start_page = start_page
         self.system = system or system_tools(lang=self.lang)
         self.jobs = Jobs(threaded)
+        # Light/dark, theme and accent changes run one after another: side by
+        # side (the mode switch was a separate process, every job a thread)
+        # one change's colour scheme could undo the other's accent, and the
+        # taskbar once kept its old colours (product owner, 2026-10-23).
+        self._appearance_lock = threading.Lock()
         self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
                          "loaded": False, "scanning": False, "connecting": "", "failed": ""}
         self._bluetooth = {"available": False, "powered": False, "devices": [], "loaded": False,
@@ -369,14 +374,22 @@ class Backend(QObject):
 
     # --- actions --------------------------------------------------------------
 
+    def _appearance(self, work):
+        def serial():
+            with self._appearance_lock:
+                return work()
+        self.jobs.submit(serial)
+
     @Slot(bool)
     def setDarkMode(self, dark):
         if dark == self._dark:
             return
         # The global theme switches colours, Plasma theme, window frames and
         # (through the kvantum / kvantum-dark style key) the application style.
-        self._start(["sh", "-c", APPLY_THEME, "sh", LOOK_AND_FEEL[dark], DESKTOP_THEME[dark],
-                     "dark" if dark else "light"])
+        mode = ["sh", "-c", APPLY_THEME, "sh", LOOK_AND_FEEL[dark], DESKTOP_THEME[dark],
+                "dark" if dark else "light"]
+        accent = self._personal.get("accent", "")
+        self._appearance(lambda: self.system.personal.set_mode(mode, accent))
         self._dark = dark
         self.changed.emit()
 
@@ -607,7 +620,7 @@ class Backend(QObject):
     @Slot(str)
     def setAccent(self, color):
         self._update("_personal", self.personalChanged, {"accent": color})
-        self.jobs.submit(lambda: self.system.personal.set_accent(color))
+        self._appearance(lambda: self.system.personal.set_accent(color))
 
     # --- Personalization > Themes ------------------------------------------------------------
 
@@ -643,7 +656,7 @@ class Backend(QObject):
             self._dark = dark
             self.changed.emit()
         self._update("_personal", self.personalChanged, {"wallpaper": path, "accent": theme["accent"]})
-        self.jobs.submit(lambda: self.system.personal.apply_theme(path, theme["accent"], mode))
+        self._appearance(lambda: self.system.personal.apply_theme(path, theme["accent"], mode))
 
     # --- Home ---------------------------------------------------------------------------------
 
