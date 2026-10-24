@@ -3,6 +3,37 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (evening) — Terminal: right-click, Ctrl+C / Ctrl+V, its name
+
+Item 10 of the product owner's list: the Terminal closed on a
+right-click, Ctrl+C and Ctrl+V did not copy and paste.
+
+- The crash (dev VM, `coredumpctl`): SIGSEGV in KXmlGui under
+  `Konsole::MainWindow::updateHamburgerMenu`. While the menu bar is hidden
+  Konsole adds its hamburger menu to the right-click menu and fills it on
+  showing, and that code needs the toolbars; VeltOS' layout files
+  (`konsole/*.rc`) had removed them to look like Windows Terminal. They are
+  back with `hidden="true"`: no toolbar is shown and the menu works.
+- Windows Terminal's keys through the layout file's ActionProperties:
+  Ctrl+C is a shortcut of Copy, which Konsole enables only while text is
+  selected, so Ctrl+C copies a selection and otherwise still reaches the
+  program (interrupt); Ctrl+V pastes. Konsole's Ctrl+Shift+C/V and
+  Ctrl+Ins/Shift+Ins stay. The right-click menu is Windows Terminal's
+  short one (Copy, Paste, Find, Select All, Split View, Clear Scrollback,
+  and Konsole's own "Menu").
+- The window said "— Konsole" in a Turkish session: Plasma 6.3's
+  startplasma sets LANGUAGE from `plasma-localerc` after running the
+  session scripts, so `tr@veltos:tr` (the program-name catalogs) became
+  `tr` whenever Settings or the welcome window had written that file.
+  `veltos-session.sh` now adds the pseudo-language to the file itself
+  (startplasma reads it right after the script). This affected every
+  renamed program title, not only the Terminal.
+- Verified: veltos-desktop package tests (layout files, keys, the session
+  script with plasma-localerc); dev VM: right-clicks with and without a
+  selection, new tab, Ctrl+C interrupting `sleep 100`, Ctrl+C copying and
+  Ctrl+V pasting, the title "— Terminal" after signing in again
+  (`tests/results/2026-10-24-terminal/`).
+
 ## 2026-10-24 (evening) — VeltOS Graphics Cards
 
 Item 9 of the product owner's list: find NVIDIA and AMD cards and install

@@ -2,10 +2,17 @@
 <!DOCTYPE gui SYSTEM "kpartgui.dtd">
 
 <gui name="session" version="36">
-    <!-- VeltOS: Konsole 25.04.2 (Debian 13) sessionui.rc without its toolbar, like
-         Windows Terminal (tabs, no buttons). Same version number as Konsole's
-         built-in file: KXMLGUI then uses this one; a Konsole with a newer file
-         uses its own again. SPDX-License-Identifier: GPL-2.0-or-later -->
+    <!-- VeltOS: Konsole 25.04.2 (Debian 13) sessionui.rc with its toolbar hidden,
+         like Windows Terminal (tabs, no buttons), and Windows Terminal's
+         copy and paste keys. Same version number as Konsole's built-in file:
+         KXMLGUI then uses this one; a Konsole with a newer file uses its own
+         again. SPDX-License-Identifier: GPL-2.0-or-later -->
+    <!-- The toolbar stays in the file, hidden: without it Konsole's
+         right-click menu crashed (MainWindow::updateHamburgerMenu, VM
+         2026-10-24). -->
+    <!-- Ctrl+C copies while text is selected (Konsole enables its Copy
+         action only then); without a selection the key goes to the program
+         as before (interrupt). Ctrl+V pastes. Konsole's own keys stay. -->
     <!-- (Comments go below the gui element: KXMLGUI takes the first
          "version" word in the file as the file's number.) -->
     <MenuBar>
@@ -58,28 +65,37 @@
             <Action name="switch-profile" group="session-settings"/>
         </Menu>
     </MenuBar>
+    <!-- The right-click menu as Windows Terminal's: copy and paste, find,
+         split, clear; Konsole's other actions stay under "Menu" (added
+         by Konsole while the menu bar is hidden). -->
     <Menu name="session-popup-menu">
         <Action name="edit_copy_contextmenu"/>
         <Action name="edit_copy_contextmenu_in"/>
         <Action name="edit_copy_contextmenu_out"/>
         <Action name="edit_copy_contextmenu_in_out"/>
         <Action name="edit_paste"/>
-        <Action name="web-search"/>
-        <Action name="open-browser"/>
+        <Separator/>
+        <Action name="edit_find"/>
+        <Action name="select-all"/>
         <Separator/>
         <Menu name="view-split"><text>Split View</text>
             <Action name="split-view-left-right"/>
             <Action name="split-view-top-bottom"/>
         </Menu>
-        <Separator/>
-        <Action name="set-encoding"/>
         <Action name="clear-history"/>
-        <Action name="adjust-history"/>
         <Separator/>
-        <Action name="view-readonly" />
-        <Action name="allow-mouse-tracking" />
-        <Separator/>
-        <Action name="switch-profile"/>
-        <Action name="edit-current-profile"/>
     </Menu>
+    <ToolBar name="sessionToolbar" hidden="true">
+        <text>Session Toolbar</text>
+        <index>1</index>
+        <Spacer/>
+        <Action name="edit_copy" />
+        <Action name="edit_paste" />
+        <Action name="edit_find" />
+        <Action name="hamburger_menu"/>
+    </ToolBar>
+    <ActionProperties scheme="Default">
+        <Action name="edit_copy" shortcut="Ctrl+C; Ctrl+Shift+C; Ctrl+Ins"/>
+        <Action name="edit_paste" shortcut="Ctrl+V; Ctrl+Shift+V; Shift+Ins"/>
+    </ActionProperties>
 </gui>

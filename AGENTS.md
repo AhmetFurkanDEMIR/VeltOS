@@ -326,6 +326,14 @@ and JavaScript with no build step, no external requests and no cookies:
   notifications with `gdbus call ... org.freedesktop.Notifications.Notify`.
 - In Git Bash, `\n` inside a quoted heredoc can reach Python as a real
   newline; write code containing escapes with the editor tools instead.
+- Konsole 25.04 builds its hamburger menu (shown in the right-click menu
+  while the menu bar is hidden) from the toolbars; layout files without
+  them crashed it on every right-click. Hide toolbars with
+  `hidden="true"`, never remove them. Plasma 6.3's startplasma applies
+  `plasma-localerc`'s `[Translations] LANGUAGE` *after* the
+  `plasma-workspace/env` scripts, so a LANGUAGE exported there is lost
+  when that file has one; write such values into the file
+  (`veltos-session.sh`).
 - Running KDE tools for a session from `vm exec` needs the session's
   `XDG_MENU_PREFIX=plasma-` (and the other variables of plasmashell's
   environment): `kbuildsycoca6` without it built an empty application

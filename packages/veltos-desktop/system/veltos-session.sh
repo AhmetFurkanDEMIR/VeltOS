@@ -123,3 +123,17 @@ case "${LANGUAGE:-}" in
         unset veltos_lang
         ;;
 esac
+# Plasma 6.3's startplasma sets LANGUAGE from plasma-localerc ([Translations],
+# written by Settings > Time & language and the live welcome window) *after*
+# these scripts, which undid the line above: windows said "— Konsole"
+# instead of "— Terminal" (VM, 2026-10-24). The pseudo-language goes into
+# that file too; startplasma reads it right after this script.
+veltos_localerc="${XDG_CONFIG_HOME:-$HOME/.config}/plasma-localerc"
+if [ -f "$veltos_localerc" ] && grep -q '^LANGUAGE=' "$veltos_localerc" \
+        && ! grep -q '^LANGUAGE=.*@veltos' "$veltos_localerc"; then
+    sed -i -e '/^\[Translations\]/,/^\[/ {' \
+        -e 's/^LANGUAGE=\(tr[^@]*\)$/LANGUAGE=tr@veltos:\1/' \
+        -e 's/^LANGUAGE=\(en[^@]*\)$/LANGUAGE=en@veltos:\1/' \
+        -e '}' "$veltos_localerc"
+fi
+unset veltos_localerc

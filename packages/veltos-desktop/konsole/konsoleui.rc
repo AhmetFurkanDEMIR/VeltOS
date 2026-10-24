@@ -2,10 +2,12 @@
 <!DOCTYPE gui SYSTEM "kpartgui.dtd">
 
 <gui name="konsole" version="20">
-    <!-- VeltOS: Konsole 25.04.2 (Debian 13) konsoleui.rc without its toolbar, like
-         Windows Terminal (tabs, no buttons). Same version number as Konsole's
-         built-in file: KXMLGUI then uses this one; a Konsole with a newer file
-         uses its own again. SPDX-License-Identifier: GPL-2.0-or-later -->
+    <!-- VeltOS: Konsole 25.04.2 (Debian 13) konsoleui.rc with its toolbar hidden,
+         like Windows Terminal (tabs, no buttons). Same version number as
+         Konsole's built-in file: KXMLGUI then uses this one; a Konsole with a
+         newer file uses its own again. The toolbar stays in the file, hidden:
+         without it the right-click menu crashed (VM, 2026-10-24).
+         SPDX-License-Identifier: GPL-2.0-or-later -->
     <!-- (Comments go below the gui element: KXMLGUI takes the first
          "version" word in the file as the file's number.) -->
     <MenuBar>
@@ -63,4 +65,10 @@
         <Menu name="help"><text>Help</text>
         </Menu>
     </MenuBar>
+    <ToolBar name="mainToolBar" hidden="true">
+        <text>Main Toolbar</text>
+        <index>0</index>
+        <Action name="new-tab"/>
+        <Action name="split-view"/>
+    </ToolBar>
 </gui>

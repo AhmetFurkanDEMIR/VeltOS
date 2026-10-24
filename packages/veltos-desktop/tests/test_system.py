@@ -344,6 +344,21 @@ class SessionScriptTests(unittest.TestCase):
         self.assertEqual(self.languages({"LANG": "en_US.UTF-8"}), "en@veltos:en_US")
         self.assertEqual(self.languages({"LANG": "de_DE.UTF-8"}), "")
 
+    def test_plasma_localerc_language_gets_the_catalogs(self):
+        # startplasma applies this file's LANGUAGE after the script.
+        cases = {"LANGUAGE=tr\n": "LANGUAGE=tr@veltos:tr\n",
+                 "LANGUAGE=en_US\n": "LANGUAGE=en@veltos:en_US\n",
+                 "LANGUAGE=tr@veltos:tr\n": "LANGUAGE=tr@veltos:tr\n",
+                 "LANGUAGE=de\n": "LANGUAGE=de\n"}
+        for line, expected in cases.items():
+            with self.subTest(line=line):
+                home = Path(tempfile.mkdtemp())
+                (home / ".config").mkdir()
+                rc = home / ".config/plasma-localerc"
+                rc.write_text(f"[Formats]\nLANG=tr_TR.UTF-8\n\n[Translations]\n{line}")
+                self.source(home)
+                self.assertEqual(rc.read_text(), f"[Formats]\nLANG=tr_TR.UTF-8\n\n[Translations]\n{expected}")
+
     def source(self, home):
         env = {"HOME": str(home), "PATH": "/usr/bin:/bin", "VELTOS_DESKTOP_ICONS": str(PKG / "desktop")}
         subprocess.run(["sh", "-c", f". {self.SCRIPT}"], env=env, check=True, capture_output=True)

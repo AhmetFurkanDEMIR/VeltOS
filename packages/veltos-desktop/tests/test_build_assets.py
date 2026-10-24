@@ -455,13 +455,29 @@ class FullBuildTest(unittest.TestCase):
             text = (root / "usr/share/kxmlgui5/konsole" / name).read_text()
             gui = ET.fromstring(text.split("\n", 2)[2])
             self.assertEqual((gui.get("name"), gui.get("version")), (gui_name, number))
-            self.assertIsNone(gui.find("ToolBar"))
+            # Konsole's toolbars stay in the files, hidden: without them the
+            # right-click menu crashed (MainWindow::updateHamburgerMenu).
+            bars = gui.findall("ToolBar")
+            self.assertEqual(len(bars), 1, name)
+            self.assertEqual(bars[0].get("hidden"), "true", name)
             # KXMLGUI (KXMLGUIClient::findVersionNumber) takes the first
             # "version" after the first "gui" after the first "<" as the
             # file's number: a comment mentioning it hid the file (VM).
             start = text.lower().index("gui", text.index("<") + 1)
             found = re.match(r'version\s*=\s*"(\d+)"', text[text.lower().index("version", start):])
             self.assertEqual(found and found.group(1), number, name)
+        # Windows Terminal's keys: Ctrl+C copies (Konsole enables Copy only
+        # while text is selected, so Ctrl+C still interrupts otherwise), Ctrl+V pastes.
+        session = ET.fromstring((root / "usr/share/kxmlgui5/konsole/sessionui.rc").read_text().split("\n", 2)[2])
+        shortcuts = {a.get("name"): a.get("shortcut").split("; ") for a in session.find("ActionProperties")}
+        self.assertEqual(shortcuts["edit_copy"][0], "Ctrl+C")
+        self.assertIn("Ctrl+Shift+C", shortcuts["edit_copy"])
+        self.assertEqual(shortcuts["edit_paste"][0], "Ctrl+V")
+        self.assertIn("Ctrl+Shift+V", shortcuts["edit_paste"])
+        popup = [a.get("name") for a in session.find("Menu[@name='session-popup-menu']").iter("Action")]
+        self.assertEqual(popup[:5], ["edit_copy_contextmenu", "edit_copy_contextmenu_in", "edit_copy_contextmenu_out",
+                                     "edit_copy_contextmenu_in_out", "edit_paste"])
+        self.assertNotIn("switch-profile", popup)
 
     def check_explorer_layout(self, root):
         import xml.etree.ElementTree as ET
