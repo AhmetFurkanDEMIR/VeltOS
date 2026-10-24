@@ -3,6 +3,37 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — A Windows 11 style notice after a crash
+
+Item 17 of the product owner's list: DrKonqi's "x closed unexpectedly"
+notification in Windows 11's design.
+
+- What happened before (Konsole killed with SIGSEGV in the dev VM):
+  systemd-coredump records the crash, DrKonqi's system service passes the
+  record as JSON to the user's `drkonqi-coredump-launcher.socket`, and the
+  per-crash `drkonqi-coredump-launcher@.service` starts DrKonqi: a toast
+  from "Sistem bildirimleri" with `tools-report-bug` (a red "!"),
+  "Report Bug" (to KDE's bug tracker) and "Restart Application", and a
+  sad-face tray icon afterwards.
+- veltos-taskmanager now replaces that service's program (drop-in
+  `drkonqi-coredump-launcher@.service.d/veltos-crash-notice.conf`) with
+  `/usr/libexec/veltos-taskmanager/crash-notice` (`crash.py`): it reads the
+  record, finds the app from the unit Plasma started it in
+  (`app-org.kde.konsole-48606.scope`, `app-veltos\x2dcalculator@….service`)
+  or the program it ran, and sends one notification with the app's name,
+  icon and desktop entry, "<App> closed unexpectedly", a short
+  explanation and "Restart" (through Gio). Programs without an app
+  (background services) get no notice, as on Windows. KCrash's metadata
+  file is removed. DrKonqi's sign-in pick-up of earlier crashes is turned
+  off (it would announce them again and scan the journal at sign-in).
+- Found while testing: "Restart" first did nothing, because the
+  service's unit ends when the script exits and systemd killed the
+  detached `kioclient` with it; the script now waits for kioclient.
+- Verified: 48 package tests (records of Terminal, Calculator and a
+  daemon; texts; pick-up ignored); dev VM: the toasts, "Yeniden başlat"
+  bringing Terminal back in its own scope, silence for a crashed
+  `xembedsniproxy` (`tests/results/2026-10-25-crash-notice/`).
+
 ## 2026-10-25 — Apps start faster; cleaner exits
 
 Item 15 of the product owner's list: apps open slowly after a click.

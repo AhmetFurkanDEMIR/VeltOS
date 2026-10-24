@@ -20,6 +20,8 @@ Rules-Requires-Root: no
 Package: veltos-taskmanager
 Architecture: all
 Depends: ${python3:Depends},
+         python3-gi,
+         gir1.2-glib-2.0,
          python3-psutil,
          python3-pyside6.qtnetwork,
          python3-pyside6.qtqml,

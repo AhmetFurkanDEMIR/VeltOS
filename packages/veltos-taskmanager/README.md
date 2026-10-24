@@ -75,3 +75,16 @@ name, ending order, the DrKonqi note, other hosts, the window offscreen in
 English and Turkish). Seen in the dev VM: Notepad stopped with SIGSTOP,
 Alt+F4 → this window; "Close the program" ended it, "Wait" left it
 (`tests/results/2026-10-24-not-responding/`).
+
+## Notice after a crash (2026-10-25)
+
+`crash.py` (`/usr/libexec/veltos-taskmanager/crash-notice`) replaces the
+program of DrKonqi's per-crash user service
+(`drkonqi-coredump-launcher@.service.d/veltos-crash-notice.conf`): systemd
+hands it the crash record (JSON from DrKonqi's system service); for an
+app (found from the unit Plasma started it in, or from the program) it
+shows one toast like Windows 11's, with the app's name and icon, "<App>
+closed unexpectedly" and "Restart" (KIO starts the app again). Background
+services crash silently. DrKonqi's window, "Report Bug" and tray icon are
+not used; its sign-in pick-up of earlier crashes is off
+(`drkonqi-coredump-pickup.service.d`).

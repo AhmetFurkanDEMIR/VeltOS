@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+"""VeltOS: a Windows 11 style notice after a program crashed (started by
+systemd instead of DrKonqi's launcher; see veltos_taskmanager/crash.py)."""
+import sys
+
+from veltos_taskmanager.crash import main
+
+sys.exit(main())

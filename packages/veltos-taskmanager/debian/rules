@@ -19,6 +19,14 @@ override_dh_auto_install:
 	install -d debian/veltos-taskmanager/usr/lib/x86_64-linux-gnu/libexec
 	ln -s /usr/libexec/veltos-taskmanager/not-responding \
 		debian/veltos-taskmanager/usr/lib/x86_64-linux-gnu/libexec/kwin_killer_helper
+	# Crashes: VeltOS' notice instead of DrKonqi (drop-in for DrKonqi's user
+	# launcher service, which systemd starts for every crash of the user).
+	install -D -m 755 bin/veltos-crash-notice \
+		debian/veltos-taskmanager/usr/libexec/veltos-taskmanager/crash-notice
+	install -D -m 644 data/veltos-crash-notice.conf \
+		debian/veltos-taskmanager/usr/lib/systemd/user/drkonqi-coredump-launcher@.service.d/veltos-crash-notice.conf
+	install -D -m 644 data/veltos-no-crash-pickup.conf \
+		debian/veltos-taskmanager/usr/lib/systemd/user/drkonqi-coredump-pickup.service.d/veltos-crash-notice.conf
 	install -D -m 644 data/veltos-taskmanager.desktop \
 		debian/veltos-taskmanager/usr/share/applications/veltos-taskmanager.desktop
 	install -D -m 644 data/veltos-taskmanager.svg \

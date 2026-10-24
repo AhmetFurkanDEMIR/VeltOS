@@ -57,6 +57,11 @@ TEXTS = {
                 "Programı kapatırsanız kaydetmediğiniz bilgileri kaybedebilirsiniz."),
     "nr_close": ("Close the program", "Programı kapat"),
     "nr_wait": ("Wait for the program to respond", "Programın yanıt vermesini bekle"),
+    # The notice after a crash (crash.py).
+    "crash_title": ("{app} closed unexpectedly", "{app} beklenmedik şekilde kapandı"),
+    "crash_body": ("A problem caused the program to stop. Work you hadn't saved may have been lost.",
+                   "Bir sorun nedeniyle program durdu. Kaydetmediğiniz çalışmalar kaybolmuş olabilir."),
+    "crash_restart": ("Restart", "Yeniden başlat"),
 }
 
 
