@@ -54,3 +54,96 @@ msgstr "%%1 · Şarj oluyor"
 
 msgid "Settings"
 msgstr "Ayarlar"
+
+msgid "Back"
+msgstr "Geri"
+
+msgid "More Wi-Fi settings"
+msgstr "Diğer Wi-Fi ayarları"
+
+msgid "Airplane mode is on"
+msgstr "Uçak modu açık"
+
+msgid "Wi-Fi is turned off"
+msgstr "Wi-Fi kapalı"
+
+msgid "No Wi-Fi networks found"
+msgstr "Wi-Fi ağı bulunamadı"
+
+msgid "Connecting…"
+msgstr "Bağlanıyor…"
+
+msgid "Disconnecting…"
+msgstr "Bağlantı kesiliyor…"
+
+msgid "Connected, secured"
+msgstr "Bağlı, güvenli"
+
+msgid "Connected, open"
+msgstr "Bağlı, açık"
+
+msgid "Secured"
+msgstr "Güvenli"
+
+msgid "Open"
+msgstr "Açık"
+
+msgid "Connect automatically"
+msgstr "Otomatik olarak bağlan"
+
+msgid "Enter the network security key"
+msgstr "Ağ güvenlik anahtarını girin"
+
+msgid "Properties"
+msgstr "Özellikler"
+
+msgid "Cancel"
+msgstr "İptal"
+
+msgid "Next"
+msgstr "İleri"
+
+msgid "Disconnect"
+msgstr "Bağlantıyı kes"
+
+msgid "Connect"
+msgstr "Bağlan"
+
+msgid "More Bluetooth settings"
+msgstr "Diğer Bluetooth ayarları"
+
+msgid "No Bluetooth adapter found"
+msgstr "Bluetooth bağdaştırıcısı bulunamadı"
+
+msgid "Bluetooth is turned off"
+msgstr "Bluetooth kapalı"
+
+msgid "Connected · Battery %1%"
+msgstr "Bağlı · Pil %%1"
+
+msgid "Connected"
+msgstr "Bağlı"
+
+msgid "Couldn't connect"
+msgstr "Bağlanılamadı"
+
+msgid "Paired"
+msgstr "Eşleştirildi"
+
+msgid "Pairing…"
+msgstr "Eşleştiriliyor…"
+
+msgid "Couldn't pair"
+msgstr "Eşleştirilemedi"
+
+msgid "Ready to pair"
+msgstr "Eşleştirmeye hazır"
+
+msgid "Pair"
+msgstr "Eşleştir"
+
+msgid "New devices"
+msgstr "Yeni cihazlar"
+
+msgid "Searching for devices…"
+msgstr "Cihazlar aranıyor…"

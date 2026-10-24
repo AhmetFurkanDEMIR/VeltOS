@@ -3,6 +3,44 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (afternoon) — Wi-Fi and Bluetooth lists in Quick Settings
+
+Item 3 of the product owner's list: the taskbar's Wi-Fi and Bluetooth
+only led to Settings; they should list networks and devices as Windows 11
+does.
+
+- **What**: the arrows on Quick Settings' Wi-Fi and Bluetooth tiles push a
+  page into the flyout (StackView, sliding in from the right, back to the
+  tiles when the flyout closes). Wi-Fi: Plasma's NetworkModel through
+  AppletProxyModel (sorted as KDE's applet sorts) and a KSortFilterProxyModel
+  for wireless rows; Connect / the key in place / Disconnect through
+  plasma-nm's Handler, as KDE's applet calls it; "Connect automatically"
+  goes into the NetworkManager profile with `nmcli` (UUIDs checked, changed
+  only when it differs). Bluetooth: bluedevil's DevicesProxyModel for paired
+  devices, BluezQt's device list for new ones, discovery while the page is
+  open, `pair()` then trusted and connected.
+- **Found in the VM**: holding a row with `DelayModelUpdatesRole` while it
+  was open froze its data, so a connected network still said "Connect";
+  KDE's applet holds a row only while its key is typed, and so does VeltOS
+  now. Confirming the pairing code in Plasma's notification closes the
+  flyout and destroyed the page that waited for the pairing, so the device
+  was paired but neither trusted nor connected; pairing now lives in the
+  applet itself. Kvantum-less Plasma buttons have no accent look
+  (`highlighted` drew a plain button); `AccentButton.qml` draws Windows 11's
+  filled one.
+- **How it was tested** (dev VM only, `out/vm/wifisim.sh`, `btsim.sh`):
+  three `mac80211_hwsim` radios, two of them access points made by hostapd
+  ("VeltOS-Home" WPA2, "Cafe-Guest" open) with dnsmasq for addresses (without
+  DHCP NetworkManager stayed "activating"); `btvirt -l2` for two virtual
+  Bluetooth controllers, the second discoverable through bluetoothctl.
+  Toggling Wi-Fi off rfkills the simulated access points too; restart
+  hostapd afterwards.
+- **Verified**: 114 package tests; the screens in
+  `tests/results/2026-10-24-quick-settings-wifi-bluetooth/` (Turkish
+  session). Not checked: real Wi-Fi and Bluetooth hardware, enterprise
+  (802.1X) networks, Bluetooth Disconnect (the virtual peers reconnect at
+  once, the row stayed "Disconnecting…").
+
 ## 2026-10-24 (noon) — The installer's disk page: lists under their box, Windows 11 disk pictures
 
 Item 2 of the product owner's list: "the area that opens overlaps, the disk

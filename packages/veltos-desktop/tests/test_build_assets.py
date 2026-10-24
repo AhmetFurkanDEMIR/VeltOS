@@ -246,6 +246,26 @@ class QuickSettingsTests(StartMenuTests):
     def test_config_schema_is_xml(self):
         self.skipTest("no configuration")
 
+    def test_wifi_and_bluetooth_lists_slide_in(self):
+        ui = self.STARTMENU / "contents/ui"
+        main = (ui / "main.qml").read_text(encoding="utf-8")
+        # The tiles' arrows open the lists in the flyout, not Settings.
+        self.assertIn("onMore: stack.push(wifiPage)", main)
+        self.assertIn("onMore: stack.push(bluetoothPage)", main)
+        self.assertIn("stack.pop(null, QQC2.StackView.Immediate)", main)
+        # Pairing lives in the applet: the flyout closes when the code is
+        # confirmed in the notification (VM, 2026-10-24).
+        self.assertIn("function pairBluetooth(device)", main)
+        wifi = (ui / "WifiPage.qml").read_text(encoding="utf-8")
+        # A held row stops showing its connection state: hold it only while
+        # its key is typed (the connected network kept "Connect", VM).
+        self.assertIn("onAskingKeyChanged", wifi)
+        self.assertNotIn("onExpandedChanged", wifi)
+        # The profile's auto-connect is changed only with a checked UUID.
+        self.assertIn("/^[0-9a-fA-F-]{36}$/.test(model.Uuid)", wifi)
+        for page in ("SubPage", "ListRow", "AccentButton", "BluetoothPage"):
+            self.assertTrue((ui / f"{page}.qml").is_file(), page)
+
     def test_layout_adds_it_and_drops_the_tray_icons_it_replaces(self):
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
         self.assertIn('panel.addWidget("org.veltos.quicksettings")', js)

@@ -2,7 +2,9 @@
     VeltOS Quick Settings: one taskbar button (network, sound and battery
     icons) that opens a Windows 11 style panel: toggle tiles (Wi-Fi,
     Bluetooth, airplane mode, night light), brightness and volume sliders,
-    battery level and a Settings button.
+    battery level and a Settings button. The arrow on the Wi-Fi and
+    Bluetooth tiles slides in their lists (WifiPage.qml, BluetoothPage.qml),
+    as Windows 11 does, instead of opening Settings.
 
     State and actions come from the same Plasma components KDE's own tray
     applets use (network, Bluetooth, volume, brightness, battery), so this
@@ -11,6 +13,7 @@
     SPDX-License-Identifier: GPL-3.0-or-later
 */
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
@@ -100,6 +103,29 @@ PlasmoidItem {
             adapter.powered = enable;
         });
     }
+    // Pairing a Bluetooth device: trusted and connected once paired, as
+    // Windows does. Kept here, not on the Bluetooth page: the flyout closes
+    // when the pairing code is confirmed in Plasma's notification.
+    property var bluetoothPairing: ({})
+    function pairBluetooth(device) {
+        const ubi = device.ubi;
+        const mark = value => {
+            const copy = Object.assign({}, root.bluetoothPairing);
+            copy[ubi] = value;
+            root.bluetoothPairing = copy;
+        };
+        mark("pairing");
+        const call = device.pair();
+        call.finished.connect(() => {
+            if (call.error) {
+                mark("failed");
+                return;
+            }
+            mark("");
+            device.trusted = true;
+            device.connectToDevice();
+        });
+    }
     function setAirplane(enable) {
         handler.enableAirplaneMode(enable);
         PlasmaNM.Configuration.airplaneModeEnabled = enable;
@@ -165,9 +191,74 @@ PlasmoidItem {
     }
 
     // --- Panel ------------------------------------------------------------------
-    fullRepresentation: ColumnLayout {
+    fullRepresentation: Item {
+        id: panel
+
         Layout.preferredWidth: Kirigami.Units.gridUnit * 22
         Layout.minimumWidth: Kirigami.Units.gridUnit * 22
+        // The Wi-Fi and Bluetooth pages take the tiles' height (their lists
+        // scroll), so the flyout keeps its size when one slides in.
+        Layout.preferredHeight: tiles.implicitHeight
+        Layout.minimumHeight: tiles.implicitHeight
+
+        // Back to the tiles whenever the flyout closes.
+        Connections {
+            target: root
+            function onExpandedChanged() {
+                if (!root.expanded)
+                    stack.pop(null, QQC2.StackView.Immediate);
+            }
+        }
+
+        QQC2.StackView {
+            id: stack
+            anchors.fill: parent
+            clip: true
+            initialItem: tiles
+            // The lists slide in from the right and the tiles come back from
+            // the left, as in Windows 11.
+            pushEnter: Transition {
+                NumberAnimation { property: "x"; from: stack.width * 0.25; to: 0; duration: Kirigami.Units.longDuration; easing.type: Easing.OutCubic }
+                NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Kirigami.Units.longDuration; easing.type: Easing.OutCubic }
+            }
+            pushExit: Transition {
+                NumberAnimation { property: "opacity"; from: 1; to: 0; duration: Kirigami.Units.shortDuration }
+            }
+            popEnter: Transition {
+                NumberAnimation { property: "x"; from: -stack.width * 0.25; to: 0; duration: Kirigami.Units.longDuration; easing.type: Easing.OutCubic }
+                NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Kirigami.Units.longDuration; easing.type: Easing.OutCubic }
+            }
+            popExit: Transition {
+                NumberAnimation { property: "opacity"; from: 1; to: 0; duration: Kirigami.Units.shortDuration }
+            }
+        }
+
+        Component {
+            id: wifiPage
+            WifiPage {
+                nmHandler: handler
+                wifiOn: root.wifiOn
+                airplane: root.airplane
+                onBack: stack.pop()
+                onToggleWifi: on => handler.enableWireless(on)
+                onOpenSettings: root.run("veltos-settings network")
+            }
+        }
+        Component {
+            id: bluetoothPage
+            BluetoothPage {
+                bluetoothOn: root.bluetoothOn
+                available: root.bluetoothAvailable && !root.airplane
+                onBack: stack.pop()
+                pairing: root.bluetoothPairing
+                onPairRequested: device => root.pairBluetooth(device)
+                onToggleBluetooth: on => root.setBluetooth(on)
+                onOpenSettings: root.run("veltos-settings devices")
+            }
+        }
+
+    ColumnLayout {
+        id: tiles
         spacing: Kirigami.Units.largeSpacing * 2
 
         component Tile: ColumnLayout {
@@ -309,7 +400,7 @@ PlasmoidItem {
                 active: root.wifiOn && available
                 hasMore: true
                 onToggled: handler.enableWireless(!root.wifiOn)
-                onMore: root.run("veltos-settings network")
+                onMore: stack.push(wifiPage)
             }
             Tile {
                 iconName: "network-bluetooth-symbolic"
@@ -318,7 +409,7 @@ PlasmoidItem {
                 active: root.bluetoothOn && available
                 hasMore: true
                 onToggled: root.setBluetooth(!root.bluetoothOn)
-                onMore: root.run("veltos-settings devices")
+                onMore: stack.push(bluetoothPage)
             }
             Tile {
                 iconName: "network-flightmode-on-symbolic"
@@ -404,6 +495,7 @@ PlasmoidItem {
                 }
             }
         }
+    }
     }
 
     Component.onCompleted: floatPopups()

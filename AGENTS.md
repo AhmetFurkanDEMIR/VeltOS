@@ -906,6 +906,19 @@ and JavaScript with no build step, no external requests and no cookies:
   `systemd-run --machine=velt@.host --user --collect -p KillMode=process
   sh -c 'pkexec /usr/libexec/veltos-installer/start-calamares --dark
   --accent "#E81123"'` (pkexec refuses when its parent has exited).
+- Testing Wi-Fi and Bluetooth UI without hardware (dev VM): `modprobe
+  mac80211_hwsim radios=3`, `nmcli device set wlan1 managed no`, hostapd
+  on wlan1/wlan2 and dnsmasq for DHCP (`out/vm/wifisim.sh`; without DHCP
+  NetworkManager stays "activating"; turning Wi-Fi off also stops the
+  simulated access points). `btvirt -l2` (bluez-test-tools, hci_vhci)
+  gives two controllers; make the second discoverable with bluetoothctl
+  (`out/vm/btsim.sh`). Both are local, so they also see each other as
+  paired/connected devices and a disconnect is undone at once.
+- plasma-nm's `NetworkModel.DelayModelUpdatesRole` freezes a row's data
+  (state included) until it is cleared: set it only while a key is typed.
+  A Quick Settings page is destroyed when the flyout closes (clicking a
+  notification closes it): keep long-running calls (Bluetooth pairing) in
+  the applet's root, not in the page.
 - Wine's Start shortcuts have spaces in their file names ("7-Zip File
   Manager.desktop"): pipe file lists with `-print0`/`-0` or use `find
   -exec`, never plain `xargs` (the Windows program test reported a

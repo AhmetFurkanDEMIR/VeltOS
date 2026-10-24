@@ -81,8 +81,16 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
 - **Quick Settings** (`org.veltos.quicksettings`): one taskbar button with
   the network, sound and battery icons opens a Windows 11 style panel —
   Wi-Fi, Bluetooth, Airplane mode and Night light tiles, brightness and
-  volume sliders, battery level and a Settings button. It uses the same
-  Plasma components as KDE's tray applets, which are switched off in the
+  volume sliders, battery level and a Settings button. The arrow on the
+  Wi-Fi and Bluetooth tiles slides in their lists, as in Windows 11
+  (2026-10-24): Wi-Fi networks with signal and security, the connected
+  one with Properties and Disconnect, others with "Connect automatically"
+  and Connect, the network security key asked in place; paired Bluetooth
+  devices with their state and battery, Connect / Disconnect, and new
+  devices found nearby with Pair (codes are confirmed in Plasma's
+  Bluetooth notification; a paired device is trusted and connected). It
+  uses the same Plasma components as KDE's tray applets (NetworkModel and
+  Handler, BluezQt and bluedevil's models), which are switched off in the
   tray for new users. The home folder has no
   "Templates" and "Public" folders (switched off in xdg-user-dirs).
 - Fluent icons and cursors (`veltos-fluent-icons`), Inter UI font.
