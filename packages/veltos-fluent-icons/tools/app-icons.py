@@ -331,6 +331,36 @@ def disk_management():
                  'stroke-linejoin="round"/>\n')
 
 
+def graphics_cards():
+    """A graphics card seen from the side: the metal bracket with display
+    ports, the shroud with two fans and the gold PCI Express edge."""
+    shroud = rrect(40, 58, 196, 128, 20)
+
+    def fan(cx, cy):
+        blade = f"M {cx} {cy} Q {cx + 4} {cy - 28} {cx + 24} {cy - 22} Q {cx + 14} {cy - 8} {cx} {cy} Z"
+        blades = "".join(f'  <path d="{blade}" fill="url(#blade)" transform="rotate({a} {cx} {cy})"/>\n'
+                         for a in range(0, 360, 60))
+        return (f'  <circle cx="{cx}" cy="{cy}" r="38" fill="url(#rim)"/>\n'
+                f'  <circle cx="{cx}" cy="{cy}" r="32" fill="#1D2129"/>\n'
+                + blades
+                + f'  <circle cx="{cx}" cy="{cy}" r="9" fill="url(#hub)"/>\n')
+
+    return svg("Graphics Cards", grad("shroud", "#5B6273", "#2C313B") + grad("bracket", "#E9EDF2", "#AEB6C1")
+               + grad("rim", "#C9CFD8", "#7D8693") + grad("blade", "#7CC4FF", "#2F6BE6", "1", "1")
+               + grad("hub", "#FFFFFF", "#C6CDD7") + grad("gold", "#F8D271", "#D9961E"),
+               shadow(shroud)
+               + '  <path d="M 84 186 H 196 V 204 Q 196 210 190 210 H 90 Q 84 210 84 204 Z" fill="url(#gold)"/>\n'
+               + '  <path d="M 98 192 V 208 M 110 192 V 208 M 122 192 V 208 M 146 192 V 208 M 158 192 V 208 '
+                 'M 170 192 V 208 M 182 192 V 208" stroke="#B57A12" stroke-width="4" stroke-linecap="round"/>\n'
+               + f'  <path d="{shroud}" fill="url(#shroud)"/>\n'
+               + '  <path d="M 58 72 H 218" stroke="#2FA8F0" stroke-width="5" stroke-linecap="round"/>\n'
+               + fan(96, 124) + fan(180, 124)
+               + '  <path d="M 20 44 H 44 V 204 Q 44 214 34 214 H 20 Z" fill="url(#bracket)"/>\n'
+               + '  <rect x="26" y="70" width="12" height="30" rx="3" fill="#3B414D"/>\n'
+               + '  <rect x="26" y="110" width="12" height="22" rx="3" fill="#3B414D"/>\n'
+               + '  <rect x="26" y="142" width="12" height="22" rx="3" fill="#3B414D"/>\n')
+
+
 # Office (LibreOffice, veltos-office): the composition of Microsoft 365's
 # Windows 11 icons (a coloured tile with the app's initial in front of a
 # page, sheet or slide), drawn here: W, X and P in Word blue, Excel green
@@ -408,6 +438,7 @@ NAMES = {
     media_player: ["veltos-media", "org.kde.haruna", "multimedia-video-player", "vlc"],
     disk_management: ["veltos-disks", "partitionmanager", "org.kde.partitionmanager", "gnome-disks",
                       "org.gnome.DiskUtility"],
+    graphics_cards: ["veltos-graphics"],
     app_installer: ["veltos-run", "veltos-winapps"],
     clock: ["veltos-clock", "org.kde.kclock", "kclock", "preferences-system-time", "clock"],
     word_processor: ["libreoffice-writer", "libreoffice3-writer", "libreoffice34-writer"],

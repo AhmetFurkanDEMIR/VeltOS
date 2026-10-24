@@ -1,6 +1,6 @@
 // System > Display: scale and resolution of each display (a new
 // resolution is reverted after 15 seconds unless kept, as in Windows),
-// night light and the advanced display settings.
+// night light and the graphics cards (VeltOS Graphics Cards).
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -105,6 +105,19 @@ ColumnLayout {
         title: backend.pages.find(p => p.id === "system").items.find(i => i.id === "nightlight").title
         description: backend.pages.find(p => p.id === "system").items.find(i => i.id === "nightlight").description
         onActivated: page.itemActivated({ action: "", page: "nightlight", pageId: "system" })
+    }
+
+    SectionLabel {
+        text: backend.text("related_settings")
+    }
+    // VeltOS Graphics Cards: the cards' drivers and properties (its own window).
+    SettingCard {
+        Layout.fillWidth: true
+        icon: "veltos-graphics-symbolic"
+        title: backend.text("graphics_cards")
+        description: backend.text("graphics_cards_desc")
+        external: true
+        onActivated: page.itemActivated({ action: "graphics", page: "" })
     }
 
 

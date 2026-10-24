@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Graphics Cards
+Name[tr]=Ekran Kartları
+GenericName=Graphics card drivers
+GenericName[tr]=Ekran kartı sürücüleri
+Comment=See your graphics cards and install or update their drivers
+Comment[tr]=Ekran kartlarınızı görün, sürücülerini yükleyin veya güncelleştirin
+Exec=veltos-graphics
+Icon=veltos-graphics
+Categories=Settings;HardwareSettings;
+Keywords=graphics;gpu;video;card;driver;nvidia;amd;radeon;intel;geforce;display adapter;ekran kartı;sürücü;grafik;
+Keywords[tr]=ekran kartı;grafik kartı;sürücü;gpu;nvidia;amd;radeon;intel;geforce;graphics;driver;
+StartupNotify=true

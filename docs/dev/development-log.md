@@ -3,6 +3,44 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (evening) — VeltOS Graphics Cards
+
+Item 9 of the product owner's list: find NVIDIA and AMD cards and install
+their driver completely and properly, in a "Graphics Cards" app that is
+also in Settings.
+
+- New package `veltos-graphics` (architecture 2.27). The cards come from
+  `lspci -vmmnnk` (PCI class 03xx), the details from sysfs, `eglinfo -B`
+  (GBM platform) and `vulkaninfo`; reading runs in a thread so the window
+  opens at once. Each card shows its name, the driver in use, an InfoBar
+  with one button and Properties. NVIDIA: `nvidia-detect` (installed
+  first) names the series, `pkcon install` puts in that driver and
+  `linux-headers-amd64` (DKMS), a legacy card that Debian 13 has no driver
+  for says so; afterwards "Restart now", and with Secure Boot on a
+  one-time password for `mokutil --import /var/lib/dkms/mok.pub`. AMD and
+  Intel: the firmware and Mesa's OpenGL/Vulkan drivers installed if
+  missing; "Check for updates" runs `pkcon refresh`, asks apt which of
+  them has a newer version and updates only those. Virtual machines'
+  cards: nothing to install.
+- Settings > System > Display has "Related settings > Graphics cards";
+  new icons: the app (a graphics card with two fans) and a symbolic one
+  for Settings, both VeltOS drawings in veltos-fluent-icons.
+- Found in the dev VM with the real pkcon (a recorded RTX 4060 `lspci`
+  entry, `out/vm/gfx-fake.py`): the driver installed and DKMS built
+  `nvidia-current/550.163.01`; "Use the open-source driver" then hung,
+  because pkcon asked which `nvidia-driver-libs` (amd64 or i386, Wine's)
+  was meant and waited for an answer: names now carry the architecture and
+  pkcon's input is closed. Removing only `nvidia-driver` left 37 packages
+  (also with `--autoremove`); the whole NVIDIA set is now removed by name,
+  after which only `nvidia-detect` stayed. `pkcon update NAME` fails with
+  "No packages were found" when NAME has no update, hence the apt check.
+  polkit refuses a program started with `runuser` (no session): test with
+  `systemd-run --machine=velt@.host --user`.
+- Verified: 43 package tests; dev VM: Start search, the virtio card, the
+  recorded AMD card's update check, the NVIDIA install and removal,
+  Settings' row (`tests/results/2026-10-24-graphics-cards/`). Not tested:
+  real GPUs, Secure Boot, an actual driver update.
+
 ## 2026-10-24 (afternoon) — Search the web with Google
 
 Item 8 of the product owner's list: the best match said "Search

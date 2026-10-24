@@ -72,7 +72,8 @@ open VeltOS Settings.
     veltos-desktop).
   - **System**: Display, Sound, Notifications (do not disturb, sounds,
     banners per app: plasmanotifyrc), Power & battery (screen off, sleep,
-    power button, lid: powerdevilrc + PowerDevil reload), Night light
+    power button, lid: powerdevilrc + PowerDevil reload; Display's "Graphics
+    cards" opens VeltOS Graphics Cards), Night light
     (KWin night colour), Multitasking (snap windows);
   - **Bluetooth & devices**: Bluetooth, Mouse and Touchpad (KWin's input
     devices over D-Bus, saved in kcminputrc), Typing (keyboard layouts,

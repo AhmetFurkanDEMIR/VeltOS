@@ -50,6 +50,7 @@ Recommends: bluedevil,
             veltos-explorer,
             network-manager,
             veltos-disks,
+            veltos-graphics,
             veltos-store,
             pulseaudio-utils,
             veltos-winapps

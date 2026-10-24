@@ -1049,6 +1049,38 @@ were measured (below).
   configured mode; dual-boot PCs still get the menu for 5 s so Windows can
   be chosen.
 
+### 2.27 VeltOS Graphics Cards: drivers on request (2026-10-24)
+
+- The product owner wants NVIDIA and AMD cards found and their drivers
+  installed "completely and properly", in an app that is also reachable
+  from Settings. This is the driver part of the planned Hardware Manager
+  (2.4).
+- Decision: a small app (`veltos-graphics`) that reads the cards without
+  rights (lspci, sysfs, eglinfo, vulkaninfo) and offers one button per
+  card. NVIDIA's proprietary driver is installed only when the user
+  presses "Install driver", from Debian's non-free archive (the series
+  `nvidia-detect` names, plus `linux-headers-amd64` for DKMS), through
+  PackageKit's `pkcon` so polkit asks for the administrator's password
+  with VeltOS' prompt, as VeltOS Store does. AMD and Intel use the
+  kernel's and Mesa's drivers; the app makes sure their firmware and
+  Mesa's OpenGL/Vulkan drivers are installed and updates them. With
+  Secure Boot on, the app registers DKMS's signing key with `mokutil
+  --import` (one-time password, confirmed in the firmware's MOK manager
+  at the next start). "Use the open-source driver" removes NVIDIA's
+  packages again.
+- Alternatives: preinstalling NVIDIA's driver on the ISO (DKMS must build
+  against the installed kernel; with Secure Boot the module would not load
+  before a key is enrolled, a black screen for exactly the users it should
+  help; non-free software on every PC); installing it automatically at the
+  first start (no consent, no visible progress, Secure Boot needs the
+  user's password anyway); Ubuntu's `ubuntu-drivers` (not in Debian);
+  NVIDIA's `.run` installer (unverified download, against rule 8).
+- Trade-offs: needs an internet connection; cards that need a legacy
+  NVIDIA series (390/340/470) have no driver in Debian 13 and stay on
+  Nouveau (the app says so); NVIDIA's open kernel modules
+  (`nvidia-open-kernel-dkms`) are not offered yet, the proprietary module
+  covers every card the 550 series supports. Not tested on real GPUs.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

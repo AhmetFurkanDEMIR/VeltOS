@@ -8,8 +8,10 @@ VELTOS_ICONS = computer user-trash user-trash-full folder inode-directory user-d
 	utilities-terminal org.kde.konsole konsole terminal \
 	preferences-color-symbolic preferences-desktop-theme-symbolic
 # Symbolic icons of VeltOS Settings drawn in the look of Windows 11 (Colours,
-# Themes, the colour mode), also in hicolor for names Fluent does not have.
-VELTOS_SYMBOLIC = preferences-color-symbolic preferences-desktop-theme-symbolic veltos-colour-mode-symbolic
+# Themes, the colour mode, Graphics cards), also in hicolor for names Fluent
+# does not have.
+VELTOS_SYMBOLIC = preferences-color-symbolic preferences-desktop-theme-symbolic veltos-colour-mode-symbolic \
+	veltos-graphics-symbolic
 
 %:
 	dh $@

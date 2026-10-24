@@ -104,9 +104,11 @@ class SettingsWindowTests(unittest.TestCase):
     def test_items_open_pages_and_actions(self):
         self.call("activate", {"action": "updates", "page": ""})
         self.call("activate", {"action": "website", "page": ""})
+        self.call("activate", {"action": "graphics", "page": ""})
         self.call("activate", {"action": "", "page": "about", "pageId": "system"})
         self.assertEqual(self.started, [["veltos-store", "--updates"],
-                                        ["xdg-open", "https://veltos.ahmetfurkandemir.com/"]])
+                                        ["xdg-open", "https://veltos.ahmetfurkandemir.com/"],
+                                        ["veltos-graphics"]])
         self.assertEqual(self.window.property("subPage"), "about")
 
     def test_new_pages_change_settings(self):

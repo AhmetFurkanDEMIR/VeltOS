@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Graphics card: the bracket, the card with two fans and the edge
+       connector — a symbolic icon in the look of Windows 11's Settings
+       icons (VeltOS artwork; drawn as a mask in the theme's text colour).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <g fill="none" stroke="currentColor" stroke-width="1">
+    <path d="M1.5 2v12"/>
+    <path d="M1.5 4.5h11.5a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H1.5"/>
+    <circle cx="5.5" cy="8" r="2"/>
+    <circle cx="10.5" cy="8" r="2"/>
+  </g>
+  <path fill="currentColor" d="M5 11.5h6V13H5z"/>
+  <circle fill="currentColor" cx="5.5" cy="8" r="0.75"/>
+  <circle fill="currentColor" cx="10.5" cy="8" r="0.75"/>
+</svg>

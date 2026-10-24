@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-graphics
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-graphics/usr/lib/python3/dist-packages
+	cp -r veltos_graphics debian/veltos-graphics/usr/lib/python3/dist-packages/
+	find debian/veltos-graphics -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-graphics debian/veltos-graphics/usr/bin/veltos-graphics
+	install -D -m 644 data/veltos-graphics.desktop \
+		debian/veltos-graphics/usr/share/applications/veltos-graphics.desktop
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

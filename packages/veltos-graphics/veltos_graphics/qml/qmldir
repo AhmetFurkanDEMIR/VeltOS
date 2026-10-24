@@ -1,0 +1,4 @@
+singleton Theme 1.0 Theme.qml
+VButton 1.0 VButton.qml
+InfoBar 1.0 InfoBar.qml
+PasswordField 1.0 PasswordField.qml

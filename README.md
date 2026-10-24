@@ -89,6 +89,7 @@ More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#galle
 | PDF Reader | A modern PDF reader | Qt PDF |
 | Archive | WinRAR's layout | 7-Zip, bsdtar |
 | Task Manager, Disk Management | The tools of the same name | psutil, UDisks2 |
+| Graphics Cards | Settings' graphics pages and Device Manager's display adapters | lspci, Mesa, PackageKit |
 | Administrator prompt | User Account Control | polkit |
 | Windows programs | App Installer | Wine 10.0, DXVK 2.6 |
 | Automatic Repair | Automatic Repair | systemd, GRUB |

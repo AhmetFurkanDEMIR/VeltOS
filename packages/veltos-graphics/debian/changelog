@@ -1,0 +1,8 @@
+veltos-graphics (0.1.0~dev1) unstable; urgency=medium
+
+  * Initial package: VeltOS Graphics Cards, the PC's graphics cards with
+    their driver and properties; installs and updates NVIDIA's driver
+    (Debian non-free) and the AMD/Intel firmware and Mesa drivers through
+    PackageKit, with Secure Boot key registration.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 24 Oct 2026 12:00:00 +0000

@@ -401,6 +401,8 @@ class Backend(QObject):
             self._start(["veltos-store", "--updates"])
         elif action == "disk-management":
             self._start(["veltos-disks"])      # VeltOS Disk Management (Windows 11 layout)
+        elif action == "graphics":
+            self._start(["veltos-graphics"])   # VeltOS Graphics Cards (drivers, properties)
         elif action == "website":
             self._start(["xdg-open", VELTOS_WEBSITE])
         elif action == "uninstall-windows":

@@ -31,7 +31,9 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
 - **App icons as one family** (`branding/apps/`, drawn by
   `tools/app-icons.py`): Calculator, Camera, Mail, Calendar, Snipping
   Tool, Store, Settings, Task Manager, File Explorer, Notepad, Photos,
-  Document Viewer, Archive, Media Player and Disk Management in the look
+  Document Viewer, Archive, Media Player, Disk Management and Graphics
+  Cards (a graphics card with two fans; `veltos-graphics-symbolic` is its
+  line icon for Settings) in the look
   of Windows 11's app icons (VeltOS drawings, no Microsoft files or
   logos), installed under the VeltOS apps' names and the KDE/Debian apps
   they stand for (Calendar also as `office-calendar`,

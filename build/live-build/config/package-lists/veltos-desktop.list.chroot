@@ -49,6 +49,9 @@ veltos-taskmanager
 # Disk Management (Windows 11 layout) on UDisks2; KDE Partition Manager is
 # no longer in the image (it was pulled in by veltos-settings' Recommends).
 veltos-disks
+# Graphics Cards: the cards' drivers (NVIDIA's from Debian non-free on request,
+# AMD/Intel firmware and Mesa) and properties; also in Settings > Display.
+veltos-graphics
 veltos-store
 # Clock (Windows 11 layout): alarms, timers, stopwatch, world clock.
 veltos-clock
