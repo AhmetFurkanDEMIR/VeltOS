@@ -19,6 +19,8 @@ from pathlib import Path
 OUT = Path(__file__).resolve().parent.parent / "branding"
 # Icon names of the terminal (Konsole's desktop entry uses utilities-terminal).
 TERMINAL_NAMES = ("utilities-terminal", "org.kde.konsole", "konsole", "terminal")
+# Icon names of USB sticks and other removable drives (File Explorer, KDE).
+USB_NAMES = ("drive-removable-media-usb", "drive-removable-media-usb-pendrive", "drive-removable-media")
 HEADER = ('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">\n'
           '  <!-- {what}: VeltOS artwork in the look of Windows 11 (tools/draw-icons.py).\n'
           '       SPDX-License-Identifier: CC-BY-SA-4.0 -->\n')
@@ -344,11 +346,13 @@ def local_disk():
       <stop offset="1" stop-color="#8E98A5"/>
     </linearGradient>
   </defs>
+  <g transform="translate(128 129) scale(1.17) translate(-128 -129)">
   <path d="M 30 116 L 62 62 H 194 L 226 116 Z" fill="url(#top)" stroke="#A9B2BD" stroke-width="3" stroke-linejoin="round"/>
   <rect x="30" y="116" width="196" height="80" rx="12" fill="url(#side)"/>
   <rect x="30" y="116" width="196" height="5" fill="#FFFFFF" opacity="0.5"/>
   <rect x="52" y="150" width="104" height="10" rx="5" fill="#5E6873"/>
   <circle cx="198" cy="155" r="9" fill="#36C26A"/>
+  </g>
 </svg>
 """
 
@@ -387,18 +391,75 @@ def terminal():
 # mark on its top, the way Windows marks its own drive. The mark is a
 # window (frame and title bar), not Microsoft's four-pane logo, which is a
 # trademark and is not shipped by VeltOS.
-WINDOWS_MARK = """  <g transform="translate(100 70)">
-    <rect x="0" y="0" width="56" height="38" rx="5" fill="#2F7BE6" stroke="#1D5FC2" stroke-width="2"/>
-    <rect x="0" y="0" width="56" height="10" rx="5" fill="#9CC8FF"/>
-    <rect x="0" y="6" width="56" height="4" fill="#9CC8FF"/>
-    <rect x="7" y="16" width="42" height="15" rx="2" fill="#FFFFFF" opacity="0.9"/>
+# A Windows drive: the local disk with a window on its front, in Windows
+# 11's blue (product owner, 2026-10-23: "Windows 11's icon on NTFS drives").
+# A framed window with a cross of glazing bars, not Microsoft's four-pane
+# logo, which is a trademark VeltOS does not ship.
+WINDOWS_MARK = """  <defs>
+    <linearGradient id="pane" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4CC2FF"/>
+      <stop offset="1" stop-color="#0F6CD8"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(46 130)">
+    <rect x="0" y="0" width="48" height="48" rx="7" fill="#0B4FB0"/>
+    <rect x="4" y="4" width="40" height="40" rx="4" fill="url(#pane)"/>
+    <rect x="22.5" y="4" width="3" height="40" fill="#FFFFFF" opacity="0.9"/>
+    <rect x="4" y="22.5" width="40" height="3" fill="#FFFFFF" opacity="0.9"/>
+    <path d="M 6 6 H 21 L 6 19 Z" fill="#FFFFFF" opacity="0.25"/>
   </g>
 """
 
 
 def windows_disk():
-    return local_disk().replace("</svg>\n", WINDOWS_MARK + "</svg>\n").replace(
-        "<!-- Local disk:", "<!-- Windows drive:")
+    # The window takes the place of the slot's left part.
+    return local_disk().replace(
+        '<rect x="52" y="150" width="104" height="10" rx="5" fill="#5E6873"/>',
+        '<rect x="110" y="150" width="68" height="10" rx="5" fill="#5E6873"/>').replace(
+        "  </g>\n</svg>\n", WINDOWS_MARK + "  </g>\n</svg>\n").replace("<!-- Local disk:", "<!-- Windows drive:")
+
+
+# A USB flash drive in the disk's family (product owner, 2026-10-23: "make
+# the flash drive icon nicer, like Windows 11"): a light grey stick seen
+# slightly from above with a metal USB plug and a blue light.
+def usb_drive():
+    return HEADER.format(what="USB drive") + """  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset="1" stop-color="#DDE2E8"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B9C1CB"/>
+      <stop offset="1" stop-color="#8E98A5"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E9ECEF"/>
+      <stop offset="0.5" stop-color="#C5CBD2"/>
+      <stop offset="1" stop-color="#9AA3AD"/>
+    </linearGradient>
+    <linearGradient id="metalTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FAFBFC"/>
+      <stop offset="1" stop-color="#D9DEE3"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(128 128) scale(1.12) translate(-128 -128) translate(0 -22)">
+    <!-- the plug -->
+    <path d="M 24 148 L 30 134 H 88 V 148 Z" fill="url(#metalTop)" stroke="#9EA7B1" stroke-width="2" stroke-linejoin="round"/>
+    <rect x="24" y="148" width="64" height="32" rx="3" fill="url(#metal)" stroke="#8C96A1" stroke-width="2"/>
+    <rect x="40" y="137" width="11" height="7" rx="1.5" fill="#5E6873"/>
+    <rect x="61" y="137" width="11" height="7" rx="1.5" fill="#5E6873"/>
+    <rect x="30" y="157" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.6"/>
+    <!-- the stick -->
+    <path d="M 80 136 L 94 114 H 218 L 232 136 Z" fill="url(#top)" stroke="#A9B2BD" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="80" y="136" width="152" height="56" rx="12" fill="url(#side)"/>
+    <rect x="80" y="136" width="152" height="5" fill="#FFFFFF" opacity="0.5"/>
+    <rect x="80" y="136" width="18" height="56" rx="6" fill="#7D8794" opacity="0.55"/>
+    <rect x="114" y="160" width="64" height="9" rx="4.5" fill="#5E6873"/>
+    <circle cx="207" cy="164.5" r="9" fill="#2FA8F0"/>
+    <circle cx="207" cy="164.5" r="4" fill="#FFFFFF" opacity="0.55"/>
+  </g>
+</svg>
+"""
 
 
 # --- Small sizes (16, 22, 24 px) ---------------------------------------------------
@@ -441,10 +502,26 @@ def small_bin(full):
 
 
 def small_windows_disk():
-    return small_disk().replace("</svg>\n", """  <rect x="9.5" y="0.5" width="6" height="5" rx="1" fill="#2F7BE6" stroke="#1D5FC2"/>
-  <rect x="10" y="1" width="5" height="1.2" fill="#9CC8FF"/>
+    return small_disk().replace('<rect x="3" y="9.5" width="6" height="1" fill="#55606B"/>', """  <rect x="2.5" y="8" width="4" height="4" rx="0.8" fill="#1C78E6" stroke="#0B4FB0" stroke-width="0.8"/>
+  <path d="M 4.5 8.4 V 11.6 M 2.9 10 H 6.1" stroke="#FFFFFF" stroke-width="0.7"/>""").replace(
+        "<!-- Local disk", "<!-- Windows drive")
+
+
+def small_usb_drive():
+    return SMALL_HEADER.format(what="USB drive") + """  <defs>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C3CAD3"/>
+      <stop offset="1" stop-color="#97A1AD"/>
+    </linearGradient>
+  </defs>
+  <rect x="0.5" y="6.5" width="5" height="4" rx="0.6" fill="#DDE1E6" stroke="#8F99A6"/>
+  <rect x="1.5" y="7.5" width="1" height="1" fill="#5E6873"/>
+  <rect x="3.5" y="7.5" width="1" height="1" fill="#5E6873"/>
+  <rect x="4.5" y="4.5" width="11" height="8" rx="1.5" fill="url(#side)" stroke="#7E8894"/>
+  <rect x="4.5" y="4.5" width="11" height="2.5" rx="1.2" fill="#EEF1F4"/>
+  <circle cx="12.5" cy="9.5" r="1.2" fill="#2FA8F0"/>
 </svg>
-""")
+"""
 
 
 def small_terminal():
@@ -481,6 +558,8 @@ def main():
     (OUT / "veltos-home.svg").write_text(home(), encoding="utf-8", newline="\n")
     (OUT / "drive-harddisk.svg").write_text(local_disk(), encoding="utf-8", newline="\n")
     (OUT / "drive-harddisk-windows.svg").write_text(windows_disk(), encoding="utf-8", newline="\n")
+    for name in USB_NAMES:
+        (OUT / f"{name}.svg").write_text(usb_drive(), encoding="utf-8", newline="\n")
     # The icon of folders as a file type.
     (OUT / "inode-directory.svg").write_text(folder("folder"), encoding="utf-8", newline="\n")
     for name in TERMINAL_NAMES:
@@ -491,6 +570,8 @@ def main():
     small.mkdir(exist_ok=True)
     (small / "drive-harddisk.svg").write_text(small_disk(), encoding="utf-8", newline="\n")
     (small / "drive-harddisk-windows.svg").write_text(small_windows_disk(), encoding="utf-8", newline="\n")
+    for name in USB_NAMES:
+        (small / f"{name}.svg").write_text(small_usb_drive(), encoding="utf-8", newline="\n")
     (small / "user-trash.svg").write_text(small_bin(False), encoding="utf-8", newline="\n")
     for name in SMALL_MARKS:
         (small / f"{name}.svg").write_text(small_folder(name), encoding="utf-8", newline="\n")

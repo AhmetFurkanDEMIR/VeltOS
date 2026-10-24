@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-  <!-- Local disk, small sizes: VeltOS artwork in the look of Windows 11
+  <!-- Windows drive, small sizes: VeltOS artwork in the look of Windows 11
        (tools/draw-icons.py). SPDX-License-Identifier: CC-BY-SA-4.0 -->
   <defs>
     <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
@@ -9,8 +9,7 @@
   </defs>
   <path d="M 1.5 7.5 L 3.5 4.5 H 12.5 L 14.5 7.5 Z" fill="#EEF1F4" stroke="#8F99A6" stroke-linejoin="round"/>
   <rect x="1.5" y="7.5" width="13" height="5" rx="1" fill="url(#side)" stroke="#7E8894"/>
-  <rect x="3" y="9.5" width="6" height="1" fill="#55606B"/>
+    <rect x="2.5" y="8" width="4" height="4" rx="0.8" fill="#1C78E6" stroke="#0B4FB0" stroke-width="0.8"/>
+  <path d="M 4.5 8.4 V 11.6 M 2.9 10 H 6.1" stroke="#FFFFFF" stroke-width="0.7"/>
   <rect x="11" y="9" width="2" height="2" rx="1" fill="#2FBF62"/>
-  <rect x="9.5" y="0.5" width="6" height="5" rx="1" fill="#2F7BE6" stroke="#1D5FC2"/>
-  <rect x="10" y="1" width="5" height="1.2" fill="#9CC8FF"/>
 </svg>

@@ -11,9 +11,11 @@
       <stop offset="1" stop-color="#8E98A5"/>
     </linearGradient>
   </defs>
+  <g transform="translate(128 129) scale(1.17) translate(-128 -129)">
   <path d="M 30 116 L 62 62 H 194 L 226 116 Z" fill="url(#top)" stroke="#A9B2BD" stroke-width="3" stroke-linejoin="round"/>
   <rect x="30" y="116" width="196" height="80" rx="12" fill="url(#side)"/>
   <rect x="30" y="116" width="196" height="5" fill="#FFFFFF" opacity="0.5"/>
   <rect x="52" y="150" width="104" height="10" rx="5" fill="#5E6873"/>
   <circle cx="198" cy="155" r="9" fill="#36C26A"/>
+  </g>
 </svg>

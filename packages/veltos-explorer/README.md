@@ -109,8 +109,10 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
 - **Home**: Quick access tiles and Recent files (freedesktop.org
   `recently-used.xbel` and KDE's RecentDocuments). **This PC**: drives with
   capacity bars; unmounted partitions mount on double-click (udisks).
-  Windows (NTFS) drives have their own icon (a window mark, not Microsoft's
-  logo) and open without a password for administrators
+  Windows (NTFS) drives have their own icon (the disk with a blue framed
+  window on its front, not Microsoft's logo), USB sticks the USB drive
+  whatever their file system (as in Windows), and open without a password
+  for administrators
   (`/usr/share/polkit-1/rules.d/50-veltos-drives.rules`); they are mounted
   through ntfs-3g with Windows file names (`/etc/udisks2/mount_options.conf`)
   and read only, with an explanation, when Windows did not shut down

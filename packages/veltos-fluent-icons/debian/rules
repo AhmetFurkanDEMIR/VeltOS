@@ -4,6 +4,7 @@ ICONS = $(CURDIR)/debian/veltos-fluent-icons/usr/share/icons
 # VeltOS's own icons in branding/ that replace Fluent's of the same name.
 VELTOS_ICONS = computer user-trash user-trash-full folder inode-directory user-desktop \
 	folder-download folder-documents folder-pictures folder-music folder-videos drive-harddisk \
+	drive-removable-media drive-removable-media-usb drive-removable-media-usb-pendrive \
 	utilities-terminal org.kde.konsole konsole terminal \
 	preferences-color-symbolic preferences-desktop-theme-symbolic
 # Symbolic icons of VeltOS Settings drawn in the look of Windows 11 (Colours,

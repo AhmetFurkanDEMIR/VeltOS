@@ -3,6 +3,27 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (afternoon) — Drive icons: USB stick and Windows drive
+
+Item 4 of the product owner's list: "make the flash drive icon nicer, like
+Windows 11; put Windows 11's icon on Windows NTFS drives".
+
+- USB sticks showed Fluent's dark stick with an eject badge; the Windows
+  drive had a small blue "app window" on top of the disk. New drawings in
+  `veltos-fluent-icons/tools/draw-icons.py`: a USB stick in the local
+  disk's family (light grey body seen slightly from above, metal plug, blue
+  light) for `drive-removable-media`, `-usb` and `-usb-pendrive`, and the
+  Windows drive with a framed blue window (glazing bars) on its front —
+  not Microsoft's four-pane logo, which VeltOS does not ship (trademark;
+  architecture "Icons"). The large drawings fill more of their frame
+  (File Explorer's 44 px tiles showed the disk 25 px wide).
+- File Explorer: a removable drive shows the USB stick even when it is
+  NTFS (Windows does the same); fixed NTFS drives keep the Windows drive.
+- Verified: icon package and File Explorer tests (one new); dev VM with a
+  removable disk from `scsi_debug removable=1` (FAT32 "VELTUSB") and the
+  NTFS partitions of the installer test: This PC and the navigation pane
+  (`tests/results/2026-10-24-drive-icons/`).
+
 ## 2026-10-24 (afternoon) — Wi-Fi and Bluetooth lists in Quick Settings
 
 Item 3 of the product owner's list: the taskbar's Wi-Fi and Bluetooth

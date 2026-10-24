@@ -70,6 +70,11 @@ class DriveTests(unittest.TestCase):
         self.assertEqual(usb["icon"], "drive-removable-media-usb")
         self.assertFalse(system["windows"])
 
+    def test_usb_stick_with_ntfs_shows_the_usb_drive(self):
+        self.assertEqual(places.drive_icon({"removable": True, "windows": True}), "drive-removable-media-usb")
+        self.assertEqual(places.drive_icon({"removable": False, "windows": True}), "drive-harddisk-windows")
+        self.assertEqual(places.drive_icon({"removable": False, "windows": False}), "drive-harddisk")
+
     def test_read_only_mounts_are_reported(self):
         tree = {"blockdevices": [{"name": "sdc1", "path": "/dev/sdc1", "label": "W", "size": 10 ** 10,
                                   "fstype": "ntfs", "mountpoints": ["/media/velt/W x"], "rm": False,

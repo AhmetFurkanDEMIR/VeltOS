@@ -150,9 +150,11 @@ def mount_options(mounts_text=None):
 
 
 def drive_icon(drive):
-    if drive.get("windows"):
-        return "drive-harddisk-windows"
-    return "drive-removable-media-usb" if drive.get("removable") else "drive-harddisk"
+    """A USB stick shows the USB drive whatever its file system, as in
+    Windows; a fixed NTFS (Windows) drive shows the disk with a window."""
+    if drive.get("removable"):
+        return "drive-removable-media-usb"
+    return "drive-harddisk-windows" if drive.get("windows") else "drive-harddisk"
 
 
 def drives(runner=run, live=None, mounts_text=None):
