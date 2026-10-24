@@ -39,6 +39,14 @@ TEXTS = {
     "over_60": ("% utilization over 60 seconds", "60 saniyedeki kullanım yüzdesi"),
     "no_startup": ("No startup apps.", "Başlangıç uygulaması yok."),
     "startup_note": ("Apps that start when you sign in.", "Oturum açtığınızda başlayan uygulamalar."),
+    # The "is not responding" window (notresponding.py), Windows 11's wording.
+    "nr_title": ("{app} is not responding", "{app} yanıt vermiyor"),
+    "nr_title_window": ("“{window}” in {app} is not responding",
+                        "{app} içindeki “{window}” yanıt vermiyor"),
+    "nr_body": ("If you close the program, you might lose information you haven't saved.",
+                "Programı kapatırsanız kaydetmediğiniz bilgileri kaybedebilirsiniz."),
+    "nr_close": ("Close the program", "Programı kapat"),
+    "nr_wait": ("Wait for the program to respond", "Programın yanıt vermesini bekle"),
 }
 
 

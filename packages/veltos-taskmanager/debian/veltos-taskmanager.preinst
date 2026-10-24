@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+# KWin's "not responding" helper is replaced by VeltOS Task Manager's
+# Windows 11 window (bin/veltos-not-responding); KDE's helper stays at
+# kwin_killer_helper.kde and is used for other users' or remote programs.
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+    dpkg-divert --package veltos-taskmanager --add --rename \
+        --divert /usr/lib/x86_64-linux-gnu/libexec/kwin_killer_helper.kde \
+        /usr/lib/x86_64-linux-gnu/libexec/kwin_killer_helper
+fi
+
+#DEBHELPER#

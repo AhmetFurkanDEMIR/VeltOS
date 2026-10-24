@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ "$1" = remove ] || [ "$1" = abort-install ] || [ "$1" = disappear ]; then
+    dpkg-divert --package veltos-taskmanager --remove --rename \
+        --divert /usr/lib/x86_64-linux-gnu/libexec/kwin_killer_helper.kde \
+        /usr/lib/x86_64-linux-gnu/libexec/kwin_killer_helper
+fi

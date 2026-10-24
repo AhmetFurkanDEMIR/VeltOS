@@ -66,7 +66,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
 | `packages/veltos-clock/` | VeltOS Clock: Windows 11 Clock (Focus sessions, Timer, Alarm, Stopwatch, World clock); `veltos-clock-agent` rings alarms and timers while the app is closed, and VeltOS Calendar's reminders |
 | `packages/veltos-calendar/` | VeltOS Calendar: Windows 11 Calendar (day, work week, week, month, year views; quick event card and full editor; repeats and reminders) on one iCalendar file (`~/.local/share/veltos-calendar/calendar.ics`) |
-| `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc |
+| `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil; Ctrl+Shift+Esc; also KWin's "is not responding" window (diverts `kwin_killer_helper`, `notresponding.py`) |
 | `packages/veltos-calculator/` | VeltOS Calculator: Windows 11 Calculator (Standard and Scientific modes, memory, history, keep on top, app theme); decimal engine in `engine.py` |
 | `packages/veltos-notepad/` | VeltOS Notepad: Windows 11 Notepad layout (tabs in the title bar, File/Edit/View, find and replace, status bar with encoding and line ending), keeps encodings/line endings, restores unsaved tabs; default for text files |
 | `packages/veltos-photos/` | VeltOS Photos: Windows 11 Photos (gallery by month, favorites, folders, viewer with filmstrip and file information, Edit image with crop/rotate/adjust via Pillow, slideshow); default for pictures |
@@ -919,6 +919,12 @@ and JavaScript with no build step, no external requests and no cookies:
   A Quick Settings page is destroyed when the flyout closes (clicking a
   notification closes it): keep long-running calls (Bluetooth pairing) in
   the applet's root, not in the page.
+- KWin runs `/usr/lib/x86_64-linux-gnu/libexec/kwin_killer_helper` when a
+  window that does not answer KWin's ping is closed (Alt+F4 or the
+  taskbar; a self-drawn window's own close button cannot ask a frozen
+  program). Reproduce with `kill -STOP <pid>` and Alt+F4. A Qt Window whose
+  height and minimum/maximum height are bound to each other loops; bind all
+  of them to one computed property.
 - Wine's Start shortcuts have spaces in their file names ("7-Zip File
   Manager.desktop"): pipe file lists with `-print0`/`-0` or use `find
   -exec`, never plain `xargs` (the Windows program test reported a

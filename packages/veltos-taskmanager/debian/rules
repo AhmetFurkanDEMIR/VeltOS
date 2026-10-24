@@ -12,6 +12,13 @@ override_dh_auto_install:
 	cp -r veltos_taskmanager debian/veltos-taskmanager/usr/lib/python3/dist-packages/
 	find debian/veltos-taskmanager -name __pycache__ -prune -exec rm -rf {} +
 	install -D -m 755 bin/veltos-taskmanager debian/veltos-taskmanager/usr/bin/veltos-taskmanager
+	# KWin's "not responding" helper (diverted in the preinst). VeltOS is
+	# amd64 only, hence the multiarch directory in an "all" package.
+	install -D -m 755 bin/veltos-not-responding \
+		debian/veltos-taskmanager/usr/libexec/veltos-taskmanager/not-responding
+	install -d debian/veltos-taskmanager/usr/lib/x86_64-linux-gnu/libexec
+	ln -s /usr/libexec/veltos-taskmanager/not-responding \
+		debian/veltos-taskmanager/usr/lib/x86_64-linux-gnu/libexec/kwin_killer_helper
 	install -D -m 644 data/veltos-taskmanager.desktop \
 		debian/veltos-taskmanager/usr/share/applications/veltos-taskmanager.desktop
 	install -D -m 644 data/veltos-taskmanager.svg \

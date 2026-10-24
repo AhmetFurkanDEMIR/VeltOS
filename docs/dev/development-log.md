@@ -3,6 +3,30 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-24 (afternoon) — "is not responding" in Windows 11's design
+
+Item 6 of the product owner's list. KWin shows its helper
+`kwin_killer_helper` (a KDE message box: "… is not responding. Do you want
+to terminate this application?", "Terminate", "Wait Longer") when a
+window that does not answer is closed. Its source (KWin 6.3.6,
+`src/helpers/killer/killer.cpp`) gave the interface: `--pid --hostname
+--windowname --applicationname --wid --timestamp`, and how it ends the
+program (DrKonqi note, SIGABRT, SIGKILL after 4 s, KAuth for other users).
+
+- veltos-taskmanager diverts the helper to its own window
+  (`notresponding.py`, `NotResponding.qml`): Windows 11's wording and
+  layout, the program's icon and name from its desktop file, equal buttons
+  in a grey bar (the Turkish "Programın yanıt vermesini bekle" did not fit
+  next to the other button at first: the buttons now share the width and
+  wrap). Other users' and remote programs go to KDE's helper.
+- Found while testing: the window's height bound to its own minimum looped
+  ("Binding loop detected for property minimumHeight"); with the frozen
+  program's desktop file name the window shows that program's icon (it
+  showed a generic picture) and groups with it on the taskbar.
+- Verified: 30 package tests; dev VM: Notepad stopped with SIGSTOP, Alt+F4
+  opened the new window after KWin's ping timed out; "Close the program"
+  ended it, "Wait" left it running (`tests/results/2026-10-24-not-responding/`).
+
 ## 2026-10-24 (afternoon) — No boot menu: start screen with "F6  Recovery"
 
 Item 5 of the product owner's list: after installing, the boot menu

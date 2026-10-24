@@ -42,3 +42,27 @@ KDE's detailed system monitor stays installed as "Resource Monitor".
   pages are not there yet.
 - System processes run as other users; ending them needs administrator
   rights and fails silently for now.
+
+## "is not responding" window (2026-10-24)
+
+When a window does not answer and the user closes it (Alt+F4, the
+taskbar), KWin runs its helper `kwin_killer_helper`. veltos-taskmanager
+diverts it (KDE's helper stays at `kwin_killer_helper.kde`) to
+`/usr/libexec/veltos-taskmanager/not-responding`
+(`veltos_taskmanager/notresponding.py`, `qml/NotResponding.qml`): the
+program's icon with a warning badge, "<App> is not responding" (or
+"“<window>” in <App> is not responding"), "If you close the program, you
+might lose information you haven't saved.", and "Close the program"
+(accent) / "Wait for the program to respond" as equal buttons in a grey
+bar, English and Turkish, light and dark. The window carries the
+program's desktop file name, so it shows the program's icon and sits next
+to it on the taskbar. "Close the program" ends it as KWin's helper does:
+a note for DrKonqi (`~/.cache/drkonqi/application-not-responding/`),
+SIGABRT, and SIGKILL after 4 s; programs of other users and other hosts
+go to KDE's helper, which can ask for permission. Esc and the window's
+Close button wait. Tests: `tests/test_notresponding.py` (KWin's options,
+name and icon from the desktop file, the caption without the program's
+name, ending order, the DrKonqi note, other hosts, the window offscreen in
+English and Turkish). Seen in the dev VM: Notepad stopped with SIGSTOP,
+Alt+F4 → this window; "Close the program" ended it, "Wait" left it
+(`tests/results/2026-10-24-not-responding/`).
