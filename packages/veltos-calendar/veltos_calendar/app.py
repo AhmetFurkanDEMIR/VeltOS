@@ -509,4 +509,8 @@ def main(argv=None):
     engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
     if not engine.rootObjects():
         return 1
-    return app.exec()
+    code = app.exec()
+    # The QML goes first: deleted after the objects it reads, its bindings
+    # ran once more against dead ones ("Cannot call method ... of null").
+    del engine
+    return code

@@ -380,4 +380,8 @@ def main(argv=None):
     if not engine.rootObjects():
         return 1
     QTimer.singleShot(0, runner.start)
-    return app.exec()
+    code = app.exec()
+    # The QML goes first: deleted after the objects it reads, its bindings
+    # ran once more against dead ones ("Cannot call method ... of null").
+    del engine
+    return code

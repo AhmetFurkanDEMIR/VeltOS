@@ -3,6 +3,37 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Apps start faster; cleaner exits
+
+Item 15 of the product owner's list: apps open slowly after a click.
+
+- Measured first (`tests/results/2026-10-25-app-start/starttime.py`: an
+  app's launcher with QQmlApplicationEngine.load patched to report the
+  first drawn frame): in the dev VM the apps draw their first frame
+  0.3-0.6 s after starting, of which Python/PySide6 imports take about
+  0.2 s and compiling the QML 0.1-0.35 s, because every launcher turned
+  Qt's QML disk cache off (packaged files share one time stamp, so Qt
+  kept stale compiled QML after updates, AGENTS.md).
+- `veltos_controls.use()` (veltos-desktop, already called by every
+  QGuiApplication app) now points `QML_DISK_CACHE_PATH` at
+  `~/.cache/veltos-qml/<app>-<hash of its QML files and PySide6's
+  version>` and turns the cache on; an update gives new files a new
+  folder and removes the app's old ones. QML loading went down 20-50 %
+  (Mail 0.82 → 0.61 s to the first frame; with the CPU limited to 25 %,
+  Settings 2.22 → 1.80 s). The rest is imports and the first frame drawn
+  by llvmpipe.
+- The taskbar already shows a starting app's button at once.
+- Stability: the welcome window, Settings, File Explorer's picker,
+  Calendar, Clock and the Windows program installer returned from
+  `main()` with the QML engine still alive, so at exit its bindings ran
+  against deleted objects (TypeErrors in the user journal); they delete
+  the engine first now. Crash dumps in the dev VM since the last boot:
+  Konsole (fixed in item 10) and one ksplashqml abort while `systemctl
+  restart sddm` killed the session (Wayland display gone; a test
+  artefact).
+- Verified: veltos-desktop tests (the cache folder follows the files);
+  dev VM: the timings above.
+
 ## 2026-10-25 — Sample pictures, music and a video
 
 Item 14 of the product owner's list: the default wallpapers in Photos,

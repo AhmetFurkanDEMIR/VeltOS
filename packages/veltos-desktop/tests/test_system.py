@@ -373,6 +373,24 @@ class ControlsStyleTests(unittest.TestCase):
         os.environ["QT_QUICK_CONTROLS_STYLE"] = "org.kde.desktop"
         self.assertFalse(self.controls.use(qml_dir=tempfile.mkdtemp()))   # not installed
 
+    def test_qml_cache_follows_the_files(self):
+        app = Path(tempfile.mkdtemp()) / "veltos_demo"
+        (app / "qml").mkdir(parents=True)
+        (app / "qml/Main.qml").write_text("import QtQuick\nItem {}\n")
+        cache = Path(tempfile.mkdtemp())
+        os.environ["QML_DISABLE_DISK_CACHE"] = "1"
+        self.addCleanup(os.environ.pop, "QML_DISK_CACHE_PATH", None)
+        first = self.controls.use_qml_cache(app / "qml", cache)
+        self.assertTrue(first.name.startswith("veltos_demo-") and first.is_dir())
+        self.assertNotIn("QML_DISABLE_DISK_CACHE", os.environ)
+        self.assertEqual(os.environ["QML_DISK_CACHE_PATH"], f"{first}/")
+        self.assertEqual(self.controls.use_qml_cache(app / "qml", cache), first)     # same files, same folder
+        (app / "qml/Main.qml").write_text("import QtQuick\nItem { width: 2 }\n")       # an update
+        second = self.controls.use_qml_cache(app / "qml", cache)
+        self.assertNotEqual(second, first)
+        self.assertFalse(first.exists())                                              # the old one is gone
+        self.assertIsNone(self.controls.use_qml_cache(app / "missing", cache))
+
     def test_the_package_ships_the_style(self):
         qmldir = PKG / "qml/org/veltos/controls/qmldir"
         self.assertEqual(qmldir.read_text().splitlines()[0], f"module {self.controls.STYLE}")

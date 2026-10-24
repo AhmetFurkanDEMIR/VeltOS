@@ -190,7 +190,11 @@ def main(argv=None):
     engine.load(QUrl.fromLocalFile(str(qml_file())))
     if not engine.rootObjects():
         return 1
-    return app.exec()
+    code = app.exec()
+    # The QML goes first: deleted after the welcome object, its bindings ran
+    # once more against a dead object ("Cannot call method 'text' of null").
+    del engine
+    return code
 
 
 if __name__ == "__main__":

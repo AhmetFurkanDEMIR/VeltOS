@@ -260,7 +260,9 @@ and JavaScript with no build step, no external requests and no cookies:
 - PySide6/QML apps: packaged files all get the same time stamp
   (SOURCE_DATE_EPOCH), so Qt's QML disk cache keeps old compiled QML
   after an update and mixing it with new types crashed File Explorer.
-  Every VeltOS QML app sets `QML_DISABLE_DISK_CACHE=1`.
+  Every VeltOS QML app's launcher sets `QML_DISABLE_DISK_CACHE=1`, and
+  `veltos_controls.use()` turns the cache on again in a folder named after
+  a hash of the app's QML files (`QML_DISK_CACHE_PATH`, Qt 6.8).
 - PySide6 6.8: a QMimeData made in Python and given to the clipboard is
   deleted by Qt after Python has shut down -> segfault at exit (and a core
   dump the boot test would count). File Explorer leaves with `os._exit`;

@@ -161,7 +161,7 @@ files that do not exist yet.
 | `desktop/` | Desktop icons: This PC, Recycle Bin, VeltOS Store |
 | `samples/`, `tools/sample-media.py` | Sample media in `/usr/share/veltos/samples` (a song, a video, every wallpaper as a picture), part of Photos' and Media Player's libraries; made by the tool (synthesized music, animated wallpapers), committed so builds need no ffmpeg |
 | `system/numlock-state` | Num Lock on when a session starts (`/etc/xdg/kcminputrc`), the state the user left saved at the end of the session (`veltos-numlock.service`) for the next one |
-| `qml/org/veltos/controls/`, `system/veltos_controls.py` | VeltOS' Qt Quick Controls style for VeltOS' apps: Windows 11 scroll bars (no Breeze separator line), the rest from Breeze; apps call `veltos_controls.use()` after creating their QGuiApplication |
+| `qml/org/veltos/controls/`, `system/veltos_controls.py` | VeltOS' Qt Quick Controls style for VeltOS' apps: Windows 11 scroll bars (no Breeze separator line), the rest from Breeze; apps call `veltos_controls.use()` after creating their QGuiApplication, which also keeps their compiled QML in `~/.cache/veltos-qml/<app>-<hash of the QML files>` (faster starts) |
 | `konsole/` | Terminal profile, Campbell colour scheme, Konsole window layout with hidden toolbars, Windows Terminal's Ctrl+C/Ctrl+V and right-click menu |
 | `kwin/` | KWin effects (`effects/veltostaskview`: Task View; `effects/veltostoast`: the toast animation) and scripts (`scripts/veltostaskbarpreview`: the taskbar's window previews) |
 | `mail/mail.css` | VeltOS Mail's Outlook look (Thunderbird user style sheet) |
