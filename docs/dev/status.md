@@ -138,6 +138,33 @@ and seen working (development log says where); `[ ]` = open.
 36. [ ] Flyouts of Start and the taskbar's right side: no white (dark mode) or black (light mode) frame around them
 37. [ ] Light mode: Settings' white instead of grey in Start and search; livelier colours and animations
 
+Added by the product owner on 2026-10-25, to be done after item 37, in
+this order:
+
+38. [ ] Language choice: Turkish and English first in the lists; VeltOS' own apps follow any other language the user picks (translated), for every language the OS offers
+39. [ ] Taskbar: no sound (speaker) badge over the app icons
+40. [ ] Maps app in Windows 11's look on Google Maps (no API key); device location on/off and location settings in Maps and in Settings (Privacy & security > Location, Windows 11's page and icon)
+41. [ ] Bluetooth icon plain like the Wi-Fi one (Windows 11's), not blue
+42. [ ] File Explorer: right-click Format for every disk and USB drive except the system's, with Windows 11's Format window; clearer Windows 11 style icons for USB drives, removable disks and Windows (NTFS) disks
+43. [ ] File Explorer: right-click a file > create a shortcut on the desktop; the same for an app or file in Start and search
+44. [ ] Power modes (best power efficiency / balanced / best performance) in Settings and in the taskbar's quick settings, Windows 11 style; on AC power the PC switches to performance, on battery to power saving
+45. [ ] Mobile hotspot in Settings and in quick settings, Windows 11 style: share the internet connection, name, password, band, connected devices, which connection is shared
+
+## Final release steps (after item 45)
+
+Product owner, 2026-10-25: only after every item above is done, in this
+order:
+
+- F1. [ ] The ISO under 2 GB so it fits a GitHub release, without losing quality, changing the look or removing any feature or app
+- F2. [ ] A full public release instead of pre-alpha; remove the virtual-machine notes from the website and README (the owner tested VeltOS on their own PC: everything worked)
+- F3. [ ] Website: every new feature, new screenshots and pictures, readable text (the background dominates now), a striking, fast, fluid operating-system site design
+- F4. [ ] Website: dark-mode screenshots (also the top one) in dark mode, light-mode ones in light mode
+- F5. [ ] Website on phones: "Download VeltOS" and "Source code" buttons side by side
+- F6. [ ] Footer: "Ahmet Furkan Demir" links to https://ahmetfurkandemir.com; README and website show the sign-in screen, the start-up screen and more apps; GIFs recorded in the OS
+- F7. [ ] Turkish slogan "Senin Bilgisayarın. Sınır Tanıma."
+- F8. [ ] Claude not in GitHub's contributors; pushes from the owner's account (Ahmet Furkan Demir)
+- F9. [ ] Publish the release (ISO on the GitHub release, website download link)
+
 ## Known gaps
 
 - Product owner's requests still open (2026-10-20 list): taskbar transparency/colour/animations closer
