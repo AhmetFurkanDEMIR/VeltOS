@@ -85,24 +85,34 @@ def camera():
 
 
 def mail():
-    """VeltOS Mail in the composition of Outlook's Windows 11 icon, like
-    the Office family below (product owner, 2026-10-23: "the Outlook icon"):
-    a blue tile with a white O ring in front of a blue envelope. A VeltOS
-    drawing; Microsoft's icon files are not used."""
-    body = rrect(84, 60, 156, 140, 22)
-    return svg("Mail", grad("env", "#28A8EA", "#0A64AD") + grad("flap", "#50D9FF", "#1490DF")
-               + grad("low", "#1490DF", "#0F6CBD") + grad("tile", "#1490DF", "#0A4F8F", x2="1", y2="1")
-               + grad("edge", "#0F6CBD", "#0A4F8F"),
+    """VeltOS Mail like the new Outlook's Windows 11 icon (product owner,
+    2026-10-24, with a picture of it): a big, open envelope in blue to
+    violet gradients with the letter inside and its lid folded back, and a
+    small dark blue tile with a white O at the bottom left. A VeltOS drawing;
+    Microsoft's icon files are not used."""
+    body = "M 60 104 L 148 46 Q 156 41 164 46 L 244 98 V 196 Q 244 222 218 222 H 86 Q 60 222 60 196 Z"
+    tile = rrect(14, 128, 104, 104, 22)
+    return svg("Mail", grad("back", "#5B8DF7", "#2E5AD8") + grad("lid", "#A9C8FF", "#6C8EF5")
+               + grad("paper", "#FFFFFF", "#DCEBFF") + grad("front", "#36A3F7", "#1B5FD6", x2="0.4", y2="1")
+               + grad("right", "#4FC3F7", "#2A7DE8", x1="1", y1="0", x2="0", y2="1")
+               + grad("tile", "#1677DB", "#0A3F96", x2="1", y2="1"),
                shadow(body)
-               + f'  <path d="{body}" fill="url(#env)"/>\n'
-               + '  <path d="M 84 92 L 162 142 L 240 92 V 82 Q 240 60 218 60 H 106 Q 84 60 84 82 Z" fill="url(#flap)"/>\n'
-               + '  <path d="M 84 120 L 162 168 L 240 120 V 178 Q 240 200 218 200 H 106 Q 84 200 84 178 Z" '
-                 'fill="url(#low)" opacity="0.9"/>\n'
-               + shadow(OFFICE_TILE_D)
-               + f'  <path d="{OFFICE_TILE_D}" fill="url(#tile)"/>\n'
-               + '  <path d="M 16 134 V 174 Q 16 196 38 196 H 118 Q 140 196 140 174 V 134 Z" fill="url(#edge)" '
-                 'opacity="0.55"/>\n'
-               + '  <ellipse cx="78" cy="134" rx="25" ry="30" fill="none" stroke="#FFFFFF" stroke-width="15"/>\n')
+               # The back of the envelope and its lid, folded back (light).
+               + f'  <path d="{body}" fill="url(#back)"/>\n'
+               + '  <path d="M 60 104 L 148 46 Q 156 41 164 46 L 244 98 L 152 120 Z" fill="url(#lid)" opacity="0.95"/>\n'
+               # The letter inside.
+               + '  <path d="M 84 92 Q 84 80 96 80 H 208 Q 220 80 220 92 V 170 H 84 Z" fill="url(#paper)"/>\n'
+               + '  <path d="M 104 104 H 176 M 104 124 H 196" stroke="#9DBCEB" stroke-width="7" stroke-linecap="round"/>\n'
+               # The front: two flaps meeting in the middle, the right one lighter.
+               + '  <path d="M 60 118 L 152 176 L 152 222 H 86 Q 60 222 60 196 Z" fill="url(#front)"/>\n'
+               + '  <path d="M 244 112 L 152 176 L 152 222 H 218 Q 244 222 244 196 Z" fill="url(#right)"/>\n'
+               + '  <path d="M 60 118 L 152 176 L 244 112" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" '
+                 'stroke-width="3" stroke-linejoin="round"/>\n'
+               # The O tile.
+               + shadow(tile)
+               + f'  <path d="{tile}" fill="url(#tile)"/>\n'
+               + '  <path d="M 14 150 Q 14 128 36 128 H 96 Q 118 128 118 150 V 158 H 14 Z" fill="#FFFFFF" opacity="0.08"/>\n'
+               + '  <ellipse cx="66" cy="180" rx="21" ry="25" fill="none" stroke="#FFFFFF" stroke-width="12"/>\n')
 
 
 def snipping_tool():

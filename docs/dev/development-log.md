@@ -19,8 +19,13 @@ Outlook: the icon, the sign-in screen, the mail environment, everything".
   part): blue header with the centred search, app bar, Home/View/Help with
   the simplified ribbon, folder pane with Favorites, Focused/Other with
   date groups, reading pane, compose in the reading pane, Settings, People,
-  "Add your account". Icon in the Office family's composition (a blue tile
-  with an O ring in front of an envelope; a VeltOS drawing).
+  "Add your account". Icon: first an Office-style blue tile in front of an
+  envelope; the product owner did not like it and sent a picture of the new
+  Outlook's icon, so it is now a big open envelope in blue-to-violet
+  gradients with the letter inside and the lid folded back, and a small dark
+  blue tile with a white O at the bottom left (a VeltOS drawing in
+  `veltos-fluent-icons/tools/app-icons.py`, checked rendered at 160, 48 and
+  32 px).
 - **Accounts**: provider settings for Gmail, Yahoo, iCloud, Yandex, AOL,
   GMX, Zoho, Mail.ru, Fastmail (app-password note and link where needed);
   other domains: the IMAP hosts imap./mail./DOMAIN are tried with a 10 s
