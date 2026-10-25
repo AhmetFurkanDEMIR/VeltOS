@@ -953,6 +953,16 @@ and JavaScript with no build step, no external requests and no cookies:
   the unit when the service exits: wait for it (kioclient). Test with
   `kill -SEGV` on a program started through `kioclient exec <desktop
   file>` (it then runs in an `app-<id>-<pid>.scope`).
+- LibreOffice opens an empty (0-byte) `.docx`/`.pptx`/`.xlsx` as a new
+  document of that type and saves it in that format without asking, but
+  Calc's window for an empty `.xlsx` had no app icon (title bar,
+  taskbar); VeltOS' new Excel worksheets are small workbooks
+  (veltos-office `blank.py`). Qt types empty files by their extension,
+  GIO as `application/x-zerosize`.
+- A Popup menu whose entries use a plain `TapHandler` (passive grab) lets
+  the tap through to the item under the menu as well (File Explorer's
+  New > Word Document also opened Home in the navigation pane). Menu
+  entries take `gesturePolicy: TapHandler.ReleaseWithinBounds`.
 - Wine's menu builder only adds Linux menu entries: after a Windows
   uninstaller ran, `~/.local/share/applications/wine/...`, the
   `applications-merged/wine-*.menu` files, `.directory` files and icons

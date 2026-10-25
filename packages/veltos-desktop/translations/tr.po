@@ -78,6 +78,24 @@ msgstr "Yeni klasör"
 msgid "New Text Document.txt"
 msgstr "Yeni Metin Belgesi.txt"
 
+msgid "Word Document"
+msgstr "Word Belgesi"
+
+msgid "PowerPoint Presentation"
+msgstr "PowerPoint Sunusu"
+
+msgid "Excel Worksheet"
+msgstr "Excel Çalışma Sayfası"
+
+msgid "New Word Document.docx"
+msgstr "Yeni Word Belgesi.docx"
+
+msgid "New PowerPoint Presentation.pptx"
+msgstr "Yeni PowerPoint Sunusu.pptx"
+
+msgid "New Excel Worksheet.xlsx"
+msgstr "Yeni Excel Çalışma Sayfası.xlsx"
+
 msgid "Task Manager"
 msgstr "Görev Yöneticisi"
 

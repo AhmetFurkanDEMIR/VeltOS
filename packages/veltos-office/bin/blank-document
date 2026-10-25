@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+"""Fill new, empty files from the "New" menus with blank Office documents
+(veltos_office.blank)."""
+import sys
+
+from veltos_office.blank import main
+
+sys.exit(main())

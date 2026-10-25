@@ -1,17 +1,19 @@
 #!/bin/sh
-# Make a new, empty folder or text document with the next free Windows
-# name ("New folder", "New folder (2)", ..., "New Text Document.txt",
+# Make a new, empty folder or document with the next free Windows name
+# ("New folder", "New folder (2)", ..., "New Text Document.txt",
 # "New Text Document (2).txt") and print its path. The desktop's "New"
 # menu (plasma-overrides/files/desktop/VeltOSDesktop.qml) runs it, then
 # selects the item and opens the name for editing, as Windows does.
+# Word, PowerPoint and Excel documents are filled by veltos-office's
+# blank-document (a .docx or .pptx stays empty, as on Windows).
 #
-#   desktop-new DIR folder|text NAME
+#   desktop-new DIR folder|text|word|slides|sheet NAME
 #   desktop-new DIR path            (only print the folder's path)
 #
 # DIR is a local path, a file:// URL or "desktop:/" (Plasma's folder view
 # keeps the desktop as desktop:/ and resolves it itself; here it is the
 # user's desktop folder from user-dirs.dirs). NAME is the (translated)
-# base name; a text document's NAME carries its extension. The caller may
+# base name; a document's NAME carries its extension. The caller may
 # not create the file itself: Plasma's folder view only runs commands
 # (plasma5support), it cannot write files.
 set -eu
@@ -22,7 +24,10 @@ name="${3:-}"
 
 case "$dir" in
     desktop:*)
-        dir="$( . "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" 2>/dev/null
+        # Without user-dirs.dirs: ~/Desktop (sourcing a missing file ended
+        # the script silently under set -e).
+        dir="$( dirs="${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs"
+                if [ -r "$dirs" ]; then . "$dirs"; fi
                 printf '%s' "${XDG_DESKTOP_DIR:-$HOME/Desktop}" )" ;;
     file://*)
         dir="${dir#file://}" ;;
@@ -38,9 +43,16 @@ case "$name" in
     */*|.|..|"") echo "desktop-new: bad name" >&2; exit 2 ;;
 esac
 
+blank="${VELTOS_BLANK_DOCUMENT:-/usr/libexec/veltos-office/blank-document}"  # tests set it
+case "$kind" in
+    folder|text) ;;
+    word|slides|sheet) [ -x "$blank" ] || { echo "desktop-new: veltos-office is not installed" >&2; exit 2; } ;;
+    *) echo "desktop-new: unknown kind $kind" >&2; exit 2 ;;
+esac
+
 stem="$name"
 ext=""
-if [ "$kind" = "text" ]; then
+if [ "$kind" != "folder" ]; then
     case "$name" in
         *.*) ext=".${name##*.}"; stem="${name%.*}" ;;
     esac
@@ -57,5 +69,8 @@ if [ "$kind" = "folder" ]; then
     mkdir -- "$candidate"
 else
     : > "$candidate"
+    case "$kind" in
+        word|slides|sheet) "$blank" "$candidate" ;;
+    esac
 fi
 printf '%s\n' "$candidate"

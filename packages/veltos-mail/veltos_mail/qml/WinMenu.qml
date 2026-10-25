@@ -145,6 +145,9 @@ Popup {
             }
             TapHandler {
                 enabled: entryItem.active
+                // Exclusive: a passive grab let the tap through to the item
+                // under the menu too (File Explorer, VM 2026-10-25).
+                gesturePolicy: TapHandler.ReleaseWithinBounds
                 onTapped: {
                     if (entryItem.hasSubmenu) {
                         submenu.items = entryItem.entry.submenu;

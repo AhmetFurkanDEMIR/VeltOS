@@ -326,11 +326,7 @@ ApplicationWindow {
             { separator: true },
             { text: backend.text("paste"), icon: "edit-paste", action: "paste", shortcut: "Ctrl+V",
               enabled: folder && backend.canPaste },
-            { text: backend.text("new"), icon: "list-add", enabled: folder, submenu: [
-                { text: backend.text("folder"), icon: "folder", action: "new-folder" },
-                { separator: true },
-                { text: backend.text("text_document"), icon: "text-plain", action: "new-text" }
-            ] },
+            { text: backend.text("new"), icon: "list-add", enabled: folder, submenu: backend.newItems(false) },
             { separator: true },
             { text: backend.text("open_in_terminal"), icon: "utilities-terminal", action: "terminal", enabled: folder },
             { text: backend.text("properties"), icon: "document-properties", action: "properties-folder",
@@ -420,8 +416,7 @@ ApplicationWindow {
             dialog.ask(backend.text("empty_recycle_bin"), backend.text("empty_bin_question"),
                        backend.text("yes"), backend.text("no"), () => backend.emptyTrash());
         else if (action === "refresh") tab.refresh();
-        else if (action === "new-folder") backend.createNew("folder");
-        else if (action === "new-text") backend.createNew("text");
+        else if (action.startsWith("new:")) backend.createNew(action.slice(4));
         else if (action.startsWith("view:")) tab.setViewMode(action.slice(5));
         else if (action.startsWith("sort:")) tab.setSort(action.slice(5), tab.sortDescending);
         else if (action === "order:asc") tab.setSort(tab.sortKey, false);

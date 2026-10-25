@@ -7,7 +7,8 @@
       Refresh, Paste, New, Display settings, Personalize, Open in Terminal
       (Plasma's containment menu with "Enter Edit Mode", "Add Widgets",
       "Configure Desktop" never opens);
-    - New > Folder / Text Document make the item at once and open its name
+    - New > Folder / Word Document / PowerPoint Presentation / Text
+      Document / Excel Worksheet make the item at once and open its name
       for editing, as Windows does (Plasma asked the name in a dialog);
     - Refresh (menu or F5) blinks the icons like Windows;
     - the Recycle Bin, This PC and the VeltOS Store cannot be deleted,
@@ -187,11 +188,24 @@ Item {
         return localPath(resolved) || String(folderModel.url);
     }
 
+    // New file names, as Windows names them.
+    readonly property var newNames: ({
+        "folder": tr("New folder"),
+        "text": tr("New Text Document.txt"),
+        "word": tr("New Word Document.docx"),
+        "slides": tr("New PowerPoint Presentation.pptx"),
+        "sheet": tr("New Excel Worksheet.xlsx")
+    })
+
     function createNew(kind) {
-        const name = kind === "folder" ? tr("New folder") : tr("New Text Document.txt");
         shell.connectSource("/usr/libexec/veltos/desktop-new " + quoted(folderArgument()) + " " + kind + " "
-                            + quoted(name));
+                            + quoted(newNames[kind]));
     }
+
+    // Word, PowerPoint and Excel documents need veltos-office.
+    property bool officeNew: false
+    readonly property string officeCheck: "test -x /usr/libexec/veltos-office/blank-document && echo office"
+    Component.onCompleted: shell.connectSource(officeCheck)
 
 
     Plasma5Support.DataSource {
@@ -200,6 +214,8 @@ Item {
         connectedSources: []
         onNewData: (source, data) => {
             disconnectSource(source);
+            if (source === veltos.officeCheck)
+                veltos.officeNew = String(data["stdout"] || "").trim() === "office";
             if (source.indexOf("/desktop-new ") < 0)
                 return;
             const path = String(data["stdout"] || "").trim();
@@ -349,10 +365,30 @@ Item {
                     onClicked: veltos.createNew("folder")
                 }
                 PlasmaExtras.MenuItem { separator: true }
+                // Windows 11's order with Office (by extension): Word,
+                // PowerPoint, Text, Excel.
+                PlasmaExtras.MenuItem {
+                    text: veltos.tr("Word Document")
+                    icon: "x-office-document"
+                    visible: veltos.officeNew
+                    onClicked: veltos.createNew("word")
+                }
+                PlasmaExtras.MenuItem {
+                    text: veltos.tr("PowerPoint Presentation")
+                    icon: "x-office-presentation"
+                    visible: veltos.officeNew
+                    onClicked: veltos.createNew("slides")
+                }
                 PlasmaExtras.MenuItem {
                     text: veltos.tr("Text Document")
                     icon: "text-plain"
                     onClicked: veltos.createNew("text")
+                }
+                PlasmaExtras.MenuItem {
+                    text: veltos.tr("Excel Worksheet")
+                    icon: "x-office-spreadsheet"
+                    visible: veltos.officeNew
+                    onClicked: veltos.createNew("sheet")
                 }
             }
         }

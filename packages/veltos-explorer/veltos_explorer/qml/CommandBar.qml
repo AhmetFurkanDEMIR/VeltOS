@@ -147,12 +147,8 @@ Rectangle {
 
     WinMenu {
         id: newMenu
-        items: [
-            { text: backend.text("folder"), icon: "folder", action: "new:folder", shortcut: "Ctrl+Shift+N" },
-            { separator: true },
-            { text: backend.text("text_document"), icon: "text-plain", action: "new:text" }
-        ]
-        onTriggered: action => backend.createNew(action === "new:folder" ? "folder" : "text")
+        items: backend.newItems(true)
+        onTriggered: action => backend.createNew(action.slice(4))
     }
     WinMenu {
         id: sortMenu

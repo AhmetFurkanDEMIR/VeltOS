@@ -268,12 +268,15 @@ class SessionDefaultsTests(unittest.TestCase):
 
 
 class DesktopNewTests(unittest.TestCase):
-    """desktop-new: the desktop's New > Folder / Text Document with Windows'
-    names, also for Plasma's desktop:/ (resolved from user-dirs.dirs)."""
+    """desktop-new: the desktop's New > Folder / Text Document / Office
+    documents with Windows' names, also for Plasma's desktop:/ (resolved
+    from user-dirs.dirs)."""
     SCRIPT = PKG / "system/desktop-new"
 
-    def run_helper(self, home, *args):
+    def run_helper(self, home, *args, blank=None):
         env = {"HOME": str(home), "PATH": "/usr/bin:/bin"}
+        if blank:
+            env["VELTOS_BLANK_DOCUMENT"] = blank
         return subprocess.run(["sh", str(self.SCRIPT), *args], env=env, capture_output=True, text=True)
 
     def test_windows_names_and_desktop_url(self):
@@ -295,6 +298,27 @@ class DesktopNewTests(unittest.TestCase):
         self.assertEqual((desktop / "New Text Document (2).txt").read_bytes(), b"")
         self.assertNotEqual(self.run_helper(home, str(desktop), "folder", "../x").returncode, 0)
         self.assertNotEqual(self.run_helper(home, str(home / "missing"), "folder", "x").returncode, 0)
+        self.assertNotEqual(self.run_helper(home, str(desktop), "nonsense", "x").returncode, 0)
+
+    def test_office_documents(self):
+        # New > Word / PowerPoint / Excel go through veltos-office's
+        # blank-document (a stand-in here that records its argument).
+        home = Path(tempfile.mkdtemp())
+        desktop = home / "Desktop"
+        desktop.mkdir()
+        self.assertNotEqual(self.run_helper(home, str(desktop), "word", "New Word Document.docx",
+                                            blank=str(home / "missing")).returncode, 0)
+        self.assertEqual(list(desktop.iterdir()), [])
+        blank = home / "blank"
+        blank.write_text('#!/bin/sh\necho "$1" >> "$HOME/filled"\n', encoding="utf-8")
+        blank.chmod(0o755)
+        for kind, name in (("word", "Yeni Word Belgesi.docx"), ("sheet", "Yeni Excel Çalışma Sayfası.xlsx"),
+                           ("sheet", "Yeni Excel Çalışma Sayfası.xlsx"), ("slides", "Yeni PowerPoint Sunusu.pptx")):
+            result = self.run_helper(home, "desktop:/", kind, name, blank=str(blank))
+            self.assertEqual(result.returncode, 0, result.stderr)
+        made = [desktop / "Yeni Word Belgesi.docx", desktop / "Yeni Excel Çalışma Sayfası.xlsx",
+                desktop / "Yeni Excel Çalışma Sayfası (2).xlsx", desktop / "Yeni PowerPoint Sunusu.pptx"]
+        self.assertEqual((home / "filled").read_text(encoding="utf-8").splitlines(), [str(p) for p in made])
 
 
 @unittest.skipUnless(sys.platform.startswith("linux"), "GNU stat and touch")

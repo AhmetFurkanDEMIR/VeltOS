@@ -192,6 +192,10 @@ Popup {
             }
             TapHandler {
                 enabled: entryItem.active
+                // An exclusive grab: a passive one let the tap through to the
+                // item under the menu too (New > Word Document over the
+                // navigation pane also opened Home, VM 2026-10-25).
+                gesturePolicy: TapHandler.ReleaseWithinBounds
                 onTapped: {
                     if (entryItem.hasSubmenu) {
                         submenu.items = entryItem.entry.submenu;
@@ -288,6 +292,7 @@ Popup {
             HoverHandler { id: subHover }
             TapHandler {
                 enabled: subItem.active
+                gesturePolicy: TapHandler.ReleaseWithinBounds
                 onTapped: {
                     menu.submenu.close();
                     menu.close();

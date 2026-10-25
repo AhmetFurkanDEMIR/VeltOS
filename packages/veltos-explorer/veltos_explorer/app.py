@@ -17,9 +17,23 @@ from PySide6.QtQuick import QQuickWindow
 from . import files, models, ops, places, strings, thumbnails
 from .models import HOME, SPECIAL, THIS_PC, TRASH, Jobs, MimeTypes, Tab
 
+try:  # blank Word / Excel / PowerPoint documents (veltos-office)
+    from veltos_office import blank as office_blank
+except ImportError:
+    office_blank = None
+
 QML_DIR = Path(__file__).resolve().parent / "qml"
 CUT_MIME = "application/x-kde-cutselection"
 GNOME_MIME = "x-special/gnome-copied-files"
+# The "New" menu after Folder: (label, icon, new file's name), in Windows'
+# order (by extension). The Office kinds need veltos-office.
+NEW_ITEMS = {
+    "word": ("word_document", "x-office-document", "new_word_name"),
+    "slides": ("powerpoint_presentation", "x-office-presentation", "new_slides_name"),
+    "text": ("text_document", "text-plain", "new_text_name"),
+    "sheet": ("excel_worksheet", "x-office-spreadsheet", "new_sheet_name"),
+}
+OFFICE_KINDS = ("word", "slides", "sheet")
 # Folders that open with large icons (pictures), like Windows.
 PICTURE_VIEWS = ("PICTURES", "VIDEOS")
 
@@ -657,6 +671,20 @@ class Backend(QObject):
         return {"exists": self.text("rename_exists"), "invalid": self.text("rename_invalid"),
                 "empty": self.text("rename_empty")}.get(reason, reason)
 
+    @Slot(bool, result="QVariantList")
+    def newItems(self, shortcuts=False):
+        """The "New" menu: Folder, then the documents (Word, PowerPoint,
+        Text, Excel as on Windows 11 with Office)."""
+        folder = {"text": self.text("folder"), "icon": "folder", "action": "new:folder"}
+        if shortcuts:
+            folder["shortcut"] = "Ctrl+Shift+N"
+        items = [folder, {"separator": True}]
+        for kind, (label, icon, _name) in NEW_ITEMS.items():
+            if kind in OFFICE_KINDS and office_blank is None:
+                continue
+            items.append({"text": self.text(label), "icon": icon, "action": f"new:{kind}"})
+        return items
+
     @Slot(str)
     def createNew(self, what):
         tab = self.current_tab()
@@ -667,7 +695,11 @@ class Backend(QObject):
             if what == "folder":
                 name = self.ops.new_folder(folder, self.text("new_folder_name"))
             else:
-                name = self.ops.new_file(folder, self.text("new_text_name"))
+                if what in OFFICE_KINDS and office_blank is None:
+                    return
+                name = self.ops.new_file(folder, self.text(NEW_ITEMS.get(what, NEW_ITEMS["text"])[2]))
+                if what in OFFICE_KINDS:
+                    office_blank.fill(Path(folder) / name, self.lang)
         except OSError as error:
             self.message.emit(error.strerror or str(error))
             return

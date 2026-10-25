@@ -66,6 +66,19 @@ when this package is installed: with files, LibreOffice opens them at
 once; without, the start screen appears. Their "New Document" actions pass
 `--blank`.
 
+## Blank documents for the New menus
+
+File Explorer's and the desktop's New > Word Document / PowerPoint
+Presentation / Excel Worksheet make an empty file with Windows' name and
+run `/usr/libexec/veltos-office/blank-document PATH` (`blank.py`), which
+fills new, empty files by their extension and never touches a file with
+content. A `.docx` or `.pptx` stays empty, as on Windows: LibreOffice
+opens an empty file as a new document of that type with the user's
+defaults and saves it in that format. A `.xlsx` becomes a small workbook
+(Calibri 11, first sheet "Sheet1" / "Sayfa1"), as Windows copies a
+template for Excel: Calc gave an empty `.xlsx` no app icon in the title
+bar and on the taskbar.
+
 ## The configuration layer
 
 `registry/veltos-office.xcd`, installed in LibreOffice's `share/registry`
@@ -113,7 +126,10 @@ caption).
 
 ## Tests
 
-- `tests/test_office.py`: texts in both languages, the recent list
+- `tests/test_office.py`: texts in both languages, the blank workbook
+  (parts, well-formed XML, the sheet's name, the same bytes every time)
+  and `blank-document` (empty Word/PowerPoint files kept, content never
+  replaced), the recent list
   (LibreOffice's PickList, own openings, pins, missing files), templates
   with thumbnails (fake template files), the LibreOffice command lines,
   the template sources' XML, and the window loaded offscreen for each

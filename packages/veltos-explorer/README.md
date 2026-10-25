@@ -71,8 +71,10 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   desktop's Recycle Bin menu (veltos-desktop) runs it.
 - Typing `cmd`, `terminal`, `powershell` or `wt` into the address box
   opens the Terminal at the folder, as Windows 11 does.
-- New > Folder / Text Document make the item and open its name for
-  editing once the listing shows it (`models.Tab.request_rename`; asked
+- New > Folder / Word Document / PowerPoint Presentation / Text Document /
+  Excel Worksheet (Windows 11's order with Office; the Office documents
+  while veltos-office is installed, filled by its `blank` module) make
+  the item and open its name for editing once the listing shows it (`models.Tab.request_rename`; asked
   before the listing was done, a slow folder found no row and the item
   kept "New folder", 2026-10-22). Refresh (F5) blinks the view like
   Windows 11's File Explorer (`Tab.refreshed`).
@@ -84,7 +86,7 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   The window draws its own frame and shadow; the shadow is outside the
   input region (`app.follow_frame`), resizing is handed to the window
   manager (`startSystemResize`).
-- **Command bar**: New (folder, text document), cut, copy, paste, rename,
+- **Command bar**: New (folder, Word, PowerPoint, text, Excel), cut, copy, paste, rename,
   delete, Sort, View, "…" (select all/none/invert, Open in Terminal,
   Properties). In the Recycle Bin: Empty Recycle Bin, Restore all items
   (when nothing is selected), Restore.

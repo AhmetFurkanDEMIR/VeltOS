@@ -19,6 +19,7 @@ FocusScope {
     readonly property bool details: mode === "details"
     readonly property var view: details ? listView : gridView
     property int renameRow: -1
+    property string renamePath: ""     // the item of renameRow (rows move when the folder is listed again)
     property string typed: ""
     signal itemMenu(real x, real y)
     signal backgroundMenu(real x, real y)
@@ -41,6 +42,7 @@ FocusScope {
     function startRename(row) {
         if (row < 0 || tab.kind === "trash")
             return;
+        renamePath = model.get(row).path;
         renameRow = row;
         view.positionViewAtIndex(row, ListView.Contain);
     }
@@ -494,6 +496,9 @@ FocusScope {
         id: field
         property string path
         property string name
+        // Still the item being renamed (another New may have moved it on;
+        // its row number may be this box's old one).
+        readonly property bool current: root.renameRow >= 0 && root.renamePath === path
         signal done()
         color: Theme.field
         border.width: 1
@@ -526,11 +531,24 @@ FocusScope {
                 root.renameRow = -1;
                 root.forceActiveFocus();
             }
+            // Focus lost: the typed name is kept, as on Windows (Escape
+            // cancelled it: renameRow is -1 then). When the box closed
+            // because another item's name opened (New twice), that item's
+            // box stays open: renameRow and the focus are left to it.
             onActiveFocusChanged: {
-                if (!activeFocus && root.renameRow >= 0 && text !== field.name)
-                    root.finishRename(field.path, text);
-                else if (!activeFocus)
+                if (activeFocus)
+                    return;
+                if (root.renameRow >= 0 && text !== field.name) {
+                    if (field.current) {
+                        root.finishRename(field.path, text);
+                    } else {
+                        const message = backend.rename(field.path, text);
+                        if (message !== "")
+                            root.showMessage(message);
+                    }
+                } else if (field.current) {
                     root.renameRow = -1;
+                }
             }
         }
     }

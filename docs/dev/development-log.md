@@ -3,6 +3,49 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — New > Word, PowerPoint and Excel documents
+
+Item 19 of the product owner's list: the desktop's and File Explorer's
+New menu with blank Word, Excel and PowerPoint documents.
+
+- How the files are made, checked in the dev VM first (LibreOffice 25.2):
+  an empty `.docx` or `.pptx` opens in Writer / Impress as a new document
+  (title "Yeni Word Belgesi.docx — VeltOS Office Writer", the Word icon,
+  Turkish, Carlito 11 / the title slide) and Ctrl+S saves a real Word
+  file without a question (5 KB, `file`: "Microsoft Word 2007+"). That is
+  what Windows does (an empty new Word document) and keeps the user's
+  defaults (language, paper size, VeltOS' fonts). An empty `.xlsx` also
+  opened, but Calc's window had a plain document icon in the title bar
+  and on the taskbar (reproduced twice); so a new Excel worksheet is a
+  small workbook, as Windows copies a template for it: veltos-office
+  `blank.py` writes it (Calibri 11, first sheet "Sayfa1"/"Sheet1"), and
+  it opened with the Excel icon. Qt names empty Office files by their
+  extension; GIO calls them `application/x-zerosize`.
+- veltos-office: `blank.py` and `/usr/libexec/veltos-office/blank-document
+  PATH...` (fills new, empty files; never touches a file with content).
+  File Explorer (`Backend.newItems`, `createNew`) and the desktop
+  (`desktop-new DIR word|slides|sheet NAME`, `VeltOSDesktop.qml`) offer
+  Folder, then Word Document, PowerPoint Presentation, Text Document,
+  Excel Worksheet, Windows 11's order with Office (by extension), only
+  while veltos-office is installed.
+- Found and fixed on the way: (1) a click on a File Explorer menu item
+  also reached the item under the menu (New > Word Document over the
+  navigation pane also opened Home): the menu's TapHandlers took only a
+  passive grab; now `ReleaseWithinBounds`, also in the same menu of Mail,
+  Media Player, Notepad, PDF Reader and Photos. (2) Two New in a row: the
+  first name box, closing, reset the rename and closed the new item's box
+  too (and a binding loop warning); the box now knows its item by path.
+  (3) The desktop's New did nothing for a user without
+  `~/.config/user-dirs.dirs` (`.` of a missing file under `set -e`).
+- Verified: package tests (office 20, File Explorer 77 with the Office
+  kinds and two New in a row, desktop 122 with `desktop-new`'s kinds,
+  Mail/Media/Notepad/PDF/Photos); dev VM: the desktop's New submenu,
+  "Yeni Excel Çalışma Sayfası.xlsx" made on the desktop with its name
+  open and opened in Calc with the Excel icon; File Explorer's New menu,
+  "Yeni Word Belgesi.docx" opened in Writer
+  (`tests/results/2026-10-25-new-office-documents/`). Not tested: opening
+  the files in Microsoft Office.
+
 ## 2026-10-25 — Uninstalled Windows programs disappear completely
 
 Item 18 of the product owner's list: an uninstalled Windows program still

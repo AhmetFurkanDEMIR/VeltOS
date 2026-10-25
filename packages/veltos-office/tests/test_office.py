@@ -4,6 +4,7 @@ thumbnails, the LibreOffice command lines, and the window loaded offscreen
 in English and Turkish for each app (any QML warning fails)."""
 
 import datetime
+import io
 import os
 import struct
 import sys
@@ -17,7 +18,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("QML_DISABLE_DISK_CACHE", "1")
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from veltos_office import recent, strings, templates  # noqa: E402
+from veltos_office import blank, recent, strings, templates  # noqa: E402
 
 XCU = """<?xml version="1.0" encoding="UTF-8"?>
 <oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -71,6 +72,49 @@ class TextTests(unittest.TestCase):
         self.assertEqual(strings.language({"LANGUAGE": "tr_TR:en"}), "tr")
         self.assertEqual(strings.language({"LANG": "en_US.UTF-8"}), "en")
         self.assertEqual(strings.language({}), "en")
+
+
+class BlankDocumentTests(unittest.TestCase):
+    """The "New" menus' Word / Excel / PowerPoint documents."""
+
+    def test_workbook(self):
+        from xml.dom import minidom
+        data = blank.workbook("Sayfa1")
+        self.assertEqual(data, blank.workbook("Sayfa1"))         # the same bytes every time
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            names = archive.namelist()
+            self.assertEqual(names[0], "[Content_Types].xml")
+            self.assertEqual(set(names), {"[Content_Types].xml", "_rels/.rels", "xl/workbook.xml",
+                                          "xl/_rels/workbook.xml.rels", "xl/worksheets/sheet1.xml", "xl/styles.xml"})
+            for name in names:
+                minidom.parseString(archive.read(name))               # well-formed
+            book = minidom.parseString(archive.read("xl/workbook.xml"))
+            self.assertEqual(book.getElementsByTagName("sheet")[0].getAttribute("name"), "Sayfa1")
+            types = archive.read("[Content_Types].xml").decode()
+            for part in ("/xl/workbook.xml", "/xl/worksheets/sheet1.xml", "/xl/styles.xml"):
+                self.assertIn(f'PartName="{part}"', types)
+        self.assertIn(b'name="A &amp; B"', zipfile.ZipFile(io.BytesIO(blank.workbook("A & B"))).read("xl/workbook.xml"))
+
+    def test_fill(self):
+        folder = Path(tempfile.mkdtemp())
+        for name in ("New Word Document.docx", "New PowerPoint Presentation.pptx", "New Excel Worksheet.xlsx",
+                     "Yeni Excel Çalışma Sayfası.xlsx"):
+            (folder / name).write_bytes(b"")
+        kept = folder / "budget.xlsx"
+        kept.write_bytes(b"PK old")
+        self.assertEqual(blank.main([str(folder / "New Word Document.docx"), str(folder / "New PowerPoint Presentation.pptx"),
+                                     str(kept)]), 0)
+        # LibreOffice opens empty .docx/.pptx files as new documents of their type.
+        self.assertEqual((folder / "New Word Document.docx").read_bytes(), b"")
+        self.assertEqual((folder / "New PowerPoint Presentation.pptx").read_bytes(), b"")
+        self.assertEqual(kept.read_bytes(), b"PK old")             # content is never replaced
+        blank.fill(folder / "New Excel Worksheet.xlsx", "en")
+        blank.fill(folder / "Yeni Excel Çalışma Sayfası.xlsx", "tr")
+        self.assertIn(b'name="Sheet1"', zipfile.ZipFile(folder / "New Excel Worksheet.xlsx").read("xl/workbook.xml"))
+        self.assertIn(b'name="Sayfa1"',
+                      zipfile.ZipFile(folder / "Yeni Excel Çalışma Sayfası.xlsx").read("xl/workbook.xml"))
+        self.assertEqual(blank.main([str(folder / "missing.xlsx")]), 1)
+        self.assertEqual(list(blank.KINDS.values()), [".docx", ".pptx", ".xlsx"])
 
 
 class RecentTests(unittest.TestCase):

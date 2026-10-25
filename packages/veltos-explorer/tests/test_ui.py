@@ -188,6 +188,51 @@ class ExplorerWindowTests(unittest.TestCase):
         self.assertEqual(tab.kind, "search")
         self.assertEqual(self.problems(), [])
 
+    def test_new_office_documents(self):
+        # New > Word / PowerPoint / Excel, as on Windows 11 with Office
+        # (product owner's item 19). veltos-office's blank module is not
+        # in this package's build: a stand-in records what it was given.
+        from veltos_explorer import app as explorer
+        filled = []
+
+        class Blank:
+            @staticmethod
+            def fill(path, lang=None):
+                filled.append((Path(path).name, lang))
+
+        old = explorer.office_blank
+        try:
+            explorer.office_blank = None
+            self.assertEqual([i.get("action") for i in self.backend.newItems(True)],
+                             ["new:folder", None, "new:text"])
+            explorer.office_blank = Blank
+            items = self.backend.newItems(True)
+            self.assertEqual([i.get("action") for i in items],
+                             ["new:folder", None, "new:word", "new:slides", "new:text", "new:sheet"])
+            self.assertEqual(items[0]["shortcut"], "Ctrl+Shift+N")
+            self.assertNotIn("shortcut", self.backend.newItems(False)[0])
+            tab = self.backend.current
+            tab.navigate(str(self.home / "Downloads"))
+            self.app.processEvents()
+            for kind in ("word", "sheet", "slides", "sheet"):
+                self.backend.createNew(kind)
+                self.app.processEvents()
+            names = sorted(p.name for p in (self.home / "Downloads").iterdir())
+            word, slides, sheet = (self.backend.text(k) for k in ("new_word_name", "new_slides_name", "new_sheet_name"))
+            second_sheet = sheet.replace(".xlsx", " (2).xlsx")
+            self.assertEqual(names, sorted([word, slides, sheet, second_sheet]))
+            self.assertEqual(filled, [(word, self.lang), (sheet, self.lang), (slides, self.lang), (second_sheet, self.lang)])
+            # Made one after another, the last one's name box is the open
+            # one (the earlier box closing did not close it too).
+            from PySide6.QtCore import QObject
+            view = self.window.findChild(QObject, "folderView")
+            rows = {tab.items.get(r)["path"]: r for r in range(tab.items.count)}
+            self.assertEqual(view.property("renameRow"), rows[str(self.home / "Downloads" / second_sheet)])
+            self.call("backgroundMenu", None, 10, 10)
+        finally:
+            explorer.office_blank = old
+        self.assertEqual(self.problems(), [])
+
     def test_rename_waits_for_the_listing(self):
         # A listing in progress: the request is kept until the item is
         # listed (a slow folder found no row before, 2026-10-22).

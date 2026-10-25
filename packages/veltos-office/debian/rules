@@ -17,6 +17,9 @@ override_dh_auto_install:
 	cp -r veltos_office $(PKG)/usr/lib/python3/dist-packages/
 	find $(PKG) -name __pycache__ -prune -exec rm -rf {} +
 	install -D -m 755 bin/veltos-office $(PKG)/usr/bin/veltos-office
+	# The "New" menus' Word / Excel / PowerPoint documents (File Explorer,
+	# desktop).
+	install -D -m 755 bin/blank-document $(PKG)/usr/libexec/veltos-office/blank-document
 	install -D -m 644 registry/veltos-office.xcd $(PKG)/usr/lib/libreoffice/share/registry/veltos-office.xcd
 	install -d $(PKG)/usr/share/veltos-office/templates/word $(PKG)/usr/share/veltos-office/templates/sheet
 	install -m 644 build-assets/templates/word/*.ott $(PKG)/usr/share/veltos-office/templates/word/
