@@ -255,7 +255,7 @@ ApplicationWindow {
                         model: backend.tabs
                         delegate: Editor {
                             onCursorMoved: if (index === backend.currentIndex) window.updateStatus()
-                            onContextMenu: (x, y) => editMenu.openAt(area, x, y)
+                            onContextMenu: (x, y) => textMenu.openAt(area, x, y)
                         }
                     }
                 }
@@ -414,6 +414,23 @@ ApplicationWindow {
             { text: backend.texts.time_date, shortcut: "F5", action: "time-date" },
             { separator: true },
             { text: backend.texts.font, action: "font" }
+        ]
+        onTriggered: action => window.run(action)
+    }
+    // The right button's menu in the text: Windows' text menu (the edit
+    // menu's first part), not the whole Edit menu.
+    WinMenu {
+        id: textMenu
+        readonly property bool hasSelection: editMenu.hasSelection
+        items: [
+            { text: backend.texts.undo, shortcut: "Ctrl+Z", action: "undo", enabled: window.area !== null && window.area.canUndo },
+            { separator: true },
+            { text: backend.texts.cut, shortcut: "Ctrl+X", action: "cut", enabled: hasSelection },
+            { text: backend.texts.copy, shortcut: "Ctrl+C", action: "copy", enabled: hasSelection },
+            { text: backend.texts.paste, shortcut: "Ctrl+V", action: "paste" },
+            { text: backend.texts.delete, shortcut: "Del", action: "delete", enabled: hasSelection },
+            { separator: true },
+            { text: backend.texts.select_all, shortcut: "Ctrl+A", action: "select-all" }
         ]
         onTriggered: action => window.run(action)
     }

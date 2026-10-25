@@ -160,6 +160,26 @@ class NotepadTests(unittest.TestCase):
         self.assertFalse(self.backend.current["modified"])
         self.assertEqual(self.problems(), [])
 
+    def test_one_text_menu(self):
+        # The text is the template TextArea, which has no menu of its own:
+        # KDE's style opened its menu over Notepad's (product owner's item
+        # 20). The Menu key opens Notepad's short text menu.
+        from PySide6.QtCore import QObject, Qt
+        from PySide6.QtGui import QKeyEvent
+        area = self.window.property("area")
+        self.assertEqual(area.metaObject().className(), "QQuickTextArea")
+        area.forceActiveFocus()
+        self.app.processEvents()
+        for kind in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease):
+            QCoreApplication.sendEvent(area, QKeyEvent(kind, Qt.Key.Key_Menu, Qt.KeyboardModifier.NoModifier))
+        self.app.processEvents()
+        menus = [m for m in self.window.findChildren(QObject)
+                 if m.metaObject().className().startswith("WinMenu") and m.property("visible")]
+        self.assertEqual(len(menus), 1)
+        actions = [i.get("action") for i in menus[0].property("items").toVariant()]
+        self.assertEqual(actions, ["undo", None, "cut", "copy", "paste", "delete", None, "select-all"])
+        self.assertEqual(self.problems(), [])
+
     def test_menus_settings_and_zoom(self):
         for action in ("zoom-in", "zoom-in", "zoom-out", "word-wrap", "status-bar", "time-date"):
             self.run_action(action)

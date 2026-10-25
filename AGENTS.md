@@ -959,6 +959,12 @@ and JavaScript with no build step, no external requests and no cookies:
   taskbar); VeltOS' new Excel worksheets are small workbooks
   (veltos-office `blank.py`). Qt types empty files by their extension,
   GIO as `application/x-zerosize`.
+- The `org.kde.desktop` style's TextArea/TextField open KDE's own text
+  menu (Spell checking, Undo, Cut ...) on the right button (a TapHandler
+  with a 1 ms long-press threshold) and on the Menu key; an app showing
+  its own menu there gets two menus (Notepad did). Use
+  `QtQuick.Templates`' TextArea for such text (set `implicitWidth` /
+  `implicitHeight` as the styles do).
 - A Popup menu whose entries use a plain `TapHandler` (passive grab) lets
   the tap through to the item under the menu as well (File Explorer's
   New > Word Document also opened Home in the navigation pane). Menu

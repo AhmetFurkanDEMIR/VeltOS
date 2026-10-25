@@ -17,6 +17,10 @@ default (veltos-desktop's `update-app-names` writes the default apps).
   for Undo), Go to line, Select all, Time/Date (F5, the region's short
   formats), Font.
 - **View**: Zoom (Ctrl + wheel, Ctrl +/-/0), Status bar, Word wrap.
+- **Right-click in the text** (also the Menu key, Shift+F10): Windows'
+  text menu (Undo, Cut, Copy, Paste, Delete, Select all), the only menu:
+  the text is Qt's template TextArea, because the KDE style's TextArea
+  opened its own menu over Notepad's.
 - **Status bar**: line and column, characters (or the selection), zoom,
   line ending and encoding; clicking the last two changes them.
 - **Files** (`textfile.py`): UTF-8, UTF-8 with BOM, UTF-16 LE/BE and ANSI
@@ -39,4 +43,4 @@ default (veltos-desktop's `update-app-names` writes the default apps).
 Tests: `tests/test_textfile.py` (encodings, line endings, saving,
 positions) and `tests/test_ui.py` (the real window offscreen in English and
 Turkish: open/edit/save, find/replace, session, close question, menus,
-settings).
+the one text menu, settings).

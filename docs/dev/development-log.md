@@ -3,6 +3,31 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — One menu on a right-click in Notepad
+
+Item 20 of the product owner's list ("a right-click in a text document
+opens two menus; keep the Windows one").
+
+- Reproduced in the dev VM: a right-click in VeltOS Notepad's text opened
+  KDE's text menu (Spell checking, Undo, Redo, Cut, Copy, Paste, Delete,
+  Select All) on top of Notepad's own (the whole Edit menu). Notepad uses
+  the `org.kde.desktop` Qt Quick style (a QApplication, for the desktop's
+  file dialogs), whose TextArea opens `TextFieldContextMenu` from a
+  TapHandler on the right button (`onLongPressed` with a 1 ms threshold)
+  and on the Menu key; nothing in the instance can turn it off. The
+  desktop's and File Explorer's menus for a text file were single.
+- Notepad's text is now `QtQuick.Templates`' TextArea (the control
+  without a style: no menu, no mobile handles) with the implicit size the
+  styles give it. The right button, the Menu key and Shift+F10 open a
+  short text menu as Windows does (Undo, Cut, Copy, Paste, Delete, Select
+  all); the Edit menu in the menu bar is unchanged. Other VeltOS apps with
+  text fields have no menu of their own there, so KDE's text menu is
+  their only one.
+- Verified: 21 Notepad tests (new: the text is a plain `QQuickTextArea`,
+  the Menu key opens exactly one menu with the six actions); dev VM:
+  one menu, Copy from it and paste, the text cursor
+  (`tests/results/2026-10-25-notepad-one-menu/`).
+
 ## 2026-10-25 — New > Word, PowerPoint and Excel documents
 
 Item 19 of the product owner's list: the desktop's and File Explorer's
