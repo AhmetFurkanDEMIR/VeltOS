@@ -144,6 +144,12 @@ PlasmoidItem {
 
         readonly property bool searching: searchField.text.length > 0
         readonly property var results: runnerModel.count > 0 ? runnerModel.modelForRow(0) : null
+        // Light mode: one white surface like VeltOS Settings (the light
+        // Plasma theme's popups are white), the field the same white with a
+        // frame, an accent-tinted preview card (product owner, 2026-10-23).
+        readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor)
+                                     === Kirigami.ColorUtils.Dark
+        readonly property color surface: dark ? Kirigami.Theme.backgroundColor : "#ffffff"
         // Windows lists a handful of results; the rest would need scrolling.
         readonly property int maxResults: 12
         readonly property int resultCount: results ? Math.min(results.count, maxResults) : 0
@@ -198,15 +204,26 @@ PlasmoidItem {
             function onExpandedChanged() {
                 searchField.text = "";
                 panel.current = 0;
-                if (root.expanded)
+                if (root.expanded) {
                     searchField.forceActiveFocus();
+                    opening.restart();
+                }
             }
+        }
+        // Opening: the content rises a little and fades in, as Windows 11's
+        // search window does.
+        ParallelAnimation {
+            id: opening
+            NumberAnimation { target: content; property: "opacity"; from: 0; to: 1; duration: 220; easing.type: Easing.OutCubic }
+            NumberAnimation { target: rise; property: "y"; from: Kirigami.Units.gridUnit * 2; to: 0; duration: 280; easing.type: Easing.OutCubic }
         }
 
         ColumnLayout {
+            id: content
             anchors.fill: parent
             anchors.margins: Kirigami.Units.gridUnit * 1.5
             spacing: Kirigami.Units.largeSpacing
+            transform: Translate { id: rise }
 
             // The search field of Windows 11's search window: a plain
             // rounded box with the accent line along its bottom edge while
@@ -218,7 +235,7 @@ PlasmoidItem {
                 placeholderText: i18n("Search for apps, settings and documents")
                 background: Rectangle {
                     radius: 4
-                    color: Kirigami.Theme.backgroundColor
+                    color: panel.surface
                     border.width: 1
                     border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
                     Rectangle {
@@ -477,9 +494,11 @@ PlasmoidItem {
                     Layout.minimumWidth: Kirigami.Units.gridUnit * 12
                     Layout.fillHeight: true
                     radius: 8
-                    color: Qt.alpha(Kirigami.Theme.textColor, 0.04)
+                    color: panel.dark ? Qt.alpha(Kirigami.Theme.textColor, 0.04)
+                                      : Qt.alpha(Kirigami.Theme.highlightColor, 0.06)
                     border.width: 1
-                    border.color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
+                    border.color: panel.dark ? Qt.alpha(Kirigami.Theme.textColor, 0.08)
+                                             : Qt.alpha(Kirigami.Theme.highlightColor, 0.14)
 
                     ColumnLayout {
                         anchors.fill: parent

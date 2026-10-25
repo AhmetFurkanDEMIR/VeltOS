@@ -3,6 +3,35 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Light-mode Start and search, popups without a frame
+
+Items 35-37 of the product owner's list.
+
+- Measured in the dev VM: light Start was #F3F3F3 (the colour scheme's
+  window colour, through the Plasma theme's `ColorScheme-Background`) with
+  a white field, grey cards and a grey footer band; Settings uses #FFFFFF
+  cards on #F3F5FA. Dark popups had a light 1 px line, light ones a dark
+  one.
+- Fluent-kde 44794f29 (`out/cache/upstream`, read with tarfile): the popup
+  frame `dialogs/background.svgz` (and `widgets/tooltip.svgz`) has a
+  `ColorScheme-Text` rect/path in `shadow-top` and `shadow-topleft` at
+  15 % (light) to 45 % (dark-solid) opacity; the other edges and corners
+  are `<use>` copies. `tools/fluent.py`: `drop_popup_outline` sets those
+  to opacity 0, `white_popup` fills the light theme's
+  `dialogs/background.svgz` pieces with #ffffff instead of
+  `currentColor`; the build stops if either finds nothing.
+- Start (`StartMenu.qml`) and search: a `surface` colour (white in light
+  mode) for the tint, field and footer, accent-tinted cards (6 %/14 %
+  hover), an opening animation (opacity 220 ms, a 2-grid-unit rise 280 ms,
+  OutCubic) restarted on `expanded`.
+- Plasma caches theme SVGs (`~/.cache/plasma-svgelements*`,
+  `plasma_theme_*`, `ksvg-elements*`): clear them after installing a
+  changed theme in a VM.
+- Verified: veltos-desktop 131 package tests (the theme build ran with the
+  real Fluent files); dev VM: light Start, search, quick settings and
+  calendar white, no frame in light or dark, the opening caught at six
+  times its duration (`tests/results/2026-10-25-light-start-and-frames/`).
+
 ## 2026-10-25 — One see-through box around Start
 
 Item 34 of the product owner's list, and their follow-up while it was

@@ -42,7 +42,8 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
     apps' window colour, like Windows 11's Mica (no separate white bar);
   - taskbar, Start and popups: Plasma theme `VeltOS` / `VeltOS-Dark`
     (acrylic-like see-through popups when the GPU can blur, opaque
-    otherwise);
+    otherwise; light popups in Settings' white, no line around popups,
+    which Fluent drew in its shadow pieces);
   - colour schemes `VeltOS Light` (default) / `VeltOS Dark`.
 - **Windows-familiar names**: File Explorer, Terminal, Text Editor,
   Photos, Document Viewer, Archive Manager, Screenshot, Task Manager,

@@ -38,6 +38,13 @@ FocusScope {
 
     required property PlasmoidItem plasmoidItem
 
+    // Light mode: one white surface like VeltOS Settings (the popup frame is
+    // white in the light Plasma theme), accent-tinted cards for some colour;
+    // product owner, 2026-10-23 (items 35 and 37).
+    readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor)
+                                 === Kirigami.ColorUtils.Dark
+    readonly property color surface: dark ? Kirigami.Theme.backgroundColor : "#ffffff"
+
     // "home", "recommended" or "category"; searching overrides them while
     // the field has text.
     property string page: "home"
@@ -537,9 +544,13 @@ FocusScope {
             Rectangle {
                 anchors.fill: parent
                 radius: 8
-                color: Qt.alpha(Kirigami.Theme.textColor, card.containsMouse ? 0.08 : 0.045)
+                // A touch of the accent colour in light mode (livelier than
+                // grey cards, product owner 2026-10-23).
+                color: menu.dark ? Qt.alpha(Kirigami.Theme.textColor, card.containsMouse ? 0.08 : 0.045)
+                                 : Qt.alpha(Kirigami.Theme.highlightColor, card.containsMouse ? 0.14 : 0.06)
                 border.width: 1
-                border.color: Qt.alpha(Kirigami.Theme.textColor, 0.06)
+                border.color: menu.dark ? Qt.alpha(Kirigami.Theme.textColor, 0.06)
+                                        : Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
                 Behavior on color {
                     ColorAnimation { duration: Kirigami.Units.shortDuration }
                 }
@@ -629,13 +640,30 @@ FocusScope {
     Rectangle {
         anchors.fill: parent
         radius: Kirigami.Units.cornerRadius !== undefined ? Kirigami.Units.cornerRadius * 2 : 12
-        color: Kirigami.Theme.backgroundColor
+        color: menu.surface
         opacity: 0.35
     }
 
+    // Opening: the content rises a little and fades in, as Windows 11's
+    // Start does (Plasma only shows the popup).
+    Connections {
+        target: menu.plasmoidItem
+        function onExpandedChanged() {
+            if (menu.plasmoidItem.expanded)
+                opening.restart();
+        }
+    }
+    ParallelAnimation {
+        id: opening
+        NumberAnimation { target: content; property: "opacity"; from: 0; to: 1; duration: 220; easing.type: Easing.OutCubic }
+        NumberAnimation { target: rise; property: "y"; from: Kirigami.Units.gridUnit * 2; to: 0; duration: 280; easing.type: Easing.OutCubic }
+    }
+
     ColumnLayout {
+        id: content
         anchors.fill: parent
         spacing: 0
+        transform: Translate { id: rise }
 
         PlasmaExtras.SearchField {
             id: searchField
@@ -1209,7 +1237,8 @@ FocusScope {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 3.2
-            color: Qt.alpha(Kirigami.Theme.textColor, 0.04)
+            // Light mode: the same white as the rest, the line above only.
+            color: menu.dark ? Qt.alpha(Kirigami.Theme.textColor, 0.04) : "transparent"
 
             Kirigami.Separator {
                 anchors.top: parent.top

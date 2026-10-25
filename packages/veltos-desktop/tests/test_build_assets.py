@@ -440,6 +440,41 @@ class TaskbarTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             fluent.set_background_opacity("<svg/>", 0.5)
 
+    def test_popups_have_no_outline(self):
+        # Fluent draws a text-coloured line in the popups' shadow pieces: a
+        # white frame around Start and the flyouts in dark mode, black in
+        # light mode (product owner, 2026-10-23). The shadow stays.
+        svg = ('<svg><g id="shadow-top"><path style="opacity:0.5;fill:url(#g)"/>'
+               '<rect id="line" class="ColorScheme-Text" style="opacity:0.45"/></g>'
+               '<g id="shadow-topleft"><path id="corner" fill="currentColor" class="ColorScheme-Text"/></g>'
+               '<use id="shadow-bottom" href="#shadow-top"/>'
+               '<g id="center"><rect class="ColorScheme-Text" style="opacity:0.3"/></g></svg>')
+        out, found = fluent.drop_popup_outline(svg)
+        self.assertEqual(found, 2)
+        self.assertIn('id="line" class="ColorScheme-Text" style="opacity:0"', out)
+        self.assertIn('class="ColorScheme-Text" opacity="0"', out)
+        self.assertIn('style="opacity:0.5;fill:url(#g)"', out)          # the shadow
+        self.assertIn('<rect class="ColorScheme-Text" style="opacity:0.3"/>', out)   # not a shadow piece
+
+    def test_light_popups_are_white_with_one_surface(self):
+        # Light mode: popups in the white of VeltOS Settings, not the scheme's
+        # grey; Start and search in one colour with livelier accent cards and
+        # an opening that rises (product owner, 2026-10-23, items 35 and 37).
+        svg = ('<svg><rect id="c" class="ColorScheme-Background" style="opacity:1;fill:currentColor"/>'
+               '<path class="ColorScheme-Background" d="M0 0" style="opacity:0.75"/>'
+               '<rect class="ColorScheme-Text" style="opacity:0.15"/></svg>')
+        out = fluent.white_popup(svg)
+        self.assertIn('id="c" style="opacity:1;fill:#ffffff"', out)
+        self.assertIn('<path d="M0 0" style="fill:#ffffff;opacity:0.75"/>', out)
+        self.assertIn('class="ColorScheme-Text"', out)
+        with self.assertRaises(SystemExit):
+            fluent.white_popup("<svg/>")
+        for ui in ("startmenu/contents/ui/StartMenu.qml", "search/contents/ui/main.qml"):
+            text = (PKG / "plasma" / ui).read_text(encoding="utf-8")
+            self.assertIn('readonly property color surface: dark ? Kirigami.Theme.backgroundColor : "#ffffff"', text)
+            self.assertRegex(text, r"Qt\.alpha\(Kirigami\.Theme\.highlightColor, [^)]*0\.06\)")
+            self.assertIn('NumberAnimation { target: rise; property: "y"', text)
+
 
 @unittest.skipUnless(shutil.which("rsvg-convert") and (FLUENT_DIR / "Kvantum").is_dir(),
                      "needs rsvg-convert and upstream/ (Fluent-kde)")

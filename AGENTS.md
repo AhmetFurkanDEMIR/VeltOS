@@ -1065,6 +1065,12 @@ and JavaScript with no build step, no external requests and no cookies:
   moved aside). pkcon reads "Proceed with changes?" from the controlling
   terminal, not stdin (VeltOS Store's `ptyrun.py`). polkit passes
   `polkit.subject-pid` in the details the agent gets.
+- Fluent's popup frame draws a text-coloured line in its shadow pieces
+  (the white/black frame around flyouts); VeltOS' theme build hides it and
+  paints light popups white (`tools/fluent.py`). After installing a
+  changed Plasma theme in a VM, delete `~/.cache/plasma-svgelements*`,
+  `~/.cache/plasma_theme_*` and `~/.cache/ksvg-elements*` before
+  restarting plasmashell, or the old SVGs stay.
 - Testing VeltOS Mail against real servers in the dev VM:
   `out/vm/mailseed.py` (Dovecot IMAP on localhost:993 with its self-signed
   certificate added to the VM's trust store, sample mail, the account) and

@@ -426,6 +426,51 @@ def set_background_opacity(svg, opacity, name="svg"):
     return result
 
 
+def drop_popup_outline(svg, name="svg"):
+    """Fluent's popup frames draw a line in the text colour inside their
+    shadow pieces (shadow-top and shadow-topleft; the other edges and
+    corners are <use> copies of them): white around Start and the flyouts
+    in dark mode, black in light mode (product owner, 2026-10-23: no frame).
+    Those lines become invisible; the shadow itself stays. Returns the SVG
+    and the number of lines found."""
+    count = 0
+
+    def clear_group(group):
+        nonlocal count
+
+        def clear(element):
+            nonlocal count
+            count += 1
+            tag = element.group(0)
+            if re.search(r"(?<![-\w])opacity:", tag):
+                return re.sub(r"(?<![-\w])opacity:[0-9.]+", "opacity:0", tag)
+            return tag.replace('class="ColorScheme-Text"', 'class="ColorScheme-Text" opacity="0"', 1)
+        return re.sub(r'<(?:rect|path)\b[^>]*class="ColorScheme-Text"[^>]*>', clear, group.group(0))
+    result = re.sub(r'<g\b[^>]*id="shadow-(?:top|topleft)"[^>]*>.*?</g>', clear_group, svg, flags=re.S)
+    return result, count
+
+
+LIGHT_POPUP = "#ffffff"
+
+
+def white_popup(svg, name="svg"):
+    """Light mode: popups (Start, search, the flyouts) in the white of VeltOS
+    Settings' cards instead of the colour scheme's grey window colour, which
+    they took through `ColorScheme-Background` (product owner, 2026-10-23:
+    Start and search in one colour that matches the theme, Settings' white).
+    Only the popup frame changes; programs keep the scheme's colours."""
+    def paint(match):
+        tag = match.group(0).replace(' class="ColorScheme-Background"', "")
+        tag = re.sub(r"fill:currentColor", f"fill:{LIGHT_POPUP}", tag)
+        if f"fill:{LIGHT_POPUP}" not in tag:
+            tag = tag.replace('style="', f'style="fill:{LIGHT_POPUP};', 1)
+        return tag
+    result, count = re.subn(r'<(?:rect|path)\b[^>]*class="ColorScheme-Background"[^>]*>', paint, svg)
+    if count == 0:
+        raise SystemExit(f"{name}: no popup background to make white")
+    return result
+
+
 def build_desktoptheme(upstream, root, name, variant):
     """The VeltOS Plasma theme (taskbar, Start, flyouts) from Fluent-kde.
 
@@ -455,12 +500,20 @@ def build_desktoptheme(upstream, root, name, variant):
     for rel in DESKTOPTHEME_DROP:
         (dest / rel).unlink()
     recoloured = 0
+    outlines = 0
     for path in sorted(dest.rglob("*.svgz")):
         text = read_svgz(path)
         if re.search(re.escape(FLUENT_BLUE), text, flags=re.IGNORECASE):
             text = recolour(text, variant, str(path))
             recoloured += 1
+        if path.name in ("background.svgz", "tooltip.svgz"):
+            text, found = drop_popup_outline(text, str(path))
+            outlines += found
+        if variant == "light" and path.parent.name == "dialogs" and path.name == "background.svgz":
+            text = white_popup(text, str(path))
         write_svgz(path, text)
+    if outlines == 0:
+        raise SystemExit(f"{name}: no popup outline found (Fluent changed?)")
     (dest / "colors").unlink(missing_ok=True)       # follow the system scheme (docstring)
     for rel, opacity in PANEL_OPACITY.items():
         write_svgz(dest / rel, set_background_opacity(read_svgz(dest / rel), opacity, rel))
