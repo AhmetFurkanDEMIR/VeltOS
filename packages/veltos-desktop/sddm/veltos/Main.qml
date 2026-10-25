@@ -360,18 +360,40 @@ Item {
                     anchors.left: parent.left
                     anchors.leftMargin: 10
                     spacing: 12
-                    Rectangle {
+                    // The account picture in a circle, as Windows lists the
+                    // other users; the initial while there is none.
+                    Item {
                         width: 36
                         height: 36
-                        radius: 18
-                        color: "#E8ECF6"
-                        Text {
-                            anchors.centerIn: parent
-                            text: (realName || name).charAt(0).toUpperCase()
-                            color: "#2F5EE6"
-                            font.pixelSize: 16
-                            font.family: root.fontFamily
-                            font.weight: Font.DemiBold
+                        Rectangle {
+                            id: faceBase
+                            anchors.fill: parent
+                            radius: width / 2
+                            color: "#E8ECF6"
+                            Text {
+                                anchors.centerIn: parent
+                                visible: face.status !== Image.Ready
+                                text: (realName || name).charAt(0).toUpperCase()
+                                color: "#2F5EE6"
+                                font.pixelSize: 16
+                                font.family: root.fontFamily
+                                font.weight: Font.DemiBold
+                            }
+                        }
+                        Image {
+                            id: face
+                            objectName: "userListPicture"
+                            anchors.fill: parent
+                            source: icon || ""
+                            fillMode: Image.PreserveAspectCrop
+                            sourceSize: Qt.size(72, 72)
+                            visible: false
+                        }
+                        OpacityMask {
+                            anchors.fill: parent
+                            source: face
+                            maskSource: faceBase
+                            visible: face.status === Image.Ready
                         }
                     }
                     Text {

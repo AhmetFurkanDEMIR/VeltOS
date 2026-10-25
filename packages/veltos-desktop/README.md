@@ -62,7 +62,7 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
 - **Sign-in screen** (SDDM theme `veltos`) like Windows 11: lock view with
   time and date; any key or click shows the picture, name and password
   field on the blurred wallpaper; power menu bottom right, other users
-  bottom left. No session or desktop names are shown: it starts Plasma on
+  bottom left with their account pictures. No session or desktop names are shown: it starts Plasma on
   Wayland, or Plasma on X11 when the screen itself runs on X11 — at a
   start without a graphics driver (veltos-recovery's Safe mode), where
   Wayland cannot run; SDDM remembering the X11 session afterwards does not

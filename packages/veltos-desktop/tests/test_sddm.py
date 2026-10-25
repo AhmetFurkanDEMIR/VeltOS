@@ -69,11 +69,11 @@ if HAVE_QT:
 
         def __init__(self, users):
             super().__init__()
-            for name, real in users:
+            for name, real, *picture in users:
                 item = QStandardItem()
                 item.setData(name, Qt.UserRole + 1)
                 item.setData(real, Qt.UserRole + 2)
-                item.setData("", Qt.UserRole + 3)
+                item.setData(picture[0] if picture else "", Qt.UserRole + 3)
                 item.setData(f"/home/{name}", Qt.UserRole + 4)
                 self.appendRow(item)
 
@@ -168,6 +168,43 @@ class SignInScreenTests(unittest.TestCase):
         QMetaObject.invokeMethod(self.root, "signIn")
         self.app.processEvents()
         self.assertEqual(self.sddm.calls[-1], ("login", "velt", "secret", 0))
+        self.assertEqual(self.problems(), [])
+
+    def test_user_list_shows_account_pictures(self):
+        # Windows lists the other users at the bottom left with their
+        # account pictures (product owner, 2026-10-23: only initials showed).
+        import tempfile
+        from PySide6.QtGui import QColor, QImage
+        picture = Path(tempfile.mkdtemp()) / "ayse.png"
+        image = QImage(64, 64, QImage.Format.Format_RGB32)
+        image.fill(QColor("#4F7CFF"))
+        self.assertTrue(image.save(str(picture)))
+        self.view.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        self.keep[1] = FakeUsers([("velt", "Velt"), ("ayse", "Ayşe", QUrl.fromLocalFile(str(picture)).toString())])
+        self.view = QQuickView()
+        context = self.view.rootContext()
+        context.setContextProperty("sddm", self.sddm)
+        context.setContextProperty("keyboard", self.keep[0])
+        context.setContextProperty("userModel", self.keep[1])
+        context.setContextProperty("sessionModel", self.keep[2])
+        context.setContextProperty("config", self.config)
+        self.view.setSource(QUrl.fromLocalFile(str(THEME)))
+        self.root = self.view.rootObject()
+        self.root.setProperty("signInView", True)
+        for _ in range(20):
+            self.app.processEvents()
+        pictures = []
+
+        def walk(item):
+            if item.objectName() == "userListPicture":
+                pictures.append(item)
+            for child in item.childItems():
+                walk(child)
+        walk(self.root)
+        self.assertEqual(len(pictures), 2)
+        # Only Ayşe's picture loads (a loaded Image has its natural width).
+        self.assertEqual([p.property("implicitWidth") > 0 for p in pictures].count(True), 1)
         self.assertEqual(self.problems(), [])
 
     def find_password_field(self):

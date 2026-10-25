@@ -3,6 +3,17 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Account pictures on the sign-in screen
+
+Item 32 of the product owner's list. The SDDM theme's user list (bottom
+left) drew each user's initial; it now shows the user model's `icon` (the
+AccountsService picture) masked to a circle, with the initial under it
+while no picture loads. `test_sddm.py` builds the theme offscreen with a
+user whose picture is a generated PNG and checks that exactly that list
+picture loads (its `implicitWidth`: PySide cannot read QML's Image.status
+enum reliably). Verified: veltos-desktop 128 package tests; dev VM: SDDM
+with Velt and a second user with a picture (`tests/results/2026-10-25-sign-in-pictures/`).
+
 ## 2026-10-25 — Hidden taskbar search
 
 Item 31 of the product owner's list. Reproduced in the dev VM with
