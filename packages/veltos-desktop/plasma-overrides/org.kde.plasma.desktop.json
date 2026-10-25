@@ -52,9 +52,9 @@
     },
     {
       "file": "contents/applet/CompactApplet.qml",
-      "why": "no box behind the taskbar's search box while the search window is open (Windows 11 draws none; Start, the clock and quick settings keep theirs, as on Windows)",
+      "why": "no second box around taskbar buttons that draw their own (Start, quick settings, the clock) and none behind the search box while its window is open, as Windows 11",
       "old": "        opacity: plasmoidItem && plasmoidItem.expanded ? 1 : 0\n",
-      "new": "        // VeltOS: no box behind the taskbar's search box while its window is open.\n        opacity: plasmoidItem && plasmoidItem.expanded && Plasmoid.pluginName !== \"org.veltos.search\" ? 1 : 0\n"
+      "new": "        // VeltOS: no second box. VeltOS' taskbar buttons draw their own\n        // pressed backdrop (Start, quick settings, the clock), and Windows 11\n        // draws none behind the search box; Plasma's box around them made a\n        // box inside a box (product owner, 2026-10-23).\n        opacity: plasmoidItem && plasmoidItem.expanded\n                 && ![\"org.veltos.search\", \"org.veltos.startmenu\", \"org.veltos.quicksettings\",\n                      \"org.veltos.clock\"].includes(Plasmoid.pluginName) ? 1 : 0\n"
     },
     {
       "file": "contents/applet/CompactApplet.qml",

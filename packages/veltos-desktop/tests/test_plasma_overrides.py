@@ -238,7 +238,10 @@ class OverrideTests(unittest.TestCase):
         self.assertIn("return window && left > window.width * 0.12 ? startCentre : root.compactRepresentation;",
                       text)
         # No box behind the search box while its window is open.
-        self.assertIn('plasmoidItem.expanded && Plasmoid.pluginName !== "org.veltos.search" ? 1 : 0', text)
+        # ... and no second box around buttons that draw their own (Start,
+        # quick settings, the clock): it was a box inside a box.
+        self.assertIn('&& !["org.veltos.search", "org.veltos.startmenu", "org.veltos.quicksettings",\n'
+                      '                      "org.veltos.clock"].includes(Plasmoid.pluginName) ? 1 : 0', text)
 
     def test_window_frame_buttons_have_maximised_pictures(self):
         self.assertEqual(self.run_tool(), 0)

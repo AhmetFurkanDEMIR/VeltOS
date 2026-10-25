@@ -3,6 +3,23 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — One see-through box around Start
+
+Item 34 of the product owner's list, and their follow-up while it was
+being done. While Start was open, Plasma's `expandedItem` box
+(`CompactApplet.qml`, the widgets/tabbar frame) surrounded Start's own
+backdrop: a box in a box; the same for quick settings and the clock. The
+shell override now leaves Plasma's box out for those (it already did for
+search). The product owner then asked for the box to be see-through rather
+than grey: the four VeltOS taskbar buttons (Start, Task View, quick
+settings, clock) draw `Qt.rgba(1, 1, 1, 0.62)` (0.38 pressed) with a
+`rgba(0, 0, 0, 0.05)` hairline in light mode and white at 9 % with a white
+7 % hairline in dark mode (`Kirigami.ColorUtils.brightnessForColor` of the
+background). The dev VM container had stopped between sessions and was
+recreated. Verified: veltos-desktop 129 package tests; dev VM, light and
+dark, each button open or under the pointer
+(`tests/results/2026-10-25-start-button-one-box/`).
+
 ## 2026-10-25 — Store installs for standard users; the prompt names the app
 
 Item 33 of the product owner's list, and their follow-up while it was

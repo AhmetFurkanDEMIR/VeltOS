@@ -53,8 +53,16 @@ PlasmoidItem {
             anchors.fill: parent
             anchors.margins: Kirigami.Units.smallSpacing
             radius: Kirigami.Units.cornerRadius
-            color: Kirigami.Theme.textColor
-            opacity: button.pressed ? 0.12 : (button.containsMouse ? 0.07 : 0)
+            // Windows 11's taskbar highlight: see-through white over the
+            // taskbar (light) or a faint white (dark) with a hairline edge,
+            // not a grey box (product owner, 2026-10-25).
+            readonly property bool darkTheme: Kirigami.ColorUtils.brightnessForColor(
+                Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
+            color: darkTheme ? Qt.rgba(1, 1, 1, button.pressed ? 0.05 : 0.09)
+                             : Qt.rgba(1, 1, 1, button.pressed ? 0.38 : 0.62)
+            border.width: 1
+            border.color: darkTheme ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.05)
+            opacity: button.pressed || button.containsMouse ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
         }
 

@@ -320,6 +320,17 @@ class SearchTests(StartMenuTests):
             self.assertIn(needed, box)
 
 
+class TaskbarHighlightTests(unittest.TestCase):
+    def test_buttons_light_up_see_through_not_grey(self):
+        # Start, Task View, quick settings and the clock: a see-through white
+        # highlight with a hairline edge, as Windows 11's taskbar (the grey
+        # box of the text colour looked like a box; product owner, 2026-10-25).
+        for applet in ("startmenu", "taskview", "quicksettings", "clock"):
+            ui = (PKG / "plasma" / applet / "contents/ui/main.qml").read_text(encoding="utf-8")
+            self.assertIn(": Qt.rgba(1, 1, 1, button.pressed ? 0.38 : 0.62)", ui, applet)
+            self.assertIn("border.color: darkTheme ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.05)", ui, applet)
+
+
 class WebSearchTests(unittest.TestCase):
     """Search and Start search the web with Google in a row of their own,
     not with KDE's web shortcuts runner (DuckDuckGo shown as an app;
