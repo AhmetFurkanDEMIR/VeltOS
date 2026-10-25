@@ -119,7 +119,7 @@ Item {
                         appId: page.appId
                     }
                     Text {
-                        visible: page.appState === "failed"
+                        visible: backend.hasFailure(page.app.pkg || "", backend.revision)
                         Layout.fillWidth: true
                         text: backend.failureText(page.app.pkg || "", backend.revision)
                         color: Theme.danger

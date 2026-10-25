@@ -129,6 +129,19 @@ class WindowTests(unittest.TestCase):
         backend.install("gimp")
         self.assertEqual(backend.state("gimp", 0), "")
 
+    def test_refused_uninstall_keeps_the_app_installed(self):
+        # The password prompt cancelled while uninstalling: the app stays
+        # installed (Open / Uninstall), with the reason for the uninstall.
+        jobs = FakeJobs()
+        backend = self.make_backend("en", jobs=jobs)
+        jobs.error = "Fatal error: Failed to obtain authentication."
+        backend._job_finished("remove", "vlc", False)
+        self.assertEqual(backend.state("vlc", 0), "installed")
+        self.assertTrue(backend.hasFailure("vlc", 0))
+        self.assertIn("to uninstall", backend.failureText("vlc", 0))
+        backend._job_finished("install", "gimp", False)
+        self.assertIn("to install", backend.failureText("gimp", 0))
+
     def test_old_catalogue_is_refreshed_and_reloaded(self):
         loads = []
 
@@ -169,7 +182,7 @@ class JobTests(unittest.TestCase):
         self.assertTrue(wait(lambda: len(done) == 2))
         self.assertEqual(done, [("install", "gimp", True), ("remove", "vlc", True)])
         self.assertEqual((tmp / "calls").read_text().splitlines(),
-                         ["-p -y install gimp", "-p -y remove vlc"])
+                         ["-p install gimp", "-p remove vlc"])
 
     def test_old_lists_are_refreshed_before_an_install(self):
         tmp = Path(tempfile.mkdtemp())
@@ -185,7 +198,7 @@ class JobTests(unittest.TestCase):
         self.assertTrue(wait(lambda: len(done) == 3))
         self.assertEqual(done, ["refresh", "install", "install"])
         self.assertEqual((tmp / "calls").read_text().splitlines(),
-                         ["-p refresh", "-p -y install gimp", "-p -y install vlc"])
+                         ["-p refresh", "-p install gimp", "-p install vlc"])
         lists = tmp / "lists"
         lists.mkdir()
         self.assertTrue(packages.lists_need_refresh(str(lists)))                      # no lists at all
@@ -199,6 +212,27 @@ class JobTests(unittest.TestCase):
         self.assertEqual(packages.failure_key("Failed to fetch http://deb.debian.org/..."), "failed_network")
         self.assertEqual(packages.failure_key("Could not get lock /var/lib/dpkg/lock"), "failed_busy")
         self.assertEqual(packages.failure_key("something odd"), "")
+
+    def test_pkcon_is_answered_in_a_terminal(self):
+        # pkcon reads its confirmation from the controlling terminal; ptyrun
+        # gives it one, says yes to the changes and no to anything else
+        # (unsigned packages), and passes the exit code on.
+        from veltos_store import ptyrun
+        tmp = Path(tempfile.mkdtemp())
+        fake = tmp / "pkcon"
+        fake.write_text("#!/bin/sh\n"
+                        "printf 'Proceed with changes? [N/y] '\n"
+                        "read first < /dev/tty\n"
+                        "printf 'Do you want to allow installing of unsigned software? [N/y] '\n"
+                        "read second < /dev/tty\n"
+                        "echo \"answers=$first,$second\"\n"
+                        "exit 3\n")
+        fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
+        with tempfile.TemporaryFile() as out:
+            self.assertEqual(ptyrun.run([str(fake)], out), 3)
+            out.seek(0)
+            self.assertIn(b"answers=y,n", out.read())
+        self.assertIsNone(ptyrun.answer_for(b"Percentage:\t40\n"))
 
     def test_missing_pkcon(self):
         jobs = packages.Jobs(program="/nonexistent/pkcon")

@@ -71,6 +71,56 @@ def users_for(identities, me=None):
     return result
 
 
+# Where apps' desktop files are: VeltOS' renamed copies first (veltos-desktop).
+APP_DIRS = ("/var/lib/veltos/xdg/applications", "/usr/local/share/applications", "/usr/share/applications")
+
+
+def desktop_entry(path, lang="en"):
+    """{name, icon} of a desktop file's [Desktop Entry] (name in `lang`)."""
+    try:
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    entry, values = False, {}
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith("["):
+            entry = line == "[Desktop Entry]"
+        elif entry and "=" in line:
+            key, _sep, value = line.partition("=")
+            values.setdefault(key.strip(), value.strip())
+    name = values.get(f"Name[{lang}]") or values.get("Name", "")
+    return {"name": name, "icon": values.get("Icon", "")} if name else None
+
+
+def requesting_app(details, lang="en", proc="/proc", app_dirs=APP_DIRS, depth=8):
+    """The app that asked, as Windows' prompt names it with its icon: from
+    the process polkit names (polkit.subject-pid, e.g. pkcon) up through its
+    parents to the first one started from an app's desktop file
+    (/usr/bin/veltos-store -> veltos-store.desktop). None if none is found;
+    the prompt then shows the action's own icon."""
+    pid = str(details.get("polkit.subject-pid") or "")
+    for _ in range(depth):
+        if not pid.isdigit() or int(pid) <= 1:
+            return None
+        try:
+            args = Path(proc, pid, "cmdline").read_bytes().split(b"\0")
+            stat = Path(proc, pid, "stat").read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return None
+        for arg in args[:2]:
+            base = os.path.basename(arg.decode("utf-8", "replace"))
+            if not base or base.startswith("-"):
+                continue
+            for folder in app_dirs:
+                found = desktop_entry(Path(folder) / f"{base}.desktop", lang)
+                if found:
+                    return found
+        fields = stat.rsplit(")", 1)[-1].split()
+        pid = fields[1] if len(fields) > 1 else ""      # the parent
+    return None
+
+
 def program_name(details):
     """A readable name of the program asking, from polkit's details
     (pkexec sends "program" and "command_line"; others usually nothing)."""

@@ -80,14 +80,18 @@ def subject(environ=None, glib=None):
 
 
 def prompt_request(action_id, message, icon_name, details, cookie, identities, lang="en"):
-    """What the prompt is told (JSON on its standard input)."""
+    """What the prompt is told (JSON on its standard input). Like Windows'
+    prompt it shows the app that asked, with its icon (VeltOS Store when
+    the Store installs an app); the action's own icon (PackageKit's package
+    picture, drawn as a folder by Fluent) only when no app is found."""
+    app = users.requesting_app(dict(details), lang)
     return {
         "cookie": cookie,
         "action": action_id,
         "message": message,
-        "icon": icon_name,
+        "icon": app["icon"] if app and app["icon"] else icon_name,
         "details": dict(details),
-        "program": users.program_name(dict(details)),
+        "program": app["name"] if app else users.program_name(dict(details)),
         "description": users.action_description(action_id, lang=lang),
         "users": users.users_for(identities),
     }

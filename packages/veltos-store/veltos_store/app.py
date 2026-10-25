@@ -88,7 +88,7 @@ class Backend(QObject):
         self.jobs = jobs or packages.Jobs(parent=self)
         self.jobs.changed.connect(self._jobs_changed)
         self.jobs.finished.connect(self._job_finished)
-        self._failed = set()
+        self._failed = {}               # pkg -> the action that failed
         self._failure_texts = {}
         self.loaded.connect(self._set_catalog)
         self.updatesFound.connect(self._set_updates)
@@ -257,7 +257,10 @@ class Backend(QObject):
         job = self.jobs.state(pkg)
         if job:
             return job
-        if pkg in self._failed:
+        # A failed install shows Install again with the reason; a refused
+        # or failed uninstall leaves the app installed (it showed Install
+        # after the password prompt was cancelled, VM 2026-10-25).
+        if pkg in self._failed and pkg not in self._installed:
             return "failed"
         return "installed" if pkg in self._installed else ""
 
@@ -275,14 +278,14 @@ class Backend(QObject):
 
     @Slot(str)
     def install(self, pkg):
-        self._failed.discard(pkg)
+        self._failed.pop(pkg, None)
         self.jobs.add("install", pkg)
 
     @Slot(str)
     def uninstall(self, pkg):
         """Uninstall, unless that would remove a part of VeltOS (checked in
         the background with apt's simulation)."""
-        self._failed.discard(pkg)
+        self._failed.pop(pkg, None)
         threading.Thread(target=lambda: self.removalChecked.emit(pkg, self._protected_check(pkg)),
                          daemon=True).start()
 
@@ -345,9 +348,13 @@ class Backend(QObject):
         elif action == "refresh":
             pass                        # a failed refresh is reported by the install that follows
         elif (action == "install") != (pkg in self._installed):
-            self._failed.add(pkg)       # nothing changed: refused, failed or cancelled
+            self._failed[pkg] = action  # nothing changed: refused, failed or cancelled
             self._failure_texts[pkg] = self.jobs.error
         self._bump()
+
+    @Slot(str, int, result=bool)
+    def hasFailure(self, pkg, _revision=0):
+        return pkg in self._failed
 
     @Slot(str, int, result=str)
     def failureText(self, pkg, _revision=0):
@@ -355,6 +362,8 @@ class Backend(QObject):
         (PackageKit's message where VeltOS has no better wording)."""
         error = self._failure_texts.get(pkg, "")
         key = packages.failure_key(error)
+        if key == "failed_auth" and self._failed.get(pkg) == "remove":
+            key = "failed_auth_remove"
         if key:
             return self._texts[key]
         if error and error != "pkcon":

@@ -86,6 +86,36 @@ class RequestTests(unittest.TestCase):
         self.assertEqual(users.action_description("org.test.do", (str(folder),), "tr"), "Şeyi yap")
         self.assertEqual(users.action_description("org.test.other", (str(folder),)), "")
 
+    def test_the_app_that_asked_is_named_with_its_icon(self):
+        # The Store installs through ptyrun and pkcon; polkit names pkcon.
+        # The prompt shows VeltOS Store and its icon, not PackageKit's
+        # package picture (product owner, 2026-10-25).
+        root = Path(tempfile.mkdtemp())
+        proc, apps = root / "proc", root / "applications"
+        apps.mkdir()
+        (apps / "veltos-store.desktop").write_text(
+            "[Desktop Entry]\nName=VeltOS Store\nName[tr]=VeltOS Mağaza\nIcon=veltos-store\n"
+            "[Desktop Action New]\nName=New window\n", encoding="utf-8")
+        tree = {"40": (b"pkcon\0-p\0install\0freesweep\0", "39"),
+                "39": (b"/usr/bin/python3\0-m\0veltos_store.ptyrun\0pkcon\0", "38"),
+                "38": (b"/usr/bin/python3\0/usr/bin/veltos-store\0", "37"),
+                "37": (b"sh\0-c\0veltos-store\0", "1")}
+        for pid, (cmdline, parent) in tree.items():
+            (proc / pid).mkdir(parents=True)
+            (proc / pid / "cmdline").write_bytes(cmdline)
+            (proc / pid / "stat").write_text(f"{pid} (x y) S {parent} 1 1 0", encoding="utf-8")
+        found = users.requesting_app({"polkit.subject-pid": "40"}, "tr", str(proc), (str(apps),))
+        self.assertEqual(found, {"name": "VeltOS Mağaza", "icon": "veltos-store"})
+        self.assertEqual(users.requesting_app({"polkit.subject-pid": "40"}, "en", str(proc), (str(apps),))["name"],
+                         "VeltOS Store")
+        self.assertIsNone(users.requesting_app({"polkit.subject-pid": "37"}, "en", str(proc), (str(apps),)))
+        self.assertIsNone(users.requesting_app({}, "en", str(proc), (str(apps),)))
+        with mock.patch.object(users, "requesting_app", return_value={"name": "VeltOS Store", "icon": "veltos-store"}), \
+                mock.patch.object(users, "users_for", return_value=[]):
+            request = agent.prompt_request("org.freedesktop.packagekit.package-install", "Install?", "package-x-generic",
+                                           {"polkit.subject-pid": "40"}, "c2", [], "en")
+        self.assertEqual((request["icon"], request["program"]), ("veltos-store", "VeltOS Store"))
+
     def test_prompt_request(self):
         with mock.patch.object(users, "users_for", return_value=[{"uid": 1000, "name": "velt"}]):
             request = agent.prompt_request("org.test.do", "Allow?", "icon", {"program": "/bin/x"}, "c1", [], "en")

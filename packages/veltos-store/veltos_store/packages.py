@@ -1,8 +1,11 @@
 """Installed packages and install / uninstall / update jobs.
 
-Jobs run PackageKit's command-line client (`pkcon`) one after another;
-PackageKit asks for the administrator password through the session's
-authentication agent, as Discover does. Output is read in the C locale:
+Jobs run PackageKit's command-line client (`pkcon`) one after another, in
+a pseudo terminal that answers its "Proceed with changes?" (ptyrun.py):
+`pkcon -y` would make the transaction non-interactive and polkit would
+refuse without asking. So PackageKit asks for the administrator password
+through the session's authentication agent (VeltOS' prompt), also for a
+standard user. Output is read in the C locale:
 
     Status: 	Downloading packages
     Percentage:	45
@@ -11,6 +14,8 @@ authentication agent, as Discover does. Output is read in the C locale:
 
 import re
 import subprocess
+import sys
+from pathlib import Path
 
 from PySide6.QtCore import QObject, QProcess, QProcessEnvironment, Signal
 
@@ -159,13 +164,14 @@ class Jobs(QObject):
         self._next()
 
     def _arguments(self, action, package):
+        # No -y: see the module's text (interactive transactions).
         if action == "install":
-            return ["-p", "-y", "install", package]
+            return ["-p", "install", package]
         if action == "remove":
-            return ["-p", "-y", "remove", package]
+            return ["-p", "remove", package]
         if action == "refresh":
             return ["-p", "refresh"]
-        return ["-p", "-y", "update"]
+        return ["-p", "update"]
 
     def _next(self):
         if self.process is not None or not self.queue:
@@ -176,13 +182,18 @@ class Jobs(QObject):
         environment = QProcessEnvironment.systemEnvironment()
         environment.insert("LC_ALL", "C")
         environment.insert("LANGUAGE", "C")
+        # ptyrun comes from the same place as this module (the tests run
+        # from the source tree).
+        here = str(Path(__file__).resolve().parent.parent)
+        environment.insert("PYTHONPATH", here + (":" + environment.value("PYTHONPATH")
+                                                 if environment.contains("PYTHONPATH") else ""))
         process.setProcessEnvironment(environment)
         process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
         process.readyReadStandardOutput.connect(self._read)
         process.finished.connect(self._done)
         process.errorOccurred.connect(self._failed_to_start)
         self.process = process
-        process.start(self.program, self._arguments(*self.current))
+        process.start(sys.executable, ["-m", "veltos_store.ptyrun", self.program, *self._arguments(*self.current)])
         self.changed.emit()
 
     def _read(self):
@@ -209,6 +220,8 @@ class Jobs(QObject):
         if self.process is None:
             return
         action, package = self.current
+        if code == 127 and not self.error:
+            self.error = "pkcon"           # ptyrun could not start pkcon
         ok = status == QProcess.ExitStatus.NormalExit and code == 0 and not self.error
         self.process.deleteLater()
         self.process = None

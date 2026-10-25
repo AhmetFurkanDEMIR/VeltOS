@@ -1058,6 +1058,13 @@ and JavaScript with no build step, no external requests and no cookies:
   it places it: hide a taskbar part with zero width, `clip: true`,
   `opacity` and `enabled`, not with `visible` (the hidden search box drew
   over Task View, 2026-10-25).
+- `pkcon -y` makes the PackageKit transaction non-interactive: polkit
+  refuses whatever needs a password without asking. The live user's
+  `sudo_on_live.rules` allows everything, so test package installs as a
+  standard user (useradd, sign in through SDDM with `/etc/sddm.conf`
+  moved aside). pkcon reads "Proceed with changes?" from the controlling
+  terminal, not stdin (VeltOS Store's `ptyrun.py`). polkit passes
+  `polkit.subject-pid` in the details the agent gets.
 - Testing VeltOS Mail against real servers in the dev VM:
   `out/vm/mailseed.py` (Dovecot IMAP on localhost:993 with its self-signed
   certificate added to the VM's trust store, sample mail, the account) and

@@ -3,6 +3,37 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Store installs for standard users; the prompt names the app
+
+Item 33 of the product owner's list, and their follow-up while it was
+being done (the prompt's icon should be VeltOS Store's).
+
+- Reproduced in the dev VM with a standard user signed in through SDDM:
+  Install failed at once ("Permission was not given"), no prompt;
+  PackageKit logged "uid 1001 failed to obtain auth" right after "trying
+  to obtain org.freedesktop.packagekit.package-install". pk-console.c
+  (PackageKit 1.3.1-1+deb13u1, sources.debian.org) sets the task's
+  `"interactive", !noninteractive`, so `-y` forbids polkit interaction;
+  the live user's `sudo_on_live.rules` had hidden it. Without -y, pkcon's
+  "Proceed with changes?" is read from the controlling terminal
+  (`pk_readline_unbuffered` opens `ctermid()`); without one it declined.
+- `veltos_store/ptyrun.py`: pkcon in a pty (`pty.fork`), output passed
+  through, "Proceed with changes?" answered y, any other [N/y] question n;
+  `Jobs` starts `python3 -m veltos_store.ptyrun pkcon -p install X`
+  (PYTHONPATH set for the tests' source tree; exit 127 = pkcon missing).
+- A refused or failed uninstall kept the app in `_failed` and `state()`
+  returned "failed", drawn as Install: failures now remember their action,
+  "failed" only while the app is not installed, the reason under the
+  buttons (`hasFailure`), "... to uninstall" for a refused removal.
+- veltos-auth: `users.requesting_app` walks from `polkit.subject-pid` up
+  to eight parents and takes the first argument that names a desktop file
+  (VeltOS' renamed copies first) for the prompt's program name and icon;
+  falls back to the action's icon.
+- Verified: veltos-store 24, veltos-auth 10 package tests; dev VM as the
+  standard user: VeltOS prompt with Velt as administrator, install,
+  cancelled uninstall (stays installed), uninstall, install again, the
+  Store's icon and name in the prompt (`tests/results/2026-10-25-store-standard-user/`).
+
 ## 2026-10-25 — Account pictures on the sign-in screen
 
 Item 32 of the product owner's list. The SDDM theme's user list (bottom

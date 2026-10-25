@@ -35,6 +35,8 @@ TEXTS = {
     # What went wrong, from PackageKit's message (packages.failure_key).
     "failed_auth": ("Permission was not given. Enter the administrator password to install.",
                     "İzin verilmedi. Yüklemek için yönetici parolasını girin."),
+    "failed_auth_remove": ("Permission was not given. Enter the administrator password to uninstall.",
+                           "İzin verilmedi. Kaldırmak için yönetici parolasını girin."),
     "failed_not_found": ("This app is not in the catalogue right now. Check for updates and try again.",
                          "Bu uygulama şu anda katalogda yok. Güncelleştirmeleri denetleyip yeniden deneyin."),
     "failed_network": ("The download failed. Check your internet connection and try again.",
