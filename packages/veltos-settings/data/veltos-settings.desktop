@@ -10,3 +10,11 @@ Icon=veltos-settings
 Terminal=false
 Categories=Qt;Settings;
 StartupNotify=true
+Actions=Project;
+
+# Windows + P (and the Display key): Windows 11's Project flyout.
+[Desktop Action Project]
+Name=Project
+Name[tr]=Yansıt
+Exec=veltos-settings --project
+X-KDE-Shortcuts=Meta+P,Display

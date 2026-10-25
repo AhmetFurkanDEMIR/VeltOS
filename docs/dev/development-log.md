@@ -3,6 +3,44 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Several monitors, Windows + P, Settings > Display
+
+Item 23 of the product owner's list: a plugged-in monitor shows a picture,
+Windows 11's Project chooser, monitors in Settings.
+
+- Reproduced in the dev VM: QEMU's `virtio-vga` with `max_outputs=2`
+  (`VELTOS_VM_OUTPUTS=2 build/run.sh vm start`); hot-plugging a second
+  `virtio-gpu-pci` did not work, so the second output is "plugged in" from
+  the guest (DRM `status` forced on, plus a synthetic `HOTPLUG=1` uevent:
+  writing `status` alone sends none and KWin never saw the screen). With
+  the event KWin extends the desktop onto the new screen.
+- KScreen's kded module (autoload, applies saved layouts) was not loaded in
+  the VeltOS session; `session-fixups` loads it when missing.
+- `veltos-settings`: `devices.py` reads `kscreen-doctor --json` and plans
+  Windows' four choices as kscreen-doctor arguments (Duplicate: the largest
+  mode all screens share within each one's preferred size, else the
+  largest shared; leaving Duplicate restores preferred modes; numbers fixed:
+  a laptop's screen first, then KScreen's ids; the main display kept between
+  Extend and Duplicate, display 1 main again after one-screen-only);
+  `project.py` + `Project.qml` (the flyout, a layer-shell surface at the
+  bottom right, one instance: a second Windows + P moves the choice) and
+  `Identify.qml`; the Display page got the arrangement, Identify, Multiple
+  displays, main display, orientation and refresh rate, and reads the
+  displays again when Qt reports screens added, removed or changed.
+- Windows + P: KScreen's `kglobalaccel/org.kde.kscreen.desktop` holds
+  Meta+P; a "none" for it in `/etc/xdg/kglobalshortcutsrc` was ignored, so
+  `update-app-names` hides it like Spectacle's (new trigger on
+  `/usr/share/kglobalaccel`). The test VM had stored the earlier conflict
+  as `Project=none` in the user's kglobalshortcutsrc; new systems never
+  have the conflict.
+- Verified: veltos-settings 110 tests and veltos-desktop 123 tests in the
+  package build; dev VM with the rebuilt packages: Windows + P flyout (also
+  Turkish), every choice checked with `kscreen-doctor -o`, Settings with two
+  displays, Identify on both screens, main display moved, the page following
+  Windows + P, unplug and re-plug (`tests/results/2026-10-25-monitors/`).
+  Not tested: real monitors, laptops (lid, eDP), projectors, a taskbar on
+  the second screen (Plasma shows the taskbar on the main display only).
+
 ## 2026-10-25 — VeltOS AI, the assistant pane
 
 Item 22 of the product owner's list: a Copilot-like assistant on the right

@@ -77,6 +77,104 @@ class SettingsWindowTests(unittest.TestCase):
         return [m for m in self.messages if "qml" in m.lower() or "error" in m.lower()
                 or "undefined" in m.lower() or "warning" in m.lower()]
 
+    def test_several_displays(self):
+        # A laptop's screen and a monitor side by side: the arrangement,
+        # Multiple displays, main display, orientation, refresh rate, and
+        # Windows + P's flyout and Identify.
+        import json
+        from test_devices import two_screens
+        from veltos_settings import devices, project
+        self.system.outputs[("kscreen-doctor", "--json")] = json.dumps({"outputs": two_screens(True, 1920)})
+        self.show("system", "display")
+        self.backend.refreshDisplay()
+        self.app.processEvents()
+        self.assertEqual(self.backend.display["count"], 2)
+        self.backend.setProject("pc")
+        self.backend.setMainDisplay(2)
+        self.backend.setRotation(2, "right")
+        self.backend.identifyDisplays()
+        self.app.processEvents()
+        self.assertIn(["kscreen-doctor", "output.2.rotation.right"], self.system.commands)
+        self.assertEqual(self.started[-1], ["veltos-settings", "--identify"])
+        self.window.grabWindow()
+        self.assertEqual(self.problems(), [])
+
+        flyout = project.ProjectBackend(devices.Display(self.system), lang=self.lang, dark=True, accent="#2f5ee6",
+                                        threaded=False)
+        self.assertEqual(flyout.current, "extend")
+        finished = []
+        flyout.finished.connect(lambda: finished.append(True))
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", flyout)
+        engine.load(QUrl.fromLocalFile(str(project.QML_DIR / "Project.qml")))
+        self.assertTrue(engine.rootObjects(), self.messages)
+        engine.rootObjects()[0].show()
+        flyout.advance.emit()
+        self.app.processEvents()
+        flyout.choose("duplicate")
+        self.assertEqual(flyout.current, "duplicate")
+        self.assertEqual(finished, [True])
+        self.assertEqual(self.system.commands[-1][:2], ["kscreen-doctor", "output.1.enable"])
+        identify = QQmlApplicationEngine()
+        identify.rootContext().setContextProperty("identify", project.IdentifyBackend(self.backend.display["outputs"]))
+        identify.load(QUrl.fromLocalFile(str(project.QML_DIR / "Identify.qml")))
+        self.assertTrue(identify.rootObjects(), self.messages)
+        for item in (engine, identify):
+            item.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        self.app.processEvents()
+        # Offscreen there is no Wayland: the layer shell says so and does nothing.
+        self.assertEqual([m for m in self.problems() if "not a wayland window" not in m], [])
+
+    def test_display_follows_screens(self):
+        # A monitor plugged in or Windows + P while Display is open: the page
+        # reads the displays again, once for a burst of changes.
+        import json
+        import time
+        from PySide6.QtCore import QObject, Signal
+        from test_devices import two_screens
+
+        class Screen(QObject):
+            geometryChanged = Signal()
+
+        class App(QObject):
+            screenAdded = Signal(QObject)
+            screenRemoved = Signal(QObject)
+            primaryScreenChanged = Signal(QObject)
+
+            def __init__(self):
+                super().__init__()
+                self.first = Screen()
+
+            def screens(self):
+                return [self.first]
+
+        def reads():
+            return self.system.commands.count(["kscreen-doctor", "--json"])
+
+        def settle():
+            for _ in range(5):
+                time.sleep(0.02)
+                self.app.processEvents()
+
+        self.system.outputs[("kscreen-doctor", "--json")] = json.dumps({"outputs": two_screens(True, 1920)})
+        fake = App()
+        self.backend.follow_screens(fake, delay=1)
+        fake.first.geometryChanged.emit()
+        settle()
+        self.assertEqual(reads(), 0)                     # Display never shown: nothing read
+        self.backend.refreshDisplay()
+        before = reads()
+        fake.first.geometryChanged.emit()
+        second = Screen()
+        fake.screenAdded.emit(second)
+        fake.primaryScreenChanged.emit(second)
+        settle()
+        self.assertEqual(reads(), before + 1)
+        second.geometryChanged.emit()                     # the added screen is watched too
+        settle()
+        self.assertEqual(reads(), before + 2)
+
     def test_every_page_loads(self):
         for page in self.backend.pages:
             self.show(page["id"])

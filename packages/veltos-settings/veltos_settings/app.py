@@ -14,7 +14,7 @@ import traceback
 from pathlib import Path
 from types import SimpleNamespace
 
-from PySide6.QtCore import Property, QLocale, QObject, Qt, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QLocale, QObject, Qt, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
@@ -591,6 +591,44 @@ class Backend(QObject):
         self.jobs.submit(lambda: self.system.display.set_mode(output_id, mode_id),
                          lambda _ok: self.refreshDisplay())
 
+    @Slot(str)
+    def setProject(self, mode):
+        """Multiple displays: duplicate, extend, pc (only 1), second (only 2)."""
+        self.jobs.submit(lambda: self.system.display.project(mode), lambda _ok: self.refreshDisplay())
+
+    @Slot(int)
+    def setMainDisplay(self, output_id):
+        self.jobs.submit(lambda: self.system.display.set_primary(output_id), lambda _ok: self.refreshDisplay())
+
+    @Slot(int, str)
+    def setRotation(self, output_id, rotation):
+        self.jobs.submit(lambda: self.system.display.set_rotation(output_id, rotation),
+                         lambda _ok: self.refreshDisplay())
+
+    @Slot()
+    def identifyDisplays(self):
+        """Each display shows its number for a moment (Windows' Identify)."""
+        self._start(["veltos-settings", "--identify"])
+
+    def follow_screens(self, app, delay=400):
+        """Display follows displays plugged in, taken away or changed
+        elsewhere (Windows + P, a resolution set by another program) while
+        it is open, as Windows' page does; it kept showing "Extend" after
+        Windows + P's "Second screen only" before (VM 2026-10-25)."""
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.setInterval(delay)
+        timer.timeout.connect(lambda: self._display.get("loaded") and self.refreshDisplay())
+
+        def watch(screen):
+            screen.geometryChanged.connect(timer.start)
+        for screen in app.screens():
+            watch(screen)
+        app.screenAdded.connect(lambda screen: (watch(screen), timer.start()))
+        app.screenRemoved.connect(lambda _screen: timer.start())
+        app.primaryScreenChanged.connect(lambda _screen: timer.start())
+        return timer
+
     # --- Personalization > Background, Colours -------------------------------------------
 
     @Property("QVariantMap", notify=personalChanged)
@@ -960,6 +998,10 @@ class Backend(QObject):
 def main(argv=None):
     argv = sys.argv if argv is None else argv
     app = QGuiApplication(argv)
+    if "--project" in argv or "--identify" in argv:
+        # Windows + P's flyout and Identify: small windows of their own.
+        from . import project
+        return project.main(app, argv)
     try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
         from veltos_controls import use as use_veltos_controls
         use_veltos_controls()
@@ -977,6 +1019,7 @@ def main(argv=None):
     # systemsettings / kcmshell6 passes those).
     start_page = catalog.page_for_module(argv[1]) if len(argv) > 1 else "home"
     backend = Backend(start_page=start_page)
+    backend.follow_screens(app)
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)
     engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))

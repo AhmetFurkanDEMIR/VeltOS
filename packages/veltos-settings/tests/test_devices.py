@@ -187,6 +187,127 @@ class DisplayTests(unittest.TestCase):
                                            ["kscreen-doctor", "output.1.mode.1"]])
 
 
+def two_screens(hdmi_enabled=False, hdmi_x=0):
+    """A laptop's screen (eDP, KScreen type Panel) and a monitor on HDMI."""
+    laptop = {"id": 1, "name": "eDP-1", "type": 7, "connected": True, "enabled": True, "priority": 1, "scale": 1.0,
+              "pos": {"x": 0, "y": 0}, "rotation": 1, "currentModeId": "1", "preferredModes": ["1"],
+              "modes": [{"id": "1", "refreshRate": 60.0, "size": {"width": 1920, "height": 1080}},
+                        {"id": "2", "refreshRate": 60.0, "size": {"width": 1280, "height": 720}}]}
+    monitor = {"id": 2, "name": "HDMI-A-1", "type": 8, "connected": True, "enabled": hdmi_enabled,
+               "priority": 2 if hdmi_enabled else 0, "scale": 1.0, "pos": {"x": hdmi_x, "y": 0}, "rotation": 1,
+               "currentModeId": "10" if hdmi_enabled else "", "preferredModes": ["10"],
+               "modes": [{"id": "10", "refreshRate": 60.0, "size": {"width": 2560, "height": 1440}},
+                         {"id": "11", "refreshRate": 144.0, "size": {"width": 1920, "height": 1080}},
+                         {"id": "12", "refreshRate": 60.0, "size": {"width": 1920, "height": 1080}},
+                         {"id": "13", "refreshRate": 59.94, "size": {"width": 1920, "height": 1080}}]}
+    return [laptop, monitor]
+
+
+class MultipleDisplaysTests(unittest.TestCase):
+    """Windows' Project choices (Windows + P, Settings > Display > Multiple
+    displays) as kscreen-doctor arguments."""
+
+    def test_modes_and_plans(self):
+        outputs = two_screens()                      # monitor plugged in, still off
+        self.assertEqual([o["name"] for o in devices.numbered(outputs)], ["eDP-1", "HDMI-A-1"])
+        self.assertEqual(devices.project_mode(outputs), "pc")
+        self.assertEqual(devices.project_plan(outputs, "extend"), [
+            "output.1.enable", "output.1.mode.1", "output.1.position.0,0", "output.1.priority.1",
+            "output.2.enable", "output.2.mode.10", "output.2.position.1920,0"])
+        self.assertEqual(devices.project_plan(outputs, "second"), [
+            "output.2.enable", "output.2.mode.10", "output.2.position.0,0", "output.2.priority.1",
+            "output.1.disable"])
+        # Duplicate: the largest resolution both have, at the same place.
+        self.assertEqual(devices.project_plan(outputs, "duplicate"), [
+            "output.1.enable", "output.1.mode.1", "output.1.position.0,0", "output.1.priority.1",
+            "output.2.enable", "output.2.mode.11", "output.2.position.0,0"])
+        extended = two_screens(True, 1920)
+        self.assertEqual(devices.project_mode(extended), "extend")
+        self.assertEqual(devices.project_plan(extended, "pc"), [
+            "output.1.enable", "output.1.mode.1", "output.1.position.0,0", "output.1.priority.1",
+            "output.2.disable"])
+        self.assertEqual(devices.project_mode(two_screens(True, 0)), "duplicate")
+        second = two_screens(True, 0)
+        second[0]["enabled"] = False
+        self.assertEqual(devices.project_mode(second), "second")
+        self.assertEqual(devices.project_plan(outputs[:1], "extend"), [])      # one screen: nothing to do
+        self.assertEqual(devices.project_plan(outputs, "rm -rf"), [])
+
+    def test_numbers_stay_when_another_display_is_main(self):
+        # Windows keeps display numbers; numbering by the main display made
+        # Settings show display 1's settings after "Make this my main
+        # display" on display 2 (VM 2026-10-25).
+        outputs = two_screens(True, 1920)
+        outputs[0]["type"], outputs[0]["name"] = 8, "DP-1"         # a desktop PC: no laptop screen
+        outputs[0]["priority"], outputs[1]["priority"] = 2, 1
+        self.assertEqual([o["name"] for o in devices.numbered(outputs)], ["DP-1", "HDMI-A-1"])
+        self.assertEqual(devices.project_mode(outputs), "extend")
+        # Extend again from Duplicate keeps the main display.
+        for output in outputs:
+            output["pos"] = {"x": 0, "y": 0}
+        plan = devices.project_plan(outputs, "extend")
+        self.assertIn("output.2.priority.1", plan)
+        self.assertNotIn("output.1.priority.1", plan)
+        # Second screen only: display 2 alone is still "second", not "pc".
+        outputs[0]["enabled"], outputs[0]["priority"] = False, 0
+        self.assertEqual(devices.project_mode(outputs), "second")
+        # Extend from there: display 1 is the main one again.
+        plan = devices.project_plan(outputs, "extend")
+        self.assertIn("output.1.priority.1", plan)
+        self.assertNotIn("output.2.priority.1", plan)
+
+    def test_duplicate_stays_within_preferred_sizes(self):
+        # Virtual screens (QEMU, VM 2026-10-25) list modes up to 5120x2160
+        # whatever their preferred size: Duplicate drove both at 4096x2160.
+        def virtual(ident, preferred, enabled, x):
+            sizes = [(5120, 2160), (4096, 2160), (1920, 1080), (1024, 768), (800, 600)]
+            modes = [{"id": f"{ident}{i}", "refreshRate": 60.0, "size": {"width": w, "height": h}}
+                     for i, (w, h) in enumerate(sizes)]
+            return {"id": ident, "name": f"Virtual-{ident}", "type": 0, "connected": True, "enabled": enabled,
+                    "priority": ident, "scale": 1.0, "pos": {"x": x, "y": 0}, "rotation": 1,
+                    "currentModeId": f"{ident}{sizes.index(preferred)}",
+                    "preferredModes": [f"{ident}{sizes.index(preferred)}"], "modes": modes}
+        outputs = [virtual(1, (1920, 1080), True, 0), virtual(2, (1024, 768), True, 1920)]
+        self.assertEqual(devices.project_plan(outputs, "duplicate"), [
+            "output.1.enable", "output.1.mode.13", "output.1.position.0,0", "output.1.priority.1",
+            "output.2.enable", "output.2.mode.23", "output.2.position.0,0"])
+        # Leaving Duplicate, every screen goes back to its preferred size.
+        for output in outputs:
+            output["pos"] = {"x": 0, "y": 0}
+            output["currentModeId"] = f"{output['id']}3"
+        self.assertEqual(devices.project_plan(outputs, "extend"), [
+            "output.1.enable", "output.1.mode.12", "output.1.position.0,0", "output.1.priority.1",
+            "output.2.enable", "output.2.mode.23", "output.2.position.1920,0"])
+
+    def test_state_and_actions(self):
+        system = FakeSystem({("kscreen-doctor", "--json"): json.dumps({"outputs": two_screens(True, 1920)})})
+        display = devices.Display(system)
+        state = display.state()
+        self.assertEqual((state["count"], state["project"]), (2, "extend"))
+        laptop, monitor = state["outputs"]
+        self.assertEqual((laptop["number"], laptop["internal"], laptop["primary"]), (1, True, True))
+        self.assertEqual((monitor["number"], monitor["x"], monitor["width"], monitor["height"]), (2, 1920, 2560, 1440))
+        self.assertEqual(monitor["rotation"], "none")
+        # Refresh rates of the current resolution, rounded and once each.
+        rotated = two_screens(True, 1920)
+        rotated[1]["currentModeId"] = "12"
+        rotated[1]["rotation"] = 2
+        system = FakeSystem({("kscreen-doctor", "--json"): json.dumps({"outputs": rotated})})
+        monitor = devices.Display(system).state()["outputs"][1]
+        self.assertEqual([r["label"] for r in monitor["rates"]], ["144 Hz", "60 Hz"])
+        self.assertEqual((monitor["rotation"], monitor["width"], monitor["height"]), ("left", 1080, 1920))
+        display = devices.Display(system)
+        display.set_primary(2)
+        display.set_rotation(2, "right")
+        self.assertFalse(display.set_rotation(2, "upside"))
+        display.project("pc")
+        changes = [c for c in system.commands if c != ["kscreen-doctor", "--json"]]
+        self.assertEqual(changes[-3:], [
+            ["kscreen-doctor", "output.2.priority.1"], ["kscreen-doctor", "output.2.rotation.right"],
+            ["kscreen-doctor", "output.1.enable", "output.1.mode.1", "output.1.position.0,0", "output.1.priority.1",
+             "output.2.disable"]])
+
+
 class PersonalizationTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())

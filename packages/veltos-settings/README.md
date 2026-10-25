@@ -70,6 +70,20 @@ open VeltOS Settings.
     still be changed by scripts. Only known values reach the scripts. The
     taskbar's right-click menu opens this page ("Taskbar settings",
     veltos-desktop).
+  - **System > Display** with several displays (KScreen through
+    `kscreen-doctor`, `devices.py`): the displays to scale with Windows'
+    fixed numbers (a laptop's screen 1, then KScreen's order), Identify
+    (`veltos-settings --identify`: every screen shows its number at the
+    bottom left), Multiple displays (Duplicate, Extend, Show only on 1/2),
+    Make this my main display, and scale, resolution, orientation and
+    refresh rate of the chosen display; the page reads the displays again
+    when Qt reports screens added, removed or changed. Windows + P (and the
+    Display key: the `Project` action of the desktop file) runs
+    `veltos-settings --project`, Windows 11's Project flyout at the bottom
+    right (`project.py`, `qml/Project.qml`, a layer-shell surface; one
+    instance, a second Windows + P moves the choice like Windows'). Duplicate
+    takes the largest resolution all screens share within each one's
+    preferred size; leaving it restores the preferred ones;
   - **System**: Display, Sound, Notifications (do not disturb, sounds,
     banners per app: plasmanotifyrc), Power & battery (screen off, sleep,
     power button, lid: powerdevilrc + PowerDevil reload; Display's "Graphics
@@ -150,6 +164,7 @@ open VeltOS Settings.
 | `veltos_settings/sysinfo.py` | Facts: OS, CPU, RAM, GPUs (`lspci -mm`), DMI model, PC name, drives, dark mode |
 | `veltos_settings/strings.py` | Texts of the built-in pages |
 | `veltos_settings/app.py` | Backend object for QML (texts, facts, actions) and `main()`; the Windows programs list (veltos-winapps' registry reader and `veltos-run`'s records) with the programs' icons and Uninstall |
+| `veltos_settings/project.py` | Windows + P's Project flyout (`--project`) and Identify (`--identify`) |
 | `veltos_settings/qml/` | Window (`Main.qml`), pages and components, `Theme` singleton (colours) |
 | `bin/veltos-settings`, `data/veltos-settings.desktop` | Launcher ("Settings" / "Ayarlar") |
 
@@ -177,8 +192,9 @@ the theme switch applies the global theme).
 
 - Not built in yet (left out rather than shown in KDE's window): VPN and
   wired network details, proxy, firewall, fonts and pointer style, per-app
-  volume, display arrangement and refresh rate, game controllers, pen
-  tablets, on-screen keyboard, spelling.
+  volume, game controllers, pen tablets, on-screen keyboard, spelling.
+- Displays cannot be dragged to another place in the arrangement yet
+  (Extend puts them side by side, display 1 on the left).
 - Windows programs have no Modify / Repair entries; Uninstall runs the
   program's own uninstaller, whose window may still appear.
 - No automatic update checks yet (VeltOS Update opens the Store).

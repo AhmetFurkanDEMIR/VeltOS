@@ -127,6 +127,22 @@ class AppNameTests(unittest.TestCase):
             app_names.update(src, out)
             self.assertFalse((Path(tmp) / "xdg/kglobalaccel/org.kde.spectacle.desktop").exists())
 
+    def test_kscreen_gives_up_windows_p(self):
+        # KScreen's display switcher only has a file in kglobalaccel/; Windows
+        # + P belongs to VeltOS Settings' Project flyout.
+        kscreen = ("[Desktop Entry]\nName=Display Configuration\nActions=ShowOSD\n"
+                   "\n[Desktop Action ShowOSD]\nX-KDE-Shortcuts=Display,Meta+P\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            src, out = Path(tmp) / "applications", Path(tmp) / "xdg" / "applications"
+            src.mkdir()
+            (Path(tmp) / "kglobalaccel").mkdir()
+            (Path(tmp) / "kglobalaccel/org.kde.kscreen.desktop").write_text(kscreen, encoding="utf-8")
+            app_names.update(src, out)
+            off = (Path(tmp) / "xdg/kglobalaccel/org.kde.kscreen.desktop").read_text(encoding="utf-8")
+            self.assertIn("\nNoDisplay=true\n", off)
+            self.assertIn("Project flyout", off)
+            self.assertNotIn("X-KDE-Shortcuts", off)
+
     def test_file_without_name_is_rejected(self):
         with self.assertRaises(ValueError):
             app_names.rewrite("[Desktop Entry]\nExec=x\n", "x", hide=True)

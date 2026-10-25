@@ -146,6 +146,7 @@ cmd_vm() {
     #   build/run.sh vm start [cdrom|disk] [uefi|bios|secureboot]
     #   build/run.sh vm do "click:960,540 shot:name"   build/run.sh vm exec "cmd"
     #   build/run.sh vm stop        (screenshots: out/vm/, disk: volume veltos-vm)
+    #   VELTOS_VM_OUTPUTS=2 build/run.sh vm start   (a second monitor; "shot2:name")
     local action="${1:-}"
     shift || true
     case "$action" in
@@ -157,7 +158,7 @@ cmd_vm() {
             iso="$(ls -t "$REPO_ROOT"/out/iso/*/*.iso 2>/dev/null | head -n1 || true)"
             rel="${iso#"$REPO_ROOT"/}"
             mkdir -p "$REPO_ROOT/out/vm"
-            docker run -d --name veltos-vm --device /dev/kvm                 -v "$HOST_ROOT:/src:ro" -v "$HOST_ROOT/out:/out" -v veltos-vm:/vm                 "$IMAGE" python3 /src/tests/boot/vmctl.py start --iso "/src/$rel"                 --disk /vm/disk.qcow2 --boot "${1:-cdrom}" --firmware "${2:-uefi}"                 --memory "${VELTOS_VM_MEMORY:-8192}" >/dev/null
+            docker run -d --name veltos-vm --device /dev/kvm                 -v "$HOST_ROOT:/src:ro" -v "$HOST_ROOT/out:/out" -v veltos-vm:/vm                 "$IMAGE" python3 /src/tests/boot/vmctl.py start --iso "/src/$rel"                 --disk /vm/disk.qcow2 --boot "${1:-cdrom}" --firmware "${2:-uefi}"                 --memory "${VELTOS_VM_MEMORY:-8192}" --outputs "${VELTOS_VM_OUTPUTS:-1}" >/dev/null
             log "VM started (boot: ${1:-cdrom}, firmware: ${2:-uefi})"
             ;;
         do|exec|exec-user|upload|stop)

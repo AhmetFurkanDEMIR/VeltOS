@@ -372,33 +372,189 @@ class Sound:
 SCALES = [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5]
 
 
+# kscreen's rotation values and Windows' orientations.
+ROTATIONS = {1: "none", 2: "left", 4: "inverted", 8: "right"}
+INTERNAL_PREFIXES = ("eDP", "LVDS", "DSI")
+PANEL_TYPE = 7                       # KScreen::Output::Panel (a laptop's screen)
+PROJECT_MODES = ("pc", "duplicate", "extend", "second")
+
+
+def is_internal(output):
+    return output.get("type") == PANEL_TYPE or str(output.get("name", "")).startswith(INTERNAL_PREFIXES)
+
+
+def mode_size(mode):
+    size = (mode or {}).get("size") or {}
+    return size.get("width") or 0, size.get("height") or 0
+
+
+def chosen_mode(output, native=False):
+    """The mode an output uses, or would use when switched on: its current
+    one (not with `native`), else its preferred one, else the largest."""
+    modes = {str(m.get("id")): m for m in output.get("modes", [])}
+    current = str(output.get("currentModeId", ""))
+    if output.get("enabled") and current in modes and not native:
+        return modes[current]
+    for mode_id in [str(i) for i in output.get("preferredModes", [])] + [current]:
+        if mode_id in modes:
+            return modes[mode_id]
+    if not modes:
+        return None
+    return max(modes.values(), key=lambda m: (mode_size(m)[0] * mode_size(m)[1], m.get("refreshRate") or 0))
+
+
+def logical_width(output, mode):
+    width, height = mode_size(mode)
+    if ROTATIONS.get(output.get("rotation"), "none") in ("left", "right"):
+        width = height
+    return int(round(width / float(output.get("scale") or 1.0)))
+
+
+def numbered(outputs):
+    """Outputs in Windows' numbering, which stays the same whichever display
+    is the main one or where they are placed: a laptop's own screen 1, then
+    in the order the system found them (KScreen's ids). Numbering by the
+    main display renumbered them as soon as another one was made main."""
+    internal = [o for o in outputs if is_internal(o)][:1]
+    rest = sorted((o for o in outputs if o not in internal), key=lambda o: o.get("id") or 0)
+    return internal + rest
+
+
+def main_output(outputs):
+    """The "PC screen" of Windows' Project choices: display 1."""
+    order = numbered(outputs)
+    return order[0] if order else None
+
+
+def primary_output(outputs):
+    """The main display (taskbar, new windows): KScreen's priority 1."""
+    return next((o for o in outputs if o.get("enabled") and o.get("priority") == 1), None)
+
+
+def project_mode(outputs):
+    """Which of Windows' Project choices the screens are in."""
+    if len(outputs) < 2:
+        return "pc"
+    first = main_output(outputs)
+    enabled = [o for o in outputs if o.get("enabled")]
+    if not first.get("enabled"):
+        return "second"
+    if len(enabled) == 1:
+        return "pc"
+    positions = {((o.get("pos") or {}).get("x"), (o.get("pos") or {}).get("y")) for o in enabled}
+    if len(enabled) == len(outputs) and len(positions) == 1:
+        return "duplicate"
+    return "extend"
+
+
+def project_plan(outputs, mode):
+    """kscreen-doctor arguments for one of Windows' Project choices: PC
+    screen only, Duplicate (all screens at one place, in the largest
+    resolution they share that none of them has to be driven above its own
+    preferred one for), Extend (side by side, the PC's screen first),
+    Second screen only. Screens leaving Duplicate go back to their preferred
+    resolution. Empty when there is nothing to change."""
+    if mode not in PROJECT_MODES or len(outputs) < 2:
+        return []
+    order = numbered(outputs)
+    first, others = order[0], order[1:]
+    now = project_mode(outputs)
+    leaving_duplicate = now == "duplicate"
+    # Between Extend and Duplicate the main display stays the main one; from
+    # one screen only, display 1 is the main one again (the one screen had
+    # become main; Windows also goes back to the PC's screen).
+    main = primary_output(outputs) if now in ("extend", "duplicate") else None
+
+    def own_mode(output):
+        return chosen_mode(output, native=leaving_duplicate)
+
+    def main_of(shown):
+        return main if main in shown else shown[0]
+
+    def enable(output, mode_obj, x, primary=False):
+        name = output["id"]
+        args = [f"output.{name}.enable"]
+        if mode_obj is not None:
+            args.append(f"output.{name}.mode.{mode_obj['id']}")
+        args.append(f"output.{name}.position.{x},0")
+        if primary:
+            args.append(f"output.{name}.priority.1")
+        return args
+
+    args = []
+    if mode == "pc":
+        args += enable(first, own_mode(first), 0, True)
+        args += [f"output.{o['id']}.disable" for o in others]
+    elif mode == "second":
+        x = 0
+        for output in others:
+            chosen = own_mode(output)
+            args += enable(output, chosen, x, output is main_of(others))
+            x += logical_width(output, chosen)
+        args.append(f"output.{first['id']}.disable")
+    elif mode == "extend":
+        x = 0
+        for output in order:
+            chosen = own_mode(output)
+            args += enable(output, chosen, x, output is main_of(order))
+            x += logical_width(output, chosen)
+    else:  # duplicate
+        sizes = None
+        for output in order:
+            own = {mode_size(m) for m in output.get("modes", []) if all(mode_size(m))}
+            sizes = own if sizes is None else sizes & own
+        # Screens list modes far above their panel (virtual and some TV
+        # screens: 5120x2160 next to a 1024x768 preferred one): stay within
+        # every screen's preferred size when a shared mode allows it.
+        limits = [mode_size(chosen_mode(o, native=True)) for o in order]
+        fitting = {s for s in sizes or () if all(s[0] <= w and s[1] <= h for w, h in limits if w and h)}
+        sizes = fitting or sizes
+        best = max(sizes, key=lambda size: size[0] * size[1]) if sizes else None
+        for output in order:
+            if best:
+                same = [m for m in output.get("modes", []) if mode_size(m) == best]
+                chosen = max(same, key=lambda m: m.get("refreshRate") or 0)
+            else:
+                chosen = chosen_mode(output)
+            args += enable(output, chosen, 0, output is main_of(order))
+    return args
+
+
 class Display:
     def __init__(self, runner=run):
         self.run = runner
 
-    def state(self):
+    def raw(self):
         code, out = self.run(["kscreen-doctor", "--json"])
         try:
             data = json.loads(out) if code == 0 else {}
         except ValueError:
             data = {}
+        outputs = data.get("outputs", []) if isinstance(data, dict) else []
+        return [o for o in outputs if isinstance(o, dict) and o.get("connected")]
+
+    def state(self):
+        """Every connected screen in Windows' numbering, with its modes (one
+        entry per resolution; the current resolution's refresh rates
+        apart), scale, orientation and whether it is the main display; and
+        the current Project choice."""
+        connected = self.raw()
         result = []
-        for output in data.get("outputs", []) if isinstance(data, dict) else []:
-            if not output.get("connected") or not output.get("enabled"):
-                continue
-            current_id = str(output.get("currentModeId", ""))
+        for number, output in enumerate(numbered(connected), start=1):
+            current_id = str(output.get("currentModeId", "")) if output.get("enabled") else ""
             # One entry per resolution: its highest refresh rate (the current
             # mode for the current resolution).
             by_size = {}
             current = None
+            rates = {}
             for mode in output.get("modes", []):
-                size = mode.get("size", {})
-                key = (size.get("width") or 0, size.get("height") or 0)
+                key = mode_size(mode)
                 if not all(key):
                     continue
                 entry = {"id": str(mode.get("id")), "width": key[0], "height": key[1],
                          "rate": float(mode.get("refreshRate") or 0),
                          "label": f"{key[0]} × {key[1]}"}
+                rates.setdefault(key, []).append(entry)
                 if entry["id"] == current_id:
                     current = entry
                 known = by_size.get(key)
@@ -410,11 +566,36 @@ class Display:
             for mode in modes:
                 mode["recommended"] = mode["id"] in preferred
             scale = round(float(output.get("scale") or 1.0), 2)
-            result.append({"id": output.get("id"), "name": output.get("name", ""),
+            current_rates = []
+            if current:
+                seen = set()
+                for entry in sorted(rates.get((current["width"], current["height"]), []), key=lambda m: -m["rate"]):
+                    rounded = round(entry["rate"])
+                    if rounded in seen:
+                        continue
+                    seen.add(rounded)
+                    current_rates.append({"id": entry["id"], "label": f"{rounded} Hz"})
+            width, height = mode_size(chosen_mode(output))
+            if ROTATIONS.get(output.get("rotation"), "none") in ("left", "right"):
+                width, height = height, width
+            result.append({"id": output.get("id"), "name": output.get("name", ""), "number": number,
+                           "enabled": bool(output.get("enabled")), "internal": is_internal(output),
+                           "primary": output.get("priority") == 1 and bool(output.get("enabled")),
+                           "x": (output.get("pos") or {}).get("x", 0), "y": (output.get("pos") or {}).get("y", 0),
+                           "width": int(round(width / (scale or 1))), "height": int(round(height / (scale or 1))),
+                           "rotation": ROTATIONS.get(output.get("rotation"), "none"),
                            "scale": scale, "scales": sorted(set(SCALES) | {scale}), "modes": modes,
                            "currentMode": current["id"] if current else "",
-                           "currentLabel": current["label"] if current else ""})
-        return {"outputs": result}
+                           "currentLabel": current["label"] if current else "",
+                           "rates": current_rates,
+                           "currentRate": current["id"] if current else ""})
+        return {"outputs": result, "project": project_mode(connected), "count": len(connected)}
+
+    def project(self, mode):
+        args = project_plan(self.raw(), mode)
+        if not args:
+            return mode in PROJECT_MODES
+        return self.run(["kscreen-doctor"] + args, timeout=30)[0] == 0
 
     def set_scale(self, output_id, scale):
         return self.run(["kscreen-doctor", f"output.{int(output_id)}.scale.{float(scale):g}"])[0] == 0
@@ -423,6 +604,14 @@ class Display:
         if not re.fullmatch(r"[\w.@-]+", str(mode_id)):
             return False
         return self.run(["kscreen-doctor", f"output.{int(output_id)}.mode.{mode_id}"])[0] == 0
+
+    def set_primary(self, output_id):
+        return self.run(["kscreen-doctor", f"output.{int(output_id)}.priority.1"])[0] == 0
+
+    def set_rotation(self, output_id, rotation):
+        if rotation not in ROTATIONS.values():
+            return False
+        return self.run(["kscreen-doctor", f"output.{int(output_id)}.rotation.{rotation}"])[0] == 0
 
 
 # --- Personalization ---------------------------------------------------------------------------

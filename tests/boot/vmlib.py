@@ -71,8 +71,13 @@ class Qmp:
                 raise RuntimeError(f"QMP {command}: {reply['error']}")
             return reply.get("return")
 
-    def screenshot(self, path):
-        self.execute("screendump", filename=str(path), format="png")
+    def screenshot(self, path, head=None):
+        """The screen as PNG; `head` picks another output of the display
+        device (vmctl --outputs; QEMU wants the device id with it)."""
+        if head:
+            self.execute("screendump", filename=str(path), format="png", device="video0", head=int(head))
+        else:
+            self.execute("screendump", filename=str(path), format="png")
 
     def key(self, *names):
         """Press keys together (e.g. key("ctrl", "a")) and release them."""

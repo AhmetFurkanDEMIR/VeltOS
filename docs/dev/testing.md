@@ -134,6 +134,18 @@ Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):
   `grub-reboot veltos-safe` (or the tile) and check `/proc/cmdline` for
   `nomodeset` and `/etc/sddm.conf.d/zz-veltos-safe-graphics.conf`.
   Typing on the guest's Turkish console: "i" is `key:apostrophe`.
+- Several monitors (2026-10-25): `VELTOS_VM_OUTPUTS=2 build/run.sh vm
+  start` gives the virtio GPU a second output, disconnected at first.
+  "Plug it in" inside the guest: `echo on >
+  /sys/class/drm/card0-Virtual-2/status` (forces the connector on) and
+  then `echo 'change <any uuid> HOTPLUG=1' > /sys/class/drm/card0/uevent`
+  (writing `status` sends no uevent, so KWin noticed nothing until this
+  synthetic one); `echo off` and the same uevent unplug it. `vm do
+  "shot2:name"` takes the second screen's picture. QEMU's own hot-plug
+  (`device_add virtio-gpu-pci` into a PCIe root port) did not work. While
+  two screens are side by side, the VM's tablet pointer spans the whole
+  desktop, not screen 1: a `vm do` click at x lands at x * (sum of the
+  widths) / 1920, so scale clicks (1920 + 1024 wide: x * 0.652).
 - Mail (Thunderbird) test data without a mail server: a POP3 account that
   never connects (`user.js` with `mail.server.serverN.login_at_startup
   false`) and an mbox `Inbox` in the profile's `Mail/<host>/`; delete a

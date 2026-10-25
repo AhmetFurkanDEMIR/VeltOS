@@ -124,7 +124,7 @@ and seen working (development log says where); `[ ]` = open.
 20. [x] Text file right-click shows two menus: keep the Windows one. It was Notepad: a right-click in the text opened KDE's text menu (Spell checking, Undo, Cut ...: the org.kde.desktop style's TextArea) and Notepad's own menu over each other. The text is now Qt's template TextArea, which has no menu of its own, and the right button, the Menu key and Shift+F10 open Windows' short text menu (Undo, Cut, Copy, Paste, Delete, Select all) instead of the whole Edit menu. Dev VM (`tests/results/2026-10-25-notepad-one-menu/`)
 21. [x] Weather app like Windows 11's, without an API key (open data). New package veltos-weather: Windows 11 Weather's layout (rail: Forecast, Historical weather, Favorites, Settings; place search; the current weather over a sky of its condition; 10-day forecast; hourly chart with nine kinds; weather details with sun path, moon phase, wind compass, UV and air quality scales; monthly averages of five years of records; favorites; °F/°C) on Open-Meteo's open data, no account or key (free for non-commercial use, CC BY 4.0, credited in the app); first start uses the time zone's city. Own weather pictures and app icon. Not done: the Maps page (no tile service usable without a key) and device location (item 40). Dev VM with live data (`tests/results/2026-10-25-weather/`)
 22. [x] VeltOS AI: a Copilot-like assistant from the right edge; ChatGPT, Claude, Gemini and Copilot with the user's own API keys; can act on the system. New package veltos-ai: a pane on the right edge like Windows 11's Copilot (layer shell with an exclusive zone: maximised windows make room; Windows + C opens and closes it), chats with ChatGPT (OpenAI Responses API), Claude (Messages API), Gemini (streamGenerateContent) or Copilot through Microsoft's Azure OpenAI (Microsoft's consumer Copilot has no API key), each with the user's own key kept in a mode-600 file; answers stream with Markdown. Acts on the system through a fixed list of actions (light/dark, volume, Wi-Fi, Bluetooth, Do not disturb, apps, Settings pages, folders, web pages, Snipping Tool; the PC's details and file search read-only), every change after "Allow". Dev VM with a stand-in service (no API keys here): the pane, Windows + C, the approval and real theme switches; real services untested (`tests/results/2026-10-25-veltos-ai/`)
-23. [ ] Monitors: plugging one in shows a picture; Windows 11's Project (Win+P) chooser; monitors in Settings > Display
+23. [x] Monitors: plugging one in shows a picture; Windows 11's Project (Win+P) chooser; monitors in Settings > Display. A plugged-in monitor extends the desktop (KWin; KScreen's kded module, which applies saved layouts, had not been running in the session and is loaded now). Windows + P (and the Display key) opens VeltOS Settings' Project flyout at the bottom right (PC screen only, Duplicate, Extend, Second screen only; arrow keys, Windows + P again, Enter; KScreen's own switcher gave the shortcut up). Settings > System > Display: the displays to scale with fixed numbers, Identify (each screen shows its number), Multiple displays, Make this my main display, scale, resolution, orientation and refresh rate of the chosen display, and the page follows changes made elsewhere (Windows + P, unplugging). Duplicate stays within every screen's preferred resolution. Dev VM with a second virtual monitor plugged in and out (`tests/results/2026-10-25-monitors/`); not tested with real monitors, laptops or projectors
 24. [ ] Lock screen / waking from sleep: Windows 11's sign-in animation
 25. [ ] Brightness on-screen bar uses the same icon as the quick settings brightness slider
 26. [ ] Taskbar date follows the language (it stayed English)
@@ -176,9 +176,14 @@ order:
   Bottles — **Bottles is not in Debian 13** (Flathub only), decision
   pending.
 - Settings left out until they have a VeltOS page: VPN and wired network
-  details, proxy, firewall, fonts, pointer style, per-app volume, display
-  arrangement and refresh rate, game controllers, tablets, on-screen
-  keyboard, spelling.
+  details, proxy, firewall, fonts, pointer style, per-app volume, game
+  controllers, tablets, on-screen keyboard, spelling. Display arrangement
+  and refresh rate have a page since 2026-10-25, but the displays cannot
+  be dragged to a new place yet (Extend puts them side by side, display 1
+  on the left).
+- Several monitors (2026-10-25): the taskbar is only on the main display
+  (Windows 11 shows it on every display by default); untested with real
+  monitors, laptops and projectors.
 - Office (2026-10-22): LibreOffice's document window keeps its own tab
   strip colour and has no animations (that needs LibreOffice changes;
   the gtk3 plugin with CSS could colour the strip but would make the

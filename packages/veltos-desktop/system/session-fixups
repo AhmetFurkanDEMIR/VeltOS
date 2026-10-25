@@ -39,6 +39,13 @@ done
 # 5 % steps, which blur text and window buttons (see display-scale).
 /usr/libexec/veltos/display-scale || true
 
+# KDE's display daemon (kded module "kscreen": a screen plugged in or out,
+# the laptop lid) is set to start with the session but was not running in
+# a VeltOS session (dev VM, 2026-10-25); start it if kded did not.
+if ! qdbus6 org.kde.kded6 /kded org.kde.kded6.loadedModules 2>/dev/null | grep -qx kscreen; then
+    qdbus6 org.kde.kded6 /kded org.kde.kded6.loadModule kscreen >/dev/null 2>&1 || true
+fi
+
 # Applets still loading may reset their lock from the saved layout, so
 # the script runs twice.
 script="

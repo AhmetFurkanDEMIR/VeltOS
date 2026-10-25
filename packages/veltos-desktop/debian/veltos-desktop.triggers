@@ -1,5 +1,7 @@
 # Application names (update-app-names) follow changes to these files.
 interest-noawait /usr/share/applications
+# Global shortcuts switched off (update-app-names: KScreen's Windows + P).
+interest-noawait /usr/share/kglobalaccel
 # Changed copies of Plasma components (update-plasma-overrides) follow Plasma updates.
 interest-noawait /usr/share/plasma/plasmoids
 interest-noawait /usr/share/plasma/shells

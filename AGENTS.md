@@ -1021,6 +1021,21 @@ and JavaScript with no build step, no external requests and no cookies:
   clock: `VELTOS_DEBIAN_MIRROR=http://snapshot.debian.org/archive/debian/
   20261023T120000Z VELTOS_SECURITY_MIRROR=http://snapshot.debian.org/
   archive/debian-security/20261023T120000Z build/run.sh packages ...`.
+- Several monitors (2026-10-25): KScreen's kded module autoloads but was
+  not running in the VeltOS session (`qdbus6 org.kde.kded6 /kded
+  loadedModules`); `session-fixups` loads it. Windows + P is KScreen's
+  `kglobalaccel/org.kde.kscreen.desktop` (`ShowOSD`, Display + Meta+P); a
+  "none" for it in `/etc/xdg/kglobalshortcutsrc` was ignored, a NoDisplay
+  copy in `/var/lib/veltos/xdg/kglobalaccel/` works (`update-app-names`).
+  When two components claim one key, kglobalacceld gives the later one
+  nothing and stores that as `Action=none` under `[services][<file>]` in
+  the user's kglobalshortcutsrc: delete that line after resolving a clash
+  in a test VM. `kscreen-doctor --json` modes include sizes far above a
+  screen's preferred one (virtual screens up to 5120x2160). In QEMU,
+  writing `/sys/class/drm/card0-Virtual-2/status` sends no uevent, so KWin
+  sees nothing until `echo 'change <uuid> HOTPLUG=1' >
+  /sys/class/drm/card0/uevent`; with two screens side by side the VM
+  tablet's clicks span the whole desktop (docs/dev/testing.md).
 - Testing VeltOS Mail against real servers in the dev VM:
   `out/vm/mailseed.py` (Dovecot IMAP on localhost:993 with its self-signed
   certificate added to the VM's trust store, sample mail, the account) and

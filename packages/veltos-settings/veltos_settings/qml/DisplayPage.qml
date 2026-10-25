@@ -1,5 +1,8 @@
-// System > Display: scale and resolution of each display (a new
-// resolution is reverted after 15 seconds unless kept, as in Windows),
+// System > Display, as on Windows 11: the displays as numbered boxes in
+// their arrangement (Identify shows each one's number on it), Multiple
+// displays (duplicate, extend, show only on one; also Windows + P), and for
+// the chosen display: main display, scale, resolution (a new resolution is
+// reverted after 15 seconds unless kept), orientation and refresh rate;
 // night light and the graphics cards (VeltOS Graphics Cards).
 import QtQuick
 import QtQuick.Controls
@@ -11,7 +14,10 @@ ColumnLayout {
 
     readonly property var disp: backend.display
     property int selected: 0
-    readonly property var output: disp.outputs.length > selected ? disp.outputs[selected] : null
+    // Display 1 when the chosen one is unplugged.
+    readonly property var output: disp.outputs.length > selected ? disp.outputs[selected]
+                                                                 : (disp.outputs.length > 0 ? disp.outputs[0] : null)
+    readonly property bool several: disp.outputs.length > 1
     property var revertTo: null      // {output, mode} while asking to keep a resolution
     property int secondsLeft: 15
     signal itemActivated(var item)
@@ -41,32 +47,152 @@ ColumnLayout {
         }
     }
 
-    // Display picker when several are connected.
-    Flow {
+    // The arrangement: one box per display, to scale, numbered as Windows
+    // numbers them; displays not in use sit at the end, dimmed.
+    Card {
+        id: arrangement
+        objectName: "arrangement"
         Layout.fillWidth: true
-        Layout.bottomMargin: 8
-        visible: page.disp.outputs.length > 1
-        spacing: 8
-        Repeater {
-            model: page.disp.outputs
-            delegate: VButton {
-                required property var modelData
-                required property int index
-                text: (index + 1) + "  " + modelData.name
-                primary: index === page.selected
-                onClicked: page.selected = index
+        Layout.bottomMargin: 4
+        visible: page.several
+        padding: 16
+        ColumnLayout {
+            width: parent.width
+            spacing: 12
+            Item {
+                id: area
+                Layout.fillWidth: true
+                Layout.preferredHeight: 170
+                readonly property var boxes: {
+                    const outs = page.disp.outputs || [];
+                    let right = 0;
+                    const placed = outs.map(o => {
+                        const box = { x: o.x, y: o.y, w: Math.max(1, o.width), h: Math.max(1, o.height), o: o };
+                        if (!o.enabled)
+                            box.x = -1;
+                        else
+                            right = Math.max(right, o.x + box.w);
+                        return box;
+                    });
+                    for (const box of placed) {
+                        if (box.x < 0) {
+                            box.x = right + 160;
+                            box.y = 0;
+                            right = box.x + box.w;
+                        }
+                    }
+                    return placed;
+                }
+                readonly property real spanX: Math.max(1, ...boxes.map(b => b.x + b.w))
+                readonly property real spanY: Math.max(1, ...boxes.map(b => b.y + b.h))
+                readonly property real factor: Math.min((width - 24) / spanX, (height - 16) / spanY)
+                Repeater {
+                    model: area.boxes
+                    delegate: Rectangle {
+                        id: box
+                        required property var modelData
+                        required property int index
+                        readonly property bool chosen: index === page.selected
+                        x: (area.width - area.spanX * area.factor) / 2 + modelData.x * area.factor + 2
+                        y: (area.height - area.spanY * area.factor) / 2 + modelData.y * area.factor + 2
+                        width: modelData.w * area.factor - 4
+                        height: modelData.h * area.factor - 4
+                        radius: 4
+                        opacity: modelData.o.enabled ? 1 : 0.5
+                        color: chosen ? Theme.accent : (boxHover.hovered ? Theme.cardHover : Theme.control)
+                        border.width: chosen ? 0 : 1
+                        border.color: Theme.trackStrong
+                        Accessible.role: Accessible.Button
+                        Accessible.name: modelData.o.number + " " + modelData.o.name
+                        Label {
+                            anchors.centerIn: parent
+                            text: box.modelData.o.number
+                            color: box.chosen ? "#FFFFFF" : Theme.text
+                            font.pixelSize: Math.max(14, Math.min(box.height * 0.45, 40))
+                            font.weight: Font.DemiBold
+                        }
+                        HoverHandler { id: boxHover }
+                        TapHandler {
+                            gesturePolicy: TapHandler.ReleaseWithinBounds
+                            onTapped: page.selected = box.index
+                        }
+                    }
+                }
             }
+            RowLayout {
+                Layout.fillWidth: true
+                Label {
+                    Layout.fillWidth: true
+                    text: backend.text("arrange_desc")
+                    color: Theme.subtext
+                    font.pixelSize: Theme.bodySize
+                    wrapMode: Text.WordWrap
+                }
+                VButton {
+                    objectName: "identify"
+                    text: backend.text("identify")
+                    onClicked: backend.identifyDisplays()
+                }
+            }
+        }
+    }
+
+    SettingRow {
+        objectName: "multipleDisplays"
+        Layout.fillWidth: true
+        visible: page.several
+        icon: "video-display-symbolic"
+        title: backend.text("multiple_displays")
+        description: backend.text("multiple_displays_desc")
+        VComboBox {
+            Layout.preferredWidth: 260
+            accessibleName: backend.text("multiple_displays")
+            options: [
+                { label: backend.text("duplicate_displays"), value: "duplicate" },
+                { label: backend.text("extend_displays"), value: "extend" },
+                { label: backend.format("show_only_on", "1"), value: "pc" },
+                { label: backend.format("show_only_on", "2"), value: "second" }
+            ]
+            currentValue: page.disp.project || "extend"
+            onActivated: value => backend.setProject(value)
+        }
+    }
+
+    SettingRow {
+        Layout.fillWidth: true
+        visible: page.several && page.output !== null && page.output.enabled
+        icon: "favorite-symbolic"
+        title: backend.text("main_display")
+        description: backend.text("main_display_desc")
+        ToggleSwitch {
+            showLabel: false
+            accessibleName: backend.text("main_display")
+            checked: page.output !== null && page.output.primary
+            enabledState: page.output !== null && !page.output.primary
+            onToggled: checked => { if (checked) backend.setMainDisplay(page.output.id); }
+        }
+    }
+
+    Card {
+        Layout.fillWidth: true
+        visible: page.output !== null && !page.output.enabled
+        Label {
+            width: parent.width
+            text: backend.text("display_off")
+            color: Theme.subtext
+            font.pixelSize: Theme.bodySize + 1
+            wrapMode: Text.WordWrap
         }
     }
 
     SectionLabel {
         Layout.topMargin: 0
-        visible: page.output !== null
+        visible: page.output !== null && page.output.enabled
         text: backend.text("scale_layout")
     }
     SettingRow {
         Layout.fillWidth: true
-        visible: page.output !== null
+        visible: page.output !== null && page.output.enabled
         icon: "zoom-in-symbolic"
         title: backend.text("scale")
         description: backend.text("scale_desc")
@@ -80,7 +206,7 @@ ColumnLayout {
     }
     SettingRow {
         Layout.fillWidth: true
-        visible: page.output !== null
+        visible: page.output !== null && page.output.enabled
         icon: "video-display-symbolic"
         title: backend.text("resolution")
         description: backend.text("resolution_desc")
@@ -92,6 +218,40 @@ ColumnLayout {
                 value: m.id
             })) : []
             currentValue: page.output ? page.output.currentMode : ""
+            onActivated: value => page.changeResolution(value)
+        }
+    }
+    SettingRow {
+        objectName: "orientation"
+        Layout.fillWidth: true
+        visible: page.output !== null && page.output.enabled
+        icon: "object-rotate-right-symbolic"
+        title: backend.text("orientation")
+        VComboBox {
+            Layout.preferredWidth: 240
+            accessibleName: backend.text("orientation")
+            options: [
+                { label: backend.text("landscape"), value: "none" },
+                { label: backend.text("portrait"), value: "right" },
+                { label: backend.text("landscape_flipped"), value: "inverted" },
+                { label: backend.text("portrait_flipped"), value: "left" }
+            ]
+            currentValue: page.output ? page.output.rotation : "none"
+            onActivated: value => backend.setRotation(page.output.id, value)
+        }
+    }
+    SettingRow {
+        objectName: "refreshRate"
+        Layout.fillWidth: true
+        visible: page.output !== null && page.output.enabled && page.output.rates.length > 1
+        icon: "speedometer-symbolic"
+        title: backend.text("refresh_rate")
+        description: backend.text("refresh_rate_desc")
+        VComboBox {
+            Layout.preferredWidth: 240
+            accessibleName: backend.text("refresh_rate")
+            options: page.output ? page.output.rates.map(r => ({ label: r.label, value: r.id })) : []
+            currentValue: page.output ? page.output.currentRate : ""
             onActivated: value => page.changeResolution(value)
         }
     }

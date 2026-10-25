@@ -34,7 +34,10 @@ def start(args):
     cmd = [
         "qemu-system-x86_64", "-machine", "q35,accel=kvm", "-cpu", "host",
         "-smp", "4", "-m", str(args.memory), "-display", "none",
-        "-vga", "none", "-device", f"virtio-vga,xres={SCREEN[0]},yres={SCREEN[1]}",
+        "-vga", "none",
+        # --outputs 2: a second monitor, off until the guest connects it
+        # (docs/dev/testing.md, "Several monitors"); "shot2:" takes its picture.
+        "-device", f"virtio-vga,id=video0,max_outputs={args.outputs},xres={SCREEN[0]},yres={SCREEN[1]}",
         "-device", "virtio-tablet-pci",
         "-nic", "user,model=virtio-net-pci",
         "-qmp", f"unix:{RUN / 'qmp.sock'},server=on,wait=off",
@@ -122,6 +125,7 @@ def main():
     p.add_argument("--boot", choices=["cdrom", "disk"], default="cdrom")
     p.add_argument("--firmware", choices=sorted(FIRMWARE), default="uefi")
     p.add_argument("--memory", type=int, default=4096)
+    p.add_argument("--outputs", type=int, default=1, help="display outputs (a second monitor: 2)")
     p.set_defaults(func=start)
     p = sub.add_parser("do")
     p.add_argument("actions")

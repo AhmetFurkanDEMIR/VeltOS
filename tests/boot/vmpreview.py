@@ -90,6 +90,8 @@ def play(actions, qmp, outdir):
             time.sleep(float(arg))
         elif kind == "shot":
             qmp.screenshot(outdir / f"{arg}.png")
+        elif kind == "shot2":  # the second monitor (vmctl start --outputs 2)
+            qmp.screenshot(outdir / f"{arg}.png", head=1)
         elif kind == "frames":
             seconds, step, name = arg.split(",")
             end = time.monotonic() + float(seconds)
