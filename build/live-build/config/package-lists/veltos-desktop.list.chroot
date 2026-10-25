@@ -59,6 +59,8 @@ veltos-clock
 veltos-calendar
 # Weather (Windows 11 layout) on Open-Meteo's open data (no key).
 veltos-weather
+# VeltOS AI: the assistant pane (Windows + C) with the user's own API key.
+veltos-ai
 veltos-snip
 veltos-calculator
 veltos-camera

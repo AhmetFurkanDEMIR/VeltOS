@@ -85,6 +85,7 @@ More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#galle
 | Mail | Outlook (the new Outlook's layout) | Python's imaplib/smtplib, Qt WebEngine |
 | Calendar, Clock, Calculator, Notepad | The apps of the same name | Qt Quick |
 | Weather | Weather (current weather, 10-day and hourly forecast, details, history, favorites) | Open-Meteo's open data, no key |
+| VeltOS AI | Copilot's pane (Windows + C), acting on the PC after "Allow" | ChatGPT, Claude, Gemini or Azure OpenAI with your own API key |
 | Photos, Media Player, Camera | The apps of the same name | Pillow, Qt Multimedia |
 | Snipping Tool | Snipping Tool (Print Screen, Win+Shift+S) | Spectacle |
 | PDF Reader | A modern PDF reader | Qt PDF |

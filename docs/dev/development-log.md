@@ -3,6 +3,46 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — VeltOS AI, the assistant pane
+
+Item 22 of the product owner's list: a Copilot-like assistant on the right
+edge with ChatGPT, Claude, Gemini and Copilot on the user's own keys, able
+to act on the system.
+
+- Checked first: Debian 13 has `qml6-module-org-kde-layershell` 6.3.4
+  (layer-shell-qt's QML attached type `Window`: anchors, layer,
+  exclusionZone, keyboardInteractivity, scope; from window.h of v6.3.4);
+  no unlocked Secret Service in the session (kwalletd6 is only
+  activatable under its own name and asks for a wallet password), so keys
+  go into `~/.config/veltos/ai.json` with mode 600, said in the pane.
+- Services, checked on 2026-10-25: OpenAI's changelog recommends the GPT-6
+  family and its newest models call tools only through the Responses API,
+  so ChatGPT uses `/v1/responses` (stateless, `store: false`, output items
+  sent back unchanged, reasoning items included); Anthropic's Messages API
+  at `anthropic-version: 2026-10-21` (Claude Opus 5.5 by default, thinking
+  blocks with signatures sent back, `eager_input_streaming` on the tools,
+  `fallbacks: "default"`); Gemini's `streamGenerateContent` (the docs now
+  lead with the Interactions API; generateContent is kept, with parts sent
+  back as received so thought signatures stay); Microsoft offers no API key
+  for its consumer Copilot, so "Copilot" is Azure OpenAI's v1 Responses API
+  on the user's resource, which the pane says. Models are listed from each
+  service with the user's key.
+- New package `veltos-ai`: `providers.py` (requests, SSE, the three stream
+  formats, errors, models), `tools.py` (13 actions, schema checks, titles,
+  running them through VeltOS Settings' helpers), `config.py`, `app.py`
+  (conversation with tool rounds, "Allow"/"Don't allow", Stop, one pane per
+  user, live theme), QML pane. App icon: the VeltOS "V" with sparkles.
+- Found while testing: a test module making a QCoreApplication before the
+  window test made the latter abort (QQuickWindow needs a QGuiApplication);
+  layer-shell-qt prints "is not a wayland window" offscreen (filtered in the
+  window tests); the pane stayed dark after it switched the system to light
+  mode, so it now watches kdeglobals.
+- Verified: 21 package tests; dev VM: the pane docked with windows making
+  room, Windows + C closing it, a stand-in service's conversation with a
+  read-only action and two allowed theme switches that really changed the
+  system and the pane (`tests/results/2026-10-25-veltos-ai/`). Not tested:
+  real conversations (no API keys on the development machine).
+
 ## 2026-10-25 — VeltOS Weather
 
 Item 21 of the product owner's list: a Weather app like Windows 11's,

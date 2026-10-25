@@ -1,0 +1,7 @@
+veltos-ai (0.1.0~dev1) trixie; urgency=medium
+
+  * Initial package: VeltOS AI, an assistant pane like Windows 11's
+    Copilot, with ChatGPT, Claude, Gemini or Azure OpenAI and the user's
+    own API key, and actions on the computer that wait for "Allow".
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 25 Oct 2026 09:00:00 +0300

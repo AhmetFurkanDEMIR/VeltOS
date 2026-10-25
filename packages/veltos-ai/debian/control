@@ -1,0 +1,45 @@
+Source: veltos-ai
+Section: utils
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtnetwork,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-org-kde-layershell,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-ai
+Architecture: all
+Depends: ${python3:Depends},
+         python3-pyside6.qtnetwork,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-org-kde-layershell,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         veltos-settings,
+         ${misc:Depends}
+Recommends: veltos-desktop,
+            veltos-explorer,
+            veltos-snip
+Description: VeltOS AI, an assistant pane like Windows 11's Copilot
+ A pane on the right edge of the screen (Windows + C) to chat with the AI
+ service the user chooses, with the user's own API key: ChatGPT (OpenAI),
+ Claude (Anthropic), Gemini (Google) or Copilot through Microsoft's Azure
+ OpenAI. Answers stream in, with Markdown.
+ .
+ VeltOS AI can also act on the computer through a fixed list of actions
+ (light/dark mode, volume, Wi-Fi, Bluetooth, Do not disturb, opening apps,
+ Settings pages, folders and web pages, Snipping Tool) and look up the
+ PC's details or file names; every change waits for the user's "Allow".
+ Messages go only to the chosen service; the key stays on the computer.

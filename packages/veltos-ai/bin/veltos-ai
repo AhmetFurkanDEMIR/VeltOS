@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""VeltOS AI: open or close the assistant pane (Windows + C)."""
+import sys
+
+from veltos_ai.app import main
+
+sys.exit(main(sys.argv))

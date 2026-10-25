@@ -313,6 +313,28 @@ def media_player():
                + '  <path d="M 104 84 Q 104 70 116 77 L 176 117 Q 188 128 176 139 L 116 179 Q 104 186 104 172 Z" fill="#FFFFFF"/>\n')
 
 
+def ai():
+    """VeltOS AI: the VeltOS "V" (the logo's two bars, centred) in
+    blue-to-violet, with the sparkles that mark an AI assistant."""
+    def v(x, y):
+        return f"{128 + (x - 32) * 3.2:.1f} {140 + (y - 32) * 3.2:.1f}"
+
+    def sparkle(cx, cy, r):
+        k = 0.2 * r
+        return (f"M {cx} {cy - r} Q {cx + k:.1f} {cy - k:.1f} {cx + r} {cy} Q {cx + k:.1f} {cy + k:.1f} {cx} {cy + r} "
+                f"Q {cx - k:.1f} {cy + k:.1f} {cx - r} {cy} Q {cx - k:.1f} {cy - k:.1f} {cx} {cy - r} Z")
+    left = f"M {v(5, 10)} L {v(18.5, 10)} L {v(38.5, 54)} L {v(25, 54)} Z"
+    right = f"M {v(45.5, 10)} L {v(59, 10)} L {v(39, 54)} L {v(25.5, 54)} Z"
+    return svg("VeltOS AI", grad("left", "#9BE0FF", "#4F7CFF", x1="0", y1="0", x2="0.4", y2="1")
+               + grad("right", "#7A6CFF", "#B13FE0", x1="1", y1="0", x2="0.6", y2="1")
+               + grad("spark", "#FFE07A", "#FF7AC0"),
+               shadow(left) + shadow(right)
+               + f'  <path d="{left}" fill="url(#left)"/>\n'
+               + f'  <path d="{right}" fill="url(#right)"/>\n'
+               + f'  <path d="{sparkle(204, 50, 36)}" fill="url(#spark)"/>\n'
+               + f'  <path d="{sparkle(54, 54, 17)}" fill="url(#spark)" opacity="0.9"/>\n')
+
+
 def weather():
     """Windows 11's Weather look: a warm sun rising behind a soft white
     cloud with a pale blue base, light from the top left."""
@@ -478,6 +500,7 @@ NAMES = {
                       "org.gnome.DiskUtility"],
     graphics_cards: ["veltos-graphics"],
     weather: ["veltos-weather", "org.kde.kweather", "kweather"],
+    ai: ["veltos-ai"],
     app_installer: ["veltos-run", "veltos-winapps"],
     clock: ["veltos-clock", "org.kde.kclock", "kclock", "preferences-system-time", "clock"],
     word_processor: ["libreoffice-writer", "libreoffice3-writer", "libreoffice34-writer"],

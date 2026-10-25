@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-ai
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-ai/usr/lib/python3/dist-packages
+	cp -r veltos_ai debian/veltos-ai/usr/lib/python3/dist-packages/
+	find debian/veltos-ai -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-ai debian/veltos-ai/usr/bin/veltos-ai
+	# Start entry with Windows + C (kglobalaccel reads X-KDE-Shortcuts).
+	install -D -m 644 data/veltos-ai.desktop debian/veltos-ai/usr/share/applications/veltos-ai.desktop
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

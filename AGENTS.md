@@ -85,6 +85,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format, delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil) or the AMD/Intel firmware and Mesa drivers through `pkcon`; also Settings > Display > Graphics cards |
 | `packages/veltos-weather/` | VeltOS Weather: Windows 11 Weather layout (current weather, 10-day forecast, hourly chart, weather details, historical weather, favorites, °F/°C) on Open-Meteo's open data without a key (`openmeteo.py`, cache in `~/.cache/veltos-weather`); first start uses the time zone's city |
+| `packages/veltos-ai/` | VeltOS AI: assistant pane on the right edge like Windows 11's Copilot (layer shell, Windows + C) with ChatGPT / Claude / Gemini / Azure OpenAI ("Copilot") on the user's own key (`providers.py`, plain HTTPS); actions on the system from a fixed list, each change after "Allow" (`tools.py`, VeltOS Settings' helpers) |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window; `programs.py` reads installed Windows programs from Wine's registry files (Settings' Windows programs page) and removes what Wine leaves after an uninstall (`forget_removed`) |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
@@ -954,6 +955,16 @@ and JavaScript with no build step, no external requests and no cookies:
   the unit when the service exits: wait for it (kioclient). Test with
   `kill -SEGV` on a program started through `kioclient exec <desktop
   file>` (it then runs in an `app-<id>-<pid>.scope`).
+- A pane docked to a screen edge is a layer-shell surface: `import
+  org.kde.layershell as LayerShell` (qml6-module-org-kde-layershell) and
+  set `LayerShell.Window.anchors/layer/exclusionZone/
+  keyboardInteractivity/scope` before the window is shown (`visible:
+  false`, then `show()`); an exclusive zone makes maximised windows make
+  room. Offscreen or on X11 it prints "is not a wayland window" and does
+  nothing (VeltOS AI's window tests filter that line).
+- Test modules of one package share one process: if one makes a
+  QCoreApplication, a later QML window test aborts (QQuickWindow needs a
+  QGuiApplication). Make the same kind everywhere (VeltOS AI).
 - Qt 6.8's Item has FINAL properties a QML property may not reuse: a
   `readonly property real top` in an Item ended loading with "Cannot
   override FINAL property" (the whole page was "unavailable"); and a

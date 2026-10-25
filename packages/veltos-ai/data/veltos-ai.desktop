@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Name=VeltOS AI
+Name[tr]=VeltOS AI
+GenericName=AI assistant
+GenericName[tr]=Yapay zekâ asistanı
+Comment=Chat with ChatGPT, Claude, Gemini or Copilot and let it change settings for you
+Comment[tr]=ChatGPT, Claude, Gemini ya da Copilot ile sohbet edin ve ayarları sizin için değiştirsin
+Keywords=ai;assistant;copilot;chatgpt;claude;gemini;chat;
+Keywords[tr]=yapay zeka;yapay zekâ;asistan;copilot;chatgpt;claude;gemini;sohbet;
+Exec=veltos-ai
+Icon=veltos-ai
+Terminal=false
+Categories=Utility;
+StartupNotify=false
+X-KDE-StartupNotify=false
+X-KDE-Shortcuts=Meta+C
