@@ -362,7 +362,12 @@ The product owner's requests of 2026-10-22, in the mechanisms above:
 - The screen locker (after sign-in) is Plasma's kscreenlocker; VeltOS
   replaces only its `LockScreenUi.qml` (the Windows 11 lock screen,
   through the desktop shell override), and only while Plasma's file is
-  the recorded 6.3.6 one.
+  the recorded 6.3.6 one. Its sequence follows Windows 11: the picture
+  with the time lifts like a curtain over the blurred sign-in view,
+  "Welcome" with the five turning dots after the password, and back to
+  the time, fading in from black, after the PC wakes (a jump of the clock
+  between two ticks). Esc also turns the screen off: kscreenlocker does
+  that itself and keeps the key from the QML.
 - Global Theme preview images show the wallpaper, not a desktop screenshot.
 - `theme.conf.user` in the Breeze SDDM theme directory is owned by this
   package; changing the login background in System Settings edits it.

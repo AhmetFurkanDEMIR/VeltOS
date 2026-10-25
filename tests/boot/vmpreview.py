@@ -92,6 +92,8 @@ def play(actions, qmp, outdir):
             qmp.screenshot(outdir / f"{arg}.png")
         elif kind == "shot2":  # the second monitor (vmctl start --outputs 2)
             qmp.screenshot(outdir / f"{arg}.png", head=1)
+        elif kind == "wakeup":  # wake a guest that went to sleep (systemctl suspend)
+            qmp.execute("system_wakeup")
         elif kind == "frames":
             seconds, step, name = arg.split(",")
             end = time.monotonic() + float(seconds)

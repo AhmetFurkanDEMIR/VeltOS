@@ -152,6 +152,13 @@ class OverrideTests(unittest.TestCase):
         shell = self.out / "plasma/shells/org.kde.plasma.desktop"
         ui = (shell / "contents/lockscreen/LockScreenUi.qml").read_text(encoding="utf-8")
         self.assertIn("VeltOS lock screen in the Windows 11 layout", ui)
+        # Windows 11's sequence: the curtain goes up, "Welcome" with the
+        # turning dots after the password, the time again after sleep.
+        self.assertIn("id: curtain", ui)
+        self.assertIn("component WindowsDots", ui)
+        self.assertIn('ui.tr("Welcome", "Hoş geldiniz")', ui)
+        self.assertIn("ui.finish();", ui)
+        self.assertIn("ui.woke();", ui)
         self.assertTrue((shell / "contents/lockscreen/LockScreen.qml").exists())   # the rest stays Plasma's
         original = self.source / "plasma/shells/org.kde.plasma.desktop/contents/lockscreen/LockScreenUi.qml"
         original.write_text(original.read_text(encoding="utf-8") + "// changed\n", encoding="utf-8")

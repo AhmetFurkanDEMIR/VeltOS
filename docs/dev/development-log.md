@@ -3,6 +3,38 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Lock screen: Windows 11's sign-in sequence
+
+Item 24 of the product owner's list.
+
+- `LockScreenUi.qml` (veltos-desktop's shell override): the sharp picture
+  with the time is now a curtain (`ShaderEffectSource` of kscreenlocker's
+  `wallpaper` item) over the blurred sign-in background; it goes up in
+  420 ms (InOutCubic) and the sign-in box rises in under it; Esc or a
+  minute idle bring it down. A correct password (or "Sign in" for accounts
+  without one) shows "Welcome" with Windows' five-dot ring (the classic
+  5.5 s keyframes, dots 240 ms apart) for 1.3 s before `Qt.quit()`. Waking
+  from sleep: the one-second clock tick sees the wall clock jump more than
+  20 s (QML timers are monotonic and stand still in sleep) and returns to
+  the time without animation, fading in from black. Space and Enter only
+  lift the curtain; a letter goes into the password box.
+- Found in the VM: the hidden password box kept the keyboard focus after
+  returning to the time (keys no longer lifted the curtain; `showClock()`
+  gives the focus back), and the sign-in box was drawn above the moving
+  curtain (z order fixed). kscreenlocker turns the screen off on every Esc
+  release and keeps the key from QML (`UnlockApp::eventFilter`, Plasma
+  6.3, read on invent.kde.org): left as it is.
+- QEMU cannot show a real wake-up: after `systemctl suspend` and QMP
+  `system_wakeup` (new `vm do "wakeup"` action) the virtio GPU stayed black
+  and the session was lost; the wake path was tested by moving the clock
+  two minutes on with timesyncd stopped (timesyncd's first sync had undone
+  the first try). The live session switches lock-on-resume off on purpose
+  (`veltos-live-session.sh`); installed systems lock.
+- Verified: veltos-desktop 123 package tests (the override test checks the
+  curtain, the dots, "Welcome" and the wake path are in the file); dev VM
+  screenshots of every step, the curtain also slowed down six times in the
+  VM's copy (`tests/results/2026-10-25-lock-screen-animation/`).
+
 ## 2026-10-25 — Several monitors, Windows + P, Settings > Display
 
 Item 23 of the product owner's list: a plugged-in monitor shows a picture,

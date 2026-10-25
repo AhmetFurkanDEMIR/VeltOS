@@ -3,11 +3,15 @@
     LockScreenUi.qml of Plasma's desktop shell, see
     plasma-overrides/org.kde.plasma.desktop.json).
 
-    First the picture with the large time and date. A click or a key slides
-    them away: the picture blurs and the account picture, the name and the
-    password box appear, with the keyboard layout, battery and power button
-    in the bottom-right corner. Esc or a minute without input returns to
-    the time.
+    First the picture with the large time and date. A click or a key lifts
+    it like a curtain, as Windows 11 does: under it the picture is blurred
+    and the account picture, the name and the password box come up, with
+    the keyboard layout, battery and power button in the bottom-right
+    corner. Esc or a minute without input lets the curtain down again (Esc
+    also turns the screen off: kscreenlocker's own key handling). The
+    right password shows "Welcome" with Windows' turning dots before the
+    desktop; after the PC wakes from sleep the screen comes up from black
+    with the time again.
 
     Uses the interface of kscreenlocker's greeter like Breeze's version:
     the "authenticator" (startAuthenticating, respond, failed, succeeded,
@@ -36,10 +40,16 @@ Item {
 
     property bool signIn: false          // the sign-in view (else the time)
     property bool noPassword: false      // the account needs no password
+    property bool welcome: false         // signed in: "Welcome", then the desktop
+    property bool instant: false         // no curtain animation (waking up)
     property string message: ""
     property date now: new Date()
+    property double lastTick: Date.now()
 
     function showSignIn(text) {
+        if (welcome) {
+            return;
+        }
         if (!signIn) {
             signIn = true;
             message = "";
@@ -52,9 +62,28 @@ Item {
         }
     }
     function showClock() {
+        if (welcome) {
+            return;
+        }
         signIn = false;
         password.text = "";
         message = "";
+        // The hidden password box would keep the keys: a key press must
+        // lift the curtain again.
+        ui.forceActiveFocus();
+    }
+    // Signed in: Windows shows "Welcome" with its dots for a moment.
+    function finish() {
+        welcome = true;
+        powerMenu.visible = false;
+        leave.start();
+    }
+    // The PC woke from sleep: the time again, coming up from black.
+    function woke() {
+        instant = true;
+        showClock();
+        instant = false;
+        wake.restart();
     }
     function powerAction(id) {
         powerMenu.visible = false;
@@ -86,7 +115,7 @@ Item {
         }
         function onSucceeded() {
             if (authenticator.hadPrompt) {
-                Qt.quit();
+                ui.finish();
             } else {
                 ui.noPassword = true;
             }
@@ -112,6 +141,49 @@ Item {
         }
     }
 
+    // Windows' turning dots (LogonUI's "Welcome"): five dots chase one
+    // another round a circle, fast at the bottom and slow at the top, and
+    // go out one after another before the next round (5.5 s, 240 ms apart).
+    component WindowsDots: Item {
+        id: dots
+        property bool running: false
+        property color color: "#FFFFFF"
+        implicitWidth: 32
+        implicitHeight: 32
+        Repeater {
+            model: 5
+            Item {
+                id: orbit
+                required property int index
+                anchors.fill: parent
+                opacity: 0
+                rotation: 225
+                Rectangle {
+                    x: (parent.width - width) / 2
+                    width: Math.max(3, Math.round(dots.width / 6))
+                    height: width
+                    radius: width / 2
+                    color: dots.color
+                }
+                SequentialAnimation {
+                    running: dots.running
+                    PauseAnimation { duration: orbit.index * 240 }
+                    SequentialAnimation {
+                        loops: Animation.Infinite
+                        PropertyAction { target: orbit; property: "opacity"; value: 1 }
+                        NumberAnimation { target: orbit; property: "rotation"; from: 225; to: 345; duration: 385; easing.type: Easing.OutQuad }
+                        NumberAnimation { target: orbit; property: "rotation"; to: 455; duration: 1265 }
+                        NumberAnimation { target: orbit; property: "rotation"; to: 690; duration: 495; easing.type: Easing.InOutQuad }
+                        NumberAnimation { target: orbit; property: "rotation"; to: 815; duration: 1705 }
+                        NumberAnimation { target: orbit; property: "rotation"; to: 945; duration: 275; easing.type: Easing.OutQuad }
+                        PropertyAction { target: orbit; property: "opacity"; value: 0 }
+                        PauseAnimation { duration: 1375 }
+                    }
+                }
+            }
+        }
+    }
+
     SessionManagement {
         id: sessionManagement
     }
@@ -120,11 +192,26 @@ Item {
         key: Qt.Key_CapsLock
     }
 
+    // The clock. Timers stand still while the PC sleeps, the date does not:
+    // a jump of more than 20 seconds between two ticks means it woke up.
     Timer {
         interval: 1000
         running: true
         repeat: true
-        onTriggered: ui.now = new Date()
+        onTriggered: {
+            const tick = Date.now();
+            if (tick - ui.lastTick > 20000) {
+                ui.woke();
+            }
+            ui.lastTick = tick;
+            ui.now = new Date(tick);
+        }
+    }
+    // "Welcome" stays a moment, then the desktop.
+    Timer {
+        id: leave
+        interval: 1300
+        onTriggered: Qt.quit()
     }
     // Back to the time after a minute without input, as on Windows.
     Timer {
@@ -139,21 +226,20 @@ Item {
         onTriggered: authenticator.startAuthenticating()
     }
 
-    // ---- Background -------------------------------------------------------------
+    // ---- Sign-in background: the picture blurred and darkened ----------------------
+    // Drawn only while the curtain is (partly) lifted.
 
     FastBlur {
         anchors.fill: parent
         source: wallpaper
         radius: 72
-        visible: !!wallpaper
-        opacity: ui.signIn ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+        visible: !!wallpaper && curtain.y < 0
     }
     Rectangle {
         anchors.fill: parent
         color: "#000000"
-        opacity: ui.signIn ? 0.32 : 0.12
-        Behavior on opacity { NumberAnimation { duration: 300 } }
+        opacity: 0.32
+        visible: curtain.y < 0
     }
 
     MouseArea {
@@ -166,42 +252,66 @@ Item {
     Keys.onEscapePressed: ui.showClock()
     Keys.onPressed: event => {
         if (!ui.signIn) {
-            ui.showSignIn(event.text.length === 1 && event.text >= " " ? event.text : "");
+            // A letter goes into the password box; Space or Enter only lifts the curtain.
+            ui.showSignIn(event.text.length === 1 && event.text > " " ? event.text : "");
             event.accepted = true;
         }
     }
 
-    // ---- Time and date --------------------------------------------------------------
+    // ---- The lock screen: a curtain with the picture, time and date -----------------
+    // It goes up quickly, gathering speed, and comes down the same way.
 
-    Column {
-        id: clock
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: ui.signIn ? -height : parent.height * 0.11
-        opacity: ui.signIn ? 0 : 1
-        spacing: 2
-        Behavior on y { NumberAnimation { duration: 350; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: 250 } }
-
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatTime(ui.now, Qt.locale().timeFormat(Locale.ShortFormat)
-                                          .replace(/\s*[aA][pP]\s*/, "").replace(/\s*t+\s*/, ""))
-            color: "#FFFFFF"
-            font.family: "Inter"
-            font.pixelSize: Math.round(Math.min(ui.height * 0.13, 136))
-            font.weight: Font.DemiBold
-            layer.enabled: true
-            layer.effect: DropShadow { radius: 12; samples: 25; color: "#55000000"; verticalOffset: 2 }
+    // Above the sign-in box, which it uncovers; under the corner buttons.
+    Item {
+        id: curtain
+        z: 1
+        width: parent.width
+        height: parent.height
+        y: ui.signIn ? -height : 0
+        visible: y > -height
+        Behavior on y {
+            enabled: !ui.instant
+            NumberAnimation { duration: 420; easing.type: Easing.InOutCubic }
         }
-        Text {
+
+        ShaderEffectSource {
+            anchors.fill: parent
+            sourceItem: wallpaper
+            visible: !!wallpaper
+        }
+        Rectangle {
+            anchors.fill: parent
+            color: "#000000"
+            opacity: 0.12
+        }
+
+        Column {
+            id: clock
             anchors.horizontalCenter: parent.horizontalCenter
-            text: ui.turkish ? Qt.locale().toString(ui.now, "d MMMM dddd")
-                             : Qt.locale().toString(ui.now, "dddd, MMMM d")
-            color: "#FFFFFF"
-            font.family: "Inter"
-            font.pixelSize: Math.round(Math.min(ui.height * 0.026, 26))
-            layer.enabled: true
-            layer.effect: DropShadow { radius: 8; samples: 17; color: "#55000000"; verticalOffset: 1 }
+            y: parent.height * 0.11
+            spacing: 2
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: Qt.formatTime(ui.now, Qt.locale().timeFormat(Locale.ShortFormat)
+                                              .replace(/\s*[aA][pP]\s*/, "").replace(/\s*t+\s*/, ""))
+                color: "#FFFFFF"
+                font.family: "Inter"
+                font.pixelSize: Math.round(Math.min(ui.height * 0.13, 136))
+                font.weight: Font.DemiBold
+                layer.enabled: true
+                layer.effect: DropShadow { radius: 12; samples: 25; color: "#55000000"; verticalOffset: 2 }
+            }
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: ui.turkish ? Qt.locale().toString(ui.now, "d MMMM dddd")
+                                 : Qt.locale().toString(ui.now, "dddd, MMMM d")
+                color: "#FFFFFF"
+                font.family: "Inter"
+                font.pixelSize: Math.round(Math.min(ui.height * 0.026, 26))
+                layer.enabled: true
+                layer.effect: DropShadow { radius: 8; samples: 17; color: "#55000000"; verticalOffset: 1 }
+            }
         }
     }
 
@@ -215,10 +325,24 @@ Item {
         width: 320
         spacing: 14
         opacity: ui.signIn ? 1 : 0
-        visible: opacity > 0
-        enabled: ui.signIn
-        Behavior on opacity { NumberAnimation { duration: 300 } }
-        Behavior on anchors.verticalCenterOffset { NumberAnimation { duration: 350; easing.type: Easing.OutCubic } }
+        visible: opacity > 0 || ui.signIn       // visible at once: the password box takes the focus
+        enabled: ui.signIn && !ui.welcome
+        // Comes up while the curtain is still going away (and goes while
+        // the curtain comes down over it).
+        Behavior on opacity {
+            enabled: !ui.instant
+            SequentialAnimation {
+                PauseAnimation { duration: 160 }
+                NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+            }
+        }
+        Behavior on anchors.verticalCenterOffset {
+            enabled: !ui.instant
+            SequentialAnimation {
+                PauseAnimation { duration: 160 }
+                NumberAnimation { duration: 380; easing.type: Easing.OutCubic }
+            }
+        }
 
         // Account picture (or a person glyph).
         Item {
@@ -268,7 +392,7 @@ Item {
         // Password box with "show" and the arrow, Windows 11 style.
         Rectangle {
             id: field
-            visible: !ui.noPassword
+            visible: !ui.noPassword && !ui.welcome
             Layout.alignment: Qt.AlignHCenter
             implicitWidth: 296
             implicitHeight: 36
@@ -370,12 +494,12 @@ Item {
 
         // Accounts without a password: a Sign in button.
         MouseArea {
-            visible: ui.noPassword
+            visible: ui.noPassword && !ui.welcome
             Layout.alignment: Qt.AlignHCenter
             implicitWidth: 140
             implicitHeight: 36
             hoverEnabled: true
-            onClicked: Qt.quit()
+            onClicked: ui.finish()
             Accessible.role: Accessible.Button
             Accessible.name: signInText.text
             Rectangle {
@@ -396,10 +520,32 @@ Item {
             }
         }
 
+        // Signed in: Windows' turning dots and "Welcome" under the name.
+        Row {
+            id: welcomeRow
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredHeight: 36
+            visible: ui.welcome
+            opacity: ui.welcome ? 1 : 0
+            spacing: 12
+            Behavior on opacity { NumberAnimation { duration: 250 } }
+            WindowsDots {
+                anchors.verticalCenter: parent.verticalCenter
+                running: ui.welcome
+            }
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: ui.tr("Welcome", "Hoş geldiniz")
+                color: "#FFFFFF"
+                font.family: "Inter"
+                font.pixelSize: 20
+            }
+        }
+
         Text {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
-            visible: text !== ""
+            visible: text !== "" && !ui.welcome
             text: ui.message !== "" ? ui.message
                   : capsLock.locked ? ui.tr("Caps Lock is on", "Caps Lock açık") : ""
             color: "#FFFFFF"
@@ -420,6 +566,7 @@ Item {
     // ---- Bottom-right corner: layout, battery, power ------------------------------------
 
     RowLayout {
+        z: 2
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.margins: 24
@@ -449,7 +596,7 @@ Item {
         Battery {}
         MouseArea {
             id: power
-            visible: ui.signIn
+            visible: ui.signIn && !ui.welcome
             implicitWidth: 40
             implicitHeight: 36
             hoverEnabled: true
@@ -475,6 +622,7 @@ Item {
 
     Rectangle {
         id: powerMenu
+        z: 3
         visible: false
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -534,6 +682,25 @@ Item {
                 }
             }
         }
+    }
+
+    // Waking from sleep: the lock screen comes up from black.
+    Rectangle {
+        id: wakeCover
+        z: 4
+        anchors.fill: parent
+        color: "#000000"
+        opacity: 0
+        visible: opacity > 0
+    }
+    NumberAnimation {
+        id: wake
+        target: wakeCover
+        property: "opacity"
+        from: 1
+        to: 0
+        duration: 700
+        easing.type: Easing.OutCubic
     }
 
     // Fade in, as Windows does when the screen locks.

@@ -1036,6 +1036,16 @@ and JavaScript with no build step, no external requests and no cookies:
   sees nothing until `echo 'change <uuid> HOTPLUG=1' >
   /sys/class/drm/card0/uevent`; with two screens side by side the VM
   tablet's clicks span the whole desktop (docs/dev/testing.md).
+- Lock screen (2026-10-25): kscreenlocker's greeter turns the screen off
+  on every Esc release and swallows the key before QML sees the release
+  (`UnlockApp::eventFilter`); its process name is cut to
+  "kscreenlocker_g" (`pkill -x kscreenlocker_greet` matches nothing). It
+  reads `LockScreenUi.qml` at every lock, so a changed copy needs no
+  restart. QEMU's virtio GPU stays black after `systemctl suspend` +
+  QMP `system_wakeup` (`vm do wakeup`) and the session is lost: restart
+  the VM; test wake-up code by moving the clock (stop
+  `systemd-timesyncd` first, its first sync undoes `date -s`). The live
+  session has `LockOnResume=false` on purpose.
 - Testing VeltOS Mail against real servers in the dev VM:
   `out/vm/mailseed.py` (Dovecot IMAP on localhost:993 with its self-signed
   certificate added to the VM's trust store, sample mail, the account) and
