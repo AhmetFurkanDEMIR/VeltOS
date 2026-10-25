@@ -83,8 +83,14 @@ PlasmoidItem {
         readonly property bool hidden: mode === 0
         readonly property bool compact: root.vertical || mode === 1
         readonly property bool labelled: !compact && mode === 2
-        visible: !hidden
-        hoverEnabled: true
+        // Hidden: no width, nothing drawn, no clicks. Plasma sets the compact
+        // representation visible again whenever it places it, so `visible`
+        // did not stick and the magnifier and "Search" were drawn over Task
+        // View's button (product owner, 2026-10-23).
+        clip: true
+        opacity: hidden ? 0 : 1
+        enabled: !hidden
+        hoverEnabled: !hidden
         // The text cursor over the box, as over a text box (product owner,
         // 2026-10-22); the magnifier alone (vertical taskbar) is a button.
         cursorShape: compact ? Qt.ArrowCursor : Qt.IBeamCursor

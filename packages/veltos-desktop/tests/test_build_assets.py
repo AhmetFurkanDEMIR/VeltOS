@@ -310,6 +310,15 @@ class SearchTests(StartMenuTests):
         self.assertLess(start, here)
         self.assertLess(here, tasks)
 
+    def test_hidden_search_draws_nothing(self):
+        # Plasma makes the compact representation visible again, so a hidden
+        # search is clipped, transparent and inert, not merely invisible (its
+        # magnifier and label were drawn over Task View's button).
+        box = (PKG / "plasma/search/contents/ui/main.qml").read_text(encoding="utf-8")
+        self.assertNotIn("visible: !hidden", box)
+        for needed in ("clip: true", "opacity: hidden ? 0 : 1", "enabled: !hidden"):
+            self.assertIn(needed, box)
+
 
 class WebSearchTests(unittest.TestCase):
     """Search and Start search the web with Google in a row of their own,

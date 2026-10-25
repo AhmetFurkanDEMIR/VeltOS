@@ -1054,6 +1054,10 @@ and JavaScript with no build step, no external requests and no cookies:
   goes through the portal's OpenURI). A running instance that is handed
   a file needs the second start's `XDG_ACTIVATION_TOKEN`: set it in
   `os.environ` before `requestActivate()` (Qt Wayland reads it there).
+- Plasma sets an applet's compact representation visible again whenever
+  it places it: hide a taskbar part with zero width, `clip: true`,
+  `opacity` and `enabled`, not with `visible` (the hidden search box drew
+  over Task View, 2026-10-25).
 - Testing VeltOS Mail against real servers in the dev VM:
   `out/vm/mailseed.py` (Dovecot IMAP on localhost:993 with its self-signed
   certificate added to the VM's trust store, sample mail, the account) and

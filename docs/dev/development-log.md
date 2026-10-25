@@ -3,6 +3,17 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Hidden taskbar search
+
+Item 31 of the product owner's list. Reproduced in the dev VM with
+Settings' search mode 0: the magnifier and "Ara" were drawn over Task
+View's button. The search applet's compact box had `visible: !hidden` and
+zero width; Plasma sets the compact representation visible again when it
+places it, so the zero-wide box painted its contents outside itself. It is
+now `clip: true`, `opacity: hidden ? 0 : 1`, `enabled: !hidden` and no
+hover while hidden. Verified: veltos-desktop 127 package tests; dev VM:
+hidden, icon only, icon and label, box (`tests/results/2026-10-25-hidden-search/`).
+
 ## 2026-10-25 — Safely Remove Hardware as Windows 11's menu
 
 Item 30 of the product owner's list. The flyout (Plasma's device
