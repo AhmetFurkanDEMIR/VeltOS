@@ -1,6 +1,6 @@
 {
   "plugin": "org.kde.plasma.devicenotifier",
-  "about": "Removable drives flyout like Windows 11's \"Safely Remove Hardware\": Windows' name, a small flyout with one plain list (no type headings, no sideways scroll bar), each drive a Windows 11 row with a usage bar and an eject button. Matched against plasma-workspace 6.3.6 (Debian 13).",
+  "about": "Removable drives flyout like Windows 11's \"Safely Remove Hardware\": Windows' name, a small menu-like flyout as tall as its entries, one plain list (no type headings, no sideways scroll bar), each drive an \"Eject ...\" entry that removes it safely and says so in a notification. Matched against plasma-workspace 6.3.6 (Debian 13).",
   "replacements": [
     {
       "file": "metadata.json",
@@ -18,7 +18,7 @@
       "file": "contents/ui/FullRepresentation.qml",
       "why": "small flyout",
       "old": "    Layout.minimumHeight: Kirigami.Units.gridUnit * 18\n",
-      "new": "    Layout.minimumHeight: Kirigami.Units.gridUnit * 8 // VeltOS: small flyout, like Windows\n"
+      "new": "    Layout.minimumHeight: Kirigami.Units.gridUnit * 3 // VeltOS: small, like Windows' menu\n    // VeltOS: as tall as its entries (the tray's flyout reads it)\n    implicitHeight: notifierDialog.contentHeight + notifierDialog.topMargin + notifierDialog.bottomMargin\n"
     },
     {
       "file": "contents/ui/FullRepresentation.qml",
@@ -34,9 +34,15 @@
     },
     {
       "file": "contents/ui/DeviceItem.qml",
-      "why": "a drive as a Windows 11 row: icon, name, free space over a usage bar, an eject button; clicking opens it in File Explorer (product owner, 2026-10-22: make the devices flyout modern, like Windows 11)",
+      "why": "a drive as an entry of Windows 11's menu: \"Eject <drive>\" with its size under it; a click closes the flyout, removes the drive safely and tells so in a notification, like Windows (product owner, 2026-10-23: the flyout in Windows 11's design)",
       "replace_with": "devicenotifier/DeviceItem.qml",
       "upstream_sha256": "c656a3beafe386b56f21de4c81b4099814149c4753c538b16c3e58c3732b348d"
+    },
+    {
+      "file": "contents/ui/FullRepresentation.qml",
+      "why": "entries closer together and to the flyout's edge, as in Windows' menu",
+      "old": "            topMargin: Kirigami.Units.largeSpacing\n            bottomMargin: Kirigami.Units.largeSpacing\n            leftMargin: Kirigami.Units.largeSpacing\n            rightMargin: Kirigami.Units.largeSpacing\n            spacing: Kirigami.Units.smallSpacing\n",
+      "new": "            topMargin: Kirigami.Units.smallSpacing // VeltOS: menu spacing\n            bottomMargin: Kirigami.Units.smallSpacing\n            leftMargin: Kirigami.Units.smallSpacing\n            rightMargin: Kirigami.Units.smallSpacing\n            spacing: 0\n"
     }
   ]
 }

@@ -155,3 +155,35 @@ msgstr "Dosyayı aç"
 #: plasma-overrides/files/notifications/JobItem.qml
 msgid "Open folder"
 msgstr "Klasörü aç"
+
+#: plasma-overrides/files/devicenotifier/DeviceItem.qml
+msgid "Safely Remove Hardware"
+msgstr "Donanımı Güvenle Kaldır"
+
+#: plasma-overrides/files/devicenotifier/DeviceItem.qml
+msgid "Eject %1"
+msgstr "%1 aygıtını çıkar"
+
+#: plasma-overrides/files/devicenotifier/DeviceItem.qml
+msgid "Ejecting…"
+msgstr "Çıkarılıyor…"
+
+#: plasma-overrides/files/devicenotifier/DeviceItem.qml
+msgid "Opening…"
+msgstr "Açılıyor…"
+
+#: plasma-overrides/files/devicenotifier/DeviceItem.qml
+msgid "Safe To Remove Hardware"
+msgstr "Donanımı güvenle kaldırabilirsiniz"
+
+#: plasma-overrides/files/devicenotifier/DeviceItem.qml
+msgid "The '%1' device can now be safely removed from the computer."
+msgstr "'%1' aygıtı artık bilgisayardan güvenle çıkarılabilir."
+
+#: plasma-overrides/files/devicenotifier/DeviceItem.qml
+msgid "Problem Ejecting %1"
+msgstr "%1 çıkarılırken sorun oluştu"
+
+#: plasma-overrides/files/devicenotifier/DeviceItem.qml
+msgid "Close any programs or windows that might be using the device, and then try again."
+msgstr "Aygıtı kullanıyor olabilecek programları veya pencereleri kapatın ve yeniden deneyin."

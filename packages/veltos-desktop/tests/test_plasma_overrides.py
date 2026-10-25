@@ -74,11 +74,24 @@ class OverrideTests(unittest.TestCase):
         self.assertEqual(self.run_tool(), 0)
         applet = self.applets / "org.kde.plasma.devicenotifier"
         self.assertIn('"Name[tr]": "Donanımı Güvenle Kaldır"', (applet / "metadata.json").read_text(encoding="utf-8"))
-        self.assertIn("one list without headings", (applet / "contents/ui/FullRepresentation.qml").read_text())
+        full = (applet / "contents/ui/FullRepresentation.qml").read_text()
+        self.assertIn("one list without headings", full)
+        self.assertIn("implicitHeight: notifierDialog.contentHeight", full)
         expanded = (self.applets / TRAY / "contents/ui/ExpandedRepresentation.qml").read_text()
         self.assertIn("Windows flyouts cannot be pinned", expanded)
-        self.assertIn("veltosSmallApplet ? 10 : 24", expanded)
         self.assertIn("veltosSmallApplet ? veltosAppletHeight : Infinity", expanded)
+        # Windows 11's menu: no tray heading, as tall as its entries.
+        self.assertIn('["org.kde.plasma.clipboard", "org.kde.plasma.devicenotifier"]', expanded)
+        self.assertIn("systemTrayState.activeApplet.fullRepresentationItem.implicitHeight", expanded)
+        # Each drive is an "Eject ..." entry that tells when it can be unplugged.
+        item = (applet / "contents/ui/DeviceItem.qml").read_text(encoding="utf-8")
+        self.assertIn('tr("Eject %1", deviceItem.deviceDescription)', item)
+        self.assertIn('tr("Safe To Remove Hardware")', item)
+        self.assertIn("devicenotifier.expanded = false;", item)
+        catalog = (PKG / "translations/tr.po").read_text(encoding="utf-8")
+        for msgid in ("Eject %1", "Safe To Remove Hardware", "Problem Ejecting %1", "Ejecting…",
+                      "The '%1' device can now be safely removed from the computer."):
+            self.assertIn(f'msgid "{msgid}"', catalog)
 
     def test_taskbar_menu_changes_apply(self):
         self.assertEqual(self.run_tool(), 0)

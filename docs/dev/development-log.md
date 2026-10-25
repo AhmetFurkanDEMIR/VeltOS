@@ -3,6 +3,31 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Safely Remove Hardware as Windows 11's menu
+
+Item 30 of the product owner's list. The flyout (Plasma's device
+notifier inside the tray's popup) kept a tray heading (back arrow, title,
+"..."), drive icons, usage bars and buttons, and after an eject only
+wrote a line in the row.
+
+- `DeviceItem.qml` (whole-file override) is a menu entry: "Eject %1" with
+  "- <size>" or the state under it, a hover highlight; a click closes the
+  flyout and runs the drive's default action (unmount) or, for a volume
+  that is not mounted, reports it safe at once. The result comes as a
+  notification with Windows' wording, sent with `gdbus` through Plasma's
+  executable data source (each argument shell-quoted). Texts in VeltOS'
+  own catalog (`translations/tr.po`, `i18nd("veltos-desktop", ...)`).
+- `FullRepresentation.qml`: `implicitHeight` from the list's content and
+  menu spacing; the tray's `ExpandedRepresentation.qml` treats the device
+  notifier like the clipboard (no tray heading) and sizes it from the
+  applet's `fullRepresentationItem.implicitHeight`.
+- Test drive in the VM: `modprobe scsi_debug removable=1 dev_size_mb=64`,
+  `sfdisk` + `mkfs.vfat -n "USB BELLEK"`; a `cd` into the mount from a
+  user unit kept it busy for the in-use case.
+- Verified: veltos-desktop 125 package tests; dev VM: menu, eject with
+  notification and unmount, in-use notification, hover
+  (`tests/results/2026-10-25-safely-remove-hardware/`).
+
 ## 2026-10-25 — Start and search follow a left-aligned taskbar
 
 Item 29 of the product owner's list. The desktop shell override
