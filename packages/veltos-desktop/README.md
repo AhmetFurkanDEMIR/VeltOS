@@ -92,10 +92,15 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   and Connect, the network security key asked in place; paired Bluetooth
   devices with their state and battery, Connect / Disconnect, and new
   devices found nearby with Pair (codes are confirmed in Plasma's
-  Bluetooth notification; a paired device is trusted and connected). It
-  uses the same Plasma components as KDE's tray applets (NetworkModel and
-  Handler, BluezQt and bluedevil's models), which are switched off in the
-  tray for new users. The home folder has no
+  Bluetooth notification; a paired device is trusted and connected).
+  While something plays, Windows 11's media card sits 12 px above the
+  panel (`MediaCard.qml`, 2026-10-25): the app's icon and name, title,
+  artist, cover, Previous / Play-Pause / Next and arrows between players,
+  on Plasma's MPRIS model; Plasma's own media item is not in the tray
+  (`session-fixups` removes it from older trays). It uses the same Plasma
+  components as KDE's tray applets (NetworkModel and Handler, BluezQt and
+  bluedevil's models, Mpris2Model), which are switched off in the tray for
+  new users. The home folder has no
   "Templates" and "Public" folders (switched off in xdg-user-dirs).
 - Fluent icons and cursors (`veltos-fluent-icons`), Inter UI font.
 - **Wallpapers**: "VeltOS Bloom" (default, soft translucent petals), "VeltOS Flow", "VeltOS Glow", "VeltOS Lake" (the first design) and the colour variants used by Settings' themes, "VeltOS Nebula" (purple glow), "VeltOS Ember" (crimson bloom), "VeltOS Tide" (teal flow) and "VeltOS Dawn" (silver flow), each light and dark with a preview of each (`tools/wallpapers.py`); branded login

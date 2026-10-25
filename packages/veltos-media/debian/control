@@ -4,7 +4,9 @@ Priority: optional
 Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
+               gir1.2-glib-2.0,
                python3,
+               python3-gi,
                python3-mutagen,
                python3-pyside6.qtmultimedia,
                python3-pyside6.qtqml,
@@ -23,6 +25,8 @@ Package: veltos-media
 Architecture: all
 Depends: ${python3:Depends},
          ffmpegthumbnailer,
+         gir1.2-glib-2.0,
+         python3-gi,
          python3-mutagen,
          python3-pyside6.qtmultimedia,
          python3-pyside6.qtqml,
@@ -42,4 +46,5 @@ Description: VeltOS Media Player, a Windows 11 style music and video player
  search, the player bar (shuffle, previous, play/pause, next, repeat,
  seek, volume, full screen) and "now playing" with the video or the album
  picture. Plays through Qt Multimedia (FFmpeg); tags and cover pictures
- are read with mutagen.
+ are read with mutagen. The desktop's media controls see and control what
+ plays (MPRIS through Gio).

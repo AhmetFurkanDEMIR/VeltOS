@@ -59,7 +59,7 @@ open VeltOS Settings.
     Windows 11's taskbar settings: Taskbar items (Search: hide, search
     icon only, search icon and label, search box; Task view), Other
     system tray icons (Safely Remove Hardware and Eject Media, Input
-    indicator, Media playback, Clipboard, Printers: on the taskbar or
+    indicator, Clipboard, Printers: on the taskbar or
     behind the "^" arrow) and Taskbar behaviors (alignment centre or
     left, automatically hide, badges on taskbar apps, combine taskbar
     buttons always / when the taskbar is full / never, the far corner

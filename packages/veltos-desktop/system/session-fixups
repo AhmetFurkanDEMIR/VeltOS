@@ -75,7 +75,20 @@ panels().forEach(function (panel) {
     panel.widgets('org.kde.plasma.systemtray').forEach(function (tray) {
         var id = tray.readConfig('SystrayContainmentId');
         if (id) {
-            lockAll(desktopById(id));
+            var items = desktopById(id);
+            lockAll(items);
+            // Media is in Quick Settings' card now (Windows 11 has no tray
+            // item for it); trays from before lose Plasma's media item.
+            items.currentConfigGroup = ['General'];
+            var extra = items.readConfig('extraItems', []);
+            if (typeof extra === 'string') {
+                extra = extra ? extra.split(',') : [];
+            }
+            if (extra.indexOf('org.kde.plasma.mediacontroller') >= 0) {
+                items.writeConfig('extraItems', extra.filter(function (item) {
+                    return item !== 'org.kde.plasma.mediacontroller';
+                }));
+            }
         }
     });
     ['org.kde.plasma.icontasks', 'org.kde.plasma.taskmanager'].forEach(function (id) {

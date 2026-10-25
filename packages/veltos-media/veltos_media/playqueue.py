@@ -97,6 +97,11 @@ class PlayQueue:
             return self.current
         return None              # the end of the queue
 
+    def has_next(self):
+        """Whether Next would play something (the desktop's media controls
+        grey their button out otherwise)."""
+        return bool(self.order) and (self.index + 1 < len(self.order) or self.repeat == "all")
+
     def previous(self):
         if not self.order:
             return None

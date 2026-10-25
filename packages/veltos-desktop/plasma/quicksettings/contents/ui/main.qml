@@ -2,7 +2,8 @@
     VeltOS Quick Settings: one taskbar button (network, sound and battery
     icons) that opens a Windows 11 style panel: toggle tiles (Wi-Fi,
     Bluetooth, airplane mode, night light), brightness and volume sliders,
-    battery level and a Settings button. The arrow on the Wi-Fi and
+    battery level and a Settings button, with Windows 11's media card above
+    it while something plays (MediaCard.qml). The arrow on the Wi-Fi and
     Bluetooth tiles slides in their lists (WifiPage.qml, BluetoothPage.qml),
     as Windows 11 does, instead of opening Settings.
 
@@ -15,6 +16,7 @@
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
+import QtQuick.Window
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
@@ -25,6 +27,7 @@ import org.kde.plasma.private.volume
 import org.kde.bluezqt as BluezQt
 import org.kde.plasma.private.brightnesscontrolplugin
 import org.kde.plasma.private.battery
+import org.kde.plasma.private.mpris as Mpris
 
 PlasmoidItem {
     id: root
@@ -496,7 +499,33 @@ PlasmoidItem {
             }
         }
     }
+
+        // Windows 11's media card: 12 px above the Quick Settings card and as
+        // wide, while something plays (or waits, paused).
+        PlasmaCore.Dialog {
+            id: media
+
+            readonly property var popup: panel.Window.window
+            type: PlasmaCore.Dialog.Notification
+            flags: Qt.WindowDoesNotAcceptFocus
+            location: PlasmaCore.Types.Floating
+            visible: root.expanded && mediaCard.hasMedia && popup !== null && popup.visible
+            x: popup ? popup.x + popup.width - width : 0
+            y: popup ? popup.y - Kirigami.Units.largeSpacing - Kirigami.Units.smallSpacing - height : 0
+            // Wayland applies a new position with the next frame only: draw one.
+            onXChanged: Qt.callLater(update)
+            onYChanged: Qt.callLater(update)
+
+            mainItem: MediaCard {
+                id: mediaCard
+                width: panel.width
+                height: implicitHeight
+                model: mpris2Model
+            }
+        }
     }
+
+    Mpris.Mpris2Model { id: mpris2Model }
 
     Component.onCompleted: floatPopups()
 }

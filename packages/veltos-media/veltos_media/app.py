@@ -568,6 +568,9 @@ def main(argv=None):
     window = qml.rootObjects()[0]
     from .frame import follow_frame
     follow_frame(window)
+    # The desktop's media controls (Quick Settings' media card, media keys).
+    from . import mpris
+    media_controls = mpris.start(window, backend, backend.texts["app_title"])  # noqa: F841 (kept alive)
     if files:
         paths = [QUrl(f).toLocalFile() if f.startswith("file:") else str(Path(f).absolute()) for f in files]
         backend.playPaths(paths, 0)

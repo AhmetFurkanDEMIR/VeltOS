@@ -93,15 +93,17 @@ if (systrayContainmentId) {
         "org.kde.plasma.networkmanagement", "org.kde.plasma.notifications",
         "org.kde.plasma.printmanager", "org.kde.plasma.vault", "org.kde.plasma.volume"
     ]);
+    // No media item: what plays is in Quick Settings' media card, as in
+    // Windows 11 (the item stays in knownItems so it is not added as new).
     tray.writeConfig("extraItems", [
         "org.kde.plasma.cameraindicator", "org.kde.plasma.clipboard",
         "org.kde.plasma.devicenotifier", "org.kde.plasma.keyboardlayout",
-        "org.kde.plasma.manage-inputmethod", "org.kde.plasma.mediacontroller",
+        "org.kde.plasma.manage-inputmethod",
         "org.kde.plasma.notifications", "org.kde.plasma.printmanager"
     ]);
     tray.writeConfig("hiddenItems", [
         "org.kde.plasma.clipboard", "org.kde.plasma.devicenotifier",
-        "org.kde.plasma.manage-inputmethod", "org.kde.plasma.mediacontroller",
+        "org.kde.plasma.manage-inputmethod",
         "org.kde.plasma.printmanager"
     ]);
 }

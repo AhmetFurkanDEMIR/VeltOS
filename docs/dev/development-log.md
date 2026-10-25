@@ -3,6 +3,38 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Media card above Quick Settings, MPRIS in Media Player
+
+Item 27 of the product owner's list.
+
+- Quick Settings (`plasma/quicksettings`): `MediaCard.qml` shown in a
+  second `PlasmaCore.Dialog` 12 px above the flyout (the clock's technique
+  for its notification card) while a player has something: app icon and
+  name, title, artist, cover, Previous / Play-Pause / Next, and arrows that
+  step `Mpris2Model.currentIndex` through the real players (row 0 is
+  Plasma's "multiplexer"). Plasma's API read from its own media controller
+  and `kmpris.qmltypes` (PlaybackStatus: Unknown, Stopped, Playing, Paused).
+  New Turkish strings ("Sonraki parça", "Duraklat"...); "Next" was taken
+  ("İleri", the Wi-Fi page). Plasma's media item left the tray: layout.js
+  for new users, `session-fixups` for older trays, Settings' tray list.
+- VeltOS Media Player had no MPRIS. `mpris.py` registers
+  `org.mpris.MediaPlayer2` and `.Player` with Gio (Qt's event loop is
+  GLib's, so the callbacks run in the main thread), reads the QML player
+  (objectName "player"), calls the window's `togglePlay()`/`previous()`
+  (Windows' Previous rule) and announces changes with PropertiesChanged.
+  Found in the VM: PySide had no converter for
+  `QMediaPlayer::PlaybackState` through `property()` (also with
+  PySide6.QtMultimedia imported), so `Main.qml` gives the state as an int
+  (`stateNumber`); the first card once showed Play while playing (most
+  likely a state announced before Plasma watched the new name), so the
+  service announces everything again 1.5 s and 5 s after start, which also
+  brings a video thumbnail made in the meantime.
+- Verified: veltos-desktop 125, veltos-settings 111, veltos-media 19
+  package tests (MPRIS metadata, variants, introspection); dev VM: MPRIS
+  properties with gdbus, Plasma's model with a QML probe, the card playing,
+  paused from the card, two players switched with the arrows, the tray
+  overflow without Plasma's item (`tests/results/2026-10-25-media-card/`).
+
 ## 2026-10-25 — Taskbar date follows the language
 
 Item 26 of the product owner's list. Reproduced in the dev VM: Settings'

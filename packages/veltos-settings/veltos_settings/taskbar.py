@@ -31,7 +31,6 @@ TRAY_ITEMS = [
     ("org.kde.plasma.devicenotifier", ("Safely Remove Hardware and Eject Media", "Donanımı Güvenle Kaldır ve Medyayı Çıkar"),
      "media-removable-symbolic"),
     ("org.kde.plasma.keyboardlayout", ("Input indicator", "Giriş göstergesi"), "input-keyboard-symbolic"),
-    ("org.kde.plasma.mediacontroller", ("Media playback", "Medya oynatma"), "media-playback-start-symbolic"),
     ("org.kde.plasma.clipboard", ("Clipboard", "Pano"), "edit-paste-symbolic"),
     ("org.kde.plasma.printmanager", ("Printers", "Yazıcılar"), "printer-symbolic"),
 ]

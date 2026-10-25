@@ -271,8 +271,23 @@ class QuickSettingsTests(StartMenuTests):
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
         self.assertIn('panel.addWidget("org.veltos.quicksettings")', js)
         enabled = js.split('writeConfig("extraItems"', 1)[1].split("]", 1)[0]
-        for replaced in ("networkmanagement", "volume", "battery", "bluetooth", "brightness"):
+        for replaced in ("networkmanagement", "volume", "battery", "bluetooth", "brightness", "mediacontroller"):
             self.assertNotIn(replaced, enabled)
+
+    def test_media_card_above_the_flyout(self):
+        # Windows 11's media card (cover, title, artist, app, previous /
+        # play-pause / next, several sessions) instead of Plasma's tray item.
+        ui = self.STARTMENU / "contents/ui"
+        main = (ui / "main.qml").read_text(encoding="utf-8")
+        self.assertIn("Mpris.Mpris2Model { id: mpris2Model }", main)
+        self.assertIn("mainItem: MediaCard {", main)
+        self.assertIn("visible: root.expanded && mediaCard.hasMedia", main)
+        card = (ui / "MediaCard.qml").read_text(encoding="utf-8")
+        for needed in ("card.player.Previous()", "card.player.Next()", "card.player.Pause()",
+                       "model.currentIndex = players[", "source: card.art"):
+            self.assertIn(needed, card)
+        fixups = (PKG / "system/session-fixups").read_text(encoding="utf-8")
+        self.assertIn("item !== 'org.kde.plasma.mediacontroller'", fixups)
 
 
 class SearchTests(StartMenuTests):

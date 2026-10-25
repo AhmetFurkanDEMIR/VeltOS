@@ -147,3 +147,21 @@ msgstr "Yeni cihazlar"
 
 msgid "Searching for devices…"
 msgstr "Cihazlar aranıyor…"
+
+msgid "Previous media session"
+msgstr "Önceki medya oturumu"
+
+msgid "Next media session"
+msgstr "Sonraki medya oturumu"
+
+msgid "Previous track"
+msgstr "Önceki parça"
+
+msgid "Next track"
+msgstr "Sonraki parça"
+
+msgid "Play"
+msgstr "Oynat"
+
+msgid "Pause"
+msgstr "Duraklat"

@@ -43,8 +43,13 @@ writes the default apps).
 - **Settings**: library locations (add, remove, refresh), app theme,
   about. English and Turkish.
 
-Not yet: MPRIS (the desktop's media controls), mini player, video
-subtitles and audio track choice.
+MPRIS (`mpris.py`, Gio on the session bus as
+`org.mpris.MediaPlayer2.veltos_media.instance<pid>`): the desktop's media
+controls (Quick Settings' media card, media keys) show the title, artist,
+album and cover and can play, pause, skip and seek; Previous keeps Windows'
+rule (back to the start first).
+
+Not yet: mini player, video subtitles and audio track choice.
 
 Tests: `tests/test_library.py` (queue logic; tags of real WAV files written
 with mutagen) and `tests/test_ui.py` (the window offscreen in English and

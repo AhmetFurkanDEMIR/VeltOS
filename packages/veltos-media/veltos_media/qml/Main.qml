@@ -80,6 +80,10 @@ ApplicationWindow {
     // --- Playing ---------------------------------------------------------------------------
     MediaPlayer {
         id: player
+        objectName: "player"            // found by the MPRIS service (mpris.py)
+        // The state as a plain number for Python: PySide has no converter
+        // for QMediaPlayer::PlaybackState read through property().
+        readonly property int stateNumber: playbackState
         audioOutput: AudioOutput {
             // The slider is the loudness people hear (logarithmic), as in
             // Windows: Qt's QAudio::convertVolume(Logarithmic -> Linear),
