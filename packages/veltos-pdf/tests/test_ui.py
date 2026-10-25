@@ -145,5 +145,15 @@ class TurkishPdfTests(PdfTests):
         locale.setlocale(locale.LC_ALL, "C")
 
 
+@unittest.skipUnless(HAVE_QT, "needs PySide6 (Build-Depends)")
+class HandOverTests(unittest.TestCase):
+    def test_token_travels_with_the_files(self):
+        # A second start hands its files and its activation token to the
+        # running window, which needs the token to come to the front.
+        from veltos_pdf import app as program
+        self.assertEqual(program.handed_over({"paths": ["/a.txt"], "token": "kwin-3"}), (["/a.txt"], "kwin-3"))
+        self.assertEqual(program.handed_over(["/a.txt"]), (["/a.txt"], ""))      # older starts
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -374,7 +374,9 @@ def raise_running():
     socket.connectToServer(instance_name())
     if not socket.waitForConnected(500):
         return False
-    socket.write(b"window\n")
+    # The activation token of this start: the new window needs it to come
+    # to the front on Wayland.
+    socket.write(f"window {os.environ.get('XDG_ACTIVATION_TOKEN', '')}\n".encode())
     socket.flush()
     socket.waitForBytesWritten(500)
     socket.disconnectFromServer()
@@ -390,17 +392,27 @@ def listen_for_raise(engine):
     server = QLocalServer(engine)
     QLocalServer.removeServer(instance_name())
 
-    def open_window():
-        connection = server.nextPendingConnection()
-        if connection:
-            connection.close()
+    def open_window(token):
+        if token:
+            os.environ["XDG_ACTIVATION_TOKEN"] = token      # used by the next requestActivate()
         engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
         if engine.rootObjects():
             window = engine.rootObjects()[-1]
             window.raise_()
             window.requestActivate()
 
-    server.newConnection.connect(open_window)
+    def connection():
+        client = server.nextPendingConnection()
+        if client is None:
+            return
+
+        def read():
+            words = bytes(client.readAll()).decode(errors="replace").split()
+            client.close()
+            open_window(words[1] if len(words) > 1 else "")
+        client.readyRead.connect(read)
+
+    server.newConnection.connect(connection)
     server.listen(instance_name())
     return server
 

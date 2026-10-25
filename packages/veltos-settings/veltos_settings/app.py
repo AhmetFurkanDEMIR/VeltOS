@@ -15,7 +15,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from PySide6.QtCore import Property, QLocale, QObject, Qt, QTimer, QUrl, Signal, Slot
-from PySide6.QtGui import QGuiApplication, QIcon
+from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
@@ -55,6 +55,19 @@ def detached(command, env=None):
     subprocess.Popen(command, env=env, start_new_session=True,
                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                      stderr=subprocess.DEVNULL)
+
+
+def launch(command, env=None):
+    """Start a program; a web page or file ("xdg-open X") is opened through
+    Qt instead, which asks the desktop portal with an activation token, so
+    a browser that is already open comes to the front with the page. An
+    xdg-open child has no token and KWin only marked the browser's taskbar
+    button (VM, 2026-10-25)."""
+    if env is None and len(command) == 2 and command[0] == "xdg-open":
+        target = command[1]
+        QDesktopServices.openUrl(QUrl(target) if "://" in target else QUrl.fromLocalFile(target))
+        return
+    detached(command, env)
 
 
 def windows_programs():
@@ -219,7 +232,7 @@ class Backend(QObject):
     # "password", "adduser": "" when it worked, otherwise a text key.
     accountResult = Signal(str, str)
 
-    def __init__(self, lang=None, start=detached, start_page="home", system=None, threaded=True):
+    def __init__(self, lang=None, start=launch, start_page="home", system=None, threaded=True):
         super().__init__()
         self.lang = lang or strings.language()
         self._start = start

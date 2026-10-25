@@ -1046,6 +1046,14 @@ and JavaScript with no build step, no external requests and no cookies:
   the VM; test wake-up code by moving the clock (stop
   `systemd-timesyncd` first, its first sync undoes `date -s`). The live
   session has `LockOnResume=false` on purpose.
+- Bringing windows forward (2026-10-25): KWin on Wayland activates a
+  window only with an xdg-activation token of the active program; a
+  child process (`xdg-open`, `kioclient exec`) has no window and no token,
+  so the target only flashes in the taskbar. Open links and documents with
+  `QDesktopServices.openUrl` (Qt asks for a token; in VeltOS sessions it
+  goes through the portal's OpenURI). A running instance that is handed
+  a file needs the second start's `XDG_ACTIVATION_TOKEN`: set it in
+  `os.environ` before `requestActivate()` (Qt Wayland reads it there).
 - Testing VeltOS Mail against real servers in the dev VM:
   `out/vm/mailseed.py` (Dovecot IMAP on localhost:993 with its self-signed
   certificate added to the VM's trust store, sample mail, the account) and

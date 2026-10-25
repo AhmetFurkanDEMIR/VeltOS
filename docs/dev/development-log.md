@@ -3,6 +3,36 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Programs come to the front
+
+Item 28 of the product owner's list. Reproduced in the dev VM with a
+probe window: a link opened by an `xdg-open` child opened a tab in the
+running Firefox, which stayed behind with an orange taskbar button; the
+same link through `QDesktopServices.openUrl` brought Firefox forward (in
+VeltOS sessions Qt uses the portal theme and calls OpenURI with an
+activation token), also for a local file. KWin 6.3's
+`XdgActivationV1Integration::activateSurface` (read on invent.kde.org)
+activates only with the current token of the active window's program;
+focus-stealing settings do not apply on Wayland.
+
+- Settings (`launch()` as the default starter: "xdg-open X" through Qt),
+  Mail (links, attachments), File Explorer (`ops.open`: documents through
+  the portal, `.desktop` files, Windows programs and runnable scripts/ELF
+  files through `kioclient exec`), VeltOS AI (actions run in a worker
+  thread: a signal hands the link to the main thread).
+- Hand-overs to a running instance carry the second start's
+  `XDG_ACTIVATION_TOKEN` (Notepad, PDF Reader, Mail as JSON with
+  `token`, older list messages still read; Store and Task Manager as a
+  word after the request); the running window sets it in its environment
+  before `requestActivate()`, which Qt Wayland uses.
+- Found on the way (left for item 38): File Explorer's navigation pane
+  shows the English folder names (Desktop, Documents...) and "Plain text
+  document" in a Turkish session.
+- Verified: package tests (Settings 111, Mail 25, Explorer 78, AI 21,
+  Notepad 22, PDF 7, Store 22, Task Manager 48); dev VM: Firefox and a
+  running Notepad came forward from File Explorer, Firefox from Settings'
+  website item (`tests/results/2026-10-25-bring-to-front/`).
+
 ## 2026-10-25 — Media card above Quick Settings, MPRIS in Media Player
 
 Item 27 of the product owner's list.

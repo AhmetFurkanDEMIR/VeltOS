@@ -29,7 +29,7 @@ from pathlib import Path
 
 from PySide6.QtCore import (Property, QAbstractListModel, QByteArray, QDate, QDateTime, QLocale, QModelIndex, QObject,
                             QTime, QTimer, QUrl, Qt, Signal, Slot)
-from PySide6.QtGui import QGuiApplication, QIcon, QRegion
+from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon, QRegion
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
@@ -686,8 +686,9 @@ class Backend(QObject):
         target = self.view_dir / "files" / re.sub(r"[/\\]", "_", info["name"])
         target.parent.mkdir(parents=True, exist_ok=True)
         if mime.save_attachment(message, index, target):
-            subprocess.Popen(["xdg-open", str(target)], start_new_session=True,
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # Through Qt (the portal's OpenURI, with an activation token):
+            # an app that is already open comes to the front with the file.
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(target)))
 
     @Slot(int)
     def saveAttachment(self, index):
@@ -1058,7 +1059,10 @@ class Backend(QObject):
             if url.startswith("mailto:"):
                 self.newMail(parse_mailto(url))
             else:
-                start(["xdg-open", url])
+                # Through Qt, not an xdg-open child: the browser comes to the
+                # front with the page (an xdg-open child has no activation
+                # token, VM 2026-10-25).
+                QDesktopServices.openUrl(QUrl(url))
 
 
 def start(command):
@@ -1097,11 +1101,32 @@ def hand_over(arguments):
     socket.connectToServer(server_name())
     if not socket.waitForConnected(400):
         return False
-    socket.write(json.dumps(arguments).encode("utf-8"))
+    # The activation token this start got (from the portal or Plasma): the
+    # running Mail needs it to come to the front on Wayland.
+    socket.write(json.dumps({"args": arguments,
+                             "token": os.environ.get("XDG_ACTIVATION_TOKEN", "")}).encode("utf-8"))
     socket.flush()
     socket.waitForBytesWritten(1000)
     socket.disconnectFromServer()
     return True
+
+
+def bring_forward(window, token=""):
+    """Show the window in front. KWin (Wayland) does that only with an
+    activation token from the program that asked; Qt uses
+    XDG_ACTIVATION_TOKEN for the next requestActivate()."""
+    if token:
+        os.environ["XDG_ACTIVATION_TOKEN"] = token
+    window.show()
+    window.raise_()
+    window.requestActivate()
+
+
+def handed_over(data):
+    """(arguments, token) of a hand-over message (older starts sent a list)."""
+    if isinstance(data, dict):
+        return [str(a) for a in data.get("args", [])], str(data.get("token", ""))
+    return [str(a) for a in data], ""
 
 
 def handle_arguments(backend, arguments):
@@ -1144,13 +1169,13 @@ def main(argv=None):
             client = server.nextPendingConnection()
 
             def read():
+                token = ""
                 try:
-                    handle_arguments(backend, json.loads(bytes(client.readAll()).decode("utf-8") or "[]"))
+                    arguments, token = handed_over(json.loads(bytes(client.readAll()).decode("utf-8") or "[]"))
+                    handle_arguments(backend, arguments)
                 except ValueError:
                     pass
-                window.show()
-                window.raise_()
-                window.requestActivate()
+                bring_forward(window, token)
             client.readyRead.connect(read)
         server.newConnection.connect(connection)
     handle_arguments(backend, arguments)

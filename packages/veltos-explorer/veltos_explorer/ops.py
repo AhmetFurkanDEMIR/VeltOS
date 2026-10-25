@@ -32,12 +32,44 @@ def detached(command, cwd=None):
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+# Started with KIO (`kioclient exec`): launchers and Windows programs. The
+# desktop portal opens documents only; it does not run programs.
+LAUNCHERS = (".desktop", ".exe", ".msi", ".bat", ".cmd", ".com")
+
+
+def is_program(path):
+    """A launcher, a Windows program, or a script or Linux program that may
+    run (execute bit and a #! line or ELF header)."""
+    path = str(path)
+    if path.lower().endswith(LAUNCHERS):
+        return True
+    if not os.access(path, os.X_OK):
+        return False
+    try:
+        with open(path, "rb") as handle:
+            head = handle.read(4)
+    except OSError:
+        return False
+    return head == b"\x7fELF" or head.startswith(b"#!")
+
+
+def portal_open(path):
+    """Open a document with its default app through Qt, which asks the
+    desktop portal with an activation token: an app that is already open
+    (Firefox, VeltOS Notepad) comes to the front with the file. kioclient
+    has no window and so no token; such apps stayed behind (VM 2026-10-25)."""
+    from PySide6.QtCore import QUrl
+    from PySide6.QtGui import QDesktopServices
+    return QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+
+
 class Operations:
     """Each method starts the work and returns at once (KIO shows progress);
     `start` can be replaced in tests."""
 
-    def __init__(self, start=detached):
+    def __init__(self, start=detached, open_document=portal_open):
         self.start = start
+        self.open_document = open_document
 
     def copy(self, sources, destination):
         """Copy into a folder. A copy into the same folder gets Windows'
@@ -79,8 +111,12 @@ class Operations:
         self.start(["ktrash6", "--empty"])
 
     def open(self, path):
-        """Open with the default app (folders are handled by the caller)."""
-        self.start(["kioclient", "exec", str(path)])
+        """Open with the default app (folders are handled by the caller):
+        programs through KIO, documents through the portal."""
+        if is_program(path):
+            self.start(["kioclient", "exec", str(path)])
+        else:
+            self.open_document(str(path))
 
     def open_with(self, desktop_path, paths):
         command = places.exec_command(desktop_path, [str(p) for p in paths])

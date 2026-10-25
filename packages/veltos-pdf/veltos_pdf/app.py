@@ -340,12 +340,32 @@ class Backend(QObject):
             pass
 
 
+def bring_forward(window, token=""):
+    """Show the window in front. KWin (Wayland) does that only with an
+    activation token from the program that asked (the portal or Plasma
+    gives one to the start that is handing over); Qt uses
+    XDG_ACTIVATION_TOKEN for the next requestActivate()."""
+    if token:
+        os.environ["XDG_ACTIVATION_TOKEN"] = token
+    window.show()
+    window.raise_()
+    window.requestActivate()
+
+
+def handed_over(data):
+    """(paths, token) of a hand-over message (older starts sent a list)."""
+    if isinstance(data, dict):
+        return [str(p) for p in data.get("paths", [])], str(data.get("token", ""))
+    return [str(p) for p in data], ""
+
+
 def hand_over(paths):
     socket = QLocalSocket()
     socket.connectToServer(server_name())
     if not socket.waitForConnected(500):
         return False
-    socket.write(json.dumps([str(Path(p).expanduser().absolute()) for p in paths]).encode())
+    socket.write(json.dumps({"paths": [str(Path(p).expanduser().absolute()) for p in paths],
+                             "token": os.environ.get("XDG_ACTIVATION_TOKEN", "")}).encode())
     socket.flush()
     socket.waitForBytesWritten(1000)
     socket.disconnectFromServer()
@@ -363,13 +383,11 @@ def listen(backend, window):
 
         def read():
             try:
-                paths = json.loads(bytes(socket.readAll()).decode() or "[]")
+                paths, token = handed_over(json.loads(bytes(socket.readAll()).decode() or "[]"))
             except ValueError:
                 return
             backend.openPaths(paths)
-            window.show()
-            window.raise_()
-            window.requestActivate()
+            bring_forward(window, token)
         socket.readyRead.connect(read)
     server.newConnection.connect(connection)
     return server

@@ -70,7 +70,9 @@ class Backend(QObject):
         super().__init__()
         self.lang = lang or strings.language()
         self.jobs = Jobs(threaded)
-        self.ops = ops.Operations(start) if start else ops.Operations()
+        # A given `start` (tests) also receives documents, as "xdg-open" commands.
+        self.ops = (ops.Operations(start, open_document=lambda path: start(["xdg-open", path]))
+                    if start else ops.Operations())
         self.runner = runner
         self.prefs = places.Pins()
         self.mime = MimeTypes(self.lang)

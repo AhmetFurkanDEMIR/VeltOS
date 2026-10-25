@@ -302,7 +302,9 @@ def raise_running():
     socket.connectToServer(instance_name())
     if not socket.waitForConnected(500):
         return False
-    socket.write(b"raise\n")
+    # The activation token of this start (Ctrl+Shift+Esc through Plasma):
+    # the running window needs it to come to the front on Wayland.
+    socket.write(f"raise {os.environ.get('XDG_ACTIVATION_TOKEN', '')}\n".encode())
     socket.flush()
     socket.waitForBytesWritten(500)
     socket.disconnectFromServer()
@@ -313,15 +315,25 @@ def listen_for_raise(window):
     server = QLocalServer(window)
     QLocalServer.removeServer(instance_name())
 
-    def show():
-        connection = server.nextPendingConnection()
-        if connection:
-            connection.close()
+    def show(token):
+        if token:
+            os.environ["XDG_ACTIVATION_TOKEN"] = token      # used by the next requestActivate()
         window.show()
         window.raise_()
         window.requestActivate()
 
-    server.newConnection.connect(show)
+    def connection():
+        client = server.nextPendingConnection()
+        if client is None:
+            return
+
+        def read():
+            words = bytes(client.readAll()).decode(errors="replace").split()
+            client.close()
+            show(words[1] if len(words) > 1 else "")
+        client.readyRead.connect(read)
+
+    server.newConnection.connect(connection)
     server.listen(instance_name())
     return server
 

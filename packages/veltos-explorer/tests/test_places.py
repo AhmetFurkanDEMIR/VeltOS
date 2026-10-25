@@ -221,6 +221,26 @@ class OperationTests(unittest.TestCase):
             ["kioclient", "--interactive", "move", "/home/u/c.txt", "/home/u/Documents/"],
             ["kioclient", "--interactive", "copy", "/home/u/d.txt", "/home/u/Documents/"]])
 
+    def test_documents_through_the_portal_programs_through_kio(self):
+        # Documents go to the portal with an activation token, so an open
+        # app comes to the front; KIO starts launchers and programs.
+        opened = []
+        operations = ops.Operations(start=self.started.append, open_document=opened.append)
+        document = self.dir / "Letter.txt"
+        document.write_text("hello", encoding="utf-8")
+        script = self.dir / "run.sh"
+        script.write_text("#!/bin/sh\necho\n", encoding="utf-8")
+        script.chmod(0o755)
+        executable_text = self.dir / "notes.txt"           # NTFS drives give every file the execute bit
+        executable_text.write_text("plain text", encoding="utf-8")
+        executable_text.chmod(0o755)
+        for path in (document, script, executable_text, self.dir / "Setup.EXE", self.dir / "app.desktop"):
+            operations.open(path)
+        self.assertEqual(opened, [str(document), str(executable_text)])
+        self.assertEqual(self.started, [["kioclient", "exec", str(script)],
+                                        ["kioclient", "exec", str(self.dir / "Setup.EXE")],
+                                        ["kioclient", "exec", str(self.dir / "app.desktop")]])
+
     def test_copy_into_the_same_folder_makes_a_copy(self):
         (self.dir / "a.txt").write_text("", encoding="utf-8")
         self.ops.copy([str(self.dir / "a.txt")], str(self.dir))

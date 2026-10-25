@@ -78,6 +78,7 @@ class Backend(QObject):
     _event = Signal(int, str, object)
     _actionDone = Signal(int, int, bool, str)
     _modelsLoaded = Signal(str, object, str)
+    _openUrl = Signal(str)
 
     def __init__(self, lang=None, opener=None, settings_file=None, threaded=True, starter=None, runner=None,
                  parent=None):
@@ -86,7 +87,7 @@ class Backend(QObject):
         self._opener = opener
         self._settings_file = settings_file
         self._threaded = threaded
-        self._starter = starter or tools.start
+        self._starter = starter or self._start
         self._runner = runner or tools.run
         self.data = config.load(settings_file)
         self.history = []
@@ -107,6 +108,7 @@ class Backend(QObject):
         self._models_error = ""
         self._event.connect(self._on_event)
         self._actionDone.connect(self._on_action_done)
+        self._openUrl.connect(self.openUrl)
         self._modelsLoaded.connect(self._on_models)
         self._flush = QTimer(self)
         self._flush.setInterval(60)
@@ -441,6 +443,16 @@ class Backend(QObject):
                 self._run_action(generation, index)
         self.messagesChanged.emit()
         self._maybe_continue()
+
+    def _start(self, command):
+        """Actions' programs; a web page goes through Qt in the main thread
+        (the portal, with the pane's activation token), so the browser
+        comes to the front: an xdg-open child has no token (VM 2026-10-25).
+        Actions run in a worker thread, hence the signal."""
+        if len(command) == 2 and command[0] == "xdg-open":
+            self._openUrl.emit(command[1])
+            return
+        tools.start(command)
 
     def _message(self, message_id):
         return next((m for m in self._messages if m["id"] == message_id), None)

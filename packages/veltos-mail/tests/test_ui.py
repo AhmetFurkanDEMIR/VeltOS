@@ -203,5 +203,16 @@ class TurkishMailWindowTests(MailWindowTests):
         locale.setlocale(locale.LC_ALL, "C")
 
 
+@unittest.skipUnless(HAVE_QT, "needs PySide6 with QtWebEngine (Build-Depends)")
+class HandOverTests(unittest.TestCase):
+    def test_token_travels_with_the_arguments(self):
+        # A second start hands its arguments and its activation token to the
+        # running Mail, which needs the token to come to the front (Wayland).
+        from veltos_mail import app as mail_app
+        self.assertEqual(mail_app.handed_over({"args": ["mailto:a@b.c"], "token": "kwin-7"}),
+                         (["mailto:a@b.c"], "kwin-7"))
+        self.assertEqual(mail_app.handed_over(["mailto:a@b.c"]), (["mailto:a@b.c"], ""))   # older starts
+
+
 if __name__ == "__main__":
     unittest.main()

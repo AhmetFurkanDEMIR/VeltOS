@@ -152,9 +152,13 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   (`~/.config/veltos-explorer.json`), drives (`lsblk`, `udisksctl`),
   Recycle Bin (freedesktop.org trash), recent files, "Open with"
   applications from `.desktop` files.
-- `ops.py`: **copying, moving, deleting, the Recycle Bin and opening go
-  through KDE's file engine (`kioclient`)**: progress in the notification
-  area, "file already exists" questions, the standard trash. Renaming and
+- `ops.py`: **copying, moving, deleting, the Recycle Bin and starting
+  programs go through KDE's file engine (`kioclient`)**: progress in the
+  notification area, "file already exists" questions, the standard trash.
+  Documents open through Qt (the desktop portal, with an activation token),
+  so an app that is already open (Firefox, Notepad) comes to the front
+  with the file; `.desktop` files, Windows programs and runnable scripts
+  stay with `kioclient exec` (the portal runs no programs). Renaming and
   new items are local calls that never replace an existing item.
   Properties opens VeltOS' own window (`properties.py`), no longer KDE's
   (`kioclient openProperties`). Compress / extract use VeltOS Archive
