@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""VeltOS Weather (Windows 11 Weather layout)."""
+import sys
+
+from veltos_weather.app import main
+
+sys.exit(main(sys.argv))

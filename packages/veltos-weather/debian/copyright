@@ -1,0 +1,31 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: veltos-weather
+Source: VeltOS project repository
+
+Files: *
+Copyright: 2026 VeltOS Developers
+License: GPL-3+
+
+Files: veltos_weather/qml/icons/*
+Copyright: 2026 VeltOS Developers
+License: CC-BY-SA-4.0
+ The weather pictures and glyphs are original VeltOS drawings
+ (tools/weather-icons.py).
+ .
+ On Debian systems, see https://creativecommons.org/licenses/by-sa/4.0/.
+
+Files: tests/data/*
+Copyright: Open-Meteo.com
+License: CC-BY-4.0
+ Answers of the Open-Meteo API (forecast, air quality, geocoding based
+ on GeoNames, historical weather) kept as test data; weather data by
+ Open-Meteo.com, https://creativecommons.org/licenses/by/4.0/.
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 3 can be found in "/usr/share/common-licenses/GPL-3".

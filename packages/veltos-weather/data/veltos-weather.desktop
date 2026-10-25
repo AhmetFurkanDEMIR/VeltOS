@@ -1,0 +1,28 @@
+[Desktop Entry]
+Type=Application
+Name=Weather
+Name[tr]=Hava Durumu
+GenericName=Weather forecast
+GenericName[tr]=Hava durumu tahmini
+Comment=Current weather, 10-day and hourly forecasts, air quality and historical weather
+Comment[tr]=Güncel hava durumu, 10 günlük ve saatlik tahmin, hava kalitesi ve geçmiş hava durumu
+Keywords=weather;forecast;temperature;rain;wind;air quality;
+Keywords[tr]=hava;hava durumu;tahmin;sıcaklık;yağmur;rüzgar;hava kalitesi;
+Exec=veltos-weather
+Icon=veltos-weather
+Terminal=false
+Categories=Utility;
+StartupNotify=true
+X-KDE-StartupNotify=false
+
+Actions=history;favorites;
+
+[Desktop Action history]
+Name=Historical weather
+Name[tr]=Geçmiş hava durumu
+Exec=veltos-weather history
+
+[Desktop Action favorites]
+Name=Favorites
+Name[tr]=Sık kullanılanlar
+Exec=veltos-weather favorites

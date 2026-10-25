@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Clear, night: VeltOS artwork (tools/weather-icons.py). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="sun" x1="0" y1="6" x2="0" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE16B"/>
+      <stop offset="1" stop-color="#FFA41B"/>
+    </linearGradient>
+    <linearGradient id="ray" x1="0" y1="0" x2="0" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD448"/>
+      <stop offset="1" stop-color="#FFB01F"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="6" x2="0" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF1BF"/>
+      <stop offset="1" stop-color="#F4C95A"/>
+    </linearGradient>
+    <linearGradient id="cloud" x1="0" y1="16" x2="0" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#CBD5E3"/>
+    </linearGradient>
+    <linearGradient id="dark" x1="0" y1="16" x2="0" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C3CCDA"/>
+      <stop offset="1" stop-color="#8793A8"/>
+    </linearGradient>
+    <linearGradient id="storm" x1="0" y1="14" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9AA5B8"/>
+      <stop offset="1" stop-color="#5D6880"/>
+    </linearGradient>
+    <linearGradient id="drop" x1="0" y1="40" x2="0" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5BB8FF"/>
+      <stop offset="1" stop-color="#1F7AE0"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="34" x2="0" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE36B"/>
+      <stop offset="1" stop-color="#FFAA12"/>
+    </linearGradient>
+  </defs>
+  <mask id="cut"><rect width="64" height="64" fill="#fff"/><circle cx="40.5" cy="24.9" r="14.6" fill="#000"/></mask>
+  <circle cx="30" cy="32" r="17" fill="url(#moon)" mask="url(#cut)"/>
+</svg>

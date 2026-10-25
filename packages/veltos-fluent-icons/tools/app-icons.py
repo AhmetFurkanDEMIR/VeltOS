@@ -313,6 +313,27 @@ def media_player():
                + '  <path d="M 104 84 Q 104 70 116 77 L 176 117 Q 188 128 176 139 L 116 179 Q 104 186 104 172 Z" fill="#FFFFFF"/>\n')
 
 
+def weather():
+    """Windows 11's Weather look: a warm sun rising behind a soft white
+    cloud with a pale blue base, light from the top left."""
+    import math
+    rays = []
+    for i in range(8):
+        a = math.radians(-157.5 + i * 45)
+        rays.append(f'  <path d="M {100 + 66 * math.cos(a):.1f} {96 + 66 * math.sin(a):.1f} '
+                    f'L {100 + 86 * math.cos(a):.1f} {96 + 86 * math.sin(a):.1f}" stroke="url(#ray)" '
+                    'stroke-width="14" stroke-linecap="round"/>\n')
+    cloud = ("M 70 218 Q 30 218 30 182 Q 30 148 66 144 Q 72 102 116 96 Q 150 92 168 120 "
+             "Q 182 110 200 114 Q 226 120 228 148 Q 252 156 250 186 Q 248 218 214 218 Z")
+    return svg("Weather", grad("sun", "#FFE36B", "#FF9E1B") + grad("ray", "#FFD448", "#FFAE1F")
+               + grad("cloud", "#FFFFFF", "#C6D9F2") + grad("base", "#BCD3F2", "#8FB2E6"),
+               "".join(rays)
+               + '  <circle cx="100" cy="96" r="54" fill="url(#sun)"/>\n'
+               + shadow(cloud)
+               + f'  <path d="{cloud}" fill="url(#cloud)"/>\n'
+               + '  <path d="M 36 196 Q 44 218 70 218 H 214 Q 242 218 248 196 Z" fill="url(#base)" opacity="0.55"/>\n')
+
+
 def disk_management():
     """The local disk (as in File Explorer) with a partition chart, like
     Windows' Disk Management."""
@@ -456,6 +477,7 @@ NAMES = {
     disk_management: ["veltos-disks", "partitionmanager", "org.kde.partitionmanager", "gnome-disks",
                       "org.gnome.DiskUtility"],
     graphics_cards: ["veltos-graphics"],
+    weather: ["veltos-weather", "org.kde.kweather", "kweather"],
     app_installer: ["veltos-run", "veltos-winapps"],
     clock: ["veltos-clock", "org.kde.kclock", "kclock", "preferences-system-time", "clock"],
     word_processor: ["libreoffice-writer", "libreoffice3-writer", "libreoffice34-writer"],

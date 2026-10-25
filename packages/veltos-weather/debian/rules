@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-weather
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-weather/usr/lib/python3/dist-packages
+	cp -r veltos_weather debian/veltos-weather/usr/lib/python3/dist-packages/
+	find debian/veltos-weather -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-weather debian/veltos-weather/usr/bin/veltos-weather
+	install -D -m 644 data/veltos-weather.desktop debian/veltos-weather/usr/share/applications/veltos-weather.desktop
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

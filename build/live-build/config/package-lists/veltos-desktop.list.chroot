@@ -57,6 +57,8 @@ veltos-store
 veltos-clock
 # Calendar (Windows 11 layout); its reminders come from veltos-clock's agent.
 veltos-calendar
+# Weather (Windows 11 layout) on Open-Meteo's open data (no key).
+veltos-weather
 veltos-snip
 veltos-calculator
 veltos-camera

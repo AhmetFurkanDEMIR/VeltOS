@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Rain showers: VeltOS artwork (tools/weather-icons.py). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="sun" x1="0" y1="6" x2="0" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE16B"/>
+      <stop offset="1" stop-color="#FFA41B"/>
+    </linearGradient>
+    <linearGradient id="ray" x1="0" y1="0" x2="0" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD448"/>
+      <stop offset="1" stop-color="#FFB01F"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="6" x2="0" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF1BF"/>
+      <stop offset="1" stop-color="#F4C95A"/>
+    </linearGradient>
+    <linearGradient id="cloud" x1="0" y1="16" x2="0" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#CBD5E3"/>
+    </linearGradient>
+    <linearGradient id="dark" x1="0" y1="16" x2="0" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C3CCDA"/>
+      <stop offset="1" stop-color="#8793A8"/>
+    </linearGradient>
+    <linearGradient id="storm" x1="0" y1="14" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9AA5B8"/>
+      <stop offset="1" stop-color="#5D6880"/>
+    </linearGradient>
+    <linearGradient id="drop" x1="0" y1="40" x2="0" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5BB8FF"/>
+      <stop offset="1" stop-color="#1F7AE0"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="34" x2="0" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE36B"/>
+      <stop offset="1" stop-color="#FFAA12"/>
+    </linearGradient>
+  </defs>
+  <path d="M 37.0 20.0 L 42.0 20.0" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 32.6 30.6 L 36.1 34.1" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 22.0 35.0 L 22.0 40.0" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 11.4 30.6 L 7.9 34.1" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 7.0 20.0 L 2.0 20.0" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 11.4 9.4 L 7.9 5.9" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 22.0 5.0 L 22.0 0.0" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 32.6 9.4 L 36.1 5.9" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="22" cy="20" r="10" fill="url(#sun)"/>
+  <g fill="url(#cloud)">
+    <rect x="19.0" y="32.7" width="36.1" height="13.9" rx="7.0"/>
+    <circle cx="31.3" cy="31.1" r="8.2"/>
+    <circle cx="41.1" cy="27.8" r="10.7"/>
+    <circle cx="50.1" cy="33.5" r="6.6"/>
+  </g>
+  <path d="M 28 50 L 25 57" stroke="url(#drop)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 38 50 L 35 57" stroke="url(#drop)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 48 50 L 45 57" stroke="url(#drop)" stroke-width="3" stroke-linecap="round"/>
+</svg>

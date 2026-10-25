@@ -1,0 +1,41 @@
+Source: veltos-weather
+Section: utils
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qt6-svg-plugins,
+               tzdata
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-weather
+Architecture: all
+Depends: ${python3:Depends},
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qt6-svg-plugins,
+         ${misc:Depends}
+Recommends: veltos-desktop
+Description: VeltOS Weather, in the layout of Windows 11's Weather app
+ The current weather over the sky of its condition, a 10-day forecast,
+ an hourly chart (temperature, precipitation, wind, humidity, UV index,
+ feels like, cloud cover, pressure, visibility), weather details (sun and
+ moon, wind, humidity, UV index, air quality, visibility, pressure),
+ historical weather (monthly averages of five years of records), favorite
+ places and °F/°C, in English and Turkish.
+ .
+ Forecasts, air quality, place search and records come from Open-Meteo
+ (open-meteo.com), an open-source weather service used without an
+ account or a key; its data is licensed under CC BY 4.0.

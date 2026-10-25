@@ -84,6 +84,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format, delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil) or the AMD/Intel firmware and Mesa drivers through `pkcon`; also Settings > Display > Graphics cards |
+| `packages/veltos-weather/` | VeltOS Weather: Windows 11 Weather layout (current weather, 10-day forecast, hourly chart, weather details, historical weather, favorites, °F/°C) on Open-Meteo's open data without a key (`openmeteo.py`, cache in `~/.cache/veltos-weather`); first start uses the time zone's city |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window; `programs.py` reads installed Windows programs from Wine's registry files (Settings' Windows programs page) and removes what Wine leaves after an uninstall (`forget_removed`) |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
@@ -953,6 +954,11 @@ and JavaScript with no build step, no external requests and no cookies:
   the unit when the service exits: wait for it (kioclient). Test with
   `kill -SEGV` on a program started through `kioclient exec <desktop
   file>` (it then runs in an `app-<id>-<pid>.scope`).
+- Qt 6.8's Item has FINAL properties a QML property may not reuse: a
+  `readonly property real top` in an Item ended loading with "Cannot
+  override FINAL property" (the whole page was "unavailable"); and a
+  function named `y` in a delegate hides Item's `y`. Give such helpers
+  distinct names (`plotTop`, `yOf`).
 - LibreOffice opens an empty (0-byte) `.docx`/`.pptx`/`.xlsx` as a new
   document of that type and saves it in that format without asking, but
   Calc's window for an empty `.xlsx` had no app icon (title bar,

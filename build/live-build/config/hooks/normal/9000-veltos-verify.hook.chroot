@@ -127,6 +127,8 @@ grep -q '^DisplayServer=wayland$' /usr/lib/sddm/sddm.conf.d/10-veltos.conf || fa
 installed veltos-clock || fail "VeltOS Clock missing"
 [ -f /etc/xdg/autostart/veltos-clock-agent.desktop ] || fail "Clock's alarm agent is not started with the session"
 [ -f /usr/share/sounds/veltos/stereo/alarm-clock-elapsed.wav ] || fail "VeltOS alarm sound missing"
+installed veltos-weather || fail "VeltOS Weather missing"
+[ -n "$(find /usr/share/icons -name veltos-weather.svg -print -quit)" ] || fail "VeltOS Weather has no icon"
 installed veltos-photos || fail "VeltOS Photos missing"
 installed gwenview && fail "Gwenview must not be installed (VeltOS Photos replaces it)"
 installed veltos-media || fail "VeltOS Media Player missing"

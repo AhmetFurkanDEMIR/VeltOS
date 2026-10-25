@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Historical weather: VeltOS artwork (tools/weather-icons.py). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <g fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 20V4M4 20h16"/><path d="M7 15l4-4 3 3 5-6"/>
+  </g>
+</svg>

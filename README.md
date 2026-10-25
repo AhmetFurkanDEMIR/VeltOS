@@ -84,6 +84,7 @@ More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#galle
 | Word, Excel, PowerPoint | Microsoft 365's start screen | LibreOffice 25.2 |
 | Mail | Outlook (the new Outlook's layout) | Python's imaplib/smtplib, Qt WebEngine |
 | Calendar, Clock, Calculator, Notepad | The apps of the same name | Qt Quick |
+| Weather | Weather (current weather, 10-day and hourly forecast, details, history, favorites) | Open-Meteo's open data, no key |
 | Photos, Media Player, Camera | The apps of the same name | Pillow, Qt Multimedia |
 | Snipping Tool | Snipping Tool (Print Screen, Win+Shift+S) | Spectacle |
 | PDF Reader | A modern PDF reader | Qt PDF |

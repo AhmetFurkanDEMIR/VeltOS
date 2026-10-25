@@ -3,6 +3,39 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — VeltOS Weather
+
+Item 21 of the product owner's list: a Weather app like Windows 11's,
+without an API key, from an open source.
+
+- Data source, checked on 2026-10-25: Open-Meteo (open-source weather
+  API) has forecasts, air quality, place search (GeoNames) and an ERA5
+  archive without a key; its terms allow free non-commercial use (no ads,
+  no subscriptions: VeltOS qualifies), 10,000 calls a day per IP address,
+  data under CC BY 4.0. MET Norway's API was the alternative; its terms
+  ask apps with many users to call it through their own caching proxy.
+  Parameter names and answers were checked against real answers for
+  Istanbul (kept as test data).
+- New package `veltos-weather` (PySide6/QML, the Clock's structure):
+  `openmeteo.py` (URLs with four-decimal coordinates, User-Agent, a disk
+  cache: forecast 15 min, air quality 1 h, records 30 days, the saved
+  answer offline), `conditions.py` (WMO codes → Windows' words and 17
+  pictures, skies, units as Windows pairs them, wind directions, AQI and
+  UV bands, the moon's phase from the mean synodic month, sentences),
+  `app.py` (backend, background thread, settings in
+  `~/.config/veltos/weather.json`), QML pages. First start: the city of
+  the computer's time zone becomes home. Pictures and glyphs are drawn
+  by `tools/weather-icons.py`; the app icon (sun behind a cloud) by
+  veltos-fluent-icons' `app-icons.py`.
+- Found while building it: Qt 6.8's Item has FINAL properties that a
+  QML property named `top` cannot override ("Cannot override FINAL
+  property": the whole page did not load); a function named `y` in a
+  delegate replaces Item's `y`.
+- Verified: 22 package tests (real answers, no network); dev VM with live
+  data: first start in İstanbul, search, Ankara's history and favorite
+  card, dark and light themes (`tests/results/2026-10-25-weather/`).
+- Not done: Windows' Maps page; the device's location (item 40).
+
 ## 2026-10-25 — One menu on a right-click in Notepad
 
 Item 20 of the product owner's list ("a right-click in a text document
