@@ -114,6 +114,34 @@ class PrefsTests(unittest.TestCase):
         self.assertEqual(formats, ["de_DE", "en_US", "tr_TR"])
         self.assertFalse(self.prefs.set_formats("xx_YY", formats))
         self.assertTrue(self.prefs.set_formats("de_DE", formats))
+        # Every format key Plasma exports, so LC_* lines of /etc/default/locale
+        # (an English installation in Turkey: LC_TIME=tr_TR) do not win.
+        written = {c[-2]: c[-1] for c in self.runner.commands if c[:4] == ["kwriteconfig6", "--notify", "--file",
+                                                                             "plasma-localerc"] and "Formats" in c}
+        self.assertEqual(written["LC_TIME"], "de_DE.UTF-8")
+        self.assertEqual(set(written), set(prefs.FORMAT_KEYS))
+
+    def test_formats_follow_the_language(self):
+        # The taskbar's date stayed English after Turkish was chosen
+        # (product owner, 2026-10-23): formats that went with the old
+        # language follow the new one, as Windows' "Recommended" format does.
+        (self.home / "plasma-localerc").write_text("[Formats]\nLANG=en_US.UTF-8\n\n[Translations]\nLANGUAGE=en_US\n")
+        with mock.patch.dict(os.environ, {"LANG": "en_US.UTF-8"}, clear=True):
+            self.assertTrue(self.prefs.set_language("tr"))
+            # The system's LC_TIME (installer: English in Turkey) decides
+            # what the date looks like while plasma-localerc names none.
+            with mock.patch.dict(os.environ, {"LC_TIME": "tr_TR.UTF-8"}):
+                self.assertEqual(self.prefs.formats(), "tr_TR")
+        commands = [" ".join(c) for c in self.runner.commands]
+        self.assertIn("kwriteconfig6 --notify --file plasma-localerc --group Translations --key LANGUAGE tr", commands)
+        self.assertIn("kwriteconfig6 --notify --file plasma-localerc --group Formats --key LC_TIME tr_TR.UTF-8",
+                      commands)
+        # Formats the user chose themselves stay.
+        self.runner.commands.clear()
+        (self.home / "plasma-localerc").write_text("[Formats]\nLANG=de_DE.UTF-8\n\n[Translations]\nLANGUAGE=en_US\n")
+        with mock.patch.dict(os.environ, {"LANG": "en_US.UTF-8"}, clear=True):
+            self.assertTrue(self.prefs.set_language("tr"))
+        self.assertFalse(any("Formats" in c for c in self.runner.commands))
 
     def test_notification_senders(self):
         apps_dir = Path(tempfile.mkdtemp())

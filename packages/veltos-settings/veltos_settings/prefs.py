@@ -106,6 +106,14 @@ TIMEOUT_MINUTES = [1, 2, 3, 5, 10, 15, 20, 25, 30, 45, 60, 120, 180, 240, 300, 0
 LOCK_MINUTES = [1, 2, 3, 5, 10, 15, 30, 60, 0]     # 0 = never (Autolock off)
 NIGHT_TEMPERATURES = (6500, 1000)       # KWin's range: no change .. strongest
 
+# Language & region: the formats that go with each display language, and
+# the [Formats] keys of plasma-localerc that Plasma 6.3's startplasma
+# exports at sign-in (besides LC_COLLATE, LC_CTYPE, LC_MESSAGES,
+# LC_IDENTIFICATION and LC_ALL, which VeltOS leaves alone).
+LANGUAGE_FORMATS = {"en": "en_US", "tr": "tr_TR"}
+FORMAT_KEYS = ("LANG", "LC_ADDRESS", "LC_MEASUREMENT", "LC_MONETARY", "LC_NAME", "LC_NUMERIC",
+               "LC_PAPER", "LC_TELEPHONE", "LC_TIME")
+
 # What has to happen after a change (programs reload their settings).
 RELOAD = {
     "kwinrc": [["qdbus6", "org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure"]],
@@ -259,19 +267,41 @@ class Preferences:
         return "tr" if first.startswith("tr") else "en"
 
     def set_language(self, code):
+        """The display language; formats that went with the old language
+        (Windows' "Recommended" regional format) follow it, so the taskbar's
+        date is Turkish with Turkish (it stayed English, product owner
+        2026-10-23). Formats the user chose themselves stay."""
         languages = {"en": "en_US", "tr": "tr"}
         if code not in languages:
             return False
-        return self.run(write_command("plasma-localerc", ["Translations"], "LANGUAGE", languages[code]))[0] == 0
+        follow = self.formats() == LANGUAGE_FORMATS[self.language()]
+        ok = self.run(write_command("plasma-localerc", ["Translations"], "LANGUAGE", languages[code]))[0] == 0
+        new = LANGUAGE_FORMATS[code]
+        if ok and follow and self.formats() != new:
+            ok = self.set_formats(new, [new])
+        return ok
 
     def formats(self):
-        value = read_value("plasma-localerc", ["Formats"], "LANG", "", self.dirs) or os.environ.get("LANG", "")
+        """The formats dates and times are shown in: LC_TIME decides them,
+        and one from the system (/etc/default/locale) stays unless
+        plasma-localerc names its own (startplasma only exports keys the
+        file has)."""
+        value = (read_value("plasma-localerc", ["Formats"], "LC_TIME", "", self.dirs)
+                 or os.environ.get("LC_TIME", "")
+                 or read_value("plasma-localerc", ["Formats"], "LANG", "", self.dirs)
+                 or os.environ.get("LANG", ""))
         return value.split(".")[0] if value else "en_US"
 
     def set_formats(self, locale_name, available):
+        """Every format key Plasma exports at sign-in (startplasma), so the
+        choice also wins over the LC_* lines the installer may have put in
+        /etc/default/locale (an English installation in Turkey has
+        LC_TIME=tr_TR.UTF-8 there)."""
         if locale_name not in available:
             return False
-        return self.run(write_command("plasma-localerc", ["Formats"], "LANG", f"{locale_name}.UTF-8"))[0] == 0
+        value = f"{locale_name}.UTF-8"
+        return all(self.run(write_command("plasma-localerc", ["Formats"], key, value))[0] == 0
+                   for key in FORMAT_KEYS)
 
     def available_formats(self):
         """Locales the system can format with (`locale -a`, UTF-8 ones)."""

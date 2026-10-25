@@ -3,6 +3,27 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Taskbar date follows the language
+
+Item 26 of the product owner's list. Reproduced in the dev VM: Settings'
+Display language wrote only `[Translations] LANGUAGE` to
+`plasma-localerc`; after signing in again everything was Turkish but the
+taskbar clock (which formats with plasmashell's locale, i.e. `LC_TIME` /
+`LANG`) still showed "12:51 PM 10/25/2026". Plasma 6.3's startplasma
+(`runStartupConfig`, read on invent.kde.org) exports `LANG` and the `LC_*`
+keys of `[Formats]` only when the file has them, so `LC_*` lines from
+`/etc/default/locale` (Calamares writes them from the location) would also
+win over a `LANG`-only choice.
+
+- `prefs.set_language`: when the current formats are the old language's
+  (`LANGUAGE_FORMATS`: en → en_US, tr → tr_TR), they follow the new one;
+  `set_formats` writes `LANG` and every `LC_*` key in `FORMAT_KEYS`;
+  `formats()` reports the effective time format (`LC_TIME` before `LANG`).
+  The page shows the followed format at once.
+- Verified: veltos-settings 111 package tests; dev VM: English → Türkçe
+  in Settings, the regional format followed, signed in again: "25.10.2026"
+  and a Turkish calendar flyout (`tests/results/2026-10-25-taskbar-date-language/`).
+
 ## 2026-10-25 — Brightness flyout icon
 
 Item 25 of the product owner's list. plasmashell's OSD asks for

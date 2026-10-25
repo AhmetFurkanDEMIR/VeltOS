@@ -122,7 +122,10 @@ open VeltOS Settings.
     `textScale` every VeltOS app reads from them, the apps' own texts
     (Settings at once, the others at their next start);
   - **Time & language**: Date & time (also setting it by hand), Language &
-    region (plasma-localerc; applies after signing in again);
+    region (plasma-localerc; applies after signing in again; the regional
+    format follows the display language while it is the old language's,
+    like Windows' "Recommended" format, and a format choice writes `LANG`
+    and every `LC_*` key Plasma exports so the taskbar's date follows it);
   - **Accessibility**: Text size (KDE fonts), Animation effects;
   - **Privacy & security**: Screen lock, Searching files (balooctl6).
 - "Check for updates" and "Get apps" open VeltOS Store.

@@ -851,7 +851,10 @@ class Backend(QObject):
     @Slot(str)
     def setLanguage(self, code):
         self._update("_prefs", self.prefsChanged, {"language": code})
-        self.jobs.submit(lambda: self.system.prefs.set_language(code))
+        # The regional format may follow the language: show what it is now.
+        self.jobs.submit(lambda: self.system.prefs.set_language(code),
+                         lambda _ok: self._update("_prefs", self.prefsChanged,
+                                                  {"formats": self.system.prefs.formats()}))
 
     @Slot(str)
     def setFormats(self, name):
