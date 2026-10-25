@@ -31,6 +31,24 @@ Item {
         entrance.restart();
     }
 
+    // The flyout shows the icons of the taskbar's quick settings: plasmashell
+    // asks for "video-display-brightness" (a monitor picture), quick
+    // settings' brightness slider has the sun, "brightness-high-symbolic";
+    // volume icons come in their symbolic (outline) form there too.
+    function shownIcon(name) {
+        if (name === "video-display-brightness") {
+            return "brightness-high-symbolic";
+        }
+        if (name === "input-keyboard-brightness") {
+            return "keyboard-brightness-high-symbolic";
+        }
+        if ((name.startsWith("audio-volume-") || name.startsWith("microphone-sensitivity-"))
+                && !name.endsWith("-symbolic")) {
+            return name + "-symbolic";
+        }
+        return name;
+    }
+
     readonly property bool hasValue: showingProgress && osdValue !== undefined && osdValue !== null
     readonly property real fraction: hasValue && osdMaxValue > 0 ? Math.max(0, Math.min(1, osdValue / osdMaxValue)) : 0
     // KWin places an OSD window with its centre at two thirds of the
@@ -73,7 +91,7 @@ Item {
                 Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
                 Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
                 Layout.alignment: Qt.AlignVCenter
-                source: root.icon
+                source: root.shownIcon(root.icon)
                 color: Kirigami.Theme.textColor
                 isMask: true
                 visible: valid

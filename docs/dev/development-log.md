@@ -3,6 +3,20 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Brightness flyout icon
+
+Item 25 of the product owner's list. plasmashell's OSD asks for
+`video-display-brightness` and `input-keyboard-brightness` (UTF-16 strings
+in `/usr/bin/plasmashell`, found with `strings -el`); VeltOS' flyout
+(`OsdItem.qml`) maps them to the icons quick settings uses
+(`brightness-high-symbolic`, `keyboard-brightness-high-symbolic`, both in
+Fluent) and adds `-symbolic` to volume icons. A test runs the mapping
+function itself in a QJSEngine (it needs a QGuiApplication first: the
+build aborted with "Must construct a QCoreApplication before a
+QJSEngine"). Verified: veltos-desktop 124 package tests; dev VM: the
+brightness flyout through plasmashell's OSD service, the volume flyout,
+quick settings for comparison (`tests/results/2026-10-25-brightness-osd-icon/`).
+
 ## 2026-10-25 — Lock screen: Windows 11's sign-in sequence
 
 Item 24 of the product owner's list.

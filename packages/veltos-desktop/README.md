@@ -250,7 +250,9 @@ rebuilt `veltos-desktop` in a running VM delete that directory and restart
   6.3 loads the OSD from the desktop shell package, not from the global
   theme; KWin centres OSD windows at two thirds of the screen, so the
   window is made tall enough for its bottom edge to end above the
-  taskbar).
+  taskbar). It shows the quick settings' icons: the sun for brightness
+  (plasmashell asks for `video-display-brightness`, a monitor picture)
+  and outline speakers for volume.
 - **Task View** (`kwin/effects/veltostaskview`): desktop cards show their
   windows; right-click or double-click switches to the desktop; the
   selection frame wraps the card.

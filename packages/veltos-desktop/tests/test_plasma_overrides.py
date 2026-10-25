@@ -5,6 +5,8 @@ that no longer fits leaves Plasma's own version in place."""
 import importlib.machinery
 import importlib.util
 import json
+import os
+import re
 import shutil
 import tempfile
 import unittest
@@ -184,6 +186,31 @@ class OverrideTests(unittest.TestCase):
         self.assertIn("anchors.bottom: parent.bottom", item)
         self.assertIn("Math.round(screenHeight * 2 / 3) - bottomBand * 2", item)
         self.assertIn('i18ndc("plasma_shell_org.kde.plasma.desktop"', item)
+        self.assertIn("source: root.shownIcon(root.icon)", item)
+
+    def test_osd_icons_are_the_quick_settings_ones(self):
+        # plasmashell's brightness OSD asks for "video-display-brightness"
+        # (a monitor picture; strings -el /usr/bin/plasmashell, Plasma 6.3);
+        # quick settings' brightness slider shows "brightness-high-symbolic".
+        try:
+            from PySide6.QtGui import QGuiApplication
+            from PySide6.QtQml import QJSEngine
+        except ImportError:
+            self.skipTest("needs PySide6")
+        # A QGuiApplication, as the other test modules of this process make.
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        self.app = QGuiApplication.instance() or QGuiApplication([])
+        item = (PKG / "plasma-overrides/files/osd/OsdItem.qml").read_text(encoding="utf-8")
+        body = re.search(r"\n    function shownIcon\(name\) \{\n.*?\n    \}\n", item, re.S).group(0)
+        engine = QJSEngine()
+        shown = engine.evaluate("(" + body.strip().replace("function shownIcon", "function") + ")")
+        def icon(name):
+            return shown.call([name]).toString()
+        self.assertEqual(icon("video-display-brightness"), "brightness-high-symbolic")
+        self.assertEqual(icon("input-keyboard-brightness"), "keyboard-brightness-high-symbolic")
+        self.assertEqual(icon("audio-volume-medium"), "audio-volume-medium-symbolic")
+        self.assertEqual(icon("audio-volume-muted-symbolic"), "audio-volume-muted-symbolic")
+        self.assertEqual(icon("keyboard-layout"), "keyboard-layout")
 
     def test_start_popup_is_centred_on_the_taskbar(self):
         self.assertEqual(self.run_tool(), 0)
