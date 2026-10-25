@@ -23,7 +23,7 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import exeinfo, shortcuts
+from . import exeinfo, programs, shortcuts
 from .strings import Texts
 from .winenv import Environment, alternative_runners, has_hardware_vulkan, live_session
 
@@ -303,6 +303,9 @@ class Runner(QObject):
 
     def _program_finished(self, code):
         self._exit_code = code
+        # A program may have been an uninstaller: Wine leaves its menu
+        # entries behind (programs.forget_removed).
+        programs.forget_removed(self.env)
         if not self.info.is_installer:
             ran_long = time.monotonic() - self._started_at > STARTED_AFTER_MS / 1000
             if code == 0 or ran_long:

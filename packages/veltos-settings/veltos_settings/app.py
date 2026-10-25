@@ -64,10 +64,13 @@ def windows_programs():
     shortcut that veltos-run recorded for a program ("Open"); programs
     veltos-run started without installing them (no registry entry) too."""
     try:
-        from veltos_winapps.programs import installed_programs
+        from veltos_winapps.programs import forget_removed, installed_programs
         from veltos_winapps.winenv import installed_apps
     except ImportError:
         return []
+    # Programs removed by their own uninstaller: no Start menu entries or
+    # records left behind (Wine's menu builder only ever adds them).
+    forget_removed()
     records = []
     for record in installed_apps():
         shortcuts = [s for s in record.get("shortcuts", []) if Path(s).exists()]
@@ -342,6 +345,9 @@ class Backend(QObject):
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3600)
             except (OSError, subprocess.SubprocessError):
                 pass
+            # Start menu and desktop entries, icons and the record go too.
+            from veltos_winapps.programs import forget_removed
+            forget_removed(environment)
 
         def done(_result):
             self._uninstalling.discard(key)

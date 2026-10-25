@@ -5,6 +5,7 @@ import struct
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -149,6 +150,140 @@ class ShortcutTests(unittest.TestCase):
         found = shortcuts.entries_for_prefix(
             shortcuts.changed(before, shortcuts.snapshot([self.tmp])), "/p/foo/prefix")
         self.assertEqual([e["name"] for e in found], ["Foo"])
+
+
+# Exec lines as winemenubuilder writes them (dev VM, 7-Zip 26.04): desktop
+# entry escaping on top of the shell quoting of the .lnk's Windows path.
+PREFIX = "/home/velt/.local/share/veltos/windows/prefix"
+MENU_EXEC = (r'env WINEPREFIX="/home/velt/.local/share/veltos/windows/prefix" wine-stable '
+             r'C:\\\\ProgramData\\\\Microsoft\\\\Windows\\\\Start\\ Menu\\\\Programs\\\\7-Zip\\\\'
+             r'7-Zip\\ File\\ Manager.lnk')
+DESKTOP_EXEC = (r'env WINEPREFIX="/home/velt/.local/share/veltos/windows/prefix" wine-stable start /unix '
+                r'/home/velt/.local/share/veltos/windows/prefix/drive_c/users/Public/Desktop/7-Zip\\ File\\ Manager.lnk')
+TYPE_EXEC = 'env WINEPREFIX="/home/velt/.local/share/veltos/windows/prefix" wine start /ProgIDOpen 7-Zip.7z %f'
+
+
+class UninstalledShortcutTests(unittest.TestCase):
+    """After an uninstall Wine's menu builder leaves its Start menu entries,
+    menus, folders and icons behind; VeltOS removes them (product owner's
+    item 18, 2026-10-23: the app still showed after it was uninstalled)."""
+
+    def test_windows_target(self):
+        self.assertEqual(shortcuts.windows_target(MENU_EXEC, PREFIX),
+                         Path(PREFIX) / "drive_c/ProgramData/Microsoft/Windows/Start Menu/Programs/7-Zip"
+                         / "7-Zip File Manager.lnk")
+        self.assertEqual(shortcuts.windows_target(DESKTOP_EXEC, PREFIX),
+                         Path(PREFIX) / "drive_c/users/Public/Desktop/7-Zip File Manager.lnk")
+        self.assertIsNone(shortcuts.windows_target(TYPE_EXEC, PREFIX))
+        self.assertIsNone(shortcuts.windows_target(MENU_EXEC, "/home/velt/other/prefix"))
+        self.assertIsNone(shortcuts.windows_target("veltos-explorer shell:mycomputer", PREFIX))
+        self.assertEqual(shortcuts.file_type(TYPE_EXEC, PREFIX), "7-Zip.7z")
+
+    def make_home(self):
+        home = Path(tempfile.mkdtemp())
+        prefix = home / ".local/share/veltos/windows/prefix"
+        lnk = prefix / "drive_c/ProgramData/Microsoft/Windows/Start Menu/Programs/Kept/kept.lnk"
+        lnk.parent.mkdir(parents=True)
+        lnk.write_bytes(b"L")
+        # A ProgID written only with its subkeys still counts; 7-Zip's is gone.
+        (prefix / "system.reg").write_text("WINE REGISTRY Version 2\n\n"
+                                           "[Software\\\\Classes\\\\Kept.File\\\\shell\\\\open] 1\n"
+                                           "[Software\\\\Classes\\\\.txt] 1\n")
+        apps = home / ".local/share/applications"
+        menu = apps / "wine/Programs/7-Zip"
+        menu.mkdir(parents=True)
+        (apps / "wine/Programs/Kept").mkdir()
+
+        def entry(path, name, exec_line, icon):
+            path.write_text(f"[Desktop Entry]\nName={name}\nExec={exec_line}\nType=Application\nIcon={icon}\n")
+
+        entry(menu / "7-Zip File Manager.desktop", "7-Zip File Manager", MENU_EXEC.replace(PREFIX, str(prefix)),
+              "EA23_7zFM.0")
+        entry(apps / "wine/Programs/Kept/kept.desktop", "Kept",
+              f'env WINEPREFIX="{prefix}" wine C:\\\\\\\\ProgramData\\\\\\\\Microsoft\\\\\\\\Windows\\\\\\\\'
+              f'Start\\\\ Menu\\\\\\\\Programs\\\\\\\\Kept\\\\\\\\kept.lnk', "1DA0_kept.0")
+        entry(apps / "wine-extension-7z.desktop", "7-Zip", TYPE_EXEC.replace(PREFIX, str(prefix)), "EA23_7zFM.0")
+        entry(apps / "wine-extension-kept.desktop", "Kept", TYPE_EXEC.replace(PREFIX, str(prefix))
+              .replace("7-Zip.7z", "Kept.File"), "1DA0_kept.0")
+        entry(apps / "firefox.desktop", "Firefox", "firefox %u", "firefox")
+        desktop = home / "Desktop"
+        desktop.mkdir()
+        entry(desktop / "7-Zip File Manager.desktop", "7-Zip File Manager",
+              DESKTOP_EXEC.replace(PREFIX, str(prefix)), "EA23_7zFM.0")
+        entry(desktop / "thispc.desktop", "This PC", "veltos-explorer shell:mycomputer", "computer")
+        merged = home / ".config/menus/applications-merged"
+        merged.mkdir(parents=True)
+        for name in ("wine-Programs-7-Zip-7-Zip File Manager.menu", "wine-Programs-Kept-kept.menu"):
+            (merged / name).write_text("<Menu/>\n")
+        directories = home / ".local/share/desktop-directories"
+        directories.mkdir(parents=True)
+        for name in ("wine-Programs.directory", "wine-Programs-7-Zip.directory", "wine-Programs-Kept.directory"):
+            (directories / name).write_text("[Desktop Entry]\n")
+        icons = home / ".local/share/icons/hicolor"
+        for size in ("32x32", "48x48"):
+            (icons / size / "apps").mkdir(parents=True)
+            for icon in ("EA23_7zFM.0", "1DA0_kept.0", "firefox"):
+                (icons / size / "apps" / f"{icon}.png").write_bytes(b"P")
+        packages = home / ".local/share/mime/packages"
+        packages.mkdir(parents=True)
+        (packages / "x-wine-extension-7z.xml").write_text("<mime-info/>\n")
+        return home, prefix, desktop
+
+    def test_removes_what_the_uninstaller_left(self):
+        home, prefix, desktop = self.make_home()
+        removed = shortcuts.remove_stale(prefix, home=home, desktop=desktop)
+        data = home / ".local/share"
+        self.assertEqual(sorted(Path(p).name for p in removed),
+                         ["7-Zip File Manager.desktop", "7-Zip File Manager.desktop", "wine-extension-7z.desktop"])
+        self.assertFalse((data / "applications/wine/Programs/7-Zip").exists())
+        self.assertFalse((home / ".config/menus/applications-merged/wine-Programs-7-Zip-7-Zip File Manager.menu")
+                         .exists())
+        self.assertFalse((data / "desktop-directories/wine-Programs-7-Zip.directory").exists())
+        self.assertFalse((data / "mime/packages/x-wine-extension-7z.xml").exists())
+        self.assertEqual(list((data / "icons/hicolor").glob("*/apps/EA23_7zFM.0.png")), [])
+        # Everything of the program that is still installed, and of others, stays.
+        for kept in ("applications/wine/Programs/Kept/kept.desktop", "applications/wine-extension-kept.desktop",
+                     "applications/firefox.desktop", "desktop-directories/wine-Programs.directory",
+                     "desktop-directories/wine-Programs-Kept.directory", "icons/hicolor/48x48/apps/1DA0_kept.0.png",
+                     "icons/hicolor/48x48/apps/firefox.png"):
+            self.assertTrue((data / kept).exists(), kept)
+        self.assertTrue((home / ".config/menus/applications-merged/wine-Programs-Kept-kept.menu").exists())
+        self.assertTrue((desktop / "thispc.desktop").exists())
+        self.assertEqual(shortcuts.remove_stale(prefix, home=home, desktop=desktop), [])
+
+    def test_shortcut_names_ignore_case(self):
+        home, prefix, desktop = self.make_home()
+        lnk = prefix / "drive_c/ProgramData/Microsoft/Windows/Start Menu/Programs/Kept/kept.lnk"
+        lnk.rename(lnk.with_name("KEPT.LNK"))
+        shortcuts.remove_stale(prefix, home=home, desktop=desktop)
+        self.assertTrue((home / ".local/share/applications/wine/Programs/Kept/kept.desktop").exists())
+
+    def test_forget_removed_drops_the_record(self):
+        from veltos_winapps import programs
+        home, prefix, desktop = self.make_home()
+        old = {key: os.environ.get(key) for key in ("XDG_DATA_HOME", "XDG_CONFIG_HOME", "HOME")}
+        os.environ.update(XDG_DATA_HOME=str(home / ".local/share"), XDG_CONFIG_HOME=str(home / ".config"),
+                          HOME=str(home))
+        try:
+            environment = winenv.Environment(prefix.parent)
+            gone = environment.save_record("7-Zip", shortcuts=[
+                str(home / ".local/share/applications/wine/Programs/7-Zip/7-Zip File Manager.desktop")])
+            kept = environment.save_record("Kept", shortcuts=[
+                str(home / ".local/share/applications/wine/Programs/Kept/kept.desktop")])
+            portable = environment.save_record("Portable", shortcuts=[])
+            with unittest.mock.patch.object(shortcuts, "desktop_dir", return_value=desktop):
+                removed = programs.forget_removed(environment)
+        finally:
+            for key, value in old.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+        self.assertIn(str(gone), removed)
+        self.assertFalse(gone.exists())
+        self.assertTrue(kept.exists())
+        self.assertTrue(portable.exists())
+        self.assertFalse((desktop / "7-Zip File Manager.desktop").exists())
 
 
 class ProgramListTests(unittest.TestCase):

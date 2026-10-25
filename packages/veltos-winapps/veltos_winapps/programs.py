@@ -143,3 +143,28 @@ def uninstall_command(key, environment=None):
         return None
     return ["sh", "-c", '"$1" uninstaller --remove "$2"; "$3" -w', "sh",
             wine_tool("wine"), key, wine_tool("wineserver")]
+
+
+def forget_removed(environment=None):
+    """After a program was uninstalled (from Settings, its own uninstaller or
+    Wine's): its Start menu, desktop and file-type entries go
+    (shortcuts.remove_stale), and so does VeltOS' record of the
+    installation once none of its shortcuts is left, so Settings no longer
+    lists it. Returns the removed entries."""
+    import json
+    from .shortcuts import remove_stale
+    environment = environment or Environment()
+    removed = remove_stale(environment.prefix)
+    for record in sorted(environment.records.glob("*.json")) if environment.records.is_dir() else []:
+        try:
+            data = json.loads(record.read_text())
+        except (OSError, ValueError):
+            continue
+        links = data.get("shortcuts") or []
+        if links and not any(Path(link).exists() for link in links):
+            try:
+                record.unlink()
+                removed.append(str(record))
+            except OSError:
+                pass
+    return removed

@@ -3,6 +3,36 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Uninstalled Windows programs disappear completely
+
+Item 18 of the product owner's list: an uninstalled Windows program still
+showed.
+
+- Reproduced in the dev VM with 7-Zip 26.04: its own uninstaller (started
+  from Settings > Apps > Windows programs) removed its files and its Start
+  menu `.lnk` files inside the Windows environment, but Wine's menu builder
+  only ever adds Linux menu entries: two `.desktop` files under
+  `~/.local/share/applications/wine/Programs/7-Zip/`, their `.menu` files,
+  the `.directory` files and four icons stayed, so Start search still found
+  "7-Zip File Manager" and "7-Zip Help"; VeltOS' installation record kept
+  a "7-Zip" row in Settings.
+- veltos-winapps: `shortcuts.remove_stale` reads each Wine entry of the
+  environment (Start menu, desktop, `wine-extension-*`), works out what it
+  opens from its Exec line (the `.lnk` as a Windows path, `start /unix`
+  paths, or the ProgID of `start /ProgIDOpen`; format checked in Wine 10.0's
+  `winemenubuilder.c`) and removes the entry when that is gone (case
+  ignored, as on Windows), with its `.menu`, empty folders and their
+  `.directory` files, icons no remaining entry uses and the MIME type Wine
+  made up for a removed file type. `programs.forget_removed` also drops
+  records whose shortcuts are all gone. Settings runs it after Uninstall
+  and when the Windows programs page opens (programs removed by their own
+  uninstaller elsewhere), veltos-run after every program it ran.
+- Verified: 31 package tests (Exec lines as the VM had them, a home with a
+  removed and a kept program); dev VM: the old leftovers vanished when the
+  page opened, then a fresh install / uninstall from Settings left nothing
+  (`find` empty, Settings empty, Start search without 7-Zip;
+  `tests/results/2026-10-25-windows-uninstall/`).
+
 ## 2026-10-25 — A Windows 11 style notice after a crash
 
 Item 17 of the product owner's list: DrKonqi's "x closed unexpectedly"

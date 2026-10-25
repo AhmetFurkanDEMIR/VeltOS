@@ -42,7 +42,7 @@ English and Turkish texts (`veltos_winapps/strings.py`).
 |---|---|
 | `exeinfo.py` | Reads PE headers/resources (python3-pefile): name, publisher, version, icon, architecture, .NET, GUI/console; detects installers (Inno Setup, NSIS, InstallShield, WiX, MSI, …) by signature, version info and file name |
 | `winenv.py` | One Windows environment (Wine prefix) shared by all programs, like the single C: drive of a Windows PC: `~/.local/share/veltos/windows/` (the prefix in `prefix/`, records of installed programs in `records/`, logs in `logs/`); a prefix per program was tried first and cost ~1.7 GB each. 64-bit prefix with 32-bit support; DXVK installed via `dxvk-setup` when a real Vulkan GPU is present |
-| `shortcuts.py` | Finds the Start menu entries an installer created (only those for its prefix) |
+| `shortcuts.py` | Finds the Start menu entries an installer created (only those for its prefix); `remove_stale` removes Wine's Start menu, desktop and file-type entries whose `.lnk`, program or ProgID is gone (an uninstaller removed it; Wine's menu builder only ever adds entries), with their `.menu`/`.directory` files, empty menu folders, unused icons and made-up MIME types |
 | `programs.py` | The installed Windows programs as Windows 11's Settings > Apps > Installed apps lists them, read from the environment's registry files (`prefix/system.reg`, `prefix/user.reg`: the `Uninstall` keys and their `Wow6432Node` twin): name, publisher, version, size, install date and the icon's `.exe`, newest first; Wine's own parts (Wine Mono, Wine Gecko), system components and updates are left out. Reading the files takes milliseconds; Wine's own "Add/Remove Programs" window took many seconds (product owner, 2026-10-22). `uninstall_command` runs the program's own uninstaller through Wine (`wine uninstaller --remove KEY`) and waits until every Windows process has ended (`wineserver -w`). Used by VeltOS Settings > Apps > Windows programs (veltos-settings) |
 | `app.py` + `qml/` | PySide6 + Qt Quick window (`Main.qml`; Windows 11 button `VButton`; colours in `Theme.qml`, light/dark and accent from the KDE settings); runs each step with QProcess, logs to `logs/` |
 | `strings.py` | UI texts |
@@ -81,6 +81,10 @@ verify hook checks both); only debuggers lose Wine's symbols, and
 - Installed Windows programs are listed and uninstalled in VeltOS
   Settings > Apps > Windows programs (`programs.py`, laid out like
   Windows 11's Installed apps); there is no separate manager window.
+  After an uninstall (from Settings or the program's own uninstaller) the
+  program disappears completely: `programs.forget_removed` removes the
+  entries Wine leaves in Start and on the desktop and VeltOS' record of
+  the installation (run by Settings and after every `veltos-run`).
 - Not yet: per-program compatibility profiles, automatic runtime
   installation (winetricks verbs) and a compatibility database. See
   `docs/dev/status.md`.
@@ -92,7 +96,9 @@ generated PE files, installer detection, environment naming and
 variables, shortcut detection, the installed-programs list read from a
 registry file (`tests/data/system.reg`: names with escapes, publisher,
 date, size, icon, newest first; Wine's own entries, updates and system
-components left out) and the uninstall command, translation
+components left out) and the uninstall command, the clean-up after an
+uninstall (Exec lines as winemenubuilder writes them, a home with menus,
+folders, icons and records of a removed and a kept program), translation
 completeness, and `strip-wine-dlls` with a stand-in strip tool (only
 Windows programs and libraries, nothing without the tool, the trigger).
 End-to-end in a VM: `build/run.sh test-winapps` (installs 7-Zip through
