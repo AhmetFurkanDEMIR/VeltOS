@@ -219,6 +219,11 @@ class OverrideTests(unittest.TestCase):
         self.assertIn("id: startCentre", text)
         self.assertIn('["org.veltos.startmenu", "org.veltos.search"].includes(Plasmoid.pluginName)', text)
         self.assertNotIn("        visualParent: root.compactRepresentation\n", text)
+        # A left-aligned taskbar: Start and search open over their own button
+        # at the left, decided again whenever the popup opens.
+        self.assertIn("visualParent: dialog.visible, root.startPopupParent()", text)
+        self.assertIn("return window && left > window.width * 0.12 ? startCentre : root.compactRepresentation;",
+                      text)
         # No box behind the search box while its window is open.
         self.assertIn('plasmoidItem.expanded && Plasmoid.pluginName !== "org.veltos.search" ? 1 : 0', text)
 

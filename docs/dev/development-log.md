@@ -3,6 +3,21 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-25 — Start and search follow a left-aligned taskbar
+
+Item 29 of the product owner's list. The desktop shell override
+(`CompactApplet.qml`) gave Start and search the centred item as popup
+parent unconditionally. `startPopupParent()` now returns the centred item
+only while the applet's button lies more than 12 % of the panel window's
+width from its left edge (centred buttons start around a quarter or more
+in; a left-aligned Start sits at the edge), else the button itself; the
+binding `visualParent: dialog.visible, root.startPopupParent()` reads it
+again whenever the popup opens, so a change in Settings needs no restart.
+The JSON spec round-trips byte for byte through `json.dumps(indent=2,
+ensure_ascii=False)`, so it was edited with a script. Verified:
+veltos-desktop 125 package tests; dev VM: centred, left-aligned (Start
+and search), centred again (`tests/results/2026-10-25-left-taskbar-popups/`).
+
 ## 2026-10-25 — Programs come to the front
 
 Item 28 of the product owner's list. Reproduced in the dev VM with a

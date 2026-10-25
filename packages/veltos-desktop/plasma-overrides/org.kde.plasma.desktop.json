@@ -42,13 +42,13 @@
       "file": "contents/applet/CompactApplet.qml",
       "why": "Start opens centred over the taskbar like Windows 11: an empty item in the middle of the panel window (which spans the screen) to place the popup over",
       "old": "    PlasmaCore.AppletPopup {\n        id: dialog\n        objectName: \"popupWindow\"\n",
-      "new": "    // VeltOS: Start opens centred over the taskbar, like Windows 11. The\n    // popup is placed over its visual parent; this empty item sits in the\n    // middle of the panel window, which spans the screen.\n    Item {\n        id: startCentre\n        parent: root.Window.window ? root.Window.window.contentItem : null\n        x: parent ? Math.round(parent.width / 2) - 1 : 0\n        width: 2\n        height: parent ? parent.height : 0\n    }\n\n    PlasmaCore.AppletPopup {\n        id: dialog\n        objectName: \"popupWindow\"\n"
+      "new": "    // VeltOS: with a left-aligned taskbar (Settings > Personalization >\n    // Taskbar) Start and search open at the left, over their own button,\n    // as Windows 11 does; their button then sits at the screen's left\n    // edge, while centred buttons start well inside the taskbar.\n    function startPopupParent() {\n        if (![\"org.veltos.startmenu\", \"org.veltos.search\"].includes(Plasmoid.pluginName) || !startCentre.parent)\n            return root.compactRepresentation;\n        const window = root.Window.window;\n        const left = root.mapToItem(null, 0, 0).x;\n        return window && left > window.width * 0.12 ? startCentre : root.compactRepresentation;\n    }\n\n    // VeltOS: Start opens centred over the taskbar, like Windows 11. The\n    // popup is placed over its visual parent; this empty item sits in the\n    // middle of the panel window, which spans the screen.\n    Item {\n        id: startCentre\n        parent: root.Window.window ? root.Window.window.contentItem : null\n        x: parent ? Math.round(parent.width / 2) - 1 : 0\n        width: 2\n        height: parent ? parent.height : 0\n    }\n\n    PlasmaCore.AppletPopup {\n        id: dialog\n        objectName: \"popupWindow\"\n"
     },
     {
       "file": "contents/applet/CompactApplet.qml",
-      "why": "the Start menu uses the centred item as its popup's visual parent",
+      "why": "the Start menu and search use the centred item as their popup's visual parent while the taskbar's buttons are centred, their own button with a left-aligned taskbar",
       "old": "        visualParent: root.compactRepresentation\n",
-      "new": "        visualParent: [\"org.veltos.startmenu\", \"org.veltos.search\"].includes(Plasmoid.pluginName) && startCentre.parent\n                      ? startCentre : root.compactRepresentation\n"
+      "new": "        // Read again each time the popup opens (dialog.visible): the\n        // taskbar may have been aligned to the left since.\n        visualParent: dialog.visible, root.startPopupParent()\n"
     },
     {
       "file": "contents/applet/CompactApplet.qml",
