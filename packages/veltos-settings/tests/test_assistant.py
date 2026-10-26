@@ -11,11 +11,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from veltos_settings import assistant  # noqa: E402
 
 PROVIDERS = {
+    "local": {"title": "Local model (free, offline)", "model": "gemma.gguf", "keys": ""},
     "openai": {"title": "ChatGPT (OpenAI)", "model": "gpt-5.5", "keys": "https://platform.openai.com/api-keys"},
     "claude": {"title": "Claude (Anthropic)", "model": "claude-opus-5-5", "keys": "https://platform.claude.com/"},
     "copilot": {"title": "Copilot (Microsoft Azure OpenAI)", "model": "", "keys": "https://ai.azure.com/"},
 }
-ORDER = ("openai", "claude", "copilot")
+ORDER = ("local", "openai", "claude", "copilot")
 
 
 class FakeConfig:
@@ -39,12 +40,22 @@ class FakeConfig:
         return name in PROVIDERS and bool(data["services"][name]["key"])
 
 
+class FakeLocal:
+    """veltos_ai.local: the downloaded model files."""
+
+    def __init__(self, files=()):
+        self.files = list(files)
+
+    def installed(self):
+        return [{"file": f, "size": 1} for f in self.files]
+
+
 class AssistantTests(unittest.TestCase):
     def setUp(self):
         self.saved_tables = (assistant.PROVIDERS, assistant.ORDER)
         assistant.PROVIDERS, assistant.ORDER = PROVIDERS, ORDER
         self.config = FakeConfig()
-        self.ai = assistant.Assistant(self.config)
+        self.ai = assistant.Assistant(self.config, local_module=FakeLocal(["gemma.gguf"]))
 
     def tearDown(self):
         assistant.PROVIDERS, assistant.ORDER = self.saved_tables
@@ -69,6 +80,12 @@ class AssistantTests(unittest.TestCase):
         self.assertEqual(self.config.saved["services"]["openai"]["key"], "sk-new")
         self.assertEqual(self.config.saved["services"]["openai"]["model"], "gpt-5.6")
         self.assertFalse(self.ai.save_service("evil", "k", "", ""))
+
+    def test_local_model_is_counted_and_can_be_chosen(self):
+        self.assertEqual(self.ai.state()["localModels"], 1)
+        self.assertTrue(self.ai.use_local())
+        self.assertEqual(self.config.saved["provider"], "local")
+        self.assertFalse(self.ai.state()["services"]["local"]["hasKey"])
 
     def test_remove_key_and_actions(self):
         self.ai.save_service("claude", "sk-ant", "", "")

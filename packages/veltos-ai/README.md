@@ -1,16 +1,29 @@
 # veltos-ai — VeltOS AI
 
 An assistant pane in the manner of Windows 11's Copilot (PySide6/QML):
-Windows + C (or the Start entry) opens it on the right edge of the screen
-and closes it again.
+Windows + C or the taskbar button opens it on the right edge of the screen
+and closes it again; Start, search and Settings open it as a normal window
+(`veltos-ai --window`, `AppWindow.qml`). Both show `Assistant.qml` and
+share one conversation.
 
 - **The pane** is a layer-shell surface (`org.kde.layershell`, package
   qml6-module-org-kde-layershell): anchored to the top, bottom and right,
   above windows, with an exclusive zone of its width, so maximised windows
   make room as they did for Copilot. Escape or ✕ closes it; the process
-  stays for the next Windows + C and ends after ten idle minutes. One pane
-  per user: a second `veltos-ai` hands "toggle" to the running one (local
-  socket `veltos-ai-UID`).
+  stays for the next Windows + C and ends after ten idle minutes. One
+  process per user: a second `veltos-ai` hands "toggle" (or "window") and
+  its activation token to the running one (local socket `veltos-ai-UID`).
+- **Local model** (`local.py`), free and offline once downloaded, the
+  first choice in the settings: Google's Gemma 3 270M (Turkish, English
+  and more) as unsloth's UD-IQ3_XXS GGUF, 185 MB, pinned to one repository
+  revision and checked against its SHA-256; a download screen with
+  progress, speed and Cancel (`.part` file, renamed when complete). More
+  models from Hugging Face's public API: search GGUF repositories (gated
+  ones left out), a repository's `.gguf` files smallest first, each checked
+  against its LFS SHA-256. Models live in `~/.local/share/veltos/ai-models`.
+  veltos-llama's `llama-server` runs the chosen model on 127.0.0.1 (started
+  on the first question, stopped with VeltOS AI); the local model gets no
+  actions.
 - **Services** (`providers.py`, plain HTTPS with urllib: the image takes
   packages from Debian only, which has none of the services' SDKs):
   - ChatGPT: OpenAI's Responses API (`/v1/responses`, `store: false`); the
@@ -59,7 +72,12 @@ apps and files; settings saved with mode 600; the backend's conversation
 with "Allow", "Don't allow", Stop, actions turned off, errors, refusals,
 the live theme. `tests/test_ui.py`: the pane offscreen in English and
 Turkish (settings without a key, a conversation with an action, a narrow
-pane); any QML warning fails.
+pane, the local model's settings with the download screen and Hugging
+Face results, the window); any QML warning fails. `tests/test_local.py`:
+downloads (progress, wrong size or SHA-256 keep nothing, cancel), the
+model folder and file names, the pinned default, Hugging Face's search and
+file lists, the server's start on the loopback, the local adapter's stream.
 
 Not tested here: real conversations with the services (no keys on the
-development machine; `tests/results/2026-10-25-veltos-ai/`).
+development machine; `tests/results/2026-10-25-veltos-ai/`), a real model
+download and answer.

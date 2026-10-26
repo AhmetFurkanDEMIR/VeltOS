@@ -589,7 +589,15 @@ class Backend(QObject):
 
     @Slot()
     def openAssistant(self):
-        self._start(["veltos-ai"])
+        # From Settings VeltOS AI opens as a window, as from Start.
+        self._start(["veltos-ai", "--window"])
+
+    @Slot()
+    def useLocalAi(self):
+        """The local model: chosen here, downloaded in VeltOS AI's window."""
+        self._update("_assistant", self.assistantChanged, {"provider": "local"})
+        self._assistant_job(lambda: self.system.assistant.use_local())
+        self._start(["veltos-ai", "--window"])
 
     # --- Network & internet > Mobile hotspot (hotspot.py) ------------------------------
 

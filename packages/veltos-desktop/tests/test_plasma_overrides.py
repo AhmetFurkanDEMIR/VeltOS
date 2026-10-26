@@ -88,6 +88,10 @@ class OverrideTests(unittest.TestCase):
         self.assertIn('tr("Eject %1", deviceItem.deviceDescription)', item)
         self.assertIn('tr("Safe To Remove Hardware")', item)
         self.assertIn("devicenotifier.expanded = false;", item)
+        # One Windows 11 style tray icon and the applet's name as tooltip.
+        main = (applet / "contents/ui/main.qml").read_text(encoding="utf-8")
+        self.assertIn('"veltos-safely-remove-symbolic"', main)
+        self.assertIn("toolTipMainText: Plasmoid.title", main)
         catalog = (PKG / "translations/tr.po").read_text(encoding="utf-8")
         for msgid in ("Eject %1", "Safe To Remove Hardware", "Problem Ejecting %1", "Ejecting…",
                       "The '%1' device can now be safely removed from the computer."):

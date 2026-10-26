@@ -58,6 +58,9 @@ def ready(data):
     if name not in PROVIDERS:
         return False
     entry = data["services"][name]
+    if name == "local":
+        from . import local
+        return local.engine_available() and local.model_path(entry.get("model", "")) is not None
     if not entry.get("key"):
         return False
     if name == "copilot":

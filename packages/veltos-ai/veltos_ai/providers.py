@@ -30,6 +30,10 @@ ANTHROPIC_VERSION = "2026-10-21"
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 PROVIDERS = {
+    # A small model on this PC (local.py, veltos-llama): free, offline, no
+    # key; the model is a downloaded GGUF file.
+    "local": {"title": "Local model (free, offline)", "model": "gemma-3-270m-it-UD-IQ3_XXS.gguf",
+              "prefer": (), "keys": ""},
     "openai": {"title": "ChatGPT (OpenAI)", "model": "gpt-5.5",
                "prefer": ("gpt-6.1-sol", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.5"),
                "keys": "https://platform.openai.com/api-keys"},
@@ -42,7 +46,7 @@ PROVIDERS = {
     "copilot": {"title": "Copilot (Microsoft Azure OpenAI)", "model": "",
                 "prefer": (), "keys": "https://ai.azure.com/"},
 }
-ORDER = ("openai", "claude", "gemini", "copilot")
+ORDER = ("local", "openai", "claude", "gemini", "copilot")
 
 
 class ServiceError(Exception):
@@ -445,7 +449,61 @@ class Gemini(Adapter):
         return sorted(found, reverse=True)
 
 
-ADAPTERS = {"openai": OpenAI, "copilot": Copilot, "claude": Claude, "gemini": Gemini}
+# --- The local model: llama-server's OpenAI-compatible Chat Completions -----------------------------
+
+class Local(Adapter):
+    """llama.cpp's server on 127.0.0.1 (local.Server starts it with the
+    chosen model). Plain chat: a model this small does not call tools."""
+
+    name = "local"
+    system = ("You are VeltOS AI, a helpful assistant on a VeltOS computer. Answer in the language the user "
+              "writes in, briefly and politely.")
+
+    def __init__(self, settings, server=None):
+        super().__init__(settings)
+        from . import local
+        self.local = local
+        self.server = server or local.SERVER_INSTANCE
+
+    def add_user(self, history, text):
+        history.append({"role": "user", "content": text})
+
+    def request(self, history, system, tools):
+        path = self.local.model_path(self.model)
+        if path is None:
+            raise ServiceError("model", self.model)
+        try:
+            base = self.server.base(path)
+        except self.local.DownloadError as error:
+            raise ServiceError("local", str(error)) from error
+        body = {"model": self.model, "stream": True, "temperature": 0.7, "max_tokens": 1024,
+                "messages": [{"role": "system", "content": self.system}] + history[-12:]}
+        return json_request(base + "/v1/chat/completions", body, {})
+
+    def read(self, events):
+        text, stop = "", "end_turn"
+        for _event, data in events:
+            if data == "[DONE]":
+                break
+            try:
+                obj = json.loads(data)
+            except ValueError:
+                continue
+            for choice in obj.get("choices") or []:
+                delta = (choice.get("delta") or {}).get("content") or ""
+                if delta:
+                    text += delta
+                    yield "text", delta
+                if choice.get("finish_reason") == "length":
+                    stop = "max_tokens"
+        self.turn = [{"role": "assistant", "content": text}] if text else []
+        yield "end", {"stop": stop}
+
+    def add_tool_results(self, history, results):
+        pass
+
+
+ADAPTERS = {"local": Local, "openai": OpenAI, "copilot": Copilot, "claude": Claude, "gemini": Gemini}
 
 
 def adapter(provider, settings):

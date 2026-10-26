@@ -118,9 +118,10 @@ TEXTS = {
     "taskbar_ai": ("VeltOS AI", "VeltOS AI"),
     # Apps > VeltOS AI
     "ai_title": ("VeltOS AI", "VeltOS AI"),
-    "ai_desc": ("Your assistant at the right edge of the screen. Open it with Windows + C or the button on the "
-                "taskbar.",
-                "Ekranın sağ kenarındaki asistanınız. Windows + C ile veya görev çubuğundaki düğmeyle açın."),
+    "ai_desc": ("Your assistant at the right edge of the screen: open it with Windows + C or the button on the "
+                "taskbar. From Start or search it opens in a window.",
+                "Ekranın sağ kenarındaki asistanınız: Windows + C ile veya görev çubuğundaki düğmeyle açın. "
+                "Başlat'tan ya da aramadan pencerede açılır."),
     "ai_open": ("Open VeltOS AI", "VeltOS AI'ı aç"),
     "ai_taskbar": ("Show the VeltOS AI button on the taskbar", "VeltOS AI düğmesini görev çubuğunda göster"),
     "ai_service": ("AI service", "Yapay zekâ hizmeti"),
@@ -146,6 +147,14 @@ TEXTS = {
                         "Anahtarlar yalnızca hesabınızın okuyabildiği bir dosyada tutulur; şifrelenmez. Yazdıklarınız "
                         "seçtiğiniz hizmete gider."),
     "ai_save_failed": ("The settings couldn't be saved.", "Ayarlar kaydedilemedi."),
+    "ai_local_desc": ("A small model that runs on this PC: free, works offline, nothing you write leaves the "
+                      "computer. Download it (185 MB) or choose another one from Hugging Face in VeltOS AI.",
+                      "Bu bilgisayarda çalışan küçük bir model: ücretsizdir, çevrimdışı çalışır, yazdıklarınız "
+                      "bilgisayardan çıkmaz. VeltOS AI'da indirin (185 MB) ya da Hugging Face'ten başka bir model "
+                      "seçin."),
+    "ai_local_count": ("Downloaded models: {count}", "İndirilen modeller: {count}"),
+    "ai_local_none": ("No model downloaded yet.", "Henüz model indirilmedi."),
+    "ai_local_open": ("Choose and download a model", "Model seç ve indir"),
     "ai_missing": ("VeltOS AI is not installed. Get it from VeltOS Store.",
                    "VeltOS AI kurulu değil. VeltOS Mağaza'dan edinin."),
     # Network & internet > Mobile hotspot

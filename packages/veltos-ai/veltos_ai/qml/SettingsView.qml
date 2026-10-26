@@ -1,6 +1,7 @@
-// Choose your AI: the service, its API key, the model (from the service's
-// own list) and, for Azure OpenAI, the endpoint and deployment; whether
-// VeltOS AI may act on the computer.
+// Choose your AI: the local model (free, offline: LocalModels.qml) or a
+// service with its API key, the model (from the service's own list) and,
+// for Azure OpenAI, the endpoint and deployment; whether VeltOS AI may act
+// on the computer.
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -9,7 +10,8 @@ import "."
 Flickable {
     id: view
     signal done()
-    property string chosen: backend.provider !== "" ? backend.provider : "openai"
+    property string chosen: backend.provider !== "" ? backend.provider : "local"
+    readonly property bool isLocal: chosen === "local"
     readonly property var service: backend.services.find(s => s.id === chosen) || ({})
     contentWidth: width
     contentHeight: column.implicitHeight + 32
@@ -132,7 +134,7 @@ Flickable {
                         elide: Text.ElideRight
                     }
                     Text {
-                        visible: option.modelData.hasKey
+                        visible: option.modelData.hasKey || (option.modelData.id === "local" && backend.localModels.length > 0)
                         text: "✓"
                         color: Theme.success
                         font.pixelSize: Theme.bodySize
@@ -155,7 +157,22 @@ Flickable {
             wrapMode: Text.WordWrap
         }
 
+        LocalModels {
+            objectName: "localModels"
+            visible: view.isLocal
+            Layout.fillWidth: true
+            Layout.topMargin: 6
+        }
+        VButton {
+            visible: view.isLocal && backend.ready
+            Layout.topMargin: 4
+            primary: true
+            text: backend.text("start_chat")
+            onClicked: view.done()
+        }
+
         RowLayout {
+            visible: !view.isLocal
             Layout.topMargin: 6
             Text {
                 Layout.fillWidth: true
@@ -176,6 +193,7 @@ Flickable {
         Field {
             id: keyField
             objectName: "keyField"
+            visible: !view.isLocal
             echoMode: TextInput.Password
             placeholder: view.service.hasKey ? backend.text("key_saved") + " " + view.service.keyHint
                                              : backend.text("api_key_placeholder")
@@ -195,6 +213,7 @@ Flickable {
         }
 
         RowLayout {
+            visible: !view.isLocal
             Layout.topMargin: 6
             Text {
                 Layout.fillWidth: true
@@ -216,6 +235,7 @@ Flickable {
         Field {
             id: modelField
             objectName: "modelField"
+            visible: !view.isLocal
         }
         Text {
             visible: backend.modelsError !== ""
@@ -228,7 +248,7 @@ Flickable {
         Flow {
             Layout.fillWidth: true
             spacing: 6
-            visible: backend.models.length > 0
+            visible: backend.models.length > 0 && !view.isLocal
             Repeater {
                 model: backend.models.slice(0, 24)
                 delegate: Rectangle {
@@ -257,6 +277,7 @@ Flickable {
         }
 
         RowLayout {
+            visible: !view.isLocal
             Layout.topMargin: 8
             spacing: 10
             Switch {
@@ -274,6 +295,7 @@ Flickable {
         }
 
         Text {
+            visible: !view.isLocal
             Layout.fillWidth: true
             Layout.topMargin: 4
             text: backend.text("key_note")
@@ -283,6 +305,7 @@ Flickable {
         }
 
         RowLayout {
+            visible: !view.isLocal
             Layout.topMargin: 8
             spacing: 8
             VButton {

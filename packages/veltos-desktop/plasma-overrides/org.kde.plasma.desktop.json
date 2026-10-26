@@ -61,6 +61,12 @@
       "why": "flyouts slide in from the taskbar like Windows 11 (KWin's sliding popups effect)",
       "old": "        objectName: \"popupWindow\"\n",
       "new": "        objectName: \"popupWindow\"\n        // VeltOS: Start and the other flyouts slide in from the taskbar,\n        // like Windows 11 (KWin's sliding popups effect).\n        animated: true\n"
+    },
+    {
+      "file": "contents/applet/CompactApplet.qml",
+      "why": "Start and search open 12 px above the taskbar like Windows 11 (8 px for the other flyouts)",
+      "old": "        margin: (Plasmoid.containmentDisplayHints & PlasmaCore.Types.ContainmentPrefersFloatingApplets) ? Kirigami.Units.largeSpacing : 0\n",
+      "new": "        // VeltOS: Start and search float clearly above the taskbar, as in\n        // Windows 11 (product owner, 2026-10-26: Start sat too low).\n        margin: (Plasmoid.containmentDisplayHints & PlasmaCore.Types.ContainmentPrefersFloatingApplets)\n                ? ([\"org.veltos.startmenu\", \"org.veltos.search\"].includes(Plasmoid.pluginName)\n                   ? Math.round(Kirigami.Units.largeSpacing * 1.5) : Kirigami.Units.largeSpacing) : 0\n"
     }
   ]
 }

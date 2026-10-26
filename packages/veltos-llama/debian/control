@@ -1,0 +1,22 @@
+Source: veltos-llama
+Section: science
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               cmake,
+               g++,
+               python3
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+Homepage: https://github.com/ggml-org/llama.cpp
+
+Package: veltos-llama
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: llama.cpp's server for VeltOS AI's local model
+ The language model engine VeltOS AI uses for its local, offline model:
+ llama.cpp's llama-server, built by VeltOS from a pinned, checksum-verified
+ llama.cpp release (Debian 13 has no llama.cpp package). It runs GGUF
+ models on the processor, picking the best code for the CPU at start
+ (SSE4.2, AVX2, AVX-512 ...), and listens only on 127.0.0.1 when VeltOS AI
+ starts it. No model is included; VeltOS AI downloads one on request.

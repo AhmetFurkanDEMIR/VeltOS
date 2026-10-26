@@ -3,6 +3,40 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-26 (afternoon) — Items 58-64: VeltOS AI's local model and window
+
+The product owner's next list (items 58-64 in `status.md`). They asked for
+the full ISO without test runs, so what follows is verified by package
+tests only; nothing of it has been seen on screen yet.
+
+- 58 Local model (architecture 2.36). llama.cpp is not in Debian 13, so
+  the new package `veltos-llama` builds `llama-server` from the pinned tag
+  b11456 (SHA-256 checked by `fetch-upstream.py`): CMake, every x86-64 CPU
+  variant as a run-time backend, no prebuilt web UI (it would download
+  during the build), no OpenSSL. Its test runs the built server (version,
+  the options VeltOS AI passes, a missing model failing cleanly). The
+  first build also produced a 98 MB `-dbgsym` package; `dh_strip
+  --no-automatic-dbgsym` now leaves it out. The default model was chosen by
+  size: Gemma 3 270M's UD-IQ3_XXS is 184.5 MB (Q4_K_M 253 MB, Q8_0 292 MB
+  were above the owner's 100-200 MB); its revision, size and SHA-256 were
+  read from Hugging Face's API.
+- 59 One process, pane or window (architecture 2.37); Main.qml's content
+  moved to Assistant.qml.
+- 60-64 Tray icon for removable devices, Start's gap above the taskbar,
+  Maps' close button and category, Graphics cards in Settings > System and
+  Gaming.
+- Found by the package build: a duplicated `visible` on Settings' VeltOS AI
+  page ("Property value set multiple times") made the whole Settings window
+  fail to load in every UI test; fixed before the ISO.
+- Found by the package build too: the override tests' copy of Plasma's
+  devicenotifier had no `main.qml`, so every override test failed once
+  item 60 changed that file; the upstream file (plasma-workspace 6.3.6,
+  same SHA-256) was added to `tests/data/devicenotifier/`.
+- Package tests after the fixes: Settings 147, Desktop 155 (3 skipped),
+  Maps 17, icons 2, llama 4, AI 35 (`build/run.sh packages`, all passed).
+- The ISO folder of `20261026-112406` (out/iso) was found empty at 15:30;
+  nothing in this work's commands or the build scripts removes it.
+
 ## 2026-10-26 — Product owner's items 46-57
 
 The product owner's list after item 45, then three more requests during the

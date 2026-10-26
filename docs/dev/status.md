@@ -171,6 +171,18 @@ Added by the product owner on 2026-10-26 during items 46-54:
 56. [x] Battery icon back in the taskbar (always: the level and charging state, or a charging battery and "Plugged in" on PCs without one) and at the bottom left of Quick Settings, opening Power & battery. Dev VM without a battery (`tests/results/2026-10-26-items-46-57/`)
 57. [x] A new Windows 11 style removable drive icon (the local disk's box with the USB symbol and a blue light). Dev VM, This PC (`tests/results/2026-10-26-items-46-57/`)
 
+Product owner's list of 2026-10-26 (afternoon); the owner asked for the
+ISO without test runs, so these are verified by package tests only and not
+yet seen on screen:
+
+58. [x] VeltOS AI: a free local model besides the API keys, the first choice in its settings: "Gemma 3 270M (Google) · 185 MB" (Turkish and English, pinned revision, SHA-256 checked) with Download and a download screen (progress bar, size, speed, Cancel), downloaded models (Use, Delete), and more GGUF models from Hugging Face (search, a repository's files with their sizes, Download). Runs on llama.cpp's server from the new package `veltos-llama` (built from pinned source; architecture 2.36), on 127.0.0.1 only; no actions for the local model. Settings > Apps > VeltOS AI offers it too ("Choose and download a model"). Package tests: AI 35 (download, checks, cancel, Hugging Face listings, the server start, the stream, the settings and download screen offscreen EN/TR), llama 4 (the built server's options). Not tested: a real download and answer in a VM
+59. [x] VeltOS AI from the taskbar button or Windows + C opens docked at the right edge; from Start, search or Settings it opens as a normal window with the same conversation (architecture 2.37). Offscreen window test only
+60. [x] The removable-device tray icon and its "Most recent device" tooltip: a new Windows 11 style line icon (`veltos-safely-remove-symbolic`, a USB stick with a check mark, in the text colour so it suits light and dark mode); the tooltip shows the applet's name. Not seen on screen
+61. [x] Start (and search) open with a 12 px gap above the taskbar (CompactApplet override). Not seen on screen
+62. [x] Maps: the InfoBar's close button is a 40x32 rectangle with a hover fill, like other apps' close buttons. Not seen on screen
+63. [x] Maps is in Start's Utility (Accessories) category, not Education. Not seen on screen
+64. [x] Graphics Cards reachable from Settings > System ("Graphics cards" after Display) and Settings > Gaming. Settings catalogue tests
+
 ## Final release steps (after item 45)
 
 Product owner, 2026-10-25: only after every item above is done, in this
@@ -306,9 +318,14 @@ order:
 
 ## Next steps
 
-1. The product owner's list is done (items 1-57); next the final release
-   steps F1-F9 in their order.
-2. Current ISO: `veltos-0.1.0-dev-20261026-063914` (2.37 GB, sha256
+1. The product owner's list is done (items 1-64); next the final release
+   steps F1-F9 in their order. Items 58-64 still need a look in the dev VM
+   (a real model download and answer, the pane and the window, the new
+   tray icon, Start's gap, Maps).
+2. The newest ISO is named in the development log's newest entry. ISO
+   `20261026-112406` (items 46-57) was built; its test run was stopped by
+   the product owner before it finished. Last fully tested ISO:
+   `veltos-0.1.0-dev-20261026-063914` (2.37 GB, sha256
    `ef58a6b5d67b7b620f8817a1293c9ebe87c83fcda9ff6216c1a0ef90c70dcd2c`)
    with items 38-45. QEMU: boot tests UEFI 19/19, BIOS 18/18, Secure Boot
    20/20 and a BIOS installation that starts

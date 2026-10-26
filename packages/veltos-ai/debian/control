@@ -31,10 +31,14 @@ Depends: ${python3:Depends},
          ${misc:Depends}
 Recommends: veltos-desktop,
             veltos-explorer,
+            veltos-llama,
             veltos-snip
 Description: VeltOS AI, an assistant pane like Windows 11's Copilot
- A pane on the right edge of the screen (Windows + C) to chat with the AI
- service the user chooses, with the user's own API key: ChatGPT (OpenAI),
+ A pane on the right edge of the screen (Windows + C, the taskbar button)
+ or a window (Start, search) to chat with a free local model that runs on
+ the PC (downloaded once, through veltos-llama; more models from Hugging
+ Face) or with the AI service the user chooses, with the user's own API
+ key: ChatGPT (OpenAI),
  Claude (Anthropic), Gemini (Google) or Copilot through Microsoft's Azure
  OpenAI. Answers stream in, with Markdown.
  .

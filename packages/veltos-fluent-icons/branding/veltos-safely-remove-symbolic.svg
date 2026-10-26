@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Safely Remove Hardware: a USB stick with a check mark, the taskbar
+       icon of Windows 11's "Safely Remove Hardware and Eject Media"
+       (VeltOS artwork; drawn as a mask in the theme's text colour, so it
+       suits light and dark taskbars). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <g fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round">
+    <rect x="1.5" y="5.5" width="8.5" height="5" rx="1.2"/>
+    <path d="M10 6.6H13V9.4H10"/>
+  </g>
+  <rect fill="currentColor" x="11.1" y="7.3" width="0.9" height="0.9"/>
+  <path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"
+        d="M9.2 13.2L10.7 14.6L14.2 11.1"/>
+</svg>

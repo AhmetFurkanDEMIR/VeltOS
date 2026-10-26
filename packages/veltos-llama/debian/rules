@@ -1,0 +1,57 @@
+#!/usr/bin/make -f
+# llama-server from the pinned llama.cpp source (upstream/, fetched and
+# checked by build/scripts/fetch-upstream.py). Portable build: the CPU
+# backend is built in every x86-64 variant and the best one for the
+# processor is loaded at start (GGML_BACKEND_DL). No network during the
+# build (no prebuilt web UI), no HTTPS client (the server is loopback only).
+
+DEST = debian/veltos-llama
+LIBDIR = $(DEST)/usr/lib/veltos-llama
+
+%:
+	dh $@ --buildsystem=none
+
+override_dh_auto_configure:
+	cmake -S upstream -B build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DBUILD_SHARED_LIBS=ON \
+		-DGGML_NATIVE=OFF \
+		-DGGML_BACKEND_DL=ON \
+		-DGGML_CPU_ALL_VARIANTS=ON \
+		-DLLAMA_BUILD_TESTS=OFF \
+		-DLLAMA_BUILD_EXAMPLES=OFF \
+		-DLLAMA_BUILD_TOOLS=ON \
+		-DLLAMA_BUILD_SERVER=ON \
+		-DLLAMA_BUILD_APP=OFF \
+		-DLLAMA_BUILD_UI=OFF \
+		-DLLAMA_USE_PREBUILT_UI=OFF \
+		-DLLAMA_OPENSSL=OFF \
+		-DLLAMA_BUILD_IS_DEV=OFF \
+		-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+		-DCMAKE_INSTALL_RPATH='$$ORIGIN'
+
+override_dh_auto_build:
+	cmake --build build -j$(shell nproc) --target llama-server
+	# The CPU backends are loaded at run time, so nothing links them:
+	# build every ggml-cpu variant explicitly.
+	cmake --build build -j$(shell nproc) --target $$(cmake --build build --target help | sed -n 's/^\.\.\. \(ggml-cpu[a-z0-9_-]*\)$$/\1/p' | tr '\n' ' ')
+
+override_dh_auto_test:
+	VELTOS_LLAMA_BIN=$(CURDIR)/build/bin/llama-server PYTHONDONTWRITEBYTECODE=1 \
+		python3 -m unittest discover -s tests -v
+
+override_dh_auto_install:
+	install -d $(LIBDIR)
+	install -m 755 build/bin/llama-server $(LIBDIR)/llama-server
+	cp -a build/bin/*.so* $(LIBDIR)/
+	install -D -m 755 llama-server.sh $(DEST)/usr/libexec/veltos/llama-server
+
+# No -dbgsym package: its 98 MB are of no use to the image.
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym
+
+override_dh_shlibdeps:
+	dh_shlibdeps -l$(CURDIR)/$(LIBDIR)
+
+override_dh_makeshlibs:
+	# Private libraries of the server, not for other programs.

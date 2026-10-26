@@ -4,14 +4,21 @@ Name=VeltOS AI
 Name[tr]=VeltOS AI
 GenericName=AI assistant
 GenericName[tr]=Yapay zekâ asistanı
-Comment=Chat with ChatGPT, Claude, Gemini or Copilot and let it change settings for you
-Comment[tr]=ChatGPT, Claude, Gemini ya da Copilot ile sohbet edin ve ayarları sizin için değiştirsin
-Keywords=ai;assistant;copilot;chatgpt;claude;gemini;chat;
+Comment=Chat with a free local model, ChatGPT, Claude, Gemini or Copilot
+Comment[tr]=Ücretsiz yerel bir modelle, ChatGPT, Claude, Gemini ya da Copilot ile sohbet edin
+Keywords=ai;assistant;local;offline;copilot;chatgpt;claude;gemini;chat;
 Keywords[tr]=yapay zeka;yapay zekâ;asistan;copilot;chatgpt;claude;gemini;sohbet;
-Exec=veltos-ai
+Exec=veltos-ai --window
 Icon=veltos-ai
 Terminal=false
 Categories=Utility;
 StartupNotify=false
 X-KDE-StartupNotify=false
+Actions=pane;
+
+# The pane at the right edge (the taskbar button runs the same command).
+[Desktop Action pane]
+Name=Open at the right edge
+Name[tr]=Sağ kenarda aç
+Exec=veltos-ai
 X-KDE-Shortcuts=Meta+C

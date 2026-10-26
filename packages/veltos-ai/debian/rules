@@ -12,7 +12,8 @@ override_dh_auto_install:
 	cp -r veltos_ai debian/veltos-ai/usr/lib/python3/dist-packages/
 	find debian/veltos-ai -name __pycache__ -prune -exec rm -rf {} +
 	install -D -m 755 bin/veltos-ai debian/veltos-ai/usr/bin/veltos-ai
-	# Start entry with Windows + C (kglobalaccel reads X-KDE-Shortcuts).
+	# Start entry (a window) with the pane as its action on Windows + C
+	# (kglobalaccel reads X-KDE-Shortcuts).
 	install -D -m 644 data/veltos-ai.desktop debian/veltos-ai/usr/share/applications/veltos-ai.desktop
 
 override_dh_auto_test:

@@ -140,7 +140,10 @@ class SettingsWindowTests(unittest.TestCase):
             self.assertTrue(self.backend.assistant["ready"])
             self.assertNotIn("sk-ant-test", repr(self.backend.assistant))
             self.backend.openAssistant()
-            self.assertIn(["veltos-ai"], self.started)
+            self.assertIn(["veltos-ai", "--window"], self.started)
+            self.backend.useLocalAi()
+            self.app.processEvents()
+            self.assertEqual(fake.saved["provider"], "local")
             self.assertEqual(self.problems(), [])
         finally:
             assistant.PROVIDERS, assistant.ORDER = saved

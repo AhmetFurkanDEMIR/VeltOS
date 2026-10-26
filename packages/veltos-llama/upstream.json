@@ -1,0 +1,8 @@
+{
+  "name": "llama.cpp",
+  "version": "b11456",
+  "url": "https://github.com/ggml-org/llama.cpp/archive/refs/tags/b11456.tar.gz",
+  "sha256": "bfd95c10deebae3562b4bbcddeac7b399b4e5372ca425dd8751cbf58ec9e5a75",
+  "license": "MIT",
+  "homepage": "https://github.com/ggml-org/llama.cpp"
+}

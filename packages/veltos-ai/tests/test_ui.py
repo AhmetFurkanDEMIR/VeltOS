@@ -1,6 +1,8 @@
-"""Loads the real VeltOS AI pane offscreen: the settings view without a key,
-the greeting, a conversation with an action that waits for "Allow", and
-the settings view again. Any QML warning fails the test."""
+"""Loads the real VeltOS AI pane and window offscreen: the settings view
+without a key, the greeting, a conversation with an action that waits for
+"Allow", the settings view again, the local model's settings with the
+download screen, and the window (Start, search). Any QML warning fails the
+test."""
 
 import locale
 import os
@@ -44,9 +46,12 @@ class PaneTests(unittest.TestCase):
     def setUp(self):
         self.messages.clear()
 
-    def load(self, provider="", *answers):
+    def load(self, provider="", *answers, qml="Main.qml"):
         from veltos_ai import app, config
-        file = Path(tempfile.mkdtemp()) / "ai.json"
+        folder = Path(tempfile.mkdtemp())
+        file = folder / "ai.json"
+        self.old_data = os.environ.get("XDG_DATA_HOME")
+        os.environ["XDG_DATA_HOME"] = str(folder / "data")
         data = config.load(file)
         if provider:
             data["provider"] = provider
@@ -56,13 +61,17 @@ class PaneTests(unittest.TestCase):
                                    threaded=False, starter=lambda command: None)
         self.engine = QQmlApplicationEngine()
         self.engine.rootContext().setContextProperty("backend", self.backend)
-        self.engine.load(QUrl.fromLocalFile(str(app.QML_DIR / "Main.qml")))
+        self.engine.load(QUrl.fromLocalFile(str(app.QML_DIR / qml)))
         self.assertTrue(self.engine.rootObjects(), self.messages)
         self.window = self.engine.rootObjects()[0]
         self.window.show()
         self.settle()
 
     def tearDown(self):
+        if self.old_data is None:
+            os.environ.pop("XDG_DATA_HOME", None)
+        else:
+            os.environ["XDG_DATA_HOME"] = self.old_data
         self.engine.deleteLater()
         QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         self.app.processEvents()
@@ -113,11 +122,37 @@ class PaneTests(unittest.TestCase):
         finally:
             tools.settings_helpers = old
         self.assertEqual(self.find("messages").property("count"), 4)
-        self.window.setProperty("settingsOpen", True)
+        self.find("assistant").setProperty("settingsOpen", True)
         self.settle()
         self.assertTrue(self.find("settingsView").property("visible"))
         self.window.setProperty("width", 360)
         self.settle()
+        self.assertEqual(self.problems(), [])
+
+    def test_local_model_settings_and_download_screen(self):
+        self.load()
+        self.assertTrue(self.find("localModels").property("visible"))      # local is the first choice
+        self.assertFalse(self.find("keyField").property("visible"))
+        self.assertTrue(self.find("defaultModel").property("visible"))
+        self.assertFalse(self.find("downloadCard").property("visible"))
+        self.backend._download.update(active=True, file="m.gguf", title="Gemma", done=50_000_000,
+                                      total=184_517_664, speed=2e6)
+        self.backend.downloadChanged.emit()
+        self.settle()
+        self.assertTrue(self.find("downloadCard").property("visible"))
+        self.assertEqual(self.backend.download["percent"], 27)
+        self.backend._on_hub("results", [{"repo": "a/b-GGUF", "downloads": 3, "likes": 0}], "")
+        self.backend._on_hub("files", [{"file": "b-Q4.gguf", "size": 200_000_000, "sha256": ""}], "")
+        self.backend._hub["repo"] = "a/b-GGUF"
+        self.backend.hubChanged.emit()
+        self.settle()
+        self.assertEqual(self.problems(), [])
+
+    def test_window(self):
+        self.load("claude", qml="AppWindow.qml")
+        self.assertEqual(self.window.objectName(), "appWindow")
+        self.assertTrue(self.find("composer").property("visible"))
+        self.assertFalse(self.find("assistant").property("docked"))
         self.assertEqual(self.problems(), [])
 
 

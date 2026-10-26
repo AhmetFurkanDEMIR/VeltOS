@@ -11,7 +11,7 @@ VELTOS_ICONS = computer user-trash user-trash-full folder inode-directory user-d
 # Themes, the colour mode, Graphics cards), also in hicolor for names Fluent
 # does not have.
 VELTOS_SYMBOLIC = preferences-color-symbolic preferences-desktop-theme-symbolic veltos-colour-mode-symbolic \
-	veltos-graphics-symbolic veltos-ai-symbolic
+	veltos-graphics-symbolic veltos-ai-symbolic veltos-safely-remove-symbolic
 
 %:
 	dh $@

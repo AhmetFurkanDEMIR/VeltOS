@@ -43,6 +43,18 @@
       "why": "entries closer together and to the flyout's edge, as in Windows' menu",
       "old": "            topMargin: Kirigami.Units.largeSpacing\n            bottomMargin: Kirigami.Units.largeSpacing\n            leftMargin: Kirigami.Units.largeSpacing\n            rightMargin: Kirigami.Units.largeSpacing\n            spacing: Kirigami.Units.smallSpacing\n",
       "new": "            topMargin: Kirigami.Units.smallSpacing // VeltOS: menu spacing\n            bottomMargin: Kirigami.Units.smallSpacing\n            leftMargin: Kirigami.Units.smallSpacing\n            rightMargin: Kirigami.Units.smallSpacing\n            spacing: 0\n"
+    },
+    {
+      "file": "contents/ui/main.qml",
+      "why": "Windows' tooltip: the item's name (\"Safely Remove Hardware and Eject Media\"), not \"Most Recent Device\"",
+      "old": "    toolTipMainText: filterModel.lastUdi !== \"\" ? i18n(\"Most Recent Device\") : i18n(\"No Devices Available\")\n",
+      "new": "    toolTipMainText: Plasmoid.title // VeltOS: Windows' name, not \"Most Recent Device\"\n"
+    },
+    {
+      "file": "contents/ui/main.qml",
+      "why": "on the taskbar always Windows 11's Safely Remove Hardware icon (a USB stick with a check mark, veltos-fluent-icons), not the last drive's icon (product owner, 2026-10-26)",
+      "old": "        // We want to do this here rather than in the model because we don't always\n        // want symbolic icons everywhere, but we do know that we always want them\n        // for the panel icon\n        if (inPanel) {\n            return symbolicizeIconName(iconName);\n        }\n",
+      "new": "        // We want to do this here rather than in the model because we don't always\n        // want symbolic icons everywhere, but we do know that we always want them\n        // for the panel icon\n        if (inPanel) {\n            return \"veltos-safely-remove-symbolic\"; // VeltOS\n        }\n"
     }
   ]
 }

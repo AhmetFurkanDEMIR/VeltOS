@@ -4,7 +4,9 @@ may act on the PC, in VeltOS Settings (product owner, 2026-10-26).
 The settings are VeltOS AI's own (veltos-ai's `config` module, the mode-600
 file ~/.config/veltos/ai.json); a running pane reads them again when it is
 opened. Keys never go to QML: the page only learns whether a service has
-one. Without veltos-ai installed the page says so.
+one. The local model ("local", no key) is downloaded and chosen in VeltOS
+AI itself; this page counts the downloaded models and can make it the
+chosen service. Without veltos-ai installed the page says so.
 """
 
 try:
@@ -13,11 +15,16 @@ try:
 except ImportError:  # veltos-ai is a Recommends of veltos-settings
     ai_config = None
     ORDER, PROVIDERS = (), {}
+try:
+    from veltos_ai import local as ai_local
+except ImportError:
+    ai_local = None
 
 
 class Assistant:
-    def __init__(self, config_module=None, file=None):
+    def __init__(self, config_module=None, file=None, local_module=None):
         self.config = config_module if config_module is not None else ai_config
+        self.local = local_module if local_module is not None else ai_local
         self.file = file
 
     @property
@@ -40,6 +47,7 @@ class Assistant:
                          for name in ORDER},
             "actions": bool(data.get("actions", True)),
             "ready": bool(self.config.ready(data)),
+            "localModels": len(self.local.installed()) if self.local is not None else 0,
         }
 
     def _change(self, change):
@@ -68,6 +76,13 @@ class Assistant:
             entry["endpoint"] = endpoint.strip()
             data["provider"] = name
         return self._change(change)
+
+    def use_local(self):
+        """The local model becomes the chosen service (VeltOS AI downloads
+        and picks the model file)."""
+        if "local" not in PROVIDERS:
+            return False
+        return self._change(lambda data: data.update(provider="local"))
 
     def remove_key(self, name):
         if name not in PROVIDERS:

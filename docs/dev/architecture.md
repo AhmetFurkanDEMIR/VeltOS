@@ -1269,6 +1269,43 @@ were measured (below).
   desktop entry, as Windows names its shell Explorer.
 - Trade-off: files dragged onto the desktop still get Plasma's drop menu.
 
+### 2.36 VeltOS AI's local model through llama.cpp (2026-10-26)
+
+- Decision: a free, offline choice beside the API-key services. The engine
+  is llama.cpp's `llama-server`, built by the new package `veltos-llama`
+  from a pinned upstream tag (b11456, SHA-256 in `upstream.json`), because
+  llama.cpp is not in Debian 13 (only in forky/sid; checked on
+  packages.debian.org 2026-10-26). Portable build: the CPU backend in every
+  x86-64 variant, the best one loaded at start (`GGML_BACKEND_DL`,
+  `GGML_CPU_ALL_VARIANTS`), no prebuilt web UI (no network at build time),
+  no OpenSSL (it listens on 127.0.0.1 only, started with `--no-webui`).
+  VeltOS AI starts it on demand with the chosen model and talks to its
+  OpenAI-compatible `/v1/chat/completions`; it stops with VeltOS AI.
+- The model is downloaded by the user, not shipped: the default is
+  Google's Gemma 3 270M instruction-tuned model (multilingual, Turkish and
+  English) in unsloth's UD-IQ3_XXS quantisation, 184,517,664 bytes, pinned
+  to one repository revision and checked against its SHA-256 (the owner
+  asked for 100-200 MB). Other GGUF models come from Hugging Face's public
+  API (search, then a repository's files with their LFS SHA-256); gated
+  repositories are left out because they need a sign-in.
+- Alternatives: Ollama (not in Debian, a daemon of its own, its own model
+  registry), shipping a model in the ISO (licence terms, +185 MB for
+  everyone), Qwen 2.5 0.5B (better answers but 400+ MB even quantised).
+- Trade-offs: a 270M model gives short, often wrong answers and does not
+  call VeltOS AI's actions (they are off for the local model); a bigger
+  model from Hugging Face answers better but needs more memory and time.
+  The Gemma terms apply to the downloaded model (linked from the card).
+
+### 2.37 VeltOS AI: pane or window (2026-10-26)
+
+- Decision: one process, two surfaces sharing one conversation. The
+  taskbar button and Windows + C (`veltos-ai`, the desktop file's "pane"
+  action) toggle the layer-shell pane at the right edge (Main.qml); Start,
+  search and Settings run `veltos-ai --window`, a normal window with the
+  system's title bar (AppWindow.qml). Both hold `Assistant.qml`; a second
+  start hands "toggle" or "window" with its activation token to the
+  running one over its local socket.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

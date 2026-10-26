@@ -166,12 +166,18 @@ ApplicationWindow {
                 id: actionRow
                 spacing: 8
             }
+            // Windows 11's InfoBar close: a plain rectangle, only shaded on
+            // hover (the rounded one looked oval; product owner, 2026-10-26).
             MapButton {
+                id: barClose
+                objectName: "infoBarClose"
                 visible: bar.closable
-                width: 32
+                width: 40
                 height: 32
-                color: "transparent"
+                radius: 4
+                color: closeHover.hovered ? Theme.cardHover : "transparent"
                 border.width: 0
+                HoverHandler { id: closeHover }
                 iconName: "window-close-symbolic"
                 tip: backend.text("close")
                 onClicked: bar.closed()

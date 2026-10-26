@@ -23,7 +23,7 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
                  "accessibility", "searching", "themes", "taskbar", "location", "hotspot",
                  "veltosai")
 # Actions the backend knows (app.Backend.runAction).
-ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website")
+ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website", "graphics")
 
 # Navigation pane icons are monochrome line icons, as in Windows 11 Settings.
 PAGES = [
@@ -33,6 +33,10 @@ PAGES = [
          "title": ("Display", "Ekran"),
          "desc": ("Monitors, resolution, scale, night light", "Monitörler, çözünürlük, ölçek, gece ışığı"),
          "keywords": "monitor screen resolution scale refresh hdr çözünürlük monitör"},
+        {"id": "graphicscards", "icon": "veltos-graphics-symbolic", "action": "graphics",
+         "title": ("Graphics cards", "Ekran kartları"),
+         "desc": ("Drivers and details of your graphics cards", "Ekran kartlarınızın sürücüleri ve ayrıntıları"),
+         "keywords": "gpu graphics card driver nvidia amd intel ekran kartı sürücü"},
         {"id": "sound", "icon": "audio-volume-high-symbolic", "page": "sound",
          "title": ("Sound", "Ses"),
          "desc": ("Volume, output and input devices", "Ses düzeyi, çıkış ve giriş aygıtları"),
@@ -167,10 +171,12 @@ PAGES = [
          "keywords": "layout keyboard klavye"},
     ]},
     {"id": "gaming", "icon": "applications-games-symbolic", "title": ("Gaming", "Oyun"), "items": [
-        {"id": "graphics", "icon": "video-display-symbolic", "page": "about",
-         "title": ("Graphics", "Grafik"),
-         "desc": ("Your graphics card", "Ekran kartınız"),
-         "keywords": "gpu graphics card nvidia amd intel ekran kartı"},
+        # VeltOS Graphics Cards (veltos-graphics), also under System
+        # (product owner, 2026-10-26; it opened About before).
+        {"id": "graphics", "icon": "veltos-graphics-symbolic", "action": "graphics",
+         "title": ("Graphics cards", "Ekran kartları"),
+         "desc": ("Drivers and details of your graphics cards", "Ekran kartlarınızın sürücüleri ve ayrıntıları"),
+         "keywords": "gpu graphics card driver nvidia amd intel game ekran kartı sürücü oyun"},
     ]},
     {"id": "accessibility", "icon": "preferences-desktop-accessibility-symbolic", "title": ("Accessibility", "Erişilebilirlik"), "items": [
         {"id": "textsize", "icon": "preferences-desktop-font-symbolic", "page": "accessibility",

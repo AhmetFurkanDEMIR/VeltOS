@@ -1,6 +1,7 @@
 // Apps > VeltOS AI: open the assistant, its taskbar button, the AI service
-// with the user's own API key and model, and whether it may act on the PC
-// (veltos-ai's settings file; keys never reach this page, only "saved").
+// (the local model, or a service with the user's own API key and model),
+// and whether it may act on the PC (veltos-ai's settings file; keys never
+// reach this page, only "saved").
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -13,7 +14,8 @@ ColumnLayout {
     readonly property var a: backend.assistant
     // The service shown below; the chosen one at first.
     property string service: ""
-    readonly property string shownService: service !== "" ? service : (a.provider || "openai")
+    readonly property string shownService: service !== "" ? service : (a.provider || "local")
+    readonly property bool isLocal: shownService === "local"
     readonly property var entry: (a.services || {})[shownService] || ({})
     readonly property var info: (a.providers || []).find(p => p.value === shownService) || ({})
     signal itemActivated(var item)
@@ -126,10 +128,49 @@ ColumnLayout {
         }
     }
 
+    // The local model: downloaded and chosen in VeltOS AI's window.
+    Rectangle {
+        Layout.fillWidth: true
+        visible: page.a.available === true && page.isLocal
+        implicitHeight: localForm.implicitHeight + 36
+        radius: Theme.radius
+        color: Theme.card
+        border.width: 1
+        border.color: Theme.cardBorder
+
+        ColumnLayout {
+            id: localForm
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 18
+            spacing: 8
+            Label {
+                Layout.fillWidth: true
+                text: backend.text("ai_local_desc")
+                color: Theme.text
+                font.pixelSize: Theme.bodySize
+                wrapMode: Text.WordWrap
+            }
+            Label {
+                Layout.fillWidth: true
+                text: (page.a.localModels || 0) > 0 ? backend.format("ai_local_count", String(page.a.localModels))
+                                                    : backend.text("ai_local_none")
+                color: Theme.subtext
+                font.pixelSize: Theme.bodySize
+            }
+            VButton {
+                primary: true
+                text: backend.text("ai_local_open")
+                onClicked: backend.useLocalAi()
+            }
+        }
+    }
+
     // The chosen service's key, model and (Azure) endpoint.
     Rectangle {
         Layout.fillWidth: true
-        visible: page.a.available === true
+        visible: page.a.available === true && !page.isLocal
         implicitHeight: form.implicitHeight + 36
         radius: Theme.radius
         color: Theme.card
@@ -231,7 +272,7 @@ ColumnLayout {
     SettingRow {
         Layout.fillWidth: true
         Layout.topMargin: 10
-        visible: page.a.available === true
+        visible: page.a.available === true && !page.isLocal
         icon: "dialog-ok-apply-symbolic"
         title: backend.text("ai_actions")
         description: backend.text("ai_actions_desc")

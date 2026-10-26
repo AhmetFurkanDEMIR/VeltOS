@@ -1,6 +1,9 @@
-"""VeltOS AI: Python backend of the side panel (Windows 11 Copilot's pane).
+"""VeltOS AI: Python backend of the side panel (Windows 11 Copilot's pane)
+and of its window.
 
-    veltos-ai            open the panel, or close it if it is open (Windows + C)
+    veltos-ai            open the panel, or close it if it is open (Windows + C,
+                         the taskbar button)
+    veltos-ai --window   open VeltOS AI as a normal window (Start, search)
 
 The conversation goes to the service chosen in the panel's settings
 (providers.py) with the user's own key; actions on the computer
@@ -15,13 +18,13 @@ import sys
 import threading
 from pathlib import Path
 
-from PySide6.QtCore import Property, QFileSystemWatcher, QObject, QTimer, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QFileSystemWatcher, QMetaObject, QObject, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import config, providers, strings, tools
+from . import config, local, providers, strings, tools
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 MAX_ROUNDS = 10            # tool rounds in one answer
@@ -74,7 +77,14 @@ class Backend(QObject):
     busyChanged = Signal()
     modelsChanged = Signal()
     toggleRequested = Signal()
+    windowRequested = Signal()
     lookChanged = Signal()
+    localChanged = Signal()
+    downloadChanged = Signal()
+    hubChanged = Signal()
+    _downloadProgress = Signal(int, int, float)
+    _downloadDone = Signal(bool, str)
+    _hubLoaded = Signal(str, object, str)
     _event = Signal(int, str, object)
     _actionDone = Signal(int, int, bool, str)
     _modelsLoaded = Signal(str, object, str)
@@ -110,6 +120,14 @@ class Backend(QObject):
         self._actionDone.connect(self._on_action_done)
         self._openUrl.connect(self.openUrl)
         self._modelsLoaded.connect(self._on_models)
+        # The local model (local.py): downloads and Hugging Face.
+        self._download = {"active": False, "file": "", "title": "", "done": 0, "total": 0, "speed": 0.0,
+                          "error": ""}
+        self._download_cancel = None
+        self._hub = {"busy": False, "error": "", "query": "", "results": [], "repo": "", "files": []}
+        self._downloadProgress.connect(self._on_download_progress)
+        self._downloadDone.connect(self._on_download_done)
+        self._hubLoaded.connect(self._on_hub)
         self._flush = QTimer(self)
         self._flush.setInterval(60)
         self._flush.setSingleShot(True)
@@ -241,6 +259,156 @@ class Backend(QObject):
             print(f"veltos-ai: cannot save settings: {error}", file=sys.stderr)
         self.settingsChanged.emit()
 
+    # --- the local model (local.py) --------------------------------------------------------------------
+
+    @Property(bool, constant=True)
+    def localEngine(self):
+        return local.engine_available()
+
+    @Property("QVariantMap", notify=localChanged)
+    def localDefault(self):
+        d = local.DEFAULT_MODEL
+        return {"title": d["title"], "file": d["file"], "size": local.size_text(d["size"]),
+                "installed": local.model_path(d["file"]) is not None, "license": d["license"]}
+
+    @Property("QVariantList", notify=localChanged)
+    def localModels(self):
+        chosen = self.data["services"]["local"].get("model", "")
+        return [{"file": m["file"], "size": local.size_text(m["size"]), "active": m["file"] == chosen}
+                for m in local.installed()]
+
+    @Property("QVariantMap", notify=downloadChanged)
+    def download(self):
+        d = dict(self._download)
+        d["percent"] = int(100 * d["done"] / d["total"]) if d["total"] else 0
+        d["progress"] = strings.text(self.lang, "download_progress", done=local.size_text(d["done"]),
+                                     total=local.size_text(d["total"]) if d["total"] else "?",
+                                     speed=local.size_text(int(d["speed"])) + "/s")
+        return d
+
+    def _start_download(self, url, file, size, sha256, title):
+        name = local.safe_name(file)
+        if not name or self._download["active"]:
+            return
+        self._download = {"active": True, "file": name, "title": title or name, "done": 0, "total": size,
+                          "speed": 0.0, "error": ""}
+        self.downloadChanged.emit()
+        cancel = threading.Event()
+        self._download_cancel = cancel
+
+        def work():
+            try:
+                ok = local.download(url, local.models_dir() / name, size, sha256,
+                                    lambda done, total, speed: self._downloadProgress.emit(done, total, speed),
+                                    cancel, self._opener)
+                self._downloadDone.emit(ok, "")
+            except local.DownloadError as error:
+                self._downloadDone.emit(False, str(error) or "download")
+        self._spawn(work)
+
+    @Slot()
+    def downloadDefault(self):
+        d = local.DEFAULT_MODEL
+        self._start_download(local.resolve_url(d["repo"], d["file"], d["revision"]), d["file"], d["size"],
+                             d["sha256"], d["title"])
+
+    @Slot(str, str, str, str)
+    def downloadHub(self, repo, file, size, sha256):
+        try:
+            size_value = int(size or 0)
+        except ValueError:
+            size_value = 0
+        self._start_download(local.resolve_url(repo, file), file, size_value, sha256, f"{repo} · {file}")
+
+    @Slot()
+    def cancelDownload(self):
+        if self._download_cancel is not None:
+            self._download_cancel.set()
+
+    @Slot(int, int, float)
+    def _on_download_progress(self, done, total, speed):
+        self._download.update(done=done, total=total or self._download["total"], speed=speed)
+        self.downloadChanged.emit()
+
+    @Slot(bool, str)
+    def _on_download_done(self, ok, error):
+        file = self._download["file"]
+        self._download.update(active=False, error=error)
+        self._download_cancel = None
+        self.downloadChanged.emit()
+        if ok:
+            self.useLocalModel(file)
+        self.localChanged.emit()
+
+    @Slot(str)
+    def useLocalModel(self, file):
+        """The downloaded model becomes VeltOS AI's (local) service."""
+        if local.model_path(file) is None:
+            return
+        self.data["services"]["local"]["model"] = local.safe_name(file)
+        if self.data.get("provider") != "local":
+            self.newChat()
+        self.data["provider"] = "local"
+        self._save()
+        self.localChanged.emit()
+
+    @Slot(str)
+    def deleteLocalModel(self, file):
+        path = local.model_path(file)
+        if path is None:
+            return
+        try:
+            path.unlink()
+        except OSError:
+            return
+        if self.data["services"]["local"].get("model") == path.name:
+            local.SERVER_INSTANCE.stop()
+            self.settingsChanged.emit()
+        self.localChanged.emit()
+
+    @Property("QVariantMap", notify=hubChanged)
+    def hub(self):
+        return dict(self._hub, files=[dict(f, sizeText=local.size_text(f["size"]),
+                                           sizeValue=str(f["size"])) for f in self._hub["files"]])
+
+    @Slot(str)
+    def searchHub(self, query):
+        query = query.strip()
+        if not query:
+            return
+        self._hub.update(busy=True, error="", query=query, repo="", files=[], results=[])
+        self.hubChanged.emit()
+
+        def work():
+            try:
+                self._hubLoaded.emit("results", local.search(query, self._opener), "")
+            except local.DownloadError as error:
+                self._hubLoaded.emit("results", [], str(error) or "network")
+        self._spawn(work)
+
+    @Slot(str)
+    def openHubRepo(self, repo):
+        self._hub.update(busy=True, error="", repo=repo, files=[])
+        self.hubChanged.emit()
+
+        def work():
+            try:
+                self._hubLoaded.emit("files", local.repo_files(repo, self._opener), "")
+            except local.DownloadError as error:
+                self._hubLoaded.emit("files", [], str(error) or "network")
+        self._spawn(work)
+
+    @Slot()
+    def closeHubRepo(self):
+        self._hub.update(repo="", files=[], error="")
+        self.hubChanged.emit()
+
+    @Slot(str, object, str)
+    def _on_hub(self, kind, found, error):
+        self._hub.update(busy=False, error=error)
+        self._hub[kind] = list(found or [])
+        self.hubChanged.emit()
+
     # --- models ---------------------------------------------------------------------------------------
 
     @Property("QVariantList", notify=modelsChanged)
@@ -316,8 +484,11 @@ class Backend(QObject):
             work()
 
     def error_text(self, error):
+        if getattr(error, "kind", "") == "local":
+            return strings.text(self.lang, "error_local", detail=str(getattr(error, "detail", ""))[:200])
         key = {"key": "error_key", "rate": "error_rate", "network": "error_network",
-               "model": "error_model"}.get(getattr(error, "kind", ""), "")
+               "model": "error_local_model" if self.data.get("provider") == "local" else "error_model"}.get(
+            getattr(error, "kind", ""), "")
         if key:
             return self.text(key)
         return strings.text(self.lang, "error_other", detail=str(getattr(error, "detail", error))[:300])
@@ -353,6 +524,8 @@ class Backend(QObject):
         self._start_turn()
 
     def _tools(self):
+        if self.data.get("provider") == "local":
+            return []                    # a model this small does not call tools
         if self.data.get("actions", True):
             return tools.TOOLS
         return [t for t in tools.TOOLS if t["name"] in tools.READ_ONLY]
@@ -542,16 +715,29 @@ class Backend(QObject):
         self.messagesChanged.emit()
 
 
-def toggle_running():
-    """Hands "toggle" to a running panel; True if there was one."""
+def toggle_running(request="toggle"):
+    """Hands "toggle" (the pane) or "window" to a running VeltOS AI, with
+    this start's activation token; True if there was one."""
     socket = QLocalSocket()
     socket.connectToServer(socket_name())
     if not socket.waitForConnected(500):
         return False
-    socket.write(b"toggle\n")
+    token = os.environ.get("XDG_ACTIVATION_TOKEN", "")
+    socket.write(f"{request} {token}\n".encode())
     socket.waitForBytesWritten(500)
     socket.disconnectFromServer()
     return True
+
+
+def take_request(backend, data):
+    words = bytes(data).decode("utf-8", "replace").split()
+    if len(words) > 1:
+        os.environ["XDG_ACTIVATION_TOKEN"] = words[1]
+    backend.reloadSettings()
+    if words and words[0] == "window":
+        backend.windowRequested.emit()
+    else:
+        backend.toggleRequested.emit()
 
 
 def main(argv=None):
@@ -559,7 +745,8 @@ def main(argv=None):
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
     os.environ["QML_DISABLE_DISK_CACHE"] = "1"
     app = QGuiApplication(argv)
-    if toggle_running():
+    as_window = "--window" in argv[1:]
+    if toggle_running("window" if as_window else "toggle"):
         return 0
     try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
         from veltos_controls import use as use_veltos_controls
@@ -580,22 +767,52 @@ def main(argv=None):
     def on_connection():
         while server.hasPendingConnections():
             connection = server.nextPendingConnection()
-            connection.readyRead.connect(
-                lambda c=connection: (backend.reloadSettings(), backend.toggleRequested.emit()))
+            connection.readyRead.connect(lambda c=connection: take_request(backend, c.readAll()))
     server.newConnection.connect(on_connection)
+    app.aboutToQuit.connect(local.SERVER_INSTANCE.stop)
+    # The pane (Main.qml, the taskbar button and Windows + C) and the window
+    # (AppWindow.qml, Start and search) share one conversation; each is
+    # made the first time it is asked for.
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)
-    engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
-    if not engine.rootObjects():
-        return 1
-    window = engine.rootObjects()[0]
+    windows = {}
     idle = QTimer()
     idle.setSingleShot(True)
     idle.setInterval(IDLE_EXIT_MS)
-    idle.timeout.connect(lambda: app.quit() if not window.isVisible() and not backend.busy else idle.start())
-    window.visibleChanged.connect(lambda visible: idle.stop() if visible else idle.start())
-    window.show()
-    window.requestActivate()
+
+    def any_visible():
+        return any(w.isVisible() for w in windows.values())
+    idle.timeout.connect(lambda: app.quit() if not any_visible() and not backend.busy else idle.start())
+
+    def make(kind):
+        if kind not in windows:
+            before = len(engine.rootObjects())
+            engine.load(QUrl.fromLocalFile(str(QML_DIR / ("AppWindow.qml" if kind == "window" else "Main.qml"))))
+            if len(engine.rootObjects()) == before:
+                return None
+            windows[kind] = engine.rootObjects()[-1]
+            windows[kind].visibleChanged.connect(lambda _v: idle.stop() if any_visible() else idle.start())
+        return windows[kind]
+
+    def open_window():
+        window = make("window")
+        if window is not None:
+            window.setProperty("visible", True)
+            window.raise_()
+            window.requestActivate()
+
+    def toggle_pane():
+        pane = make("pane")
+        if pane is not None:
+            QMetaObject.invokeMethod(pane, "toggle")
+    backend.windowRequested.connect(open_window)
+    backend.toggleRequested.connect(toggle_pane)
+    if as_window:
+        open_window()
+    else:
+        toggle_pane()
+    if not windows:
+        return 1
     code = app.exec()
     del engine
     return code

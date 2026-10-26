@@ -64,8 +64,11 @@ veltos-calendar
 veltos-weather
 # Maps (Windows 11 layout) on the public Google Maps site; location is opt-in.
 veltos-maps
-# VeltOS AI: the assistant pane (Windows + C) with the user's own API key.
+# VeltOS AI: the assistant pane (Windows + C) and window, with the user's
+# own API key or a free local model run by llama.cpp's server (veltos-llama,
+# built from pinned source: llama.cpp is not in Debian 13).
 veltos-ai
+veltos-llama
 veltos-snip
 veltos-calculator
 veltos-camera

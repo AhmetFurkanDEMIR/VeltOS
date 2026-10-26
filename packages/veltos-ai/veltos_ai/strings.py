@@ -38,6 +38,40 @@ TEXTS = {
     "endpoint_placeholder": ("https://your-resource.openai.azure.com", "https://kaynaginiz.openai.azure.com"),
     "deployment": ("Deployment name", "Dağıtım adı"),
     "get_key": ("Get a key", "Anahtar alın"),
+    # The local model (local.py, LocalModels.qml)
+    "local_default_desc": ("Turkish, English and many more languages; works offline and free once downloaded. "
+                           "Google's small model: quick, short answers, may make mistakes.",
+                           "Türkçe, İngilizce ve daha birçok dil; indirildikten sonra çevrimdışı ve ücretsiz "
+                           "çalışır. Google'ın küçük modeli: hızlı ve kısa yanıtlar verir, hata yapabilir."),
+    "download": ("Download", "İndir"),
+    "downloading": ("Downloading the model…", "Model indiriliyor…"),
+    "download_progress": ("{done} of {total} · {speed}", "{done} / {total} · {speed}"),
+    "download_failed": ("The download didn't finish.", "İndirme tamamlanamadı."),
+    "use_model": ("Use", "Kullan"),
+    "in_use": ("In use", "Kullanımda"),
+    "delete_model": ("Delete this model", "Bu modeli sil"),
+    "model_license": ("Licence", "Lisans"),
+    "downloaded_models": ("Downloaded models", "İndirilen modeller"),
+    "hub_title": ("More models from Hugging Face", "Hugging Face'ten daha fazla model"),
+    "hub_desc": ("Search Hugging Face for GGUF models. Bigger models answer better but need more memory "
+                 "and time.",
+                 "Hugging Face'te GGUF modelleri arayın. Büyük modeller daha iyi yanıt verir ama daha çok bellek "
+                 "ve zaman ister."),
+    "hub_placeholder": ("For example: qwen 0.5b, gemma, phi", "Örneğin: qwen 0.5b, gemma, phi"),
+    "hub_error": ("Can't reach Hugging Face. Check your internet connection.",
+                  "Hugging Face'e ulaşılamıyor. İnternet bağlantınızı denetleyin."),
+    "search": ("Search", "Ara"),
+    "back": ("Back", "Geri"),
+    "start_chat": ("Start chatting", "Sohbete başla"),
+    "local_note": ("The local model runs on this PC: nothing you write leaves it. It answers questions but "
+                   "doesn't change settings.",
+                   "Yerel model bu bilgisayarda çalışır: yazdıklarınız bilgisayardan çıkmaz. Soruları yanıtlar "
+                   "ama ayarları değiştirmez."),
+    "local_no_engine": ("The local model engine (veltos-llama) isn't installed. Install it from VeltOS Store.",
+                        "Yerel model motoru (veltos-llama) kurulu değil. VeltOS Mağaza'dan kurun."),
+    "error_local": ("The local model couldn't start: {detail}", "Yerel model başlatılamadı: {detail}"),
+    "error_local_model": ("The chosen model file is missing. Download it again in Settings.",
+                          "Seçilen model dosyası yok. Ayarlar'dan yeniden indirin."),
     "save": ("Save", "Kaydet"),
     "cancel": ("Cancel", "İptal"),
     "remove_key": ("Remove key", "Anahtarı kaldır"),
