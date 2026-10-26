@@ -3,7 +3,7 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
-## 2026-10-26 (afternoon) — Items 58-64: VeltOS AI's local model and window
+## 2026-10-26 (afternoon) — Items 58-64: VeltOS AI's local model and window; ISO 20261026-124246
 
 The product owner's next list (items 58-64 in `status.md`). They asked for
 the full ISO without test runs, so what follows is verified by package
@@ -36,6 +36,12 @@ tests only; nothing of it has been seen on screen yet.
   Maps 17, icons 2, llama 4, AI 35 (`build/run.sh packages`, all passed).
 - The ISO folder of `20261026-112406` (out/iso) was found empty at 15:30;
   nothing in this work's commands or the build scripts removes it.
+- ISO `veltos-0.1.0-dev-20261026-124246` (2,381,049,856 bytes, sha256
+  `0f15ffab50b2e8cd0cf39ef6c96bc2ead48298a46f723f3b6afe2f8b16f33bd3`,
+  copy `VeltOS-20261026-124246.iso` on the owner's Desktop):
+  `build/run.sh iso` passed with the verify hook ("all checks passed");
+  veltos-ai and veltos-llama are in its package list. Not boot-tested (the
+  owner asked for no test runs).
 
 ## 2026-10-26 — Product owner's items 46-57
 

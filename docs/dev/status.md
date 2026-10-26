@@ -322,7 +322,10 @@ order:
    steps F1-F9 in their order. Items 58-64 still need a look in the dev VM
    (a real model download and answer, the pane and the window, the new
    tray icon, Start's gap, Maps).
-2. The newest ISO is named in the development log's newest entry. ISO
+2. Newest ISO: `veltos-0.1.0-dev-20261026-124246` (2.38 GB, sha256
+   `0f15ffab50b2e8cd0cf39ef6c96bc2ead48298a46f723f3b6afe2f8b16f33bd3`)
+   with items 1-64; built and verified by the image's verify hook, not yet
+   boot-tested (`build/run.sh test` is the next check). ISO
    `20261026-112406` (items 46-57) was built; its test run was stopped by
    the product owner before it finished. Last fully tested ISO:
    `veltos-0.1.0-dev-20261026-063914` (2.37 GB, sha256
