@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=VeltOS Maps
+Name[tr]=VeltOS Haritalar
+GenericName=Maps
+GenericName[tr]=Haritalar
+Comment=Search and explore Google Maps
+Comment[tr]=Google Haritalar'da arama yapın ve keşfedin
+Exec=veltos-maps
+Icon=veltos-maps
+Terminal=false
+Categories=Network;Geography;
+Keywords=map;location;navigation;
+Keywords[tr]=harita;konum;navigasyon;
+StartupNotify=true

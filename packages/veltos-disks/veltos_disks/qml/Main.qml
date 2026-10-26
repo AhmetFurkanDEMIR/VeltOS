@@ -22,7 +22,13 @@ ApplicationWindow {
     // The selected segment (a volume, unallocated or free space) or disk.
     property var selected: null
     property string selectedKey: ""
+    property string requestedFormatDevice: typeof formatDeviceRequest === "undefined" ? "" : formatDeviceRequest
     readonly property real mib: 1024 * 1024
+
+    Component.onCompleted: {
+        if (requestedFormatDevice !== "")
+            Qt.callLater(() => window.openFormatForDevice(requestedFormatDevice));
+    }
 
     // Disks are selected as {isDisk: true, ...disk}; segments as they are.
     function keyOf(item) {
@@ -169,6 +175,21 @@ ApplicationWindow {
                 acceptText: t.yes, rejectText: t.no, fields: [],
                 onAccept: () => backend.act("format", item.object, values)})
         });
+    }
+    function openFormatForDevice(device) {
+        const volume = backend.volumes.find(item => item.device === device);
+        if (!volume || !volume.canFormat) {
+            dialog.openWith({
+                title: backend.texts.format_title.replace("{name}", device),
+                message: backend.texts.format_unavailable,
+                fields: [],
+                rejectText: ""
+            });
+            return false;
+        }
+        select(volume);
+        openFormat();
+        return true;
     }
     function openNewVolume() {
         const item = selected, t = backend.texts;

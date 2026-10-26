@@ -4,6 +4,7 @@ and builds the UDisks2 calls; this module shows them and runs the calls
 (busctl, in a thread so the window stays alive; UDisks2 asks for the
 administrator's password through polkit, the VeltOS prompt)."""
 
+import argparse
 import configparser
 import os
 import subprocess
@@ -76,6 +77,16 @@ def run_command(command, timeout=3600):
 def detached(command):
     subprocess.Popen(command, start_new_session=True, stdin=subprocess.DEVNULL,
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(prog=Path(argv[0]).name)
+    parser.add_argument("--format", dest="format_device", metavar="DEVICE",
+                        help="open the Format dialog for a volume such as /dev/sdb1")
+    args = parser.parse_args(argv[1:])
+    if args.format_device and not args.format_device.startswith("/dev/"):
+        parser.error("--format requires a device path under /dev")
+    return args
 
 
 class Backend(QObject):
@@ -366,7 +377,8 @@ class Backend(QObject):
 
 def main(argv=None):
     argv = sys.argv if argv is None else argv
-    app = QGuiApplication(argv)
+    args = parse_args(argv)
+    app = QGuiApplication([argv[0]])
     try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
         from veltos_controls import use as use_veltos_controls
         use_veltos_controls()
@@ -380,6 +392,7 @@ def main(argv=None):
     app.setApplicationDisplayName(backend.texts["app_title"])
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)
+    engine.rootContext().setContextProperty("formatDeviceRequest", args.format_device or "")
     engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
     if not engine.rootObjects():
         return 1

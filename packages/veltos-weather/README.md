@@ -79,6 +79,6 @@ offline first start; any QML warning fails.
 - Windows 11 Weather's Maps (radar and temperature maps): there is no
   map and radar tile service that may be used by an app like this
   without a key or an agreement (OpenStreetMap's tile policy forbids it).
-- The device's location: item 40 of the product owner's list adds
-  location settings; until then the home place comes from the time zone
+- Device location is offered by VeltOS Maps and its Location privacy
+  setting. Weather itself still chooses its home place from the time zone
   or a search.

@@ -21,13 +21,16 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   `distributor-logo*` are replaced by the VeltOS logo (these icons mean
   "this operating system"); the Wine/Windows icons are removed so Breeze's
   neutral icons are used.
-- **Drives** (`tools/draw-icons.py`, 2026-10-24): the local disk, the
-  Windows drive (the disk with a blue framed window on its front; not
-  Microsoft's four-pane logo, a trademark) and a USB stick in the same
-  family (light grey, a metal plug, a blue light) replace Fluent's
-  `drive-harddisk`, `drive-removable-media`, `drive-removable-media-usb`
-  and `-pendrive` (a dark stick with an eject badge), with their own
-  16 px drawings; the large ones fill the frame as Windows 11's do.
+- **Drives** (`tools/draw-icons.py`): the local disk, the Windows drive
+  (the disk with a blue framed window on its front; not Microsoft's
+  four-pane logo, a trademark), a USB flash drive (light grey, a metal
+  plug and blue light), and a separate portable removable-disk enclosure
+  replace Fluent's `drive-harddisk`, `drive-removable-media`,
+  `drive-removable-media-usb` and `-pendrive`. Each has its own 16 px
+  drawing; the large ones fill the frame as Windows 11's do.
+- **Mobile hotspot** (`branding/network-wireless-hotspot-symbolic.svg`,
+  2026-10-26): Windows 11's glyph, a dot with waves to both sides, in
+  place of Fluent's (which looked like the Wi-Fi icon) in every theme.
 - **App icons as one family** (`branding/apps/`, drawn by
   `tools/app-icons.py`): Calculator, Camera, Mail, Calendar, Snipping
   Tool, Store, Settings, Task Manager, File Explorer, Notepad, Photos,

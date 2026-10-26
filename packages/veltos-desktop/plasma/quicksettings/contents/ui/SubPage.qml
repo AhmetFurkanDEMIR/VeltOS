@@ -17,6 +17,7 @@ ColumnLayout {
     property string title
     property bool switchOn: false
     property bool switchEnabled: true
+    property bool showSwitch: true
     property string footerText
     // A line in the middle of the page instead of the list (turned off,
     // nothing found).
@@ -50,6 +51,7 @@ ColumnLayout {
         }
         PlasmaComponents3.Switch {
             id: onOff
+            visible: page.showSwitch
             enabled: page.switchEnabled
             checked: page.switchOn
             Accessible.name: page.title

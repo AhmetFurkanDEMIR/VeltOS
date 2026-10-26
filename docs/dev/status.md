@@ -1,6 +1,6 @@
 # VeltOS Status
 
-Last updated: 2026-10-24. Every "Implemented" item names the
+Last updated: 2026-10-26 (item 45). Every "Implemented" item names the
 evidence that shows it working. "Untested" means nobody has observed it
 working yet. All observations so far are from QEMU/KVM virtual machines (no
 3D acceleration) and one VirtualBox VM of the product owner; **VeltOS has
@@ -34,7 +34,7 @@ not been run on real hardware yet.**
 | `veltos-auth` (new): administrator password prompt in the layout of Windows 11's User Account Control (blue band with the VeltOS shield-and-padlock icon, the question, program and details, the administrator's picture, password, Yes/No; EN/TR) as the session's polkit agent; the password checked by polkit's own helper; KDE's agent service masked | 8 unit tests (helper protocol, request mapping, the window offscreen with a stand-in helper: wrong then right password, cancel); VM (live, 2026-10-21 evening): `pkexec` from the session showed the prompt, wrong password refused with the message, right password accepted (polkit journal), agent registered for the session |
 | `veltos-clock` (new): Clock in the Windows 11 layout (Focus sessions, Timer with progress rings, Alarm cards with repeat days and snooze, Stopwatch with laps, World clock) and `veltos-clock-agent`, which rings alarms and finished timers while the app is closed (notification with Snooze/Dismiss, VeltOS alarm sound), and since 2026-10-22 VeltOS Calendar's reminders | Unit tests (when alarms ring, timers, file format, calendar reminders, the window offscreen EN/TR); VM (2026-10-21): an alarm rang with the app closed |
 | `veltos-calendar` (new, 2026-10-22): Calendar in the Windows 11 layout — day, work week, week, month and year views, Today and arrows, small month calendar, quick event card (name, time, all day, place, reminder) and full editor (repeat daily/weekly/monthly/yearly, description), events in one iCalendar file (`~/.local/share/veltos-calendar/calendar.ics`); reminders rung by VeltOS Clock's agent (no new resident process) | 16 unit tests (iCalendar round trip, repeats, reminders, the window offscreen EN/TR, the left pane's width); VM (2026-10-23): month view, quick card, an event saved to the file — after fixing the left pane, which took the window's width |
-| `veltos-weather` (new, 2026-10-25): Weather in the Windows 11 layout — current weather over a sky of its condition, 10-day forecast, hourly chart (Overview, Precipitation, Wind, Humidity, UV index, Feels like, Cloud cover, Pressure, Visibility), weather details (sun path, moon phase, wind compass, humidity, UV and air quality scales, visibility, pressure, feels like, precipitation), historical weather (monthly averages of five years), favorites, °F/°C, place search; Open-Meteo without a key, cached answers offline | 22 unit tests (real answers kept as test data, the window offscreen EN/TR); VM (2026-10-25): live data for İstanbul and Ankara, dark and light. Not done: Maps page, device location (item 40) |
+| `veltos-weather` (new, 2026-10-25): Weather in the Windows 11 layout — current weather over a sky of its condition, 10-day forecast, hourly chart (Overview, Precipitation, Wind, Humidity, UV index, Feels like, Cloud cover, Pressure, Visibility), weather details (sun path, moon phase, wind compass, humidity, UV and air quality scales, visibility, pressure, feels like, precipitation), historical weather (monthly averages of five years), favorites, °F/°C, place search; Open-Meteo without a key, cached answers offline | 22 unit tests (real answers kept as test data, the window offscreen EN/TR); VM (2026-10-25): live data for İstanbul and Ankara, dark and light. Maps is now a separate app; physical-device location remains unverified (item 40) |
 | `veltos-ai` (new, 2026-10-25): VeltOS AI, an assistant pane like Windows 11's Copilot — layer-shell pane on the right edge (maximised windows make room), Windows + C; ChatGPT (OpenAI Responses API), Claude (Messages API), Gemini (streamGenerateContent), Copilot through Azure OpenAI; the user's own key in a mode-600 file; streaming answers with Markdown; 13 actions (read-only ones at once, changes after "Allow") | 21 unit tests (each service's request and stream with tool calls, actions, settings, the conversation with Allow/Don't allow/Stop, the pane offscreen EN/TR); VM (2026-10-25) with a stand-in service: pane, Windows + C, real theme switches. Not tested: real services (no keys) |
 | `veltos-recovery` (new, 2026-10-22): Automatic Repair — after two VeltOS starts that did not finish GRUB starts "VeltOS Recovery", a Windows 11 style screen on the frame buffer (Qt linuxfb, no graphics driver): Restart, Advanced options (Startup Repair, Safe mode, Command Prompt, Problem details, Continue, Turn off), English/Turkish; the counter cleared 10 s after the sign-in screen; a start ending in emergency/rescue mode or with a failing sign-in screen restarts the PC; persistent journal (200 MB); Safe mode starts Plasma on X11 on the frame buffer (Debian's kernel has no simpledrm) | 18 unit tests; VM (installed, UEFI, 2026-10-22 night): GRUB counted a start and the counter was cleared; a count of two started the repair screen; Advanced options, Problem details, Startup Repair (6 steps), Command Prompt (sign-in, `exit`, back), Restart and Safe mode (X11 desktop at 1024x768) worked — after fixing the options layout at 1024x768, Command Prompt (it never appeared), Safe mode (black) and the keyboard focus after a repair. Untested: Turn off, BIOS, real failures on real hardware |
 | `veltos-fluent-icons`: Fluent icons/cursors (pinned, verified; Microsoft logos removed), yellow Windows 11 folders, coloured place icons at all sizes, VeltOS "This PC" (cyan screen), Recycle Bin (glass bin with blue recycling arrows, empty/full), folder, Local Disk and Terminal icons drawn in the look of Windows 11 (`tools/draw-icons.py`, separate 16 px drawings for small sizes), thin monochrome "Close" cross, Fluent cursors as the system default pointer | Package checks; VM screenshots; `x-cursor-theme` points to Fluent-cursors (VM) |
@@ -143,14 +143,27 @@ and seen working (development log says where); `[ ]` = open.
 Added by the product owner on 2026-10-25, to be done after item 37, in
 this order:
 
-38. [ ] Language choice: Turkish and English first in the lists; VeltOS' own apps follow any other language the user picks (translated), for every language the OS offers
-39. [ ] Taskbar: no sound (speaker) badge over the app icons
-40. [ ] Maps app in Windows 11's look on Google Maps (no API key); device location on/off and location settings in Maps and in Settings (Privacy & security > Location, Windows 11's page and icon)
-41. [ ] Bluetooth icon plain like the Wi-Fi one (Windows 11's), not blue
-42. [ ] File Explorer: right-click Format for every disk and USB drive except the system's, with Windows 11's Format window; clearer Windows 11 style icons for USB drives, removable disks and Windows (NTFS) disks
-43. [ ] File Explorer: right-click a file > create a shortcut on the desktop; the same for an app or file in Start and search
-44. [ ] Power modes (best power efficiency / balanced / best performance) in Settings and in the taskbar's quick settings, Windows 11 style; on AC power the PC switches to performance, on battery to power saving
-45. [ ] Mobile hotspot in Settings and in quick settings, Windows 11 style: share the internet connection, name, password, band, connected devices, which connection is shared
+38. [x] Language choice: Turkish and English are first in the display-language and regional-format lists; VeltOS apps follow the selected display language after signing in again. The live image currently offers only English and Turkish as display languages, and both are translated. Other installed UTF-8 regional formats follow them (`tests/results/2026-10-26-language-choice/`)
+39. [x] Taskbar: no sound (speaker) badge over the app icons; verified in the QEMU dev VM with Media Player playing a test tone (`tests/results/2026-10-26-taskbar-audio-badge/`)
+40. [x] Maps app in Windows 11's look on Google Maps (no API key); device location on/off and location settings in Maps and in Settings (Privacy & security > Location, Windows 11's page and icon). The **My location** action makes a one-shot GeoClue request only after opt-in; Settings and Maps share the preference. QEMU verified the rendered map, enable/disable behavior, Settings disclosure and GeoClue request/error flow. No location fix was available in the VM; physical-device acquisition and accuracy remain unverified (`tests/results/2026-10-26-maps-location/`).
+41. [x] Quick Settings Bluetooth device rows use a plain monochrome Bluetooth glyph instead of BlueZ's blue device artwork; Wi-Fi icons are unchanged and the active Bluetooth tile retains its accent state. Verified with the virtual Bluetooth adapter and screenshot (`tests/results/2026-10-26-bluetooth-icon/`). Device-specific artwork is intentionally replaced by the shared Bluetooth glyph.
+42. [x] File Explorer: eligible non-system drives have a right-click **Format...** command that opens Disk Management's Windows 11 Format form and separate data-loss warning. Explorer hides the action for the running system's physical disk; USB flash, other removable and fixed Windows (NTFS) drives have distinct icons. Verified with the Explorer/Disk Management/icon package tests and a synthetic `scsi_debug` removable volume in the QEMU dev VM; the warning was cancelled and its ext4 UUID stayed unchanged. The live system volume's menu had no Format command. No physical or system disk was formatted (`tests/results/2026-10-26-explorer-format/`)
+43. [x] File Explorer: right-click files and folders > **Create shortcut on desktop** (symlinks; launchers are copied as executable desktop entries); recent local files in Start and taskbar Search offer the same action. Plasma's native **Add to Desktop** remains available for apps. Existing desktop items are not overwritten; collisions receive unique names. Verified: 87 Explorer tests, 135 desktop tests (one skipped), package build, and QEMU VM creation from all three surfaces with each symlink resolving to the source file (`tests/results/2026-10-26-explorer-shortcuts/`).
+44. [x] Power modes in Settings and Quick Settings: choose any profile reported by power-profiles-daemon; the taskbar applet selects best performance on AC when supported (otherwise balanced) and best power efficiency on battery (otherwise balanced, then the first available profile). Settings explains unsupported or unavailable modes. Verified with 120 Settings tests, 140 desktop tests (one skipped), 8 repository checks, successful package builds, and QEMU manual selection through both surfaces; helper AC/battery policy paths were exercised directly. The QEMU device had no battery and no performance profile, so real battery-signal transitions and physical hardware remain untested (`tests/results/2026-10-26-power-modes/`)
+45. [x] Mobile hotspot in Settings and in quick settings, Windows 11 style: share the internet connection, name, password, band, connected devices, which connection is shared. Settings > Network & internet > Mobile hotspot (switch, "Share my internet connection from", "Share over: Wi-Fi", Properties with Edit for name, password and band, "Devices connected" with name, IP and MAC) and a Quick Settings tile with Windows 11's ((•)) glyph (product owner, 2026-10-26) whose arrow shows the name, password, band and device count; NetworkManager's shared mode with a user-owned profile (no administrator password), architecture 2.32. Verified: 18 module tests, Settings UI tests EN/TR, and in the QEMU dev VM with mac80211_hwsim radios and a simulated phone in a network namespace (`hotspotsim.sh`): on/off from both places, the phone joined, got 10.42.0.126 and fetched deb.debian.org through the hotspot (NAT and DNS), was listed as "veltos-phone", the edited name and password worked; 5 GHz failed with the world regulatory domain and is now offered only where the card may use it (`tests/results/2026-10-26-mobile-hotspot/`). Not tested: real Wi-Fi cards and phones, two internet connections at once (the source choice was unit-tested only), Turkish on screen
+
+Added by the product owner on 2026-10-26 (after item 45), in this order,
+then a full ISO with everything:
+
+46. [ ] Quick Settings: the battery figure at the bottom left opens Settings > Power & battery
+47. [ ] No Debian/KDE search box at the top of the screen (KRunner); VeltOS' own search is the only one
+48. [ ] Show hidden icons (taskbar arrow): the same see-through hover box as the other taskbar buttons
+49. [ ] Power modes redone in Windows 11's way: Best performance, Balanced, Best power efficiency, chosen separately for plugged in and on battery, switching with the power source; modern Settings page and Quick Settings
+50. [ ] Start: no vertical line left of the scroll bar
+51. [ ] VeltOS AI: a Copilot-like button at the right of the taskbar by default (removable), opening the pane; a VeltOS AI page in Settings
+52. [ ] Weather starts with the default (Celsius) unit
+53. [ ] Maps and location reviewed: Windows 11 look, no errors
+54. [ ] The window titled "plasmashell" in Windows 11's design
 
 ## Final release steps (after item 45)
 
@@ -267,30 +280,43 @@ order:
 - VeltOS Store: no ratings/reviews, no Flatpak. Discover is not in the
   image (verify hook); a system installed from an older ISO may still
   have it and its notifier.
+- VeltOS Maps: no real-device location fix or accuracy test; the QEMU VM
+  has no GPS or nearby Wi-Fi scan source (`tests/results/2026-10-26-maps-location/`).
+- Power modes: the QEMU VM exposed only balanced and power-saver and had no
+  battery; real hardware profile availability and actual AC/battery signal
+  transitions remain untested (`tests/results/2026-10-26-power-modes/`).
+- Mobile hotspot: tested only with simulated radios (mac80211_hwsim) in
+  QEMU; no sharing over Bluetooth, no power-saving switch, and a PC whose
+  only internet is its only Wi-Fi card cannot share it (NetworkManager
+  cannot run a second virtual interface). Choosing the shared connection
+  changes the PC's own preferred route while the hotspot runs.
 - ISO is not verified bit-for-bit reproducible. No CI.
 
 ## Next steps
 
-1. Current ISO: `veltos-0.1.0-dev-20261023-061442` (2.45 GB, sha256
-   `9d8afa183a94975fa43db82708bb095b6e23e40a527e5733b7c01cc196d32464`;
-   copy on the owner's Desktop as `VeltOS-20261023-061442.iso`) with the
-   owner's 38 items of 2026-10-22 and the installer, start-up and size
-   work of 2026-10-23 (development log). QEMU: boot tests UEFI 19/19, BIOS
-   18/18, Secure Boot 20/20, `test-winapps` 7/7, and BIOS, UEFI and encrypted
-   installations that start (`tests/results/2026-10-23-installation-bios/`).
+1. Items 46-54 of the product owner's list (2026-10-26), in order, then a
+   full ISO; after them the final release steps F1-F9 in their order.
+2. Current ISO: `veltos-0.1.0-dev-20261026-063914` (2.37 GB, sha256
+   `ef58a6b5d67b7b620f8817a1293c9ebe87c83fcda9ff6216c1a0ef90c70dcd2c`)
+   with items 38-45. QEMU: boot tests UEFI 19/19, BIOS 18/18, Secure Boot
+   20/20 and a BIOS installation that starts
+   (`tests/results/2026-10-26-iso-063914/`). The previous ISO
+   (`20261023-061442`, copy on the owner's Desktop) also passed
+   `test-winapps` 7/7 and UEFI and encrypted installations
+   (`tests/results/2026-10-23-installation-bios/`).
    Still to see on screen: the search window's "no results", the text
    pointer, a real video in Media Player's full screen, Windows programs
    listed in Settings, VeltOS Mail in dark mode, Automatic Repair's Turn
    off, Camera with a real webcam, Mail with a real account, the sounds by
    ear.
-2. VirtualBox: on the developer host its VMs stall in NEM mode (Known
+3. VirtualBox: on the developer host its VMs stall in NEM mode (Known
    gaps). Check VeltOS in VirtualBox on a host without Hyper-V, or after a
    VirtualBox release that fixes issue 722; until then judge speed and
    smoothness in QEMU.
-3. Disk Management (`veltos-disks`, 2026-10-22): MBR disks with logical
+4. Disk Management (`veltos-disks`, 2026-10-22): MBR disks with logical
    drives, USB sticks (mount/eject), a disk with Windows on it.
-4. Listen to the VeltOS sounds on real hardware; measure animation CPU
+5. Listen to the VeltOS sounds on real hardware; measure animation CPU
    cost with software rendering.
-5. The open requests listed under "Known gaps", in the product owner's
+6. The open requests listed under "Known gaps", in the product owner's
    order.
-6. First run on real hardware.
+7. First run on real hardware.

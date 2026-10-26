@@ -17,6 +17,10 @@ Windows 11's Disk Management, as a VeltOS app (PySide6/QML) on UDisks2:
   file system, quick format, then the "all data will be erased" question),
   New Simple Volume (size in MB up to the free space, file system, label),
   Delete, label, Initialize, Properties and errors.
+- `veltos-disks --format /dev/sdb1` opens the same Format form for a
+  requested volume from File Explorer. Disk Management re-reads UDisks2,
+  refuses a missing or protected volume, and still requires the user to
+  confirm the data-loss warning before formatting.
 
 Everything goes through UDisks2 with `busctl --system` (`disks.py`
 builds the calls, `app.py` runs them in a thread): `Filesystem.Mount` /

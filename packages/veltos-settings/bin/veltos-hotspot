@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+"""Mobile hotspot for Quick Settings: status|start|stop|configure|source UUID,
+the state as JSON on standard output (veltos_settings/hotspot.py)."""
+import sys
+
+from veltos_settings.hotspot import main
+
+sys.exit(main())

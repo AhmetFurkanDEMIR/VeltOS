@@ -75,6 +75,9 @@ def write_command(filename, groups, key, value):
 # --- what each setting is --------------------------------------------------------------------
 # key: (file, group path, KConfig key, kind, default). Kinds: bool, int, str.
 SETTINGS = {
+    # Privacy & security > Location. VeltOS Maps gates browser geolocation
+    # requests with this shared KDE setting; disabled until the user opts in.
+    "locationEnabled": ("kdeglobals", ["Privacy"], "LocationServicesEnabled", "bool", False),
     # Personalization > Lock screen; Privacy & security > Screen lock
     "autoLock": ("kscreenlockerrc", ["Daemon"], "Autolock", "bool", True),
     "lockAfter": ("kscreenlockerrc", ["Daemon"], "Timeout", "int", 5),          # minutes
@@ -105,12 +108,15 @@ POWER_ACTIONS = {"nothing": 0, "sleep": 1, "hibernate": 2, "shutdown": 8, "ask":
 TIMEOUT_MINUTES = [1, 2, 3, 5, 10, 15, 20, 25, 30, 45, 60, 120, 180, 240, 300, 0]
 LOCK_MINUTES = [1, 2, 3, 5, 10, 15, 30, 60, 0]     # 0 = never (Autolock off)
 NIGHT_TEMPERATURES = (6500, 1000)       # KWin's range: no change .. strongest
+POWER_MODES = ("power-saver", "balanced", "performance")
 
 # Language & region: the formats that go with each display language, and
 # the [Formats] keys of plasma-localerc that Plasma 6.3's startplasma
 # exports at sign-in (besides LC_COLLATE, LC_CTYPE, LC_MESSAGES,
 # LC_IDENTIFICATION and LC_ALL, which VeltOS leaves alone).
 LANGUAGE_FORMATS = {"en": "en_US", "tr": "tr_TR"}
+DISPLAY_LANGUAGES = (("tr", "Türkçe"), ("en", "English (United States)"))
+FORMAT_PRIORITY = ("tr_TR", "en_US")
 FORMAT_KEYS = ("LANG", "LC_ADDRESS", "LC_MEASUREMENT", "LC_MONETARY", "LC_NAME", "LC_NUMERIC",
                "LC_PAPER", "LC_TELEPHONE", "LC_TIME")
 
@@ -312,7 +318,8 @@ class Preferences:
             if match:
                 names.add(match.group(1))
         names.update(["en_US", "tr_TR"])
-        return sorted(names)
+        priority = [name for name in FORMAT_PRIORITY if name in names]
+        return priority + sorted(names - set(priority))
 
     # Keyboard layouts (Time & language > Typing).
     def layouts(self):
@@ -344,7 +351,43 @@ class Preferences:
             "layouts": self.layouts(),
             "hasBattery": has_battery(),
         })
+        values.update(self.power_mode_state())
         return values
+
+    def power_mode_state(self):
+        """Profiles exposed by power-profiles-daemon on this hardware."""
+        code, output = self.run(["powerprofilesctl", "list"])
+        profiles, active = parse_power_profiles(output) if code == 0 else ([], "")
+        if profiles and not active:
+            code, output = self.run(["powerprofilesctl", "get"])
+            if code == 0 and output.strip() in profiles:
+                active = output.strip()
+        return {
+            "powerModesAvailable": bool(profiles),
+            "powerModes": profiles,
+            "powerMode": active,
+        }
+
+    def set_power_mode(self, name):
+        if name not in POWER_MODES:
+            return False
+        state = self.power_mode_state()
+        if name not in state["powerModes"]:
+            return False
+        return self.run(["powerprofilesctl", "set", name])[0] == 0
+
+
+def parse_power_profiles(output):
+    """Read profile names and the active marker from `powerprofilesctl list`."""
+    available, active = set(), ""
+    for line in output.splitlines():
+        match = re.fullmatch(r"\s*(\*)?\s*(power-saver|balanced|performance):\s*", line)
+        if match:
+            name = match.group(2)
+            available.add(name)
+            if match.group(1):
+                active = name
+    return [name for name in POWER_MODES if name in available], active
 
 
 def has_battery(root="/sys/class/power_supply"):

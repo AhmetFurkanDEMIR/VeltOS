@@ -23,6 +23,7 @@ Item {
 
     signal pinRequested(string favoriteId)
     signal unpinRequested(string favoriteId)
+    signal shortcutRequested(string source)
     signal closeRequested()
 
     readonly property PlasmaExtras.Menu menu: PlasmaExtras.Menu {
@@ -52,6 +53,9 @@ Item {
                     root.pinRequested(modelData.actionArgument);
                 } else if (actionId === "_veltos_unpin") {
                     root.unpinRequested(modelData.actionArgument);
+                } else if (actionId === "_veltos_create_shortcut") {
+                    root.shortcutRequested(String(modelData.actionArgument ?? ""));
+                    root.closeRequested();
                 } else if (root.model && root.model.trigger(root.index, actionId, modelData.actionArgument)) {
                     root.closeRequested();
                 }

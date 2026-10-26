@@ -19,8 +19,8 @@ from pathlib import Path
 OUT = Path(__file__).resolve().parent.parent / "branding"
 # Icon names of the terminal (Konsole's desktop entry uses utilities-terminal).
 TERMINAL_NAMES = ("utilities-terminal", "org.kde.konsole", "konsole", "terminal")
-# Icon names of USB sticks and other removable drives (File Explorer, KDE).
-USB_NAMES = ("drive-removable-media-usb", "drive-removable-media-usb-pendrive", "drive-removable-media")
+# Icon names of USB sticks (File Explorer, KDE).
+USB_NAMES = ("drive-removable-media-usb", "drive-removable-media-usb-pendrive")
 HEADER = ('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">\n'
           '  <!-- {what}: VeltOS artwork in the look of Windows 11 (tools/draw-icons.py).\n'
           '       SPDX-License-Identifier: CC-BY-SA-4.0 -->\n')
@@ -419,6 +419,38 @@ def windows_disk():
         "  </g>\n</svg>\n", WINDOWS_MARK + "  </g>\n</svg>\n").replace("<!-- Local disk:", "<!-- Windows drive:")
 
 
+def removable_disk():
+    return HEADER.format(what="Removable disk") + """  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset="1" stop-color="#DDE2E8"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B9C1CB"/>
+      <stop offset="1" stop-color="#8E98A5"/>
+    </linearGradient>
+    <linearGradient id="platter" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D8DEE5"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(128 128) rotate(-7) translate(-128 -128)">
+    <rect x="55" y="33" width="146" height="190" rx="24" fill="#65707C" opacity="0.3"/>
+    <rect x="49" y="27" width="146" height="190" rx="24" fill="url(#edge)" stroke="#89939F" stroke-width="3"/>
+    <rect x="56" y="34" width="132" height="174" rx="19" fill="url(#body)"/>
+    <rect x="69" y="48" width="106" height="119" rx="16" fill="#F8FAFC" stroke="#BCC4CD" stroke-width="3"/>
+    <circle cx="122" cy="106" r="36" fill="url(#platter)" stroke="#A7B1BC" stroke-width="3"/>
+    <circle cx="122" cy="106" r="23" fill="none" stroke="#C2CAD2" stroke-width="2"/>
+    <circle cx="122" cy="106" r="7" fill="#7B8794"/>
+    <path d="M 126 108 L 150 137 L 137 143 L 122 109" fill="#7B8794"/>
+    <rect x="94" y="181" width="38" height="9" rx="4.5" fill="#68727E"/>
+    <circle cx="161" cy="185.5" r="6" fill="#2FA8F0"/>
+    <circle cx="161" cy="185.5" r="2.5" fill="#FFFFFF" opacity="0.6"/>
+  </g>
+</svg>
+"""
+
+
 # A USB flash drive in the disk's family (product owner, 2026-10-23: "make
 # the flash drive icon nicer, like Windows 11"): a light grey stick seen
 # slightly from above with a metal USB plug and a blue light.
@@ -507,6 +539,23 @@ def small_windows_disk():
         "<!-- Local disk", "<!-- Windows drive")
 
 
+def small_removable_disk():
+    return SMALL_HEADER.format(what="Removable disk") + """  <defs>
+    <linearGradient id="case" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset="1" stop-color="#C8D0D9"/>
+    </linearGradient>
+  </defs>
+  <rect x="3" y="1.5" width="10" height="13" rx="2" fill="url(#case)" stroke="#7E8894"/>
+  <rect x="4.5" y="3" width="7" height="7.5" rx="1" fill="#EEF1F4" stroke="#A3ADB8" stroke-width="0.7"/>
+  <circle cx="8" cy="6.8" r="2.1" fill="#D6DDE4" stroke="#8994A0" stroke-width="0.7"/>
+  <circle cx="8" cy="6.8" r="0.7" fill="#68727E"/>
+  <rect x="6.2" y="11.5" width="3.6" height="0.8" rx="0.4" fill="#68727E"/>
+  <circle cx="11.2" cy="12.3" r="0.8" fill="#2FA8F0"/>
+</svg>
+"""
+
+
 def small_usb_drive():
     return SMALL_HEADER.format(what="USB drive") + """  <defs>
     <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
@@ -558,6 +607,7 @@ def main():
     (OUT / "veltos-home.svg").write_text(home(), encoding="utf-8", newline="\n")
     (OUT / "drive-harddisk.svg").write_text(local_disk(), encoding="utf-8", newline="\n")
     (OUT / "drive-harddisk-windows.svg").write_text(windows_disk(), encoding="utf-8", newline="\n")
+    (OUT / "drive-removable-media.svg").write_text(removable_disk(), encoding="utf-8", newline="\n")
     for name in USB_NAMES:
         (OUT / f"{name}.svg").write_text(usb_drive(), encoding="utf-8", newline="\n")
     # The icon of folders as a file type.
@@ -570,6 +620,7 @@ def main():
     small.mkdir(exist_ok=True)
     (small / "drive-harddisk.svg").write_text(small_disk(), encoding="utf-8", newline="\n")
     (small / "drive-harddisk-windows.svg").write_text(small_windows_disk(), encoding="utf-8", newline="\n")
+    (small / "drive-removable-media.svg").write_text(small_removable_disk(), encoding="utf-8", newline="\n")
     for name in USB_NAMES:
         (small / f"{name}.svg").write_text(small_usb_drive(), encoding="utf-8", newline="\n")
     (small / "user-trash.svg").write_text(small_bin(False), encoding="utf-8", newline="\n")

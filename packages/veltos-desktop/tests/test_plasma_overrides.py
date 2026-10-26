@@ -136,13 +136,12 @@ class OverrideTests(unittest.TestCase):
         instance = (ui / "ToolTipInstance.qml").read_text(encoding="utf-8")
         self.assertIn('return ""; // VeltOS: Windows 11 names a pinned app, nothing more', instance)
 
-    def test_playing_app_gets_a_round_speaker_badge(self):
+    def test_playing_app_has_no_speaker_badge_on_the_taskbar(self):
         self.assertEqual(self.run_tool(), 0)
         badge = (self.applets / "org.kde.plasma.taskmanager/contents/ui/AudioStream.qml").read_text(encoding="utf-8")
-        self.assertIn("radius: width / 2", badge)
-        self.assertIn("toggleMuted()", badge)
-        self.assertIn("loops: Animation.Infinite", badge)
-        self.assertNotIn("audio-volume-high-symbolic", badge)
+        self.assertIn("visible: false", badge)
+        self.assertNotIn("Shape {", badge)
+        self.assertNotIn("toggleMuted", badge)
 
     def test_taskbar_menu_and_show_desktop_at_the_edge(self):
         self.assertEqual(self.run_tool(), 0)

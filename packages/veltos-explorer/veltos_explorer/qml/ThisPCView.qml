@@ -71,7 +71,9 @@ ScrollView {
                         Kirigami.Icon {
                             Layout.preferredWidth: 44
                             Layout.preferredHeight: 44
-                            source: tile.modelData.icon || (tile.modelData.removable ? "drive-removable-media-usb" : "drive-harddisk")
+                            source: tile.modelData.icon || (tile.modelData.usb ? "drive-removable-media-usb"
+                                    : tile.modelData.removable ? "drive-removable-media"
+                                    : tile.modelData.windows ? "drive-harddisk-windows" : "drive-harddisk")
                         }
                         ColumnLayout {
                             Layout.fillWidth: true

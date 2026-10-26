@@ -73,6 +73,12 @@ override_dh_auto_install:
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/drive-harddisk-windows.svg
 	install -D -m 644 branding/small/drive-harddisk-windows.svg \
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/devices/drive-harddisk-windows.svg
+	for name in drive-removable-media drive-removable-media-usb; do \
+		install -D -m 644 branding/$$name.svg \
+			debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/$$name.svg; \
+		install -D -m 644 branding/small/$$name.svg \
+			debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/devices/$$name.svg; \
+	done
 	for name in $(VELTOS_SYMBOLIC); do \
 		install -D -m 644 branding/$$name.svg \
 			debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/categories/$$name.svg; \
@@ -80,6 +86,14 @@ override_dh_auto_install:
 			debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/categories/$$name.svg; \
 		for d in $$(find $(ICONS) -type d -path '*/symbolic/categories'); do cp branding/$$name.svg $$d/$$name.svg; done; \
 	done
+	# Mobile hotspot: Windows 11's glyph (a dot with waves to both sides)
+	# instead of Fluent's, which looked like the Wi-Fi icon (product owner,
+	# 2026-10-26). Replaces Fluent's file (or link) in every theme.
+	for f in $$(find $(ICONS) -path '*/symbolic/*' -name network-wireless-hotspot-symbolic.svg); do \
+		rm -f $$f && cp branding/network-wireless-hotspot-symbolic.svg $$f; \
+	done
+	install -D -m 644 branding/network-wireless-hotspot-symbolic.svg \
+		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/status/network-wireless-hotspot-symbolic.svg
 	# App icons as one Windows 11 style family (VeltOS artwork, branding/apps/,
 	# tools/app-icons.py): VeltOS apps and the KDE apps they stand for. All
 	# Fluent themes share .Fluent-base/scalable; a symbolic link of that name
@@ -138,6 +152,14 @@ execute_after_dh_auto_install:
 	! grep -rqi 'da4453' $(ICONS)/.Fluent-base/16/actions/window-close.svg $(ICONS)/.Fluent-dark-base/22/actions/tab-close.svg
 	cmp -s $(ICONS)/.Fluent-base/scalable/devices/drive-harddisk-windows.svg branding/drive-harddisk-windows.svg
 	cmp -s $(ICONS)/.Fluent-base/16/devices/drive-harddisk-windows.svg branding/small/drive-harddisk-windows.svg
+	cmp -s $(ICONS)/.Fluent-base/scalable/devices/drive-removable-media.svg branding/drive-removable-media.svg
+	cmp -s $(ICONS)/.Fluent-base/16/devices/drive-removable-media.svg branding/small/drive-removable-media.svg
+	cmp -s debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/drive-removable-media.svg \
+		branding/drive-removable-media.svg
+	cmp -s debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/drive-removable-media-usb.svg \
+		branding/drive-removable-media-usb.svg
+	! cmp -s branding/drive-removable-media.svg branding/drive-removable-media-usb.svg
+	! cmp -s branding/small/drive-removable-media.svg branding/small/drive-removable-media-usb.svg
 	! grep -qi '198ee6' $(ICONS)/.Fluent-base/scalable/places/default-folder.svg
 	cmp -s $(ICONS)/.Fluent-base/scalable/places/veltos-home.svg branding/veltos-home.svg
 	for f in branding/apps/*.svg; do \

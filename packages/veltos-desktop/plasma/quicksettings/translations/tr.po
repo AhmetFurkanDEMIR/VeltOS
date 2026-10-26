@@ -13,6 +13,33 @@ msgstr ""
 msgid "Quick Settings"
 msgstr "Hızlı Ayarlar"
 
+msgid "Power mode"
+msgstr "Güç modu"
+
+msgid "Best power efficiency"
+msgstr "En iyi güç verimliliği"
+
+msgid "Balanced"
+msgstr "Dengeli"
+
+msgid "Best performance"
+msgstr "En iyi performans"
+
+msgid "More power settings"
+msgstr "Daha fazla güç ayarı"
+
+msgid "Power modes aren't available"
+msgstr "Güç modları kullanılamıyor"
+
+msgid "Couldn't change the power mode"
+msgstr "Güç modu değiştirilemedi"
+
+msgid "Best performance is not supported by this device; Balanced will be used on AC power."
+msgstr "Bu cihaz En iyi performans modunu desteklemiyor; prize takıldığında Dengeli kullanılacak."
+
+msgid "Automatically switches to best power efficiency on battery and best performance on AC power."
+msgstr "Pil gücündeyken En iyi güç verimliliğine, prize takılıyken En iyi performansa otomatik geçer."
+
 msgid "Not connected"
 msgstr "Bağlı değil"
 
@@ -165,3 +192,60 @@ msgstr "Oynat"
 
 msgid "Pause"
 msgstr "Duraklat"
+
+msgid "Mobile hotspot"
+msgstr "Mobil etkin nokta"
+
+msgid "Turning on…"
+msgstr "Açılıyor…"
+
+msgid "Turning off…"
+msgstr "Kapatılıyor…"
+
+msgid "More hotspot settings"
+msgstr "Daha fazla etkin nokta ayarı"
+
+msgid "Loading…"
+msgstr "Yükleniyor…"
+
+msgid "Network name"
+msgstr "Ağ adı"
+
+msgid "Password"
+msgstr "Parola"
+
+msgid "Band"
+msgstr "Bant"
+
+msgid "2.4 GHz"
+msgstr "2,4 GHz"
+
+msgid "5 GHz"
+msgstr "5 GHz"
+
+msgid "Any available"
+msgstr "Kullanılabilir herhangi biri"
+
+msgid "Devices"
+msgstr "Cihazlar"
+
+msgid "%1 connected"
+msgstr "%1 bağlı"
+
+msgid "This PC has no Wi-Fi adapter."
+msgstr "Bu bilgisayarda Wi-Fi bağdaştırıcısı yok."
+
+msgid "This PC's Wi-Fi adapter can't host a mobile hotspot."
+msgstr "Bu bilgisayarın Wi-Fi bağdaştırıcısı mobil etkin nokta oluşturamıyor."
+
+msgid "This PC reaches the internet through its only Wi-Fi adapter, which can't connect and share at the same time."
+msgstr "Bu bilgisayar internete tek Wi-Fi bağdaştırıcısıyla bağlanıyor; bağdaştırıcı aynı anda hem bağlanıp hem paylaşamaz."
+
+msgid "Connect this PC to the internet first."
+msgstr "Önce bu bilgisayarı internete bağlayın."
+
+msgid "Mobile hotspot couldn't be turned on."
+msgstr "Mobil etkin nokta açılamadı."
+
+msgid "Turning on mobile hotspot disconnects this PC from %1."
+msgstr "Mobil etkin nokta açılınca bu bilgisayarın %1 ağıyla bağlantısı kesilir."

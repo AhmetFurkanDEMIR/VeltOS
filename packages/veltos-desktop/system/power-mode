@@ -1,0 +1,101 @@
+#!/usr/bin/python3
+"""Select a supported power profile for an AC or battery power source."""
+
+import json
+import re
+import subprocess
+import sys
+
+PROFILES = ("power-saver", "balanced", "performance")
+
+
+def command(command):
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False)
+    except OSError as error:
+        return 127, "", str(error)
+    return result.returncode, result.stdout, result.stderr
+
+
+def parse_profiles(output):
+    found, active = set(), ""
+    for line in output.splitlines():
+        match = re.fullmatch(r"\s*(\*)?\s*(power-saver|balanced|performance):\s*", line)
+        if match:
+            profile = match.group(2)
+            found.add(profile)
+            if match.group(1):
+                active = profile
+    return [profile for profile in PROFILES if profile in found], active
+
+
+def automatic_profile(on_battery, profiles):
+    preferred = "power-saver" if on_battery else "performance"
+    if preferred in profiles:
+        return preferred
+    if "balanced" in profiles:
+        return "balanced"
+    return profiles[0] if profiles else ""
+
+
+def current_state(runner):
+    code, output, error = runner(["powerprofilesctl", "list"])
+    if code != 0:
+        return {"success": False, "profiles": [], "active": "",
+                "error": error.strip() or "Could not list power profiles."}
+    profiles, active = parse_profiles(output)
+    if profiles and not active:
+        code, output, error = runner(["powerprofilesctl", "get"])
+        if code == 0 and output.strip() in profiles:
+            active = output.strip()
+    if not profiles:
+        return {"success": False, "profiles": [], "active": "",
+                "error": "No supported power profiles were reported."}
+    return {"success": True, "profiles": profiles, "active": active, "error": ""}
+
+
+def apply_profile(profile, runner=command, state=None):
+    state = state or current_state(runner)
+    if not state["success"]:
+        return state
+    if profile not in state["profiles"]:
+        return dict(state, success=False, error="This power profile is not supported on this device.")
+    if state["active"] == profile:
+        return state
+    code, _output, error = runner(["powerprofilesctl", "set", profile])
+    if code != 0:
+        return dict(state, success=False, error=error.strip() or "Could not change the power profile.")
+    code, output, error = runner(["powerprofilesctl", "get"])
+    if code != 0:
+        return dict(state, success=False, error=error.strip() or "Could not read the active power profile.")
+    active = output.strip()
+    if active != profile:
+        return dict(state, success=False, active=active,
+                    error="The requested power profile did not become active.")
+    return dict(state, active=active)
+
+
+def run(args, runner=command):
+    if len(args) != 2:
+        return {"success": False, "profiles": [], "active": "",
+                "error": "Usage: power-mode auto ac|battery | set PROFILE"}
+    operation, value = args
+    if operation == "auto" and value in ("ac", "battery"):
+        state = current_state(runner)
+        if not state["success"]:
+            return state
+        profile = automatic_profile(value == "battery", state["profiles"])
+        return apply_profile(profile, runner, state)
+    if operation == "set" and value in PROFILES:
+        return apply_profile(value, runner)
+    return {"success": False, "profiles": [], "active": "", "error": "Invalid power mode request."}
+
+
+def main(args=None):
+    result = run(sys.argv[1:] if args is None else args)
+    print(json.dumps(result))
+    return 0 if result["success"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

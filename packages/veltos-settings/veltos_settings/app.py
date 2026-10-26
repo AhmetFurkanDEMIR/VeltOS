@@ -19,7 +19,7 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import accounts, apps, catalog, devices, inputs, prefs, strings, sysinfo, taskbar
+from . import accounts, apps, catalog, devices, hotspot, inputs, prefs, strings, sysinfo, taskbar
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 LOOK_AND_FEEL = {False: "org.veltos.light", True: "org.veltos.dark"}
@@ -145,7 +145,8 @@ def system_tools(runner=devices.run, lang="en"):
                            personal=devices.Personalization(runner), time=devices.Time(runner),
                            prefs=prefs.Preferences(runner), inputs=inputs.Inputs(runner),
                            accounts=accounts.Accounts(runner), defaults=apps.DefaultApps(runner, lang=lang),
-                           startup=apps.StartupApps(lang=lang), taskbar=taskbar.Taskbar(runner))
+                           startup=apps.StartupApps(lang=lang), taskbar=taskbar.Taskbar(runner),
+                           hotspot=hotspot.Hotspot(runner))
 
 
 # Recently used settings (Home > Recommended settings), most used first.
@@ -219,6 +220,7 @@ class Jobs(QObject):
 class Backend(QObject):
     changed = Signal()
     networkChanged = Signal()
+    hotspotChanged = Signal()
     bluetoothChanged = Signal()
     soundChanged = Signal()
     displayChanged = Signal()
@@ -250,6 +252,9 @@ class Backend(QObject):
         self._appearance_lock = threading.Lock()
         self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
                          "loaded": False, "scanning": False, "connecting": "", "failed": ""}
+        self._hotspot = {"loaded": False, "available": False, "active": False, "busy": False, "reason": "",
+                         "ssid": "", "password": "", "band": "", "bands": [], "sources": [], "source": "",
+                         "clients": [], "error": "", "disconnects": "", "device": "", "security": ""}
         self._bluetooth = {"available": False, "powered": False, "devices": [], "loaded": False,
                            "busy": "", "found": [], "scanning": False, "pairing": "", "pairFailed": ""}
         self._sound = {"outputs": [], "inputs": [], "loaded": False}
@@ -258,7 +263,7 @@ class Backend(QObject):
                           "accents": devices.ACCENTS, "loaded": False}
         self._time = {"timezone": "", "automatic": False, "canAutomatic": True, "zones": [],
                       "loaded": False}
-        self._prefs = {"loaded": False}
+        self._prefs = {"loaded": False, "powerModeError": False}
         self._taskbar = {"loaded": False, "available": False, "trayItems": []}
         self._inputs = {"loaded": False, "hasMouse": False, "hasTouchpad": False}
         self._accounts = {"loaded": False, "me": {"name": sysinfo.user_name(), "realName": sysinfo.user_name(),
@@ -506,6 +511,40 @@ class Backend(QObject):
     def forgetWifi(self, ssid):
         self.jobs.submit(lambda: self.system.network.forget(ssid),
                          lambda _ok: self.refreshNetwork(False))
+
+    # --- Network & internet > Mobile hotspot (hotspot.py) ------------------------------
+
+    @Property("QVariantMap", notify=hotspotChanged)
+    def hotspot(self):
+        return self._hotspot
+
+    def _hotspot_job(self, work, busy=True):
+        if busy:
+            self._update("_hotspot", self.hotspotChanged, {"busy": True, "error": ""})
+        self.jobs.submit(work, self._merge("_hotspot", self.hotspotChanged, {"busy": False}))
+
+    @Slot()
+    def refreshHotspot(self):
+        # A refresh keeps the last action's error on screen until the next action.
+        if not self._hotspot.get("busy"):
+            self.jobs.submit(self.system.hotspot.status,
+                             lambda result: self._merge("_hotspot", self.hotspotChanged)(
+                                 dict(result or {}, error="" if (result or {}).get("active")
+                                      else self._hotspot.get("error", ""))))
+
+    @Slot(bool)
+    def setHotspot(self, on):
+        self._update("_hotspot", self.hotspotChanged, {"active": on})
+        self._hotspot_job(self.system.hotspot.start if on else self.system.hotspot.stop)
+
+    @Slot(str, str, str)
+    def configureHotspot(self, ssid, password, band):
+        self._hotspot_job(lambda: self.system.hotspot.configure(ssid, password, band))
+
+    @Slot(str)
+    def setHotspotSource(self, uuid):
+        self._update("_hotspot", self.hotspotChanged, {"source": uuid})
+        self._hotspot_job(lambda: self.system.hotspot.set_source(uuid))
 
     # --- Bluetooth & devices > Bluetooth ---------------------------------------------
 
@@ -814,6 +853,18 @@ class Backend(QObject):
         self._update("_prefs", self.prefsChanged, {name: value})
         self.jobs.submit(lambda: self.system.prefs.set(name, value))
 
+    @Slot(str)
+    def setPowerMode(self, name):
+        if name not in prefs.POWER_MODES:
+            return
+        self._update("_prefs", self.prefsChanged, {"powerMode": name, "powerModeError": False})
+
+        def done(ok):
+            self._update("_prefs", self.prefsChanged, {"powerModeError": not bool(ok)})
+            self.refreshPrefs()
+
+        self.jobs.submit(lambda: self.system.prefs.set_power_mode(name), done)
+
     # --- Personalization > Taskbar (taskbar.py) ------------------------------------------------
 
     @Property("QVariantMap", notify=taskbarChanged)
@@ -902,7 +953,7 @@ class Backend(QObject):
 
     @Property("QVariantList", constant=True)
     def languageOptions(self):
-        return [{"value": "en", "label": "English (United States)"}, {"value": "tr", "label": "Türkçe"}]
+        return [{"value": code, "label": label} for code, label in prefs.DISPLAY_LANGUAGES]
 
     # --- Mouse and touchpad (inputs.py) ------------------------------------------------------
 

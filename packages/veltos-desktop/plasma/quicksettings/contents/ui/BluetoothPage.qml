@@ -97,7 +97,8 @@ SubPage {
 
                     required property var model
                     width: list.width
-                    iconName: model.Icon
+                    iconName: "bluetooth-symbolic"
+                    monochromeIcon: true
                     title: model.DeviceFullName
                     busy: model.Connecting
                     expanded: bluetooth.openUbi === model.Ubi
@@ -160,7 +161,8 @@ SubPage {
                     width: list.width
                     visible: !modelData.paired && !modelData.connected && !modelData.blocked && modelData.name !== ""
                     height: visible ? implicitHeight : 0
-                    iconName: modelData.icon
+                    iconName: "bluetooth-symbolic"
+                    monochromeIcon: true
                     title: modelData.name
                     busy: pairState === "pairing"
                     expanded: bluetooth.openUbi === modelData.ubi

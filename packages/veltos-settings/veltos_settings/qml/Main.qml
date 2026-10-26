@@ -75,7 +75,8 @@ ApplicationWindow {
         "startup": startupComponent, "yourinfo": yourInfoComponent, "signin": signInComponent,
         "otherusers": otherUsersComponent, "region": regionComponent,
         "accessibility": accessibilityComponent, "searching": searchingComponent,
-        "themes": themesComponent, "taskbar": taskbarComponent
+        "themes": themesComponent, "taskbar": taskbarComponent, "location": locationComponent,
+        "hotspot": hotspotComponent
     })
 
     // `veltos-settings PAGE`: a navigation page or a built-in page.
@@ -286,6 +287,10 @@ ApplicationWindow {
         }
     }
     Component {
+        id: hotspotComponent
+        HotspotPage {}
+    }
+    Component {
         id: bluetoothComponent
         BluetoothPage {
             onItemActivated: item => window.activate(item)
@@ -430,5 +435,9 @@ ApplicationWindow {
         SearchingPage {
             onItemActivated: item => window.activate(item)
         }
+    }
+    Component {
+        id: locationComponent
+        LocationPage {}
     }
 }

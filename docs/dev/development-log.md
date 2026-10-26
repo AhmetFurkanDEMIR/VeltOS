@@ -3,6 +3,190 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-26 — Mobile hotspot; ISO 20261026-063914
+
+Item 45 of the product owner's list. Settings > Network & internet >
+Mobile hotspot and a Quick Settings tile share the PC's internet connection
+over Wi-Fi through NetworkManager's shared mode (architecture 2.32): the
+switch, "Share my internet connection from", "Share over: Wi-Fi",
+Properties with Edit (name, password, band), "Devices connected" with name,
+IP and MAC. One module (`veltos_settings/hotspot.py`) serves Settings and,
+as `/usr/libexec/veltos/hotspot`, Quick Settings. During the work the
+product owner asked for Windows 11's hotspot glyph (a dot with waves to
+both sides); `veltos-fluent-icons` now replaces Fluent's
+`network-wireless-hotspot-symbolic`, which looked like the Wi-Fi icon.
+
+- Checked against the real system first (dev VM, two mac80211_hwsim
+  radios, the second in a network namespace "phone"): a user-owned
+  profile is created and started without an administrator prompt; the
+  phone got 10.42.0.126 and fetched deb.debian.org through the hotspot
+  (NAT and DNS); `iw station dump` works for users, the dnsmasq lease file
+  does not (root-only directory), so names come from a PTR query to the
+  hotspot's dnsmasq ("veltos-phone").
+- Found on the way: dhcpcd in the namespace rewrote the VM's own
+  resolv.conf (test aid fixed); 5 GHz with the world regulatory domain
+  fails after 25 s (`supplicant-timeout`), so 5 GHz is offered only where
+  `iw phy` shows a channel without "no IR", and a saved 5 GHz choice starts
+  on any band; an error shown in Settings vanished at the next 5-second
+  refresh (kept now until the next action); item 44's evidence README had
+  CRLF endings and stopped the package build (normalised); the verify
+  hook's location check was inverted (`=false` failed; now `=true`).
+- Verified: 18 hotspot tests, 140 Settings tests (UI EN/TR offscreen), 142
+  desktop tests, 2 icon tests; in the dev VM with the installed packages:
+  the tile, its page on/off, the Settings page with the phone listed, Edit
+  (name, password, band) and the phone joining with the new values
+  (`tests/results/2026-10-26-mobile-hotspot/`). Not tested: real Wi-Fi
+  cards and phones, two upstream connections, Turkish on screen.
+- ISO `veltos-0.1.0-dev-20261026-063914` (2,368,847,872 bytes, sha256
+  `ef58a6b5…dcd2c`) with items 38-45: verify hook passed; boot tests UEFI
+  19/19, BIOS 18/18, Secure Boot 20/20; a BIOS installation (about two
+  minutes, `boot-check` passed) started from disk in 4.25 s to the lock
+  screen with no failed units or core dumps
+  (`tests/results/2026-10-26-iso-063914/`). The Mail tests print a
+  sqlite "closed database" traceback from a late background thread but
+  pass (unchanged since 2026-10-24).
+
+## 2026-10-26 — Power modes in Settings and Quick Settings
+
+Item 44 of the product owner's list. VeltOS Settings now lists the power
+profiles exposed by Debian's `power-profiles-daemon` and allows the user to
+select one. Quick Settings adds a Power mode tile and selection page. The
+existing battery model triggers the desktop helper on session start and AC /
+battery changes: it chooses performance on AC when available, otherwise
+balanced; on battery it chooses power-saver, otherwise balanced, then the
+first available profile. Unsupported and unavailable modes are reported
+instead of being offered as choices.
+
+- Verified: 120 Settings tests, 140 desktop tests (one skipped), 8
+  repository checks, and successful Settings/Desktop package builds.
+- In the QEMU dev VM, selected power-saver from both Quick Settings and
+  Settings and confirmed it with `powerprofilesctl get`. Directly exercised
+  the helper's AC policy (balanced because the VM has no performance
+  profile) and battery policy (power-saver).
+- The VM exposed balanced and power-saver only and had no battery. The
+  helper policy paths were tested directly, but physical hardware and real
+  AC/battery signal transitions were not tested. No ISO was rebuilt.
+- Screenshots and test details: `tests/results/2026-10-26-power-modes/`.
+
+## 2026-10-26 — Shortcuts from Explorer, Start and Search
+
+Item 43 of the product owner's list. File Explorer now creates desktop
+shortcuts for files, folders and launchers. Start's recent-file menu and
+taskbar Search's local-file result menu call the same Explorer helper;
+application results retain Plasma's native **Add to Desktop** action.
+Shortcut names are unique and existing desktop items are not overwritten.
+
+- Verified: 8 repository checks, 87 Explorer tests and 135 desktop tests
+  passed (one desktop test skipped); both packages built successfully.
+  Explorer's picker tests printed non-failing Qt `libpng error: Read Error`
+  messages.
+- Installed both packages into the QEMU dev VM, cleared Plasma's QML cache
+  and restarted the shell. Explorer, Start and Search each created a
+  shortcut to the same local test document. Repeated requests produced
+  distinct `(2)`, `(3)` and `(4)` names, all symlinks to the original file.
+  Start and Search still showed their app actions, including **Add to
+  Desktop**.
+- Evidence screenshots: `tests/results/2026-10-26-explorer-shortcuts/`.
+
+## 2026-10-26 — File Explorer drive formatting and icons
+
+Item 42 of the product owner's list. File Explorer now offers **Format...**
+for eligible non-system drives and launches VeltOS Disk Management with the
+selected volume. The existing Format form and separate data-loss confirmation
+remain the only path to UDisks2 formatting. Explorer protects every partition
+on the physical disk containing a running system mount. USB flash drives,
+other removable drives and fixed NTFS Windows drives have distinct icons.
+
+- The first package build found a missing localized `format_unavailable`
+  message key; the key was added and the build was rerun successfully.
+- Verified: 8 repository checks; 80 File Explorer tests, 21 Disk Management
+  tests and 2 icon-package tests passed. All three Debian packages built.
+  File-picker tests printed non-failing Qt `libpng error: Read Error`
+  messages; the tests still passed.
+- Installed the rebuilt packages into the live QEMU dev VM. A synthetic
+  1 GiB `scsi_debug` removable disk appeared with the removable-drive icon;
+  the VM's NTFS volumes showed the Windows-drive icon. The Format menu
+  opened Disk Management's Format form, then its data-loss warning. Chose
+  **No** and confirmed the synthetic volume's ext4 UUID was unchanged. The
+  live system volume's context menu showed no Format action. No physical
+  or system disk was formatted.
+- Screenshots: `tests/results/2026-10-26-explorer-format/`.
+
+## 2026-10-26 — Monochrome Bluetooth device icons
+
+Item 41 of the product owner's list. Quick Settings' paired and nearby
+device rows now use the existing `bluetooth-symbolic` glyph in the theme's
+text colour instead of BlueZ's blue device artwork. Wi-Fi rows are
+unchanged, and the active Bluetooth tile still uses its accent state.
+Device-specific artwork is replaced with the shared Bluetooth glyph.
+
+- The first attempt to mask BlueZ's supplied full-colour icon rendered a
+  solid disk; the symbolic glyph is the correct monochrome source.
+- Verified: `veltos-desktop` package built; 8 repository checks and 132
+  package tests passed. Installed the package in the QEMU dev VM, cleared
+  Plasma's QML cache, and restarted the shell so the new QML was loaded.
+- A nearby-device row was rendered with the repository's `btvirt` test aid
+  and Debian's `bluez-test-tools` 5.82-1.1 (installed in the VM only). The
+  Bluetooth glyph is monochrome; physical hardware was not used.
+- Screenshot: `tests/results/2026-10-26-bluetooth-icon/`.
+
+## 2026-10-26 — Maps and shared location settings
+
+Item 40 of the product owner's list. Added VeltOS Maps with Google Maps in
+Qt WebEngine and the Location page in Settings. The new **My location**
+action requests one GeoClue fix only after the shared, default-off
+`kdeglobals` preference is enabled; a successful fix opens its coordinates
+in Google Maps. Disabling access cancels an in-flight request.
+
+- Added `python3-gi` and Debian trixie's `gir1.2-geoclue-2.0` (2.7.2-2) for
+  GeoClue's GObject API. Both GeoClue packages installed successfully in the
+  QEMU guest.
+- Verified: package build; 8 repository checks, 10 Maps tests and 116
+  Settings tests passed. The offscreen Maps test uses a deterministic
+  provider and verifies the opt-in action updates the map URL.
+- Verified in the QEMU dev VM: Google Maps rendered; Maps' location toggle
+  enabled/disabled **My location**; the Settings Location page showed the
+  shared state and privacy disclosure. GeoClue activated on a real app
+  request, but returned no fix within 25 seconds. The VM has no physical GPS
+  or nearby Wi-Fi scan source, so no real-device fix or accuracy is claimed.
+- Lintian reported no Maps warnings. Existing `veltos-settings`
+  no-manual-page warnings remain for its redirected KDE commands.
+- Screenshots and the exact VM limitation: `tests/results/2026-10-26-maps-location/`.
+
+## 2026-10-26 — No speaker badge on taskbar app icons
+
+Item 39 of the product owner's list. Replaced the taskbar's audio-stream
+badge with an invisible item; audio playback and taskbar app tracking are
+unchanged.
+
+- The first package build stopped at the repository line-ending check
+  because the item 38 evidence README had CRLF endings. Normalized it to LF;
+  the repository consistency checks then passed.
+- Verified: veltos-desktop built successfully and its 131 tests passed
+  (one skipped). Installed the same-version package with `dpkg -i` in the
+  QEMU dev VM and restarted Plasma. With a 12-second test tone playing in
+  VeltOS Media Player, the old taskbar showed the speaker badge before the
+  update and no badge after it; the player showed active playback in both
+  screenshots. Evidence: `tests/results/2026-10-26-taskbar-audio-badge/`.
+
+## 2026-10-26 — Language choice lists
+
+Item 38 of the product owner's list. The live image compiles only
+`en_US.UTF-8` and `tr_TR.UTF-8` for display-language use; both have complete
+VeltOS translations. Regional formats are separate from display languages
+and may include other installed UTF-8 locales.
+
+- `veltos-settings`: the translated display-language choices now list
+  Türkçe, then English (United States). The regional-format list puts
+  `tr_TR` and `en_US` first, with any other installed formats sorted after
+  them. Added tests for the order, including additional locale formats.
+- Verified: veltos-settings 113 tests; veltos-desktop 131 tests (one
+  skipped). In the QEMU dev VM, chose Turkish in Settings, signed out and
+  back in, and confirmed Settings was Turkish and the session had
+  `LANGUAGE=tr@veltos:tr`; then switched back to English and confirmed the
+  English Settings UI. The regional format followed each language choice.
+  Screenshots: `tests/results/2026-10-26-language-choice/`.
+
 ## 2026-10-25 — Light-mode Start and search, popups without a frame
 
 Items 35-37 of the product owner's list.

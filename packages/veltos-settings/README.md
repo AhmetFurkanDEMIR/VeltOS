@@ -85,10 +85,19 @@ open VeltOS Settings.
     takes the largest resolution all screens share within each one's
     preferred size; leaving it restores the preferred ones;
   - **System**: Display, Sound, Notifications (do not disturb, sounds,
-    banners per app: plasmanotifyrc), Power & battery (screen off, sleep,
-    power button, lid: powerdevilrc + PowerDevil reload; Display's "Graphics
-    cards" opens VeltOS Graphics Cards), Night light
+    banners per app: plasmanotifyrc), Power & battery (supported power
+    profiles through power-profiles-daemon, screen off, sleep, power button,
+    lid: powerdevilrc + PowerDevil reload; Display's "Graphics cards" opens
+    VeltOS Graphics Cards), Night light
     (KWin night colour), Multitasking (snap windows);
+  - **Network & internet > Mobile hotspot** (`hotspot.py`, 2026-10-26):
+    shares the internet connection over Wi-Fi through NetworkManager's
+    shared mode with a user-owned profile (no administrator password):
+    the switch, the shared connection, Edit (name, password, band; 5 GHz
+    only where the card may start a network there), devices connected
+    (`iw`, `ip neigh`, names from the hotspot's dnsmasq). Also
+    `/usr/libexec/veltos/hotspot status|start|stop|configure|source` with
+    JSON output for Quick Settings (key on standard input);
   - **Bluetooth & devices**: Bluetooth, Mouse and Touchpad (KWin's input
     devices over D-Bus, saved in kcminputrc), Typing (keyboard layouts,
     kxkbrc);
@@ -125,9 +134,14 @@ open VeltOS Settings.
     region (plasma-localerc; applies after signing in again; the regional
     format follows the display language while it is the old language's,
     like Windows' "Recommended" format, and a format choice writes `LANG`
-    and every `LC_*` key Plasma exports so the taskbar's date follows it);
+    and every `LC_*` key Plasma exports so the taskbar's date follows it).
+    The currently translated display languages are Turkish and English, in
+    that order; regional formats put Turkish and English first, followed by
+    any other UTF-8 locales installed on the system. VeltOS apps use the
+    selected display language after signing in again;
   - **Accessibility**: Text size (KDE fonts), Animation effects;
-  - **Privacy & security**: Screen lock, Searching files (balooctl6).
+  - **Privacy & security**: Location (VeltOS Maps access, off by default),
+    Screen lock, Searching files (balooctl6).
 - "Check for updates" and "Get apps" open VeltOS Store.
 - `bin/veltos-settings-redirect`, installed as `/usr/bin/systemsettings`,
   `/usr/bin/kcmshell6`, `/usr/bin/kinfocenter` and `/usr/bin/keditfiletype`

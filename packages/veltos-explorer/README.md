@@ -78,6 +78,12 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   before the listing was done, a slow folder found no row and the item
   kept "New folder", 2026-10-22). Refresh (F5) blinks the view like
   Windows 11's File Explorer (`Tab.refreshed`).
+- Right-click one file or folder and choose **Create shortcut on desktop**.
+  Files and folders become symbolic links; `.desktop` launchers are copied
+  and made executable so Plasma can launch them. Existing desktop items are
+  never overwritten, and VeltOS' protected desktop icons cannot be copied.
+  Start and taskbar Search use `veltos-explorer --create-shortcut
+  FILE_OR_FOLDER` for the same action on local recent files.
 
 ## What it shows
 
@@ -111,15 +117,20 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
 - **Home**: Quick access tiles and Recent files (freedesktop.org
   `recently-used.xbel` and KDE's RecentDocuments). **This PC**: drives with
   capacity bars; unmounted partitions mount on double-click (udisks).
-  Windows (NTFS) drives have their own icon (the disk with a blue framed
-  window on its front, not Microsoft's logo), USB sticks the USB drive
-  whatever their file system (as in Windows), and open without a password
-  for administrators
+  USB flash drives, other removable disks and fixed Windows (NTFS) drives
+  use distinct Windows 11-style icons. Windows drives open without a
+  password for administrators
   (`/usr/share/polkit-1/rules.d/50-veltos-drives.rules`); they are mounted
   through ntfs-3g with Windows file names (`/etc/udisks2/mount_options.conf`)
   and read only, with an explanation, when Windows did not shut down
   completely. Windows' recovery partitions are hidden; the address bar
   starts at the drive ("This PC > Windows").
+- A drive's right-click menu offers **Format...** only when it is not on
+  the physical disk containing the running system's root, boot, EFI, `/usr`
+  or `/var` volumes, and is not read-only. The command opens VeltOS Disk
+  Management at that volume (`veltos-disks --format DEVICE`), re-reads its
+  UDisks2 state and uses the existing Format form and separate data-loss
+  confirmation; no format command runs until the user confirms.
 - **Views**: Details (Name, Date modified, Type, Size; click a header to
   sort), Tiles, small / medium / large / extra large icons with picture
   thumbnails (shared freedesktop.org cache). Folders first, natural order.

@@ -280,17 +280,20 @@ class Properties(QObject):
         trash = trash_info(path)
         if is_dir and path.rstrip("/") in mounted or path == "/":
             device, fs = mounted.get(path.rstrip("/") or "/", ("", ""))
+            drive = next((entry for entry in places.drives() if entry["device"] == device), None) if device else None
             try:
                 vfs = os.statvfs(path)
                 capacity = vfs.f_blocks * vfs.f_frsize
                 free = vfs.f_bavail * vfs.f_frsize
             except OSError:
                 capacity = free = 0
-            info.update(kind="drive", icon="drive-harddisk", typeName=self.text("local_disk"),
+            info.update(kind="drive", icon=drive["icon"] if drive else "drive-harddisk",
+                        typeName=self.text("removable_disk") if drive and drive["removable"]
+                        else self.text("local_disk"),
                         fileSystem=fs.upper() if fs in ("ntfs", "ntfs3", "vfat", "exfat") else fs,
                         capacity=capacity, free=free, used=max(0, capacity - free), canRename=False,
                         name=name if path != "/" else self.text("local_disk"))
-            if fs in ("vfat", "exfat", "ntfs", "ntfs3") or "/media/" in path or "/run/media/" in path:
+            if not drive and ("/media/" in path or "/run/media/" in path):
                 info["typeName"] = self.text("removable_disk")
                 info["icon"] = "drive-removable-media"
         elif trash is not None:

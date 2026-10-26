@@ -127,6 +127,29 @@ class WindowTests(unittest.TestCase):
         self.assertEqual(self.window.property("selectedKey"), "disk:" + BLOCKS + "vda")
         self.assertEqual(self.problems(), [])
 
+    def test_format_command_selects_only_a_formatable_volume(self):
+        from veltos_disks import app
+        from PySide6.QtCore import Q_RETURN_ARG
+        args = app.parse_args(["veltos-disks", "--format", "/dev/sdb1"])
+        self.assertEqual(args.format_device, "/dev/sdb1")
+
+        dialog = self.window.findChild(QObject, "formDialog")
+        opened = QMetaObject.invokeMethod(self.window, "openFormatForDevice", Q_RETURN_ARG("QVariant"),
+                                          Q_ARG("QVariant", "/dev/sdb1"))
+        self.assertTrue(opened)
+        self.assertTrue(dialog.property("visible"))
+        self.assertEqual(dialog.property("title"), self.backend.texts["format_title"].replace("{name}", "USB"))
+        QMetaObject.invokeMethod(dialog, "close")
+        self.app.processEvents()
+
+        blocked = QMetaObject.invokeMethod(self.window, "openFormatForDevice", Q_RETURN_ARG("QVariant"),
+                                           Q_ARG("QVariant", "/dev/sda2"))
+        self.assertFalse(blocked)
+        self.assertTrue(dialog.property("visible"))
+        self.assertEqual(dialog.property("message"), self.backend.texts["format_unavailable"])
+        self.assertEqual(self.calls, [])
+        self.assertEqual(self.problems(), [])
+
 
 class TurkishWindowTests(WindowTests):
     lang = "tr"

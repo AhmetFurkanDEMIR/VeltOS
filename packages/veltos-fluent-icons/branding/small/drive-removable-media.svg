@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-  <!-- USB drive, small sizes: VeltOS artwork in the look of Windows 11
+  <!-- Removable disk, small sizes: VeltOS artwork in the look of Windows 11
        (tools/draw-icons.py). SPDX-License-Identifier: CC-BY-SA-4.0 -->
   <defs>
-    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#C3CAD3"/>
-      <stop offset="1" stop-color="#97A1AD"/>
+    <linearGradient id="case" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset="1" stop-color="#C8D0D9"/>
     </linearGradient>
   </defs>
-  <rect x="0.5" y="6.5" width="5" height="4" rx="0.6" fill="#DDE1E6" stroke="#8F99A6"/>
-  <rect x="1.5" y="7.5" width="1" height="1" fill="#5E6873"/>
-  <rect x="3.5" y="7.5" width="1" height="1" fill="#5E6873"/>
-  <rect x="4.5" y="4.5" width="11" height="8" rx="1.5" fill="url(#side)" stroke="#7E8894"/>
-  <rect x="4.5" y="4.5" width="11" height="2.5" rx="1.2" fill="#EEF1F4"/>
-  <circle cx="12.5" cy="9.5" r="1.2" fill="#2FA8F0"/>
+  <rect x="3" y="1.5" width="10" height="13" rx="2" fill="url(#case)" stroke="#7E8894"/>
+  <rect x="4.5" y="3" width="7" height="7.5" rx="1" fill="#EEF1F4" stroke="#A3ADB8" stroke-width="0.7"/>
+  <circle cx="8" cy="6.8" r="2.1" fill="#D6DDE4" stroke="#8994A0" stroke-width="0.7"/>
+  <circle cx="8" cy="6.8" r="0.7" fill="#68727E"/>
+  <rect x="6.2" y="11.5" width="3.6" height="0.8" rx="0.4" fill="#68727E"/>
+  <circle cx="11.2" cy="12.3" r="0.8" fill="#2FA8F0"/>
 </svg>

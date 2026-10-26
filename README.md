@@ -36,8 +36,9 @@ Windows program support through Wine.
 
 - **Windows 11's desktop, on Linux.** A centred taskbar, Start with pinned
   apps and recommendations, search as you type, Task View with virtual
-  desktops, Quick Settings, the notification centre and the right-click menus
-  you know, on KDE Plasma 6.3 (Wayland).
+  desktops, Quick Settings with power modes, battery-aware profile
+  selection and a mobile hotspot, the notification centre and the right-click menus you know, on
+  KDE Plasma 6.3 (Wayland).
 - **Apps written for VeltOS.** File Explorer, Settings, Store, Notepad,
   Calculator, Photos, Media Player and more, each in the layout of its
   Windows 11 counterpart, in English and Turkish, light and dark.
@@ -78,12 +79,13 @@ More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#galle
 
 | VeltOS | Like Windows 11's | Built on |
 |---|---|---|
-| File Explorer | File Explorer, the file dialogs, "Open with" | KIO |
-| Settings | Settings | NetworkManager, BlueZ, PipeWire, KScreen |
+| File Explorer | File Explorer, file dialogs, "Open with", drive formatting and desktop shortcuts from Explorer, Start and Search | KIO, UDisks2 |
+| Settings | Settings, including Mobile hotspot (share the internet connection over Wi-Fi) | NetworkManager, BlueZ, PipeWire, KScreen, power-profiles-daemon |
 | Store | Microsoft Store | AppStream, PackageKit |
 | Word, Excel, PowerPoint | Microsoft 365's start screen | LibreOffice 25.2 |
 | Mail | Outlook (the new Outlook's layout) | Python's imaplib/smtplib, Qt WebEngine |
 | Calendar, Clock, Calculator, Notepad | The apps of the same name | Qt Quick |
+| Maps | Google Maps in a VeltOS window, with optional location access | Qt WebEngine, GeoClue |
 | Weather | Weather (current weather, 10-day and hourly forecast, details, history, favorites) | Open-Meteo's open data, no key |
 | VeltOS AI | Copilot's pane (Windows + C), acting on the PC after "Allow" | ChatGPT, Claude, Gemini or Azure OpenAI with your own API key |
 | Photos, Media Player, Camera | The apps of the same name | Pillow, Qt Multimedia |

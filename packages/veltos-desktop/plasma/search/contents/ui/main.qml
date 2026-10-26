@@ -16,6 +16,7 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PC3
 import org.kde.plasma.extras as PlasmaExtras
+import org.kde.plasma.plasma5support as P5Support
 import org.kde.plasma.private.kicker as Kicker
 import org.kde.kirigami as Kirigami
 
@@ -65,6 +66,34 @@ PlasmoidItem {
         // offered "Search DuckDuckGo for ..." as an app).
         runners: ["krunner_services", "krunner_recentdocuments", "krunner_placesrunner", "baloosearch",
                   "locations", "calculator", "windows", "krunner_sessions", "krunner_powerdevil"]
+    }
+
+    function localDocumentPath(itemModel) {
+        const url = itemModel ? itemModel.url : null;
+        if (!url)
+            return "";
+        if (typeof url.isLocalFile === "function" && !url.isLocalFile())
+            return "";
+        const path = typeof url.toLocalFile === "function" ? url.toLocalFile() : String(url);
+        if (path.toLowerCase().endsWith(".desktop"))
+            return "";
+        return path.startsWith("/") || path.startsWith("file://") ? path : "";
+    }
+
+    function quoteShellArgument(value) {
+        return "'" + String(value).replace(/'/g, "'\\''") + "'";
+    }
+
+    function createDesktopShortcut(source) {
+        if (source)
+            shortcutSource.connectSource("veltos-explorer --create-shortcut " + quoteShellArgument(source));
+    }
+
+    P5Support.DataSource {
+        id: shortcutSource
+        engine: "executable"
+        connectedSources: []
+        onNewData: source => disconnectSource(source)
     }
 
     // --- The taskbar box ---------------------------------------------------
@@ -195,9 +224,28 @@ PlasmoidItem {
             else
                 launch(panel.results, panel.current);
         }
+        function openActions(anchor, model, index, actions, shortcutPath) {
+            const menuActions = actions ? Array.from(actions) : [];
+            if (shortcutPath) {
+                if (menuActions.length > 0)
+                    menuActions.push({ type: "separator" });
+                menuActions.push({
+                    text: i18n("Create shortcut on desktop"),
+                    actionId: "_veltos_create_shortcut",
+                    actionArgument: shortcutPath,
+                });
+            }
+            resultMenu.openFor(anchor, model, index, menuActions);
+        }
 
         onResultsChanged: current = 0
         onResultCountChanged: current = Math.min(current, Math.max(0, rowCount - 1))
+
+        SearchContextMenu {
+            id: resultMenu
+            onActionTriggered: root.expanded = false
+            onShortcutRequested: source => root.createDesktopShortcut(source)
+        }
 
         Connections {
             target: root
@@ -295,9 +343,15 @@ PlasmoidItem {
                         width: topApps.cellWidth
                         height: topApps.cellHeight
                         hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         Accessible.role: Accessible.Button
                         Accessible.name: model.display
-                        onClicked: panel.launch(topApps.model, index)
+                        onClicked: mouse => {
+                            if (mouse.button === Qt.RightButton)
+                                panel.openActions(topApp, topApps.model, index, topApp.model.actionList);
+                            else
+                                panel.launch(topApps.model, index);
+                        }
                         Rectangle {
                             anchors.fill: parent
                             anchors.margins: Kirigami.Units.smallSpacing
@@ -374,9 +428,16 @@ PlasmoidItem {
                                 width: parent.width
                                 height: shown ? Kirigami.Units.gridUnit * (first ? 3.2 : 2.3) : 0
                                 hoverEnabled: true
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
                                 Accessible.role: Accessible.Button
                                 Accessible.name: title
-                                onClicked: panel.launch(panel.results, index)
+                                onClicked: mouse => {
+                                    if (mouse.button === Qt.RightButton)
+                                        panel.openActions(row, panel.results, index, row.model.actionList,
+                                                          root.localDocumentPath(row.model));
+                                    else
+                                        panel.launch(panel.results, index);
+                                }
                                 onContainsMouseChanged: if (containsMouse) panel.current = index
                                 Rectangle {
                                     anchors.fill: parent

@@ -236,6 +236,15 @@ class StartMenuTests(unittest.TestCase):
             self.assertEqual(sorted(strings - msgids), [], f"untranslated in {po.name}")
             self.assertEqual(sorted(msgids - strings), [], f"stale strings in {po.name}")
 
+class StartMenuActionTests(unittest.TestCase):
+    def test_start_context_menus_keep_app_and_document_actions(self):
+        source = PKG / "plasma/startmenu/contents/ui"
+        qml = (source / "StartMenu.qml").read_text(encoding="utf-8")
+        menu = (source / "ActionMenu.qml").read_text(encoding="utf-8")
+        self.assertIn("model.actionList", qml)
+        self.assertIn("onContextMenuRequested", qml)
+        self.assertIn("root.model.trigger(root.index, actionId, modelData.actionArgument)", menu)
+
 
 class QuickSettingsTests(StartMenuTests):
     STARTMENU = PKG / "plasma/quicksettings"
@@ -264,8 +273,43 @@ class QuickSettingsTests(StartMenuTests):
         self.assertNotIn("onExpandedChanged", wifi)
         # The profile's auto-connect is changed only with a checked UUID.
         self.assertIn("/^[0-9a-fA-F-]{36}$/.test(model.Uuid)", wifi)
-        for page in ("SubPage", "ListRow", "AccentButton", "BluetoothPage"):
+        for page in ("SubPage", "ListRow", "AccentButton", "BluetoothPage", "PowerPage"):
             self.assertTrue((ui / f"{page}.qml").is_file(), page)
+
+    def test_power_modes_follow_battery_state_and_use_the_shared_subpage(self):
+        ui = self.STARTMENU / "contents/ui"
+        main = (ui / "main.qml").read_text(encoding="utf-8")
+        page = (ui / "PowerPage.qml").read_text(encoding="utf-8")
+        self.assertIn("battery.hasInternalBatteries && !battery.pluggedIn", main)
+        self.assertIn("/usr/libexec/veltos/power-mode auto ", main)
+        self.assertIn("onPluggedInChanged", main)
+        self.assertIn("onHasInternalBatteriesChanged", main)
+        self.assertIn("onMore: stack.push(powerModePage)", main)
+        self.assertIn("power.profileSelected(modelData)", page)
+        self.assertIn("power.errorMessage", page)
+        self.assertIn("showSwitch: false", page)
+        self.assertIn("visible: page.showSwitch", (ui / "SubPage.qml").read_text(encoding="utf-8"))
+
+    def test_mobile_hotspot_tile_uses_the_settings_helper(self):
+        ui = self.STARTMENU / "contents/ui"
+        main = (ui / "main.qml").read_text(encoding="utf-8")
+        page = (ui / "HotspotPage.qml").read_text(encoding="utf-8")
+        self.assertIn('"/usr/libexec/veltos/hotspot " + command', main)
+        self.assertIn("onMore: stack.push(hotspotPage)", main)
+        self.assertIn('onOpenSettings: root.run("veltos-settings hotspot")', main)
+        # A property named "state" clashes with Item's (AGENTS.md).
+        self.assertNotIn("property var state", page)
+        self.assertIn("SubPage {", page)
+
+    def test_bluetooth_device_icons_are_monochrome(self):
+        ui = self.STARTMENU / "contents/ui"
+        row = (ui / "ListRow.qml").read_text(encoding="utf-8")
+        bluetooth = (ui / "BluetoothPage.qml").read_text(encoding="utf-8")
+        self.assertIn("property bool monochromeIcon: false", row)
+        self.assertIn('color: row.monochromeIcon ? Kirigami.Theme.textColor : "transparent"', row)
+        self.assertIn("isMask: row.monochromeIcon", row)
+        self.assertEqual(bluetooth.count('iconName: "bluetooth-symbolic"'), 2)
+        self.assertEqual(bluetooth.count("monochromeIcon: true"), 2)
 
     def test_layout_adds_it_and_drops_the_tray_icons_it_replaces(self):
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
@@ -318,6 +362,32 @@ class SearchTests(StartMenuTests):
         self.assertNotIn("visible: !hidden", box)
         for needed in ("clip: true", "opacity: hidden ? 0 : 1", "enabled: !hidden"):
             self.assertIn(needed, box)
+
+
+class SearchActionTests(unittest.TestCase):
+    def test_search_context_menus_expose_runner_actions(self):
+        ui = PKG / "plasma/search/contents/ui"
+        qml = (ui / "main.qml").read_text(encoding="utf-8")
+        menu = (ui / "SearchContextMenu.qml").read_text(encoding="utf-8")
+        self.assertIn("acceptedButtons: Qt.LeftButton | Qt.RightButton", qml)
+        self.assertIn("topApp.model.actionList", qml)
+        self.assertIn("row.model.actionList", qml)
+        self.assertIn("SearchContextMenu {", qml)
+        self.assertIn("targetModel.trigger(root.targetIndex", menu)
+        self.assertIn("root.localDocumentPath(row.model)", qml)
+        self.assertIn('actionId: "_veltos_create_shortcut"', qml)
+        self.assertIn('root.shortcutRequested(String(modelData.actionArgument ?? ""))', menu)
+
+    def test_start_and_search_add_recent_document_shortcuts(self):
+        start = (PKG / "plasma/startmenu/contents/ui/StartMenu.qml").read_text(encoding="utf-8")
+        action_menu = (PKG / "plasma/startmenu/contents/ui/ActionMenu.qml").read_text(encoding="utf-8")
+        search = (PKG / "plasma/search/contents/ui/main.qml").read_text(encoding="utf-8")
+        self.assertIn('i18n("Create shortcut on desktop")', start)
+        self.assertIn('i18n("Create shortcut on desktop")', search)
+        self.assertIn('"_veltos_create_shortcut"', action_menu)
+        self.assertIn("menu.localDocumentPath(recentRow.model)", start)
+        self.assertIn("menu.localDocumentPath(resultRow.model)", start)
+        self.assertIn("menu.createDesktopShortcut(source)", start)
 
 
 class TaskbarHighlightTests(unittest.TestCase):
@@ -617,7 +687,7 @@ class FullBuildTest(unittest.TestCase):
         self.assertEqual(kcminputrc["[Keyboard]"]["NumLock"], "0")
         for helper in ("session-defaults", "update-app-names", "start-categories", "greeter-compositor",
                        "sddm-virtualbox-env", "needs-software-rendering", "trash-icon", "desktop-new",
-                       "numlock-state"):
+                       "numlock-state", "power-mode"):
             path = root / "usr/libexec/veltos" / helper
             self.assertTrue(path.stat().st_mode & 0o111, f"{helper} is not executable")
         # The desktop's Windows 11 menus (plasma override) read their texts

@@ -8,6 +8,8 @@ creating new items are single local calls done here.
 """
 
 import os
+import shutil
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -117,6 +119,36 @@ class Operations:
             self.start(["kioclient", "exec", str(path)])
         else:
             self.open_document(str(path))
+
+    @staticmethod
+    def create_shortcut(path, desktop):
+        """Create a link on the user's desktop without replacing an item.
+
+        Regular files and folders are symbolic links. A desktop launcher is
+        copied and made executable, as Plasma expects for desktop entries.
+        """
+        source = Path(path).absolute()
+        if not source.is_file() and not source.is_dir():
+            raise FileNotFoundError(f"No file or folder at {source}")
+
+        desktop = Path(desktop)
+        desktop.mkdir(parents=True, exist_ok=True)
+        is_dir = source.is_dir()
+        stem, suffix = files.split_ext(source.name, is_dir)
+        target = desktop / files.unique_name(desktop, f"{stem} - Shortcut{suffix}", is_dir)
+
+        if source.is_file() and source.suffix.lower() == ".desktop" and files.desktop_entry(source):
+            try:
+                with source.open("rb") as original, target.open("xb") as shortcut:
+                    shutil.copyfileobj(original, shortcut)
+                mode = stat.S_IMODE(source.stat().st_mode) | stat.S_IXUSR
+                os.chmod(target, mode)
+            except OSError:
+                target.unlink(missing_ok=True)
+                raise
+        else:
+            os.symlink(source, target, target_is_directory=is_dir)
+        return str(target)
 
     def open_with(self, desktop_path, paths):
         command = places.exec_command(desktop_path, [str(p) for p in paths])

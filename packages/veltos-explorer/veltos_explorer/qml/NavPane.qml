@@ -192,7 +192,9 @@ Rectangle {
                 delegate: NavRow {
                     required property var modelData
                     indent: 18
-                    icon: modelData.icon || (modelData.removable ? "drive-removable-media-usb" : "drive-harddisk")
+                    icon: modelData.icon || (modelData.usb ? "drive-removable-media-usb"
+                           : modelData.removable ? "drive-removable-media"
+                           : modelData.windows ? "drive-harddisk-windows" : "drive-harddisk")
                     text: modelData.title
                     location: modelData.mount !== "" ? modelData.mount : modelData.device
                     device: modelData.device !== "" ? modelData.device : modelData.mount

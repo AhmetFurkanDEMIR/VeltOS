@@ -22,6 +22,7 @@ TEXTS = {
                           "veya hazırda bekletme) ve şimdi yazmak sürücüye zarar verebilir. Dosyaları "
                           "değiştirmek için Windows'u başlatıp Shift'e basılıyken Kapat'ı seçin."),
     "usb_drive": ("USB Drive", "USB Sürücü"),
+    "removable_disk": ("Removable Disk", "Çıkarılabilir Disk"),
     "free_of": ("{free} free of {total}", "{total} alanın {free} kadarı boş"),
     "not_mounted": ("Double-click to open", "Açmak için çift tıklayın"),
     "new_tab": ("New tab", "Yeni sekme"),
@@ -89,6 +90,7 @@ TEXTS = {
     "open": ("Open", "Aç"),
     "open_in_new_tab": ("Open in new tab", "Yeni sekmede aç"),
     "open_with": ("Open with", "Birlikte aç"),
+    "create_shortcut": ("Create shortcut on desktop", "Masaüstünde kısayol oluştur"),
     "choose_another_app": ("Choose another app", "Başka bir uygulama seç"),
     "pin_to_quick_access": ("Pin to Quick access", "Hızlı erişime sabitle"),
     "unpin_from_quick_access": ("Unpin from Quick access", "Hızlı erişimden kaldır"),
@@ -98,6 +100,8 @@ TEXTS = {
     "add_to_archive": ("Add to archive…", "Arşive ekle…"),
     "copy_as_path": ("Copy as path", "Yol olarak kopyala"),
     "eject": ("Eject", "Çıkar"),
+    "format_drive": ("Format...", "Biçimlendir..."),
+    "format_unavailable": ("This drive can't be formatted.", "Bu sürücü biçimlendirilemiyor."),
     # Status bar
     "items": ("{count} items", "{count} öğe"),
     "item": ("1 item", "1 öğe"),
@@ -127,6 +131,9 @@ TEXTS = {
     "rename_empty": ("You must type a file name.", "Bir dosya adı yazmanız gerekiyor."),
     "restore_exists": ("An item with this name is already in the original location.",
                        "Özgün konumda bu ada sahip bir öğe zaten var."),
+    "shortcut_created": ("Shortcut created on the desktop.", "Masaüstünde kısayol oluşturuldu."),
+    "shortcut_unavailable": ("This item can't be made into a desktop shortcut.",
+                             "Bu öğe için masaüstü kısayolu oluşturulamıyor."),
     # File dialog (picker.py), in the words of Windows 11's dialogs.
     "open_title": ("Open", "Aç"),
     "save_as_title": ("Save As", "Farklı Kaydet"),
@@ -206,7 +213,6 @@ TEXTS = {
     "all_in": ("All in {folder}", "Tümü: {folder}"),
     "files_count": ("{count} Files", "{count} Dosya"),
     "folders_count": ("{count} Folders", "{count} Klasör"),
-    "removable_disk": ("Removable Disk", "Çıkarılabilir Disk"),
     "bytes": ("bytes", "bayt"),
     "folder_path": ("Folder path", "Klasör yolu"),
     "dimensions": ("Dimensions", "Boyutlar"),

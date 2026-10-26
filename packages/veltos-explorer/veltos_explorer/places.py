@@ -150,21 +150,34 @@ def mount_options(mounts_text=None):
 
 
 def drive_icon(drive):
-    """A USB stick shows the USB drive whatever its file system, as in
-    Windows; a fixed NTFS (Windows) drive shows the disk with a window."""
-    if drive.get("removable"):
+    """Distinguish USB sticks, other removable drives and fixed NTFS drives."""
+    if drive.get("usb"):
         return "drive-removable-media-usb"
-    return "drive-harddisk-windows" if drive.get("windows") else "drive-harddisk"
+    if drive.get("removable"):
+        return "drive-removable-media"
+    if drive.get("windows"):
+        return "drive-harddisk-windows"
+    return "drive-harddisk"
+
+
+def _system_mount(point):
+    return (point in ("/", "/boot", "/boot/efi", "/efi", "/usr", "/var")
+            or point.startswith("/boot/") or point.startswith("/efi/")
+            or point.startswith("/usr/") or point.startswith("/var/")
+            or point.startswith("/run/live/"))
+
+
+def _tree_has_system_mount(device):
+    mounts = [point for point in (device.get("mountpoints") or []) if point]
+    return (any(_system_mount(point) for point in mounts)
+            or any(_tree_has_system_mount(child) for child in (device.get("children") or [])))
 
 
 def drives(runner=run, live=None, mounts_text=None):
-    """Drives for "This PC": mounted file systems of disks and USB sticks,
-    and partitions that can be mounted. Swap, the live medium's internals,
-    tiny system partitions (EFI, BIOS boot) and Windows' recovery and
-    reserved partitions are left out. Windows drives (NTFS) are marked;
-    a mounted one that holds Windows itself is "windowsSystem"."""
+    """Drives for This PC. Keep every volume on the running system's
+    physical disk out of the Format menu, even when it is not mounted."""
     code, out = runner(["lsblk", "--json", "--bytes", "-o",
-                        "NAME,PATH,LABEL,SIZE,FSTYPE,MOUNTPOINTS,RM,HOTPLUG,TYPE,FSSIZE,FSUSED,PARTTYPE"])
+                        "NAME,PATH,LABEL,SIZE,FSTYPE,MOUNTPOINTS,RM,HOTPLUG,RO,TRAN,TYPE,FSSIZE,FSUSED,PARTTYPE"])
     try:
         tree = json.loads(out)["blockdevices"] if code == 0 else []
     except (ValueError, KeyError, TypeError):
@@ -172,9 +185,12 @@ def drives(runner=run, live=None, mounts_text=None):
     result = []
     options = mount_options(mounts_text)
 
-    def walk(devices, removable):
+    def walk(devices, removable, transport, system_disk, read_only):
         for dev in devices or []:
-            removable_here = removable or bool(dev.get("rm")) or bool(dev.get("hotplug"))
+            transport_here = (dev.get("tran") or transport or "").lower()
+            removable_here = (removable or bool(dev.get("rm")) or bool(dev.get("hotplug"))
+                              or transport_here == "usb")
+            read_only_here = read_only or bool(dev.get("ro"))
             fstype = dev.get("fstype") or ""
             mounts = [m for m in (dev.get("mountpoints") or []) if m]
             if fstype and fstype not in ("swap", "squashfs", "iso9660", "LVM2_member",
@@ -187,6 +203,8 @@ def drives(runner=run, live=None, mounts_text=None):
                 if not (efi or hidden or windows_own or (small and not removable_here and not mounts)):
                     mount = "/" if "/" in mounts else (mounts[0] if mounts else "")
                     windows = fstype in NTFS
+                    system = any(_system_mount(point) for point in mounts)
+                    readonly = read_only_here or bool(mount and "ro" in options.get(mount, []))
                     drive = {
                         "device": dev.get("path", ""),
                         "label": dev.get("label") or "",
@@ -194,17 +212,21 @@ def drives(runner=run, live=None, mounts_text=None):
                         "size": int(dev.get("fssize") or dev.get("size") or 0),
                         "used": int(dev.get("fsused") or 0),
                         "removable": removable_here,
-                        "system": mount == "/",
+                        "usb": transport_here == "usb",
+                        "system": system,
+                        "systemDisk": system_disk,
+                        "canFormat": bool(dev.get("path") and not system and not system_disk and not readonly),
                         "fstype": fstype,
                         "windows": windows,
                         "windowsSystem": bool(windows and mount and os.path.isdir(os.path.join(mount, "Windows", "System32"))),
-                        "readonly": bool(mount and "ro" in options.get(mount, [])),
+                        "readonly": readonly,
                     }
                     drive["icon"] = drive_icon(drive)
                     result.append(drive)
-            walk(dev.get("children"), removable_here)
+            walk(dev.get("children"), removable_here, transport_here, system_disk, read_only_here)
 
-    walk(tree, False)
+    for device in tree:
+        walk([device], False, "", _tree_has_system_mount(device), False)
     # The live system's root is an overlay that lsblk does not show.
     live = Path("/run/live/medium").is_dir() if live is None else live
     if live and not any(d["system"] for d in result):
@@ -214,7 +236,8 @@ def drives(runner=run, live=None, mounts_text=None):
         except OSError:
             size = free = 0
         result.insert(0, {"device": "", "label": "", "mount": "/", "size": size, "used": size - free,
-                          "removable": False, "system": True, "fstype": "overlay", "windows": False,
+                          "removable": False, "usb": False, "system": True, "systemDisk": True,
+                          "canFormat": False, "fstype": "overlay", "windows": False,
                           "windowsSystem": False, "readonly": False, "icon": "drive-harddisk"})
     result.sort(key=lambda d: (not d["system"], d["removable"], d["label"].lower(), d["device"]))
     return result

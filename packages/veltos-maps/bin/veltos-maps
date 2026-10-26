@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+"""VeltOS Maps (Google Maps in a VeltOS window)."""
+import os
+import sys
+
+os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
+os.environ["QML_DISABLE_DISK_CACHE"] = "1"
+
+from veltos_maps.app import main
+
+sys.exit(main(sys.argv))

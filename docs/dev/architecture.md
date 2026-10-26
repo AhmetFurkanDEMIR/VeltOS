@@ -704,6 +704,13 @@ Snapshot-based rollback (e.g. Btrfs + snapper) is a candidate to evaluate.
   UDisks2 already is that helper).
 - No daemon: the window re-reads UDisks2 every 5 s only while it is
   open, and after each action.
+- File Explorer's **Format...** menu launches `veltos-disks --format
+  DEVICE` rather than implementing a second formatting path. Disk
+  Management resolves that device against a fresh UDisks2 read, applies
+  its existing format eligibility checks, and presents the same form and
+  second data-loss confirmation. Explorer also hides the action for every
+  partition on the physical disk holding the running system, including
+  its root, boot, EFI, `/usr` and `/var` volumes.
 
 ### 2.15 Installer pages: Calamares' QML modules with VeltOS QML (2026-10-22)
 
@@ -1101,6 +1108,115 @@ were measured (below).
 - Trade-offs: Breeze-internal lists (combo box pop-ups) keep Breeze's bar;
   an app that forgets the call keeps the line. The style is the place for
   further Windows 11 controls.
+
+### 2.29 VeltOS Maps: public Google Maps with opt-in location (2026-10-26)
+
+- Decision: `veltos-maps` embeds Google's public Maps website through Qt
+  WebEngine rather than building on the Maps Platform API. It uses key-free
+  Maps search URLs, an off-the-record profile, and a VeltOS toolbar. A single
+  `kdeglobals` preference controls location access from both Maps and
+  Settings > Privacy & security > Location. Geolocation is off by default.
+  The explicit "My location" action requests one fix from GeoClue and opens
+  the returned coordinates in Maps; the WebEngine permission handler also
+  grants requests only to HTTPS Google origins. Other site permissions are
+  denied and non-Google links open in the user's browser.
+- Privacy: Google receives searches and map requests. It receives location
+  coordinates only after the user enables access and chooses "My location".
+  GeoClue's default Wi-Fi provider may send nearby Wi-Fi information to
+  Mozilla Location Service to estimate a position; Settings discloses this
+  before enabling access. Turning access off cancels a pending fix request.
+- Alternatives: a Maps Platform API (requires a registered key and may
+  incur costs), third-party map tiles (terms/usage restrictions), or the
+  external browser (does not provide the requested integrated Windows-style
+  app). The public Google Maps website avoids a VeltOS API key and uses
+  Google's own map service.
+- Trade-offs: Maps requires an internet connection and follows Google's
+  terms and privacy policy; its content can change independently of VeltOS.
+  The QEMU VM has no physical GPS or nearby Wi-Fi scan source, so the real
+  GeoClue fix path and real-device accuracy must be tested on hardware.
+
+### 2.30 Desktop shortcuts from Explorer, Start and Search (2026-10-26)
+
+- Decision: File Explorer owns the single shortcut implementation:
+  files and folders become symbolic links, while `.desktop` launchers are
+  copied as executable desktop entries. The `--create-shortcut` command
+  exposes that operation to Start and taskbar Search, whose recent-file
+  menus offer it only for local files. Plasma's existing app actions stay
+  in place, including **Add to Desktop**. Desktop items are never
+  overwritten; the helper chooses a free name.
+- `veltos-desktop` depends on `veltos-explorer` so both Plasma surfaces
+  reuse the same implementation instead of duplicating filesystem and
+  collision-handling logic. Explorer depends on `xdg-user-dirs` to find
+  the user's configured Desktop folder rather than assuming `~/Desktop`.
+- Alternatives: using runner actions alone (they do not provide the
+  requested file action in both recent-file menus) or duplicating shortcut
+  creation in the Plasma applets (two implementations could diverge in
+  naming, safety checks and launcher handling).
+- Trade-off: the desktop package now requires File Explorer, which is
+  already the system's default file manager; local and remote document
+  results intentionally differ, with remote files excluded.
+
+### 2.31 Power modes through power-profiles-daemon (2026-10-26)
+
+- Decision: use Debian's `power-profiles-daemon` interface instead of
+  writing hardware-specific CPU or platform settings. Settings lists the
+  profiles the daemon reports and only permits selecting those profiles.
+  Quick Settings reuses its existing battery model and calls a small
+  desktop helper at session start and when the power source changes.
+- Automatic policy: select `performance` on AC and `power-saver` on battery
+  when those profiles are available; otherwise use `balanced`, then the
+  first available profile. This preserves operation on hardware whose
+  daemon does not expose every mode.
+- Alternatives: direct writes to platform-specific sysfs controls (not
+  portable and may conflict with firmware) or a new VeltOS background
+  service (duplicate battery monitoring and another resident process).
+- Trade-off: automatic switching depends on the Quick Settings applet
+  running in the Plasma session; it adds no separate VeltOS watcher. The
+  upstream daemon is an additional system service required for profile
+  discovery and changes. Availability and actual source-change events must
+  still be checked on physical hardware; the QEMU VM had no battery and
+  exposed no `performance` profile.
+
+### 2.32 Mobile hotspot through NetworkManager's shared mode (2026-10-26)
+
+- Decision: the hotspot is one NetworkManager Wi-Fi profile per user in
+  access-point mode with `ipv4.method shared` (NetworkManager runs dnsmasq
+  for DHCP/DNS and adds nftables masquerade rules). The profile is owned by
+  the user (`connection.permissions user:NAME`), so polkit's
+  `settings.modify.own` and `network-control` (both "yes" for an active
+  local session in Debian 13) let standard users turn it on without an
+  administrator password, as on Windows. Its UUID is uuid5 of the user name,
+  so it is found without a search. The logic is one module,
+  `veltos_settings/hotspot.py`, used directly by Settings and as
+  `/usr/libexec/veltos/hotspot` (JSON) by Quick Settings.
+- The network key is written through NetworkManager's D-Bus API
+  (AddConnection/Update) and handed to the helper on standard input; it
+  never appears on a command line. Until the first start, Windows-like
+  defaults ("<PC name> 1234", eight random characters) live in a mode-600
+  `~/.config/veltos/hotspot.json`.
+- "Share my internet connection from": NetworkManager masquerades towards
+  the default route. Choosing another connection lowers its route metric
+  while the hotspot runs (`nmcli device modify`, runtime only) and
+  `nmcli device reapply` restores it when the hotspot stops. Exact
+  per-source policy routing would need root and was left out.
+- Connected devices: `iw station dump` (readable by users) for the
+  associated stations, `ip neigh` for their addresses, and a reverse DNS
+  query to the hotspot's own dnsmasq for their names (its lease file is in
+  root-only `/var/lib/NetworkManager`). `iw` is a new Recommends.
+- 5 GHz is offered only when the card may start a network there (`iw phy
+  info` channels without "no IR"/"disabled"/"radar"); with the world
+  regulatory domain an access point on 5 GHz failed with
+  `supplicant-timeout` (dev VM), and a saved 5 GHz choice then starts on
+  any band.
+- Alternatives: hostapd + own dnsmasq + firewall rules (a root service of
+  our own, duplicating NetworkManager), plasma-nm's hotspot (system-owned
+  profile, KDE UI), Windows' same-adapter sharing through a second virtual
+  interface (NetworkManager cannot create one; needs root and driver
+  support for concurrent AP+STA).
+- Trade-offs: the card that hosts the hotspot leaves its own Wi-Fi network
+  (the pages say so); a PC whose only internet is its only Wi-Fi card
+  cannot share it ("same-adapter"). Sharing over Bluetooth and Windows'
+  power-saving switch are not implemented.
 
 ## 3. Licensing and redistribution
 

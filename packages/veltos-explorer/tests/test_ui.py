@@ -14,7 +14,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Basic"
 
 try:
-    from PySide6.QtCore import Q_ARG, QMetaObject, QUrl, qInstallMessageHandler
+    from PySide6.QtCore import Q_ARG, QMetaObject, Q_RETURN_ARG, QUrl, qInstallMessageHandler
     from PySide6.QtGui import QGuiApplication
     from PySide6.QtQml import QQmlApplicationEngine
     HAVE_QT = True
@@ -118,6 +118,28 @@ class ExplorerWindowTests(unittest.TestCase):
         self.app.processEvents()
         self.assertEqual(self.problems(), [])
 
+    def test_drive_format_menu_and_launcher_protect_the_system_disk(self):
+        data_drive = {"device": "/dev/sdb1", "mount": "", "removable": False,
+                      "canFormat": True}
+        system_drive = {"device": "/dev/nvme0n1p4", "mount": "", "removable": False,
+                        "canFormat": False}
+        texts = QMetaObject.invokeMethod(self.window, "driveMenuTexts", Q_RETURN_ARG("QVariant"),
+                                         Q_ARG("QVariant", data_drive))
+        self.assertIn(self.backend.text("format_drive"), texts)
+        self.backend._drives = [data_drive, system_drive]
+        self.call("runAction", "format-drive", data_drive)
+        self.assertEqual(self.started[-1], ["veltos-disks", "--format", "/dev/sdb1"])
+
+        errors = []
+        self.backend.message.connect(errors.append)
+        self.assertFalse(self.backend.formatDrive(system_drive["device"]))
+        self.assertEqual(self.started[-1], ["veltos-disks", "--format", "/dev/sdb1"])
+        self.assertEqual(errors, [self.backend.text("format_unavailable")])
+        blocked = QMetaObject.invokeMethod(self.window, "driveMenuTexts", Q_RETURN_ARG("QVariant"),
+                                           Q_ARG("QVariant", system_drive))
+        self.assertNotIn(self.backend.text("format_drive"), blocked)
+        self.assertEqual(self.problems(), [])
+
     def test_long_folders_scroll_with_the_wheel(self):
         from PySide6.QtCore import QObject, QPoint, QPointF, Qt
         from PySide6.QtGui import QWheelEvent
@@ -186,6 +208,51 @@ class ExplorerWindowTests(unittest.TestCase):
         tab.search("rep")
         self.app.processEvents()
         self.assertEqual(tab.kind, "search")
+        self.assertEqual(self.problems(), [])
+
+    def test_file_context_menu_creates_desktop_shortcuts(self):
+        from PySide6.QtCore import QObject
+
+        tab = self.backend.current
+        tab.navigate(str(self.home / "Documents"))
+        self.app.processEvents()
+        source = self.home / "Documents" / "report.txt"
+        tab.items.selectPath(str(source))
+        self.call("itemMenu", None, 10, 10)
+        context_menu = self.window.findChild(QObject, "contextMenu")
+        self.assertIsNotNone(context_menu)
+        menu_items = context_menu.property("items").toVariant()
+        actions = [entry.get("action") for entry in menu_items if isinstance(entry, dict)]
+        self.assertIn("create-shortcut", actions)
+
+        messages = []
+        self.backend.message.connect(messages.append)
+        self.call("runAction", "create-shortcut", str(source))
+        shortcut = self.home / "Desktop" / "report - Shortcut.txt"
+        self.assertTrue(shortcut.is_symlink())
+        self.assertEqual(shortcut.resolve(), source)
+        self.assertEqual(messages[-1], self.backend.text("shortcut_created"))
+        self.addCleanup(lambda: shortcut.unlink(missing_ok=True))
+
+        dangling = self.home / "Desktop" / "report - Shortcut (2).txt"
+        dangling.symlink_to(self.home / "missing.txt")
+        self.addCleanup(lambda: dangling.unlink(missing_ok=True))
+        self.backend.createShortcut(str(source))
+        third_shortcut = self.home / "Desktop" / "report - Shortcut (3).txt"
+        self.assertTrue(third_shortcut.is_symlink())
+        self.addCleanup(lambda: third_shortcut.unlink(missing_ok=True))
+
+        launcher = self.home / "Documents" / "example.desktop"
+        launcher.write_text("[Desktop Entry]\nType=Application\nName=Example\nExec=/usr/bin/true\n",
+                            encoding="utf-8")
+        self.addCleanup(lambda: launcher.unlink(missing_ok=True))
+        self.backend.createShortcut(str(launcher))
+        launcher_copy = self.home / "Desktop" / "example - Shortcut.desktop"
+        self.addCleanup(lambda: launcher_copy.unlink(missing_ok=True))
+        self.assertTrue(launcher_copy.is_file())
+        self.assertFalse(launcher_copy.is_symlink())
+        self.assertTrue(launcher_copy.stat().st_mode & 0o100)
+        self.assertEqual(launcher_copy.read_text(encoding="utf-8"), launcher.read_text(encoding="utf-8"))
         self.assertEqual(self.problems(), [])
 
     def test_new_office_documents(self):

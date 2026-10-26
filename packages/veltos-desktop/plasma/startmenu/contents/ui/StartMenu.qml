@@ -168,6 +168,27 @@ FocusScope {
         }
     }
 
+    function localDocumentPath(itemModel) {
+        const url = itemModel ? itemModel.url : null;
+        if (!url)
+            return "";
+        if (typeof url.isLocalFile === "function" && !url.isLocalFile())
+            return "";
+        const path = typeof url.toLocalFile === "function" ? url.toLocalFile() : String(url);
+        if (path.toLowerCase().endsWith(".desktop"))
+            return "";
+        return path.startsWith("/") || path.startsWith("file://") ? path : "";
+    }
+
+    function quoteShellArgument(value) {
+        return "'" + String(value).replace(/'/g, "'\\''") + "'";
+    }
+
+    function createDesktopShortcut(source) {
+        if (source)
+            shortcutSource.connectSource("veltos-explorer --create-shortcut " + quoteShellArgument(source));
+    }
+
     function refreshAllApps() {
         allAppsModel = plasmoidItem.rootModel.count > 0 ? plasmoidItem.rootModel.modelForRow(0) : null;
     }
@@ -249,8 +270,17 @@ FocusScope {
     }
 
     // Right-click menu for an item: its own actions plus Pin/Unpin to Start.
-    function openActionMenu(visualParent, model, index, actionList, favoriteId) {
+    function openActionMenu(visualParent, model, index, actionList, favoriteId, shortcutPath) {
         let actions = actionList ? Array.from(actionList) : [];
+        if (shortcutPath) {
+            if (actions.length > 0)
+                actions.push({ type: "separator" });
+            actions.push({
+                text: i18n("Create shortcut on desktop"),
+                actionId: "_veltos_create_shortcut",
+                actionArgument: shortcutPath,
+            });
+        }
         if (favoriteId && favoritesModel && favoritesModel.enabled) {
             const pinned = favoritesModel.isFavorite(favoriteId);
             if (actions.length > 0) {
@@ -305,6 +335,13 @@ FocusScope {
             }
             menu.rebuildGroups();
         }
+    }
+
+    P5Support.DataSource {
+        id: shortcutSource
+        engine: "executable"
+        connectedSources: []
+        onNewData: source => disconnectSource(source)
     }
 
     // One invisible item per app: names, ids and icons for the "All"
@@ -393,6 +430,7 @@ FocusScope {
         id: actionMenu
         onPinRequested: favoriteId => menu.favoritesModel.addFavorite(favoriteId)
         onUnpinRequested: favoriteId => menu.favoritesModel.removeFavorite(favoriteId)
+        onShortcutRequested: source => menu.createDesktopShortcut(source)
         onCloseRequested: menu.close()
     }
 
@@ -820,7 +858,7 @@ FocusScope {
                         onClicked: mouse => {
                             if (mouse.button === Qt.RightButton) {
                                 menu.openActionMenu(doc, recommendedGrid.model, index,
-                                                    model.actionList, "");
+                                                    model.actionList, "", menu.localDocumentPath(model));
                             } else {
                                 menu.launch(recommendedGrid.model, index);
                             }
@@ -1144,7 +1182,8 @@ FocusScope {
                         showDescription: true
                         onActivated: menu.launch(recentList.model, recentRow.index)
                         onContextMenuRequested: menu.openActionMenu(recentRow, recentList.model, recentRow.index,
-                                                                    recentRow.model.actionList, "")
+                                                                    recentRow.model.actionList, "",
+                                                                    menu.localDocumentPath(recentRow.model))
                     }
                 }
             }
@@ -1203,7 +1242,8 @@ FocusScope {
                         selected: searchList.currentIndex === resultRow.index && !menu.webSelected
                         onActivated: menu.launch(searchList.model, resultRow.index)
                         onContextMenuRequested: menu.openActionMenu(resultRow, searchList.model, resultRow.index,
-                                                                    resultRow.model.actionList, resultRow.model.favoriteId)
+                                                                    resultRow.model.actionList, resultRow.model.favoriteId,
+                                                                    menu.localDocumentPath(resultRow.model))
                     }
 
                     // Search the web with Google: under the results with its

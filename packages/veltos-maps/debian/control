@@ -1,0 +1,46 @@
+Source: veltos-maps
+Section: kde
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtcore,
+               python3-pyside6.qtgui,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               python3-pyside6.qtwebenginequick,
+               python3-pyside6.qtwebenginecore,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qml6-module-qtwebengine,
+               qt6-svg-plugins
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-maps
+Architecture: all
+Depends: ${python3:Depends},
+         geoclue-2.0,
+         gir1.2-geoclue-2.0,
+         python3-gi,
+         python3-pyside6.qtcore,
+         python3-pyside6.qtgui,
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         python3-pyside6.qtwebenginequick,
+         python3-pyside6.qtwebenginecore,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qml6-module-qtwebengine,
+         qt6-svg-plugins,
+         veltos-desktop,
+         kde-cli-tools,
+         xdg-utils,
+         ${misc:Depends}
+Description: VeltOS Maps, Google Maps in a VeltOS window
+ Search and browse Google Maps without a Maps Platform API key, with a
+ VeltOS toolbar and an off-the-record web profile. Location access is off
+ by default and can be enabled in Maps or Settings.

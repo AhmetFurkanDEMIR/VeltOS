@@ -76,6 +76,8 @@ TEXTS = {
                        "before formatting. Do you want to continue?",
                        "Bu birimi biçimlendirmek üzerindeki tüm verileri siler. Biçimlendirmeden önce saklamak "
                        "istediğiniz verileri yedekleyin. Devam etmek istiyor musunuz?"),
+    "format_unavailable": ("This volume is in use by the running system, is read-only, or is no longer available.",
+                           "Bu birim çalışan sistem tarafından kullanılıyor, salt okunur veya artık kullanılamıyor."),
     "delete_title": ("Delete simple volume", "Basit birimi sil"),
     "delete_warning": ("Deleting this volume will erase all data on it. Back up any data you want to keep "
                        "before deleting. Do you want to continue?",

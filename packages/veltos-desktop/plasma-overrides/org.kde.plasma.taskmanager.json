@@ -1,6 +1,6 @@
 {
   "plugin": "org.kde.plasma.taskmanager",
-  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph; no spinning circle over a starting app. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13); several windows of one app show as a stacked button, without Plasma's plus sign, like Windows 11; window previews come from KWin (veltostaskbarpreview) and a click on such a button leaves them open; a pinned app's tooltip is its name; an app playing sound gets a round speaker badge. A program's progress (downloads, copies) is a thin bar under the icon, as on Windows 11, not Plasma's filled area behind it.",
+  "about": "Taskbar button menus in Windows 11 wording (\"Pin to taskbar\", \"Unpin from taskbar\") without KDE's widget settings and edit mode entries; window tooltips with Windows' plain close glyph; no spinning circle over a starting app. The icons-only taskbar (org.kde.plasma.icontasks) uses this package's QML. Matched against plasma-desktop 6.3.6 (Debian 13); several windows of one app show as a stacked button, without Plasma's plus sign, like Windows 11; window previews come from KWin (veltostaskbarpreview) and a click on such a button leaves them open; a pinned app's tooltip is its name; no speaker badge is drawn over an app icon while it plays sound. A program's progress (downloads, copies) is a thin bar under the icon, as on Windows 11, not Plasma's filled area behind it.",
   "replacements": [
     {
       "file": "contents/ui/TaskProgressOverlay.qml",
@@ -77,7 +77,7 @@
     },
     {
       "file": "contents/ui/AudioStream.qml",
-      "why": "the sign of an app playing sound as a round badge with a Fluent speaker glyph (product owner, 2026-10-22: make it modern, like Windows 11)",
+      "why": "no speaker or mute badge over app icons on the taskbar (product owner, 2026-10-25)",
       "replace_with": "taskmanager/AudioStream.qml",
       "upstream_sha256": "c1be30480c76d1db9ea8ef9bc86af11560d324f37b994ca01eaa3bdc18f7192b"
     }

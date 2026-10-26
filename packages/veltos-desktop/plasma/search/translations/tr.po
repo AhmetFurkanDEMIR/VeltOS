@@ -29,6 +29,9 @@ msgstr "Uygulama"
 msgid "Open"
 msgstr "Aç"
 
+msgid "Create shortcut on desktop"
+msgstr "Masaüstünde kısayol oluştur"
+
 msgid "Start typing to search for apps, settings and documents."
 msgstr "Uygulama, ayar ve belge aramak için yazmaya başlayın."
 

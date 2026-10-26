@@ -239,7 +239,8 @@ class Backend(QObject):
             return drive["label"]
         if drive.get("windowsSystem"):
             return "Windows"
-        name = self.text("usb_drive") if drive["removable"] else self.text("local_disk")
+        name = (self.text("usb_drive") if drive.get("usb") else
+                self.text("removable_disk") if drive["removable"] else self.text("local_disk"))
         return f"{name} ({files.human_size(drive['size'])})"
 
     @Slot(str)
@@ -263,6 +264,15 @@ class Backend(QObject):
     @Slot(str)
     def ejectDrive(self, device):
         self.jobs.submit(lambda: places.eject(device, self.runner), lambda _r: self.refreshDrives())
+
+    @Slot(str, result=bool)
+    def formatDrive(self, device):
+        drive = next((d for d in self._drives if d["device"] == device), None)
+        if not drive or not drive.get("canFormat"):
+            self.message.emit(self.text("format_unavailable"))
+            return False
+        self.ops.start(["veltos-disks", "--format", device])
+        return True
 
     @Property("QVariantList", notify=placesChanged)
     def recent(self):
@@ -435,6 +445,23 @@ class Backend(QObject):
     @Slot(str)
     def copyPathText(self, path):
         QGuiApplication.clipboard().setText(f'"{path}"')
+
+    @Slot(str)
+    def createShortcut(self, path):
+        if not path or path in SPECIAL or places.is_desktop_system_icon(path):
+            self.message.emit(self.text("shortcut_unavailable"))
+            return
+        try:
+            desktop = places.desktop_dir()
+            shortcut = self.ops.create_shortcut(path, desktop)
+        except OSError as error:
+            self.message.emit(error.strerror or str(error))
+            return
+        tab = self.current_tab()
+        if tab.location == desktop:
+            tab._select_after = shortcut
+            tab.load()
+        self.message.emit(self.text("shortcut_created"))
 
     @Slot(str)
     def openLocation(self, path):
@@ -835,6 +862,9 @@ def portal_platform_theme(environ=os.environ):
 
 def main(argv=None):
     argv = sys.argv if argv is None else argv
+    if "--create-shortcut" in argv[1:]:
+        from . import shortcut_cli
+        return shortcut_cli.run(argv)
     if "--filemanager1" in argv[1:]:
         from . import filemanager1
         return filemanager1.serve(argv)

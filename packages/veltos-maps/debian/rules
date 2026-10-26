@@ -1,0 +1,23 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-maps
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-maps/usr/lib/python3/dist-packages
+	cp -r veltos_maps debian/veltos-maps/usr/lib/python3/dist-packages/
+	find debian/veltos-maps -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-maps debian/veltos-maps/usr/bin/veltos-maps
+	install -D -m 644 data/veltos-maps.desktop \
+		debian/veltos-maps/usr/share/applications/veltos-maps.desktop
+	install -D -m 644 data/veltos-maps.svg \
+		debian/veltos-maps/usr/share/icons/hicolor/scalable/apps/veltos-maps.svg
+	install -D -m 644 data/90-veltos-maps.conf \
+		debian/veltos-maps/etc/geoclue/conf.d/90-veltos-maps.conf
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

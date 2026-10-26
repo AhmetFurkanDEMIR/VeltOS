@@ -42,6 +42,20 @@ class PrefsTests(unittest.TestCase):
         self.assertEqual(self.prefs.get("lockAfter"), 3)
         self.assertEqual(self.prefs.get("lockOnResume"), True)        # default
 
+    def test_location_is_off_by_default_and_shared_in_kdeglobals(self):
+        self.assertFalse(self.prefs.get("locationEnabled"))
+        (self.system_dirs[0] / "kdeglobals").write_text(
+            "[Privacy]\nLocationServicesEnabled=true\n")
+        self.assertTrue(self.prefs.get("locationEnabled"))
+        (self.home / "kdeglobals").write_text(
+            "[Privacy]\nLocationServicesEnabled=false\n")
+        self.assertFalse(self.prefs.get("locationEnabled"))
+        self.assertTrue(self.prefs.set("locationEnabled", True))
+        self.assertIn(
+            ["kwriteconfig6", "--notify", "--file", "kdeglobals", "--group", "Privacy",
+             "--type", "bool", "--key", "LocationServicesEnabled", "true"],
+            self.runner.commands)
+
     def test_lock_never_turns_the_automatic_lock_off(self):
         self.prefs.set("lockAfter", 0)
         commands = [" ".join(c) for c in self.runner.commands]
@@ -87,6 +101,32 @@ class PrefsTests(unittest.TestCase):
         self.assertIn("kwriteconfig6 --notify --file kwinrc --group NightColor --key Mode Constant", commands)
         self.assertTrue(any("org.kde.KWin.reconfigure" in c for c in commands))
 
+    def test_power_mode_state_lists_only_supported_profiles(self):
+        self.runner.outputs[("powerprofilesctl", "list")] = (
+            "  performance:\n    Driver: placeholder\n"
+            "* balanced:\n    Driver: placeholder\n"
+            "  power-saver:\n    Driver: placeholder\n"
+        )
+        state = self.prefs.power_mode_state()
+        self.assertTrue(state["powerModesAvailable"])
+        self.assertEqual(state["powerModes"], ["power-saver", "balanced", "performance"])
+        self.assertEqual(state["powerMode"], "balanced")
+
+        self.runner.outputs[("powerprofilesctl", "list")] = "* balanced:\n"
+        state = self.prefs.power_mode_state()
+        self.assertEqual(state["powerModes"], ["balanced"])
+        self.assertFalse(self.prefs.set_power_mode("performance"))
+
+    def test_set_power_mode_validates_the_profile_and_reports_command_failure(self):
+        self.runner.outputs[("powerprofilesctl", "list")] = "* balanced:\n  power-saver:\n"
+        self.assertFalse(self.prefs.set_power_mode("unsupported"))
+        self.assertFalse(self.prefs.set_power_mode("performance"))
+        self.assertTrue(self.prefs.set_power_mode("power-saver"))
+        self.assertIn(["powerprofilesctl", "set", "power-saver"], self.runner.commands)
+
+        self.runner.fail.add("powerprofilesctl")
+        self.assertFalse(self.prefs.set_power_mode("balanced"))
+
     def test_do_not_disturb(self):
         self.assertFalse(self.prefs.do_not_disturb())
         (self.home / "plasmanotifyrc").write_text("[DoNotDisturb]\nUntil=2999,12,31,0,0,0\n")
@@ -109,9 +149,9 @@ class PrefsTests(unittest.TestCase):
     def test_language_and_formats(self):
         self.assertTrue(self.prefs.set_language("tr"))
         self.assertFalse(self.prefs.set_language("xx"))
-        runner = FakeSystem({("locale", "-a"): "C\nC.utf8\nde_DE.utf8\nPOSIX\n"})
+        runner = FakeSystem({("locale", "-a"): "C\nC.utf8\nde_DE.utf8\nfr_FR.utf8\nPOSIX\n"})
         formats = prefs.Preferences(runner, self.dirs).available_formats()
-        self.assertEqual(formats, ["de_DE", "en_US", "tr_TR"])
+        self.assertEqual(formats, ["tr_TR", "en_US", "de_DE", "fr_FR"])
         self.assertFalse(self.prefs.set_formats("xx_YY", formats))
         self.assertTrue(self.prefs.set_formats("de_DE", formats))
         # Every format key Plasma exports, so LC_* lines of /etc/default/locale

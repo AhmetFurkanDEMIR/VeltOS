@@ -76,6 +76,9 @@ msgstr "Başlat'a sabitle"
 msgid "Unpin from Start"
 msgstr "Başlat'tan kaldır"
 
+msgid "Create shortcut on desktop"
+msgstr "Masaüstünde kısayol oluştur"
+
 msgid "Change account settings"
 msgstr "Hesap ayarlarını değiştir"
 

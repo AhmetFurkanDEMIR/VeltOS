@@ -1,0 +1,5 @@
+veltos-maps (0.1.0~dev1) trixie; urgency=medium
+
+  * Add VeltOS Maps with opt-in location access.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 26 Oct 2026 00:00:00 +0000

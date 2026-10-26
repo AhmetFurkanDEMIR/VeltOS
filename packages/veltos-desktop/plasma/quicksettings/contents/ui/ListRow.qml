@@ -13,6 +13,7 @@ Rectangle {
     id: row
 
     property string iconName
+    property bool monochromeIcon: false
     property string title
     property string status
     property bool busy: false
@@ -53,6 +54,8 @@ Rectangle {
                     Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
                     Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
                     source: row.iconName
+                    color: row.monochromeIcon ? Kirigami.Theme.textColor : "transparent"
+                    isMask: row.monochromeIcon
                 }
                 ColumnLayout {
                     Layout.fillWidth: true

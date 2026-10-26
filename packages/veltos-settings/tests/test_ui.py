@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fakesystem import FakeSystem  # noqa: E402
+from fakesystem import FakeSystem, HotspotRunner  # noqa: E402
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 try:
@@ -46,6 +46,10 @@ class SettingsWindowTests(unittest.TestCase):
             system=settings_app.system_tools(self.system), threaded=False)
         self.activated = []
         self.backend.system.network.activate = lambda *args: self.activated.append(args) or True
+        self.hotspot = HotspotRunner()
+        self.backend.system.hotspot.run = self.hotspot
+        self.backend.system.hotspot.write = self.hotspot.write
+        self.backend.system.hotspot.resolve = self.hotspot.resolve
         self.engine = QQmlApplicationEngine()
         self.engine.rootContext().setContextProperty("backend", self.backend)
         self.engine.load(QUrl.fromLocalFile(str(settings_app.QML_DIR / "Main.qml")))
@@ -76,6 +80,54 @@ class SettingsWindowTests(unittest.TestCase):
     def problems(self):
         return [m for m in self.messages if "qml" in m.lower() or "error" in m.lower()
                 or "undefined" in m.lower() or "warning" in m.lower()]
+
+    def test_language_choices_put_turkish_and_english_first(self):
+        self.assertEqual(self.backend.languageOptions, [
+            {"value": "tr", "label": "Türkçe"},
+            {"value": "en", "label": "English (United States)"},
+        ])
+
+    def test_location_privacy_disclosure_names_the_provider(self):
+        self.show("privacy", "location")
+        self.assertIn("Mozilla Location Service", self.backend.text("location_provider_note"))
+        self.assertEqual(self.problems(), [])
+
+    def test_power_page_offers_only_supported_profiles_and_reports_change_failure(self):
+        self.system.outputs[("powerprofilesctl", "list")] = "* balanced:\n  power-saver:\n"
+        self.show("system", "power")
+        self.backend.refreshPrefs()
+        self.app.processEvents()
+        self.assertEqual(self.backend.prefs["powerModes"], ["power-saver", "balanced"])
+        self.assertEqual(self.backend.prefs["powerMode"], "balanced")
+
+        self.backend.setPowerMode("performance")
+        self.app.processEvents()
+        self.assertTrue(self.backend.prefs["powerModeError"])
+        self.assertNotIn(["powerprofilesctl", "set", "performance"], self.system.commands)
+        self.assertEqual(self.problems(), [])
+
+    def test_mobile_hotspot_page_turns_on_edits_and_lists_devices(self):
+        self.show("network", "hotspot")
+        state = self.backend.hotspot
+        self.assertTrue(state["loaded"])
+        self.assertEqual(state["reason"], "")
+        self.backend.setHotspot(True)
+        self.app.processEvents()
+        self.assertTrue(self.backend.hotspot["active"])
+        self.hotspot.stations = [("02:00:00:00:01:00", "10.42.0.126", "veltos-phone")]
+        self.backend.configureHotspot("VeltOS Paylaşım", "kahve-1234", "bg")
+        self.app.processEvents()
+        state = self.backend.hotspot
+        self.assertEqual((state["ssid"], state["password"], state["band"]), ("VeltOS Paylaşım", "kahve-1234", "bg"))
+        self.assertEqual(state["clients"][0]["name"], "veltos-phone")
+        self.backend.setHotspot(False)
+        self.app.processEvents()
+        self.assertFalse(self.backend.hotspot["active"])
+        self.hotspot.ethernet = False
+        self.backend.refreshHotspot()
+        self.app.processEvents()
+        self.assertEqual(self.backend.hotspot["reason"], "no-internet")
+        self.assertEqual(self.problems(), [])
 
     def test_several_displays(self):
         # A laptop's screen and a monitor side by side: the arrangement,
@@ -181,7 +233,7 @@ class SettingsWindowTests(unittest.TestCase):
             self.assertEqual(self.window.property("pageId"), page["id"])
         for page, sub in (("system", "about"), ("system", "storage"), ("apps", "windows-apps"),
                           ("system", "display"), ("system", "sound"), ("devices", "bluetooth"),
-                          ("network", "wifi"), ("personalization", "background"),
+                          ("network", "wifi"), ("network", "hotspot"), ("personalization", "background"),
                           ("personalization", "colours"), ("time", "datetime"),
                           ("system", "notifications"), ("system", "power"), ("system", "nightlight"),
                           ("system", "multitasking"), ("devices", "mouse"), ("devices", "touchpad"),
@@ -189,6 +241,7 @@ class SettingsWindowTests(unittest.TestCase):
                           ("apps", "defaultapps"), ("apps", "startup"), ("accounts", "yourinfo"),
                           ("accounts", "signin"), ("accounts", "otherusers"), ("time", "region"),
                           ("accessibility", "accessibility"), ("privacy", "searching"),
+                          ("privacy", "location"),
                           ("personalization", "themes"), ("personalization", "taskbar")):
             self.show(page, sub)
             self.assertEqual(self.window.property("subPage"), sub)

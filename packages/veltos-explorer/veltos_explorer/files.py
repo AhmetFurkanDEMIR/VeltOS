@@ -144,12 +144,12 @@ def split_ext(name, is_dir=False):
 def unique_name(folder, name, is_dir=False):
     """A name not yet used in the folder: "New folder", "New folder (2)",
     ... and "a.txt", "a (2).txt"."""
-    if not (Path(folder) / name).exists():
+    if not os.path.lexists(Path(folder) / name):
         return name
     stem, ext = split_ext(name, is_dir)
     for n in range(2, 10000):
         candidate = f"{stem} ({n}){ext}"
-        if not (Path(folder) / candidate).exists():
+        if not os.path.lexists(Path(folder) / candidate):
             return candidate
     raise FileExistsError(name)
 

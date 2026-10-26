@@ -113,8 +113,64 @@ TEXTS = {
                         "Bu ağ kullanıcı adı istiyor. Ağa Gelişmiş ağ ayarlarından bağlanın."),
     "show_key": ("Show the security key", "Güvenlik anahtarını göster"),
     "advanced_network": ("Advanced network settings", "Gelişmiş ağ ayarları"),
-    "advanced_network_desc": ("Ethernet, VPN, hotspot, IP addresses",
-                              "Ethernet, VPN, erişim noktası, IP adresleri"),
+    "advanced_network_desc": ("Ethernet, VPN, IP addresses",
+                              "Ethernet, VPN, IP adresleri"),
+    # Network & internet > Mobile hotspot
+    "mobile_hotspot": ("Mobile hotspot", "Mobil etkin nokta"),
+    "hotspot_desc": ("Share my internet connection with other devices",
+                     "İnternet bağlantımı diğer cihazlarla paylaş"),
+    "share_from": ("Share my internet connection from", "İnternet bağlantımı şuradan paylaş"),
+    "share_over": ("Share over", "Şunun üzerinden paylaş"),
+    "share_from_note": ("While the hotspot is on, this PC also uses the connection you choose.",
+                        "Etkin nokta açıkken bu bilgisayar da seçtiğiniz bağlantıyı kullanır."),
+    "hotspot_properties": ("Properties", "Özellikler"),
+    "edit": ("Edit", "Düzenle"),
+    "edit_network_info": ("Edit network info", "Ağ bilgilerini düzenleyin"),
+    "network_name": ("Name", "Ad"),
+    "network_password": ("Password", "Parola"),
+    "network_band": ("Band", "Bant"),
+    "security_type": ("Security type", "Güvenlik türü"),
+    "band_any": ("Any available", "Kullanılabilir herhangi biri"),
+    "band_24": ("2.4 GHz", "2,4 GHz"),
+    "band_5": ("5 GHz", "5 GHz"),
+    "devices_connected": ("Devices connected: {count}", "Bağlı cihazlar: {count}"),
+    "no_hotspot_devices": ("No devices are connected.", "Bağlı cihaz yok."),
+    "ip_address": ("IP address", "IP adresi"),
+    "physical_address": ("Physical address (MAC)", "Fiziksel adres (MAC)"),
+    "unknown_device": ("Unknown device", "Bilinmeyen cihaz"),
+    "turning_on": ("Turning on…", "Açılıyor…"),
+    "source_ethernet": ("Ethernet", "Ethernet"),
+    "source_wifi": ("Wi-Fi", "Wi-Fi"),
+    "source_cellular": ("Mobile broadband", "Mobil geniş bant"),
+    "source_bluetooth": ("Bluetooth", "Bluetooth"),
+    "source_vpn": ("VPN", "VPN"),
+    "hotspot_no-wifi": ("This PC has no Wi-Fi adapter, so it can't set up a mobile hotspot.",
+                        "Bu bilgisayarda Wi-Fi bağdaştırıcısı olmadığı için mobil etkin nokta kurulamıyor."),
+    "hotspot_no-ap": ("This PC's Wi-Fi adapter can't host a mobile hotspot.",
+                      "Bu bilgisayarın Wi-Fi bağdaştırıcısı mobil etkin nokta oluşturamıyor."),
+    "hotspot_same-adapter": ("This PC reaches the internet through its only Wi-Fi adapter, which can't connect "
+                             "and share at the same time. Connect a network cable or a second Wi-Fi adapter.",
+                             "Bu bilgisayar internete tek Wi-Fi bağdaştırıcısıyla bağlanıyor; bağdaştırıcı aynı anda "
+                             "hem bağlanıp hem paylaşamaz. Ağ kablosu ya da ikinci bir Wi-Fi bağdaştırıcısı takın."),
+    "hotspot_no-internet": ("We can't set up mobile hotspot because this PC isn't connected to the internet. "
+                            "Connect to Ethernet, Wi-Fi or mobile broadband first.",
+                            "Bu bilgisayar internete bağlı olmadığı için mobil etkin nokta kurulamıyor. "
+                            "Önce Ethernet, Wi-Fi veya mobil geniş banda bağlanın."),
+    "hotspot_start-failed": ("Mobile hotspot couldn't be turned on. If the band is 5 GHz, try 2.4 GHz or "
+                             "Any available.",
+                             "Mobil etkin nokta açılamadı. Bant 5 GHz ise 2,4 GHz'i veya Kullanılabilir "
+                             "herhangi biri seçeneğini deneyin."),
+    "hotspot_save-failed": ("The network info couldn't be saved.", "Ağ bilgileri kaydedilemedi."),
+    "hotspot_invalid-name": ("Enter a name of 1 to 32 characters, without spaces at the start or end.",
+                             "Başında ve sonunda boşluk olmayan, 1-32 karakterlik bir ad girin."),
+    "hotspot_invalid-password": ("Enter a password of 8 to 63 characters: English letters, numbers and symbols.",
+                                 "8-63 karakterlik bir parola girin: İngilizce harfler, rakamlar ve simgeler."),
+    "hotspot_disconnects": ("Turning on mobile hotspot disconnects this PC from {name}.",
+                            "Mobil etkin nokta açılınca bu bilgisayarın {name} ağıyla bağlantısı kesilir."),
+    "hotspot_trust_note": ("Devices that join can use this PC's internet connection. Give the password only to "
+                           "people you trust.",
+                           "Katılan cihazlar bu bilgisayarın internet bağlantısını kullanabilir. Parolayı yalnızca "
+                           "güvendiğiniz kişilere verin."),
     # Bluetooth
     "bluetooth_desc": ("Connect headphones, mice, keyboards and phones",
                        "Kulaklık, fare, klavye ve telefon bağlayın"),
@@ -235,6 +291,20 @@ TEXTS = {
     "no_notification_apps": ("Apps appear here after they send a notification.",
                              "Uygulamalar bir bildirim gönderdikten sonra burada görünür."),
     # Power
+    "power_mode": ("Power mode", "Güç modu"),
+    "power_saver": ("Best power efficiency", "En iyi güç verimliliği"),
+    "power_balanced": ("Balanced", "Dengeli"),
+    "power_performance": ("Best performance", "En iyi performans"),
+    "power_mode_auto_note": (
+        "VeltOS switches to best performance on AC power and best power efficiency on battery.",
+        "VeltOS prize takılıyken en iyi performansa, pil gücündeyken en iyi güç verimliliğine geçer."),
+    "power_mode_performance_unavailable": (
+        "Best performance is not supported by this device; Balanced will be used on AC power.",
+        "Bu cihaz en iyi performans modunu desteklemiyor; prize takıldığında Dengeli kullanılacak."),
+    "power_modes_unavailable": ("Power modes are unavailable on this device.",
+                                "Güç modları bu cihazda kullanılamıyor."),
+    "power_mode_change_failed": ("The power mode could not be changed.",
+                                 "Güç modu değiştirilemedi."),
     "screen_sleep": ("Screen and sleep", "Ekran ve uyku"),
     "screen_off_ac": ("When plugged in, turn off my screen after", "Prize takılıyken ekranımı şu süreden sonra kapat"),
     "sleep_ac": ("When plugged in, put my device to sleep after", "Prize takılıyken cihazımı şu süreden sonra uyku moduna al"),
@@ -384,6 +454,17 @@ TEXTS = {
     "search_indexing": ("Search your files", "Dosyalarınızda arayın"),
     "search_indexing_desc": ("Index the contents of your files so Start and File Explorer find them faster",
                              "Başlat ve Dosya Gezgini'nin daha hızlı bulması için dosya içeriklerini dizinle"),
+    # Privacy & security > Location
+    "location_services": ("Location services", "Konum hizmetleri"),
+    "location_services_desc": ("Allow VeltOS Maps to use your device location when you choose My location",
+                               "Konumum'u seçtiğinizde VeltOS Haritalar'ın cihaz konumunuzu kullanmasına izin verin"),
+    "location_provider_title": ("How location is used", "Konumun nasıl kullanıldığı"),
+    "location_provider_note": ("When location is enabled, GeoClue may send nearby Wi-Fi information to Mozilla "
+                               "Location Service to estimate your position. Google Maps receives your location "
+                               "when you choose My location in VeltOS Maps. You can turn access off at any time.",
+                               "Konum açıkken GeoClue, konumunuzu tahmin etmek için yakındaki Wi-Fi bilgilerini "
+                               "Mozilla Location Service'e gönderebilir. Google Haritalar konumunuzu, kendi "
+                               "Haritalar'da Konumum'u seçtiğinizde alır. Erişimi istediğiniz zaman kapatabilirsiniz."),
     # Home (Windows 11 24H2 layout)
     "update_title": ("VeltOS Update", "VeltOS Güncelleme"),
     "last_checked": ("Last checked: {when}", "Son denetleme: {when}"),

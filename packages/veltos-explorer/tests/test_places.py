@@ -15,25 +15,28 @@ from veltos_explorer import ops, places  # noqa: E402
 LSBLK = {"blockdevices": [
     {"name": "nvme0n1", "path": "/dev/nvme0n1", "label": None, "size": 512110190592, "fstype": None,
      "mountpoints": [None], "rm": False, "hotplug": False, "type": "disk", "fssize": None, "fsused": None,
-     "parttype": None, "children": [
+     "parttype": None, "tran": "nvme", "children": [
          {"name": "nvme0n1p1", "path": "/dev/nvme0n1p1", "label": None, "size": 536870912, "fstype": "vfat",
           "mountpoints": ["/boot/efi"], "rm": False, "hotplug": False, "type": "part", "fssize": 535805952,
           "fsused": 6123520, "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"},
          {"name": "nvme0n1p2", "path": "/dev/nvme0n1p2", "label": None, "size": 494927257600, "fstype": "ext4",
           "mountpoints": ["/"], "rm": False, "hotplug": False, "type": "part", "fssize": 486993551360,
           "fsused": 23170711552, "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4"},
+         {"name": "nvme0n1p4", "path": "/dev/nvme0n1p4", "label": "Archive", "size": 8000000000,
+          "fstype": "ext4", "mountpoints": [None], "rm": False, "hotplug": False, "type": "part",
+          "fssize": 8000000000, "fsused": None, "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4"},
          {"name": "nvme0n1p3", "path": "/dev/nvme0n1p3", "label": None, "size": 16000000000, "fstype": "swap",
           "mountpoints": ["[SWAP]"], "rm": False, "hotplug": False, "type": "part", "fssize": None,
           "fsused": None, "parttype": None}]},
     {"name": "sda", "path": "/dev/sda", "label": None, "size": 32010928128, "fstype": None,
      "mountpoints": [None], "rm": True, "hotplug": True, "type": "disk", "fssize": None, "fsused": None,
-     "parttype": None, "children": [
+     "parttype": None, "tran": "usb", "children": [
          {"name": "sda1", "path": "/dev/sda1", "label": "PHOTOS", "size": 32009879552, "fstype": "exfat",
           "mountpoints": ["/media/velt/PHOTOS"], "rm": True, "hotplug": True, "type": "part",
           "fssize": 32001753088, "fsused": 1048576, "parttype": None}]},
     {"name": "sdb", "path": "/dev/sdb", "label": None, "size": 1000204886016, "fstype": None,
      "mountpoints": [None], "rm": False, "hotplug": False, "type": "disk", "fssize": None, "fsused": None,
-     "parttype": None, "children": [
+     "parttype": None, "tran": "sata", "children": [
          {"name": "sdb1", "path": "/dev/sdb1", "label": "Data", "size": 1000202788864, "fstype": "ntfs",
           "mountpoints": [None], "rm": False, "hotplug": False, "type": "part", "fssize": None,
           "fsused": None, "parttype": None},
@@ -57,12 +60,20 @@ class DriveTests(unittest.TestCase):
     def test_drives_for_this_pc(self):
         runner = Runner({"lsblk": (0, json.dumps(LSBLK))})
         drives = places.drives(runner, live=False)
-        self.assertEqual([d["device"] for d in drives], ["/dev/nvme0n1p2", "/dev/sdb1", "/dev/sda1"])
-        system, data, usb = drives
+        self.assertEqual([d["device"] for d in drives],
+                         ["/dev/nvme0n1p2", "/dev/nvme0n1p4", "/dev/sdb1", "/dev/sda1"])
+        system, same_disk_data, data, usb = drives
         self.assertTrue(system["system"])
         self.assertEqual(system["mount"], "/")
         self.assertEqual(data["mount"], "")          # can be mounted from This PC
+        self.assertTrue(system["systemDisk"])
+        self.assertFalse(system["canFormat"])
+        self.assertTrue(same_disk_data["systemDisk"])
+        self.assertFalse(same_disk_data["canFormat"])
+        self.assertTrue(data["canFormat"])
         self.assertTrue(usb["removable"])
+        self.assertTrue(usb["usb"])
+        self.assertTrue(usb["canFormat"])
         self.assertEqual(usb["label"], "PHOTOS")
         # Windows drives are marked (icon), Windows' recovery partition is not listed.
         self.assertTrue(data["windows"])
@@ -71,7 +82,12 @@ class DriveTests(unittest.TestCase):
         self.assertFalse(system["windows"])
 
     def test_usb_stick_with_ntfs_shows_the_usb_drive(self):
-        self.assertEqual(places.drive_icon({"removable": True, "windows": True}), "drive-removable-media-usb")
+        self.assertEqual(places.drive_icon({"usb": True, "removable": True, "windows": True}),
+                         "drive-removable-media-usb")
+        self.assertEqual(places.drive_icon({"usb": False, "removable": True, "windows": False}),
+                         "drive-removable-media")
+        self.assertEqual(places.drive_icon({"usb": False, "removable": True, "windows": True}),
+                         "drive-removable-media")
         self.assertEqual(places.drive_icon({"removable": False, "windows": True}), "drive-harddisk-windows")
         self.assertEqual(places.drive_icon({"removable": False, "windows": False}), "drive-harddisk")
 
@@ -83,6 +99,7 @@ class DriveTests(unittest.TestCase):
         mounts = "/dev/sdc1 /media/velt/W\\040x fuseblk ro,nosuid,nodev,relatime 0 0\n"
         drive = places.drives(Runner({"lsblk": (0, json.dumps(tree))}), live=False, mounts_text=mounts)[0]
         self.assertTrue(drive["readonly"])
+        self.assertFalse(drive["canFormat"])
 
     def test_live_root_is_shown(self):
         drives = places.drives(Runner({"lsblk": (0, json.dumps({"blockdevices": []}))}), live=True)

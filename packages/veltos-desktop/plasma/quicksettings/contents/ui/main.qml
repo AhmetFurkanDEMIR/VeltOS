@@ -5,7 +5,9 @@
     battery level and a Settings button, with Windows 11's media card above
     it while something plays (MediaCard.qml). The arrow on the Wi-Fi and
     Bluetooth tiles slides in their lists (WifiPage.qml, BluetoothPage.qml),
-    as Windows 11 does, instead of opening Settings.
+    as Windows 11 does, instead of opening Settings. The Mobile hotspot tile
+    shares the PC's internet connection through VeltOS Settings' helper
+    (HotspotPage.qml).
 
     State and actions come from the same Plasma components KDE's own tray
     applets use (network, Bluetooth, volume, brightness, battery), so this
@@ -73,6 +75,54 @@ PlasmoidItem {
         connectedSources: []
         onNewData: source => disconnectSource(source)
     }
+    P5Support.DataSource {
+        id: powerModeController
+        engine: "executable"
+        connectedSources: []
+        onNewData: (source, data) => {
+            disconnectSource(source);
+            root.powerModeBusy = false;
+            try {
+                const result = JSON.parse(String(data["stdout"] || ""));
+                root.powerProfiles = result.profiles || [];
+                root.activePowerProfile = result.active || "";
+                root.powerModeError = result.success ? "" : i18n("Couldn't change the power mode");
+            } catch (error) {
+                root.powerProfiles = [];
+                root.activePowerProfile = "";
+                root.powerModeError = i18n("Power modes aren't available");
+            }
+        }
+    }
+
+    // Mobile hotspot: VeltOS Settings' helper prints its state as JSON.
+    P5Support.DataSource {
+        id: hotspotController
+        engine: "executable"
+        connectedSources: []
+        onNewData: (source, data) => {
+            disconnectSource(source);
+            root.hotspotBusy = false;
+            try {
+                root.hotspotState = Object.assign({ loaded: true }, JSON.parse(String(data["stdout"] || "")));
+            } catch (error) {
+                root.hotspotState = { loaded: true, available: false, reason: "no-wifi" };
+            }
+        }
+    }
+    property var hotspotState: ({})
+    property bool hotspotBusy: false
+    readonly property bool hotspotOn: hotspotState.active === true
+    function hotspotCommand(command) {
+        if (hotspotBusy && command === "status")
+            return;
+        if (command !== "status")
+            hotspotBusy = true;
+        // A unique source name: the executable engine runs a command only
+        // once while a source of the same text is connected.
+        hotspotController.connectSource("/usr/libexec/veltos/hotspot " + command + " #" + Date.now());
+    }
+    onExpandedChanged: if (expanded) hotspotCommand("status")
 
     readonly property var sink: PreferredDevice.sink
     readonly property int volumePercent: sink ? Math.round(sink.volume / PulseAudio.NormalVolume * 100) : 0
@@ -87,6 +137,39 @@ PlasmoidItem {
         const level = Math.min(100, Math.round(battery.percent / 10) * 10);
         const name = "battery-" + String(level).padStart(3, "0");
         return battery.pluggedIn ? name + "-charging" : name;
+    }
+    property var powerProfiles: []
+    property string activePowerProfile: ""
+    property string powerModeError: ""
+    property bool powerModeBusy: false
+    property string automaticPowerSource: ""
+
+    function selectPowerMode(profile) {
+        if (powerModeBusy || powerProfiles.indexOf(profile) < 0)
+            return;
+        powerModeBusy = true;
+        powerModeController.connectSource("/usr/libexec/veltos/power-mode set " + profile);
+    }
+    function syncAutomaticPowerMode() {
+        const source = battery.hasInternalBatteries && !battery.pluggedIn ? "battery" : "ac";
+        if (source === automaticPowerSource)
+            return;
+        automaticPowerSource = source;
+        powerModeBusy = true;
+        powerModeController.connectSource("/usr/libexec/veltos/power-mode auto " + source);
+    }
+    function togglePowerSaver() {
+        const target = activePowerProfile === "power-saver"
+                       ? (powerProfiles.indexOf("balanced") >= 0 ? "balanced" : powerProfiles[0])
+                       : "power-saver";
+        if (target)
+            selectPowerMode(target);
+    }
+
+    Connections {
+        target: battery
+        function onPluggedInChanged() { root.syncAutomaticPowerMode(); }
+        function onHasInternalBatteriesChanged() { root.syncAutomaticPowerMode(); }
     }
 
     function run(command) {
@@ -267,6 +350,28 @@ PlasmoidItem {
                 onOpenSettings: root.run("veltos-settings devices")
             }
         }
+        Component {
+            id: hotspotPage
+            HotspotPage {
+                info: root.hotspotState
+                busy: root.hotspotBusy
+                onBack: stack.pop()
+                onToggleHotspot: on => root.hotspotCommand(on ? "start" : "stop")
+                onOpenSettings: root.run("veltos-settings hotspot")
+            }
+        }
+        Component {
+            id: powerModePage
+            PowerPage {
+                profiles: root.powerProfiles
+                activeProfile: root.activePowerProfile
+                errorMessage: root.powerModeError
+                busy: root.powerModeBusy
+                onBack: stack.pop()
+                onProfileSelected: profile => root.selectPowerMode(profile)
+                onOpenSettings: root.run("veltos-settings power")
+            }
+        }
 
     ColumnLayout {
         id: tiles
@@ -430,6 +535,21 @@ PlasmoidItem {
                 onToggled: root.setAirplane(!root.airplane)
             }
             Tile {
+                iconName: "network-wireless-hotspot-symbolic"
+                label: root.hotspotBusy ? (root.hotspotOn ? i18n("Turning off…") : i18n("Turning on…"))
+                                       : i18n("Mobile hotspot")
+                available: root.wifiAvailable && !root.airplane && root.hotspotState.available !== false
+                active: root.hotspotOn && available
+                hasMore: true
+                onToggled: {
+                    if (root.hotspotOn || root.hotspotState.reason === "")
+                        root.hotspotCommand(root.hotspotOn ? "stop" : "start");
+                    else
+                        stack.push(hotspotPage);
+                }
+                onMore: stack.push(hotspotPage)
+            }
+            Tile {
                 iconName: "redshift-status-on-symbolic"
                 label: i18n("Night light")
                 available: nightLight.available
@@ -442,6 +562,15 @@ PlasmoidItem {
                         root.run("veltos-settings nightlight");
                 }
                 onMore: root.run("veltos-settings nightlight")
+            }
+            Tile {
+                iconName: "battery-symbolic"
+                label: i18n("Power mode")
+                available: root.powerProfiles.indexOf("power-saver") >= 0
+                active: root.activePowerProfile === "power-saver"
+                hasMore: true
+                onToggled: root.togglePowerSaver()
+                onMore: stack.push(powerModePage)
             }
         }
 
@@ -535,5 +664,9 @@ PlasmoidItem {
 
     Mpris.Mpris2Model { id: mpris2Model }
 
-    Component.onCompleted: floatPopups()
+    Component.onCompleted: {
+        floatPopups();
+        syncAutomaticPowerMode();
+        hotspotCommand("status");
+    }
 }

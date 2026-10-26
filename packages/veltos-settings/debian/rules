@@ -14,6 +14,8 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-settings debian/veltos-settings/usr/bin/veltos-settings
 	# KDE's settings programs open VeltOS Settings (diverted in the preinst).
 	install -D -m 755 bin/veltos-settings-redirect debian/veltos-settings/usr/libexec/veltos/settings-redirect
+	# Mobile hotspot for Quick Settings (veltos_settings/hotspot.py).
+	install -D -m 755 bin/veltos-hotspot debian/veltos-settings/usr/libexec/veltos/hotspot
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/systemsettings
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kcmshell6
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kinfocenter

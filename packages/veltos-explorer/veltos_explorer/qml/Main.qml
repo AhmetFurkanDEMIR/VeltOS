@@ -206,6 +206,7 @@ ApplicationWindow {
     // --- Menus ----------------------------------------------------------------------
     WinMenu {
         id: contextMenu
+        objectName: "contextMenu"
         property var context: null
         onTriggered: action => window.runAction(action, context)
     }
@@ -290,6 +291,8 @@ ApplicationWindow {
         items.push({ separator: true });
         if (one && one.isDir)
             items.push({ text: backend.text("open_in_terminal"), icon: "utilities-terminal", action: "terminal-item" });
+        if (one)
+            items.push({ text: backend.text("create_shortcut"), icon: "edit-copy", action: "create-shortcut" });
         items.push({ text: backend.text("properties"), icon: "document-properties", action: "properties",
                      shortcut: "Alt+Enter" });
         showMenu(items, one ? one.path : null, item, x, y);
@@ -360,15 +363,25 @@ ApplicationWindow {
         ], path, item, x, y);
     }
 
-    function driveMenu(item, drive, x, y) {
+    function driveMenuItems(drive) {
         const items = [{ text: backend.text("open"), icon: "folder-open", action: "open-drive" }];
         if (drive.removable && drive.mount !== "")
             items.push({ text: backend.text("eject"), icon: "media-eject", action: "eject" });
+        if (drive.canFormat)
+            items.push({ text: backend.text("format_drive"), icon: "drive-harddisk", action: "format-drive" });
         if (drive.mount !== "") {
             items.push({ separator: true });
             items.push({ text: backend.text("properties"), icon: "document-properties", action: "properties-drive" });
         }
-        showMenu(items, drive, item, x, y);
+        return items;
+    }
+
+    function driveMenuTexts(drive) {
+        return driveMenuItems(drive).map(item => item.separator ? "-" : item.text).join("|");
+    }
+
+    function driveMenu(item, drive, x, y) {
+        showMenu(driveMenuItems(drive), drive, item, x, y);
     }
 
     function confirmDelete(permanently) {
@@ -405,6 +418,7 @@ ApplicationWindow {
         else if (action === "extract-here") backend.extractHere(context);
         else if (action === "add-archive") backend.addToArchive();
         else if (action === "copy-path") backend.copyAsPath();
+        else if (action === "create-shortcut") backend.createShortcut(context);
         else if (action === "open-location") backend.openLocation(context);
         else if (action === "properties") backend.properties();
         else if (action === "properties-folder") backend.propertiesOf(tab.location);
@@ -435,6 +449,7 @@ ApplicationWindow {
         else if (action === "location-path") backend.openLocation(context);
         else if (action === "open-drive") backend.openDrive(context.device !== "" ? context.device : context.mount);
         else if (action === "eject") backend.ejectDrive(context.device);
+        else if (action === "format-drive") backend.formatDrive(context.device);
         else if (action === "properties-drive") backend.propertiesOf(context.mount);
     }
 

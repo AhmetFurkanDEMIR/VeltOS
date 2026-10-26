@@ -26,6 +26,9 @@ plasma-nm
 plasma-pa
 bluedevil
 powerdevil
+# AC/battery-aware system power profiles (VeltOS selects them from Quick
+# Settings; performance is offered only on hardware that supports it).
+power-profiles-daemon
 kscreen
 kinfocenter
 systemsettings
@@ -59,6 +62,8 @@ veltos-clock
 veltos-calendar
 # Weather (Windows 11 layout) on Open-Meteo's open data (no key).
 veltos-weather
+# Maps (Windows 11 layout) on the public Google Maps site; location is opt-in.
+veltos-maps
 # VeltOS AI: the assistant pane (Windows + C) with the user's own API key.
 veltos-ai
 veltos-snip

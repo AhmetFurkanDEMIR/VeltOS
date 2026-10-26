@@ -101,3 +101,113 @@ class FakeSystem:
         if key in self.outputs:
             return 0, self.outputs[key]
         return 0, ""
+
+
+class HotspotRunner:
+    """NetworkManager, iw and ip for the mobile hotspot, in the formats of
+    nmcli 1.52, iw 6.9 and iproute2 6.15 (Debian 13), as seen in the dev VM
+    with a mac80211_hwsim radio (2026-10-26). `wifi_client` puts the Wi-Fi
+    card on a network as well; `ethernet=False` leaves only Wi-Fi."""
+
+    def __init__(self, ethernet=True, wifi_client=False, ap=True, second_card=False):
+        self.ethernet = ethernet
+        self.wifi_client = wifi_client
+        self.ap = ap
+        self.second_card = second_card
+        self.profile = None          # {"ssid", "password", "band", "device"}
+        self.up_on = ""              # device the hotspot runs on
+        self.fail_up = False
+        self.no_ir_5ghz = False      # the regulatory domain forbids starting a 5 GHz network
+        self.metrics = {"enp1s0": 100, "wlp2s0": 600, "wlp3s0": 600}
+        self.stations = []           # (mac, ip, name)
+        self.commands = []
+        self.written = []
+
+    def write(self, settings):
+        self.written.append(settings)
+        self.profile = {"ssid": settings["802-11-wireless"]["ssid"].decode(),
+                        "password": settings["802-11-wireless-security"]["psk"],
+                        "band": settings["802-11-wireless"].get("band", ""),
+                        "device": settings["connection"]["interface-name"],
+                        "uuid": settings["connection"]["uuid"]}
+        return True
+
+    def resolve(self, ip, server):
+        return next((name for _mac, address, name in self.stations if address == ip), "")
+
+    def __call__(self, command, timeout=20, input=None):
+        self.commands.append(list(command))
+        c = command
+        if c[:3] == ["nmcli", "-t", "-f"] and c[3] == "DEVICE,TYPE,STATE,CONNECTION":
+            lines = []
+            if self.ethernet:
+                lines.append("enp1s0:ethernet:connected:Wired connection 1")
+            if self.up_on == "wlp2s0":
+                lines.append("wlp2s0:wifi:connected:VeltOS Hotspot")
+            elif self.wifi_client:
+                lines.append("wlp2s0:wifi:connected:Home Net")
+            else:
+                lines.append("wlp2s0:wifi:disconnected:")
+            if self.second_card:
+                lines.append("wlp3s0:wifi:connected:VeltOS Hotspot" if self.up_on == "wlp3s0"
+                             else "wlp3s0:wifi:disconnected:")
+            lines += ["lo:loopback:connected (externally):lo", "p2p-dev-wlp2s0:wifi-p2p:disconnected:"]
+            return 0, "\n".join(lines) + "\n"
+        if c[:4] == ["nmcli", "-t", "-f", "WIFI-PROPERTIES"]:
+            ap = "yes" if self.ap else "no"
+            return 0, (f"WIFI-PROPERTIES.WEP:yes\nWIFI-PROPERTIES.WPA2:yes\nWIFI-PROPERTIES.AP:{ap}\n"
+                       "WIFI-PROPERTIES.ADHOC:yes\nWIFI-PROPERTIES.2GHZ:yes\nWIFI-PROPERTIES.5GHZ:yes\n")
+        if c[:6] == ["nmcli", "-t", "-f", "NAME,UUID,TYPE,DEVICE", "connection", "show"]:
+            lines = []
+            if self.up_on and self.profile:
+                lines.append(f"VeltOS Hotspot:{self.profile['uuid']}:802-11-wireless:{self.up_on}")
+            if self.ethernet:
+                lines.append("Wired connection 1:2222-bbbb:802-3-ethernet:enp1s0")
+            if self.wifi_client and self.up_on != "wlp2s0":
+                lines.append("Home Net:1111-aaaa:802-11-wireless:wlp2s0")
+            lines.append("lo:84d5-lo:loopback:lo")
+            return 0, "\n".join(lines) + "\n"
+        if c[:4] == ["ip", "-4", "route", "show"]:
+            lines = []
+            if self.ethernet:
+                lines.append(f"default via 192.168.1.1 dev enp1s0 proto dhcp src 192.168.1.20 "
+                             f"metric {self.metrics['enp1s0']}")
+            if self.wifi_client and self.up_on != "wlp2s0":
+                lines.append(f"default via 192.168.0.1 dev wlp2s0 proto dhcp src 192.168.0.5 "
+                             f"metric {self.metrics['wlp2s0']}")
+            return 0, "\n".join(lines) + ("\n" if lines else "")
+        if c[:3] == ["nmcli", "-s", "-t"]:
+            if not self.profile:
+                return 10, ""
+            p = self.profile
+            return 0, f"{p['ssid'].replace(':', chr(92) + ':')}\n{p['band']}\n{p['password']}\n{p['device']}\n"
+        if c[:4] == ["nmcli", "--wait", "60", "connection"] and c[4] == "up":
+            if self.fail_up or not self.profile:
+                return 4, ""
+            self.up_on = c[-1]
+            return 0, ""
+        if c[:3] == ["nmcli", "connection", "down"]:
+            self.up_on = ""
+            return 0, ""
+        if c[:3] == ["nmcli", "device", "modify"]:
+            self.metrics[c[3]] = int(c[5])
+            return 0, ""
+        if c[:3] == ["nmcli", "device", "reapply"]:
+            self.metrics[c[3]] = 100 if c[3] == "enp1s0" else 600
+            return 0, ""
+        if c[:3] == ["ip", "neigh", "show"]:
+            return 0, "".join(f"{ip} lladdr {mac} STALE \n" for mac, ip, _ in self.stations)
+        if c[0].endswith("iw") and c[1] == "dev" and c[3:] == ["info"]:
+            return 0, f"Interface {c[2]}\n\tifindex 3\n\twiphy {1 if c[2] == 'wlp3s0' else 0}\n\ttype managed\n"
+        if c[0].endswith("iw") and c[1] == "phy" and c[3:] == ["info"]:
+            flag = " (no IR)" if self.no_ir_5ghz else ""
+            return 0, ("Wiphy " + c[2] + "\n\tBand 1:\n\t\tFrequencies:\n\t\t\t* 2412.0 MHz [1] (20.0 dBm)\n"
+                       "\t\t\t* 2484.0 MHz [14] (20.0 dBm) (no IR)\n\tBand 2:\n\t\tFrequencies:\n"
+                       f"\t\t\t* 5180.0 MHz [36] (20.0 dBm){flag}\n"
+                       "\t\t\t* 5260.0 MHz [52] (20.0 dBm) (no IR, radar detection)\n")
+        if c[0].endswith("iw") and c[3:] == ["station", "dump"]:
+            return 0, "".join(f"Station {mac} (on {c[2]})\n\tinactive time:\t12 ms\n" for mac, _, _ in self.stations)
+        if c[:5] == ["ip", "-4", "-o", "addr", "show"]:
+            return 0, (f"5: {c[-1]}    inet 10.42.0.1/24 brd 10.42.0.255 scope global noprefixroute "
+                       f"{c[-1]}\\       valid_lft forever preferred_lft forever\n")
+        return 0, ""

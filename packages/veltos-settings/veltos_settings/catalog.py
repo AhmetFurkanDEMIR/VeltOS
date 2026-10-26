@@ -20,7 +20,7 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
                  "wifi", "background", "colours", "datetime", "notifications", "power",
                  "nightlight", "multitasking", "mouse", "touchpad", "keyboard", "lockscreen",
                  "defaultapps", "startup", "yourinfo", "signin", "otherusers", "region",
-                 "accessibility", "searching", "themes", "taskbar")
+                 "accessibility", "searching", "themes", "taskbar", "location", "hotspot")
 # Actions the backend knows (app.Backend.runAction).
 ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website")
 
@@ -86,6 +86,10 @@ PAGES = [
          "title": ("Wi-Fi", "Wi-Fi"),
          "desc": ("Connect, manage known networks", "Bağlanma, bilinen ağları yönetme"),
          "keywords": "wireless wlan network password internet ethernet kablosuz ağ parola"},
+        {"id": "hotspot", "icon": "network-wireless-hotspot-symbolic", "page": "hotspot",
+         "title": ("Mobile hotspot", "Mobil etkin nokta"),
+         "desc": ("Share your internet connection", "İnternet bağlantınızı paylaşın"),
+         "keywords": "hotspot tethering share internet access point wifi paylaş etkin nokta erişim noktası"},
     ]},
     {"id": "personalization", "icon": "applications-graphics-symbolic", "title": ("Personalization", "Kişiselleştirme"), "theme_picker": True, "items": [
         {"id": "background", "icon": "preferences-desktop-wallpaper-symbolic", "page": "background",
@@ -174,6 +178,10 @@ PAGES = [
          "keywords": "animation motion animasyon hareket"},
     ]},
     {"id": "privacy", "icon": "preferences-system-privacy-symbolic", "title": ("Privacy & security", "Gizlilik ve güvenlik"), "items": [
+        {"id": "location", "icon": "preferences-system-privacy-symbolic", "page": "location",
+         "title": ("Location", "Konum"),
+         "desc": ("Allow VeltOS Maps to access your location", "VeltOS Haritalar'ın konumunuza erişmesine izin verin"),
+         "keywords": "location maps gps geoclue konum harita yer"},
         {"id": "lock", "icon": "system-lock-screen-symbolic", "page": "lockscreen",
          "title": ("Screen lock", "Ekran kilidi"),
          "desc": ("Lock automatically, ask for the password", "Otomatik kilitleme, parola sorma"),
