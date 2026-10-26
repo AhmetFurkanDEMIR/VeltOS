@@ -220,9 +220,13 @@ class Backend(QObject):
                 for d in result:
                     d["title"] = self.drive_title(d)
                     free = max(0, d["size"] - d["used"])
+                    # A drive not opened yet shows its size (its free space is
+                    # known only once it is mounted).
                     d["freeText"] = (strings.text(self.lang, "free_of", free=files.human_size(free),
                                                   total=files.human_size(d["size"]))
-                                     if d["mount"] else self.text("not_mounted"))
+                                     if d["mount"] else
+                                     f"{files.human_size(d['size'])} · {self.text('not_mounted')}"
+                                     if d["size"] else self.text("not_mounted"))
                     d["fraction"] = d["used"] / d["size"] if d["size"] and d["mount"] else 0
                 self._drives = result
                 self.drivesChanged.emit()

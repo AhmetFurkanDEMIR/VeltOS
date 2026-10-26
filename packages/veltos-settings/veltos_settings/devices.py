@@ -239,6 +239,8 @@ class Network:
 # --- Bluetooth -----------------------------------------------------------------------------
 
 BLUETOOTH_SYSFS = Path("/sys/class/bluetooth")
+# bluetoothctl colours its event lines ("[\x1b[0;92mNEW\x1b[0m] Device ...").
+ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 
 class Bluetooth:
@@ -283,25 +285,43 @@ class Bluetooth:
     def remove(self, mac):
         return self.run(["bluetoothctl", "remove", mac])[0] == 0
 
-    def discover(self, seconds=10):
-        """Devices in range that are not paired yet (Add a device):
-        scan for a while, then list what bluetoothd found."""
-        self.run(["bluetoothctl", "--timeout", str(seconds), "scan", "on"], timeout=seconds + 10)
-        code, out = self.run(["bluetoothctl", "devices"])
-        paired = {d["mac"] for d in self.devices()}
-        found = []
-        for line in out.splitlines() if code == 0 else []:
-            match = re.match(r"Device ([0-9A-Fa-f:]{17}) (.+)", line.strip())
-            if not match or match.group(1) in paired:
+    def discover(self, seconds=8):
+        """Devices in range that are not paired yet (Add a device, and the
+        Bluetooth page's New devices), the strongest signal first.
+
+        Only devices seen during this scan count (bluetoothctl prints [NEW]
+        or an RSSI change for them), and only those that send a name of
+        their own: bluetoothd also keeps every device it ever saw, and
+        nameless ones carry their address as alias; listing those showed
+        long lists of addresses and devices long gone (product owner,
+        2026-10-26). The name shown is the device's own ("Name:")."""
+        _, scan = self.run(["bluetoothctl", "--timeout", str(seconds), "scan", "on"], timeout=seconds + 10)
+        seen = {}
+        for line in ANSI_ESCAPE.sub("", scan or "").splitlines():
+            match = re.search(r"\[(NEW|CHG)\]\s+Device ([0-9A-Fa-f:]{17})(.*)", line)
+            if not match:
                 continue
-            mac, name = match.groups()
-            # Nameless devices show their address with dashes as a name.
-            if name.replace("-", ":").upper() == mac.upper():
+            kind, mac, rest = match.group(1), match.group(2).upper(), match.group(3)
+            rssi = re.search(r"RSSI:\s*(?:0x[0-9a-fA-F]+\s*\()?(-?\d+)", rest)
+            if rssi:
+                seen[mac] = max(seen.get(mac, -999), int(rssi.group(1)))
+            elif kind == "NEW":
+                seen.setdefault(mac, -999)
+        paired = {d["mac"].upper() for d in self.devices()}
+        found = []
+        for mac, rssi in seen.items():
+            if mac in paired:
                 continue
             _, info = self.run(["bluetoothctl", "info", mac])
+            name = re.search(r"^\s*Name:\s*(.+?)\s*$", info or "", re.M)
+            if not name or re.fullmatch(r"[0-9A-Fa-f]{2}([-:][0-9A-Fa-f]{2}){5}", name.group(1)):
+                continue                              # no name of its own
+            if re.search(r"^\s*(?:Paired|Blocked):\s*yes", info, re.M):
+                continue
             icon = re.search(r"^\s*Icon:\s*(\S+)", info, re.M)
-            found.append({"mac": mac, "name": name, "icon": icon.group(1) if icon else "bluetooth"})
-        return sorted(found, key=lambda d: d["name"].lower())
+            found.append({"mac": mac, "name": name.group(1), "rssi": rssi,
+                          "icon": icon.group(1) if icon else "bluetooth"})
+        return sorted(found, key=lambda d: (-d["rssi"], d["name"].lower()))
 
     def pair(self, mac):
         """Pair, trust and connect (Plasma's Bluetooth agent asks for PIN
@@ -520,9 +540,61 @@ def project_plan(outputs, mode):
     return args
 
 
+SNAP = 40          # logical pixels: edges this close line up when a display is dropped
+
+
+def snap_position(outputs, moved_id, x, y):
+    """Windows 11's rearranging (Settings > Display): the display dropped at
+    x, y (logical pixels, as `state()` gives positions) goes to the nearest
+    place where it touches another display along an edge without covering
+    any; edges closer than SNAP line up (top with top, left with left ...).
+    Returns [{"id", "x", "y"}] for every display in use, moved so that the
+    top left one starts at 0, 0 (as Windows keeps the main display's
+    corner at the origin, KScreen keeps positions non-negative)."""
+    boxes = {o["id"]: [int(o["x"]), int(o["y"]), int(o["width"]), int(o["height"])]
+             for o in outputs if o.get("enabled")}
+    if moved_id in boxes and len(boxes) > 1:
+        width, height = boxes[moved_id][2:]
+        others = [box for key, box in boxes.items() if key != moved_id]
+
+        def lined_up(value, edges):
+            near = min(edges, key=lambda edge: abs(edge - value))
+            return near if abs(near - value) <= SNAP else value
+
+        def clamp(value, low, high):
+            return max(low, min(high, value))
+
+        candidates = []
+        for ox, oy, ow, oh in others:
+            for cx in (ox + ow, ox - width):                    # right of it, left of it
+                cy = clamp(lined_up(y, (oy, oy + oh - height)), oy - height + 1, oy + oh - 1)
+                candidates.append((cx, cy))
+            for cy in (oy + oh, oy - height):                   # below it, above it
+                cx = clamp(lined_up(x, (ox, ox + ow - width)), ox - width + 1, ox + ow - 1)
+                candidates.append((cx, cy))
+
+        def covers(cx, cy):
+            return any(cx < ox + ow and ox < cx + width and cy < oy + oh and oy < cy + height
+                       for ox, oy, ow, oh in others)
+        free = [c for c in candidates if not covers(*c)]
+        if not free:                                            # cannot happen with two displays
+            free = [(max(ox + ow for ox, _, ow, _ in others), min(oy for _, oy, _, _ in others))]
+        boxes[moved_id][:2] = min(free, key=lambda c: (c[0] - x) ** 2 + (c[1] - y) ** 2)
+    left = min((box[0] for box in boxes.values()), default=0)
+    top = min((box[1] for box in boxes.values()), default=0)
+    return [{"id": key, "x": box[0] - left, "y": box[1] - top} for key, box in boxes.items()]
+
+
 class Display:
     def __init__(self, runner=run):
         self.run = runner
+
+    def set_positions(self, positions):
+        """[{"id", "x", "y"}] from snap_position, in one kscreen-doctor call."""
+        args = [f"output.{int(p['id'])}.position.{int(p['x'])},{int(p['y'])}" for p in positions]
+        if not args:
+            return False
+        return self.run(["kscreen-doctor"] + args, timeout=30)[0] == 0
 
     def raw(self):
         code, out = self.run(["kscreen-doctor", "--json"])

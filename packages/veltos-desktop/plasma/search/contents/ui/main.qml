@@ -12,6 +12,7 @@
 */
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Window
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PC3
@@ -200,10 +201,16 @@ PlasmoidItem {
             return resultRows.itemAt(Math.min(current, resultCount - 1, resultRows.count - 1));
         }
 
+        // Fits above the taskbar on small screens, as Start does (StartMenu.qml).
+        readonly property int fitHeight: Screen.height
+                                         - (root.compactRepresentationItem
+                                            ? root.compactRepresentationItem.height : Kirigami.Units.gridUnit * 3)
+                                         - Kirigami.Units.gridUnit * 4
         Layout.minimumWidth: Kirigami.Units.gridUnit * 40
-        Layout.minimumHeight: Kirigami.Units.gridUnit * 32
+        Layout.minimumHeight: Math.min(Kirigami.Units.gridUnit * 32, fitHeight)
         Layout.preferredWidth: Kirigami.Units.gridUnit * 46
-        Layout.preferredHeight: Kirigami.Units.gridUnit * 36
+        Layout.preferredHeight: Math.min(Kirigami.Units.gridUnit * 36, fitHeight)
+        Layout.maximumHeight: fitHeight
         focus: true
 
         function launch(model, index) {

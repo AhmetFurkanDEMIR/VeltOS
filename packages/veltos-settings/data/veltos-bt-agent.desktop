@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=VeltOS Bluetooth agent
+Name[tr]=VeltOS Bluetooth aracısı
+Comment=Asks Bluetooth pairing questions in the Add a device window
+Comment[tr]=Bluetooth eşleştirme sorularını Cihaz ekle penceresinde sorar
+Exec=/usr/libexec/veltos/bt-agent
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2

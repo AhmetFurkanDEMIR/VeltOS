@@ -190,6 +190,9 @@ open VeltOS Settings.
 | `veltos_settings/strings.py` | Texts of the built-in pages |
 | `veltos_settings/app.py` | Backend object for QML (texts, facts, actions) and `main()`; the Windows programs list (veltos-winapps' registry reader and `veltos-run`'s records) with the programs' icons and Uninstall |
 | `veltos_settings/project.py` | Windows + P's Project flyout (`--project`) and Identify (`--identify`) |
+| `veltos_settings/kscreen_osd.py` | Owns KScreen's `org.kde.kscreen.osdService` (drop-in for `plasma-kscreen-osd.service`): a new screen opens the Project flyout instead of KDE's chooser |
+| `veltos_settings/btagent.py` | The VeltOS Bluetooth agent (BlueZ `Agent1`, default agent, autostart `veltos-bt-agent`) |
+| `veltos_settings/btpair.py`, `qml/BluetoothPair.qml` | Windows 11's "Add a device" window for the agent's questions (`--bt-pair KIND NAME VALUE`) |
 | `veltos_settings/qml/` | Window (`Main.qml`), pages and components, `Theme` singleton (colours) |
 | `bin/veltos-settings`, `data/veltos-settings.desktop` | Launcher ("Settings" / "Ayarlar") |
 
@@ -218,8 +221,6 @@ the theme switch applies the global theme).
 - Not built in yet (left out rather than shown in KDE's window): VPN and
   wired network details, proxy, firewall, fonts and pointer style, per-app
   volume, game controllers, pen tablets, on-screen keyboard, spelling.
-- Displays cannot be dragged to another place in the arrangement yet
-  (Extend puts them side by side, display 1 on the left).
 - Windows programs have no Modify / Repair entries; Uninstall runs the
   program's own uninstaller, whose window may still appear.
 - No automatic update checks yet (VeltOS Update opens the Store).
@@ -233,3 +234,29 @@ text like KDE programs (`NativeTextRendering`): Qt Quick's default
 distance-field text looked uneven at fractional display scales. Qt objects
 are configured with setters, never keyword arguments (PySide6 resolves those
 with the C library's `toupper()`, which broke in a Turkish locale).
+
+## Added 2026-10-26 / 2026-10-27
+
+- **Keyboard**: the "Add a keyboard" list starts with no layout chosen
+  ("Choose a keyboard"), so the first entry (Turkish Q) can be added too.
+- **Display**: several screens are dragged into place like in Windows 11;
+  a dropped screen snaps to the edges of the others (`devices.snap_position`,
+  40 px) and Apply sets every position with one `kscreen-doctor` call.
+  Graphics cards are listed under the display settings, one card each with
+  the graphics card icon.
+- **Project** (Windows + P and a newly connected screen): Windows 11's four
+  pictures (PC screen only, Duplicate, Extend, Second screen only) drawn as
+  two monitors, centred in their tiles. KScreen's own chooser no longer
+  appears: `kscreen-osd` owns its D-Bus name.
+- **Bluetooth**: the page searches while it is open and lists named devices
+  in range that are not paired yet, strongest signal first ("New
+  devices", Pair); no cached or nameless entries. Pairing questions (PIN,
+  passkey, confirmation, authorisation) come from VeltOS' own agent in an
+  "Add a device" window with the VeltOS Bluetooth icon, the code in large
+  digits, and Connect / Cancel; a paired or trusted device's services are
+  allowed without asking. Real Bluetooth hardware is untested (tested with
+  BlueZ's virtual controllers, `btvirt`).
+- Tests: `tests/test_devices.py` (arrangement snapping, discovery output),
+  `tests/test_kscreen_osd.py`, `tests/test_bluetooth_pair.py` (the agent's
+  questions and replies, the window in English and Turkish),
+  `tests/test_ui.py` (adding Turkish Q, the Bluetooth page's scan).

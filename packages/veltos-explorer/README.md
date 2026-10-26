@@ -118,7 +118,9 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   `recently-used.xbel` and KDE's RecentDocuments). **This PC**: drives with
   capacity bars; unmounted partitions mount on double-click (udisks).
   USB flash drives, other removable disks and fixed Windows (NTFS) drives
-  use distinct Windows 11-style icons. Windows drives open without a
+  use distinct Windows 11-style icons (48 px, the Windows drive with
+  Windows 11's logo); a drive that is not mounted shows its size and
+  "Double-click to open". Windows drives open without a
   password for administrators
   (`/usr/share/polkit-1/rules.d/50-veltos-drives.rules`); they are mounted
   through ntfs-3g with Windows file names (`/etc/udisks2/mount_options.conf`)

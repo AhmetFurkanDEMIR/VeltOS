@@ -23,8 +23,13 @@ Rectangle {
 
     implicitHeight: layout.implicitHeight + Kirigami.Units.smallSpacing * 2
     radius: Kirigami.Units.cornerRadius
-    color: row.expanded ? Qt.alpha(Kirigami.Theme.textColor, 0.07)
+    // The open row in a light tint of the accent colour with an accent
+    // edge, so it goes with the accent buttons in it (product owner,
+    // 2026-10-26: grey row, white buttons, unrelated colours).
+    color: row.expanded ? Qt.alpha(Kirigami.Theme.highlightColor, 0.10)
                         : headerArea.containsMouse ? Qt.alpha(Kirigami.Theme.textColor, 0.05) : "transparent"
+    border.width: row.expanded ? 1 : 0
+    border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.35)
     Behavior on color { ColorAnimation { duration: Kirigami.Units.shortDuration } }
     Accessible.role: Accessible.ListItem
     Accessible.name: row.title

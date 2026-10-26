@@ -183,6 +183,25 @@ yet seen on screen:
 63. [x] Maps is in Start's Utility (Accessories) category, not Education. Not seen on screen
 64. [x] Graphics Cards reachable from Settings > System ("Graphics cards" after Display) and Settings > Gaming. Settings catalogue tests
 
+Product owner, 2026-10-26 (evening):
+
+65. [x] Settings > Time & language > Typing: Turkish Q, first in "Add a keyboard", can be added (it was preselected, and choosing the chosen entry did nothing); the box says "Choose a keyboard". Reproduced in the dev VM; Settings UI test
+66. [x] VeltOS' symbolic icons (removable devices, hotspot, graphics cards, VeltOS AI, colours, themes, colour mode) follow light and dark mode: KDE's colour-scheme style sheet as Fluent's own icons have, #dedede in the dark trees (they stayed black on the dark taskbar). Icon tests
+67. [x] Installer: every choice always offered: a drive opened in File Explorer (mounted) left only "Manual partitioning" on a disk with an older VeltOS; `release-disks` unmounts the PC's disks (not the live medium), switches off their swap and closes opened encrypted volumes before Calamares starts (reproduced and fixed in the dev VM). The choices are Windows 11 option cards (click anywhere, accent border); the Create/Edit Partition dialog's size bar is a VeltOS disk bar with slider thumbs and "New partition 38.70 GB", the size box a Windows 11 NumberBox in MB whose arrows, keys and typed values stay within the free space (Calamares let them run past it). Seen in the dev VM, also a complete "Erase disk" installation of the current ISO
+68. [x] Disk Management: Format is Windows 11's Format window of its own (capacity, file system, label, quick format, Start/Close, a confirmation, a running bar while formatting, "Format complete."); File Explorer's Format opens only that window. A 1 GB partition formatted to NTFS in the dev VM
+69. [x] Several monitors: plugging in a screen shows VeltOS' Windows 11 Project flyout instead of KDE's chooser (VeltOS takes KScreen's `org.kde.kscreen.osdService`); Settings > Display: displays are dragged into place and snap to an edge of another (Apply / Cancel), as in Windows 11. Dev VM with two virtual screens (hot-plug, drag to the left, applied positions read back)
+70. [x] Start and search fit above the taskbar on small screens (on 1280 × 800 Start reached over the taskbar, and the part on it flickered under the pointer). Reproduced and fixed at 1280 × 768 in the dev VM
+71. [x] Quick Settings and the system tray's flyouts in the accent colour: the open Wi-Fi/Bluetooth row in an accent tint, Disconnect/Cancel as accent outline buttons (Cancel and Next equally wide), Properties as an accent link; the clock flyout's buttons outlined in the accent colour, Focus filled. Dev VM with simulated Wi-Fi
+72. [x] Bluetooth: Settings' Bluetooth page lists the devices nearby (a scan every 15 s while open) with Pair, like the Wi-Fi list; only devices seen in the current scan that send a name of their own, by signal strength, in Settings and Quick Settings (BlueZ's cache of every device ever seen, and nameless devices showing their address, made long lists). Dev VM with btvirt: found, paired after Plasma's PIN question, connected. Real devices untested
+73. [x] Windows drives show Windows 11's logo (four blue squares, medium size) on the drive (the owner's choice over the earlier non-trademark window mark, architecture 2.38); This PC's tiles use 48 px icons and show the size of drives not opened yet
+74. [x] Settings > Display lists every graphics card with the graphics card icon, one below the other ("Graphics card 1", opening VeltOS Graphics Cards). Dev VM (one card)
+75. [x] Touchpads scroll as on Windows 11 by default (the content follows the fingers) until the user chooses in Settings (`touchpad-defaults` at sign-in; KWin 6.3 ignores kcminputrc's Defaults group). Unit test only: no touchpad in the VM
+
+Product owner, 2026-10-27:
+
+76. [x] Windows + P (Project): Windows 11 style line glyphs, always two monitors on stands with the picture filled in where it is shown, so every tile is symmetric (PC screen only showed one monitor off to the left). Dev VM
+77. [x] Bluetooth pairing in Windows 11's "Add a device" window instead of Plasma's notification ("veltos (00:AA:...) is asking if the PIN is correct", "PIN correct"): the VeltOS Bluetooth agent (`bt-agent`, GLib only, started with the session) is BlueZ's default agent and asks with the device, the PIN large ("000 123"), Connect / Cancel (also "type this PIN", "enter the PIN", Allow); devices being paired are allowed to connect without a second question. The window and taskbar show a new Windows 11 style Bluetooth app icon (`veltos-bluetooth`). Dev VM with btvirt: paired and connected from Settings through the window. Real devices untested
+
 ## Final release steps (after item 45)
 
 Product owner, 2026-10-25: only after every item above is done, in this
@@ -318,10 +337,10 @@ order:
 
 ## Next steps
 
-1. The product owner's list is done (items 1-64); next the final release
+1. The product owner's list is done (items 1-77); next the final release
    steps F1-F9 in their order. Items 58-64 still need a look in the dev VM
-   (a real model download and answer, the pane and the window, the new
-   tray icon, Start's gap, Maps).
+   (a real model download and answer, the pane and the window, Maps);
+   items 72 and 75 need real hardware (a Bluetooth headset, a touchpad).
 2. Newest ISO: `veltos-0.1.0-dev-20261026-124246` (2.38 GB, sha256
    `0f15ffab50b2e8cd0cf39ef6c96bc2ead48298a46f723f3b6afe2f8b16f33bd3`)
    with items 1-64; built and verified by the image's verify hook, not yet

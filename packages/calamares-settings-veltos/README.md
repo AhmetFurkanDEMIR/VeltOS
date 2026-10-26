@@ -50,6 +50,18 @@ helper scripts are derived, ISC licence).
     Turkish), also in the disk list and in the page's sentences. Drop-down
     lists open under their box (Kvantum's menu-style list covered the box,
     product owner 2026-10-23).
+    The choices (Erase disk, Install alongside, Replace a partition,
+    Manual partitioning) are cards with an accent border on the chosen
+    one, and all of them are offered also on a disk with an older VeltOS
+    or Windows: `release-disks` unmounts the PC's disks (and closes
+    their encrypted volumes and swap) before Calamares starts, because
+    Calamares offers only Manual partitioning while a partition of the
+    disk is mounted (product owner, 2026-10-26). The partition being
+    created is drawn in the accent colour with its size ("New
+    partition"), and the size box of "Create a partition" is a Windows
+    11 number box (+ and - on the right, "MB"), clamped to the free
+    space at every step (Calamares corrected a typed or stepped value
+    only after the box lost focus).
   - **Account** (`usersq`): name, account name and PC name (suggested from
     the name), password twice, automatic sign-in as a toggle switch. Any
     non-empty password is accepted, as on Windows.

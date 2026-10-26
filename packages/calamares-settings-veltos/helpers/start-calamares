@@ -65,6 +65,10 @@ kvantum=VeltOS
 mkdir -p "$root_config/Kvantum"
 printf '[General]\ntheme=%s\n' "$kvantum" > "$root_config/Kvantum/kvantum.kvconfig"
 
+# Disks with a mounted partition (a drive opened in File Explorer) get only
+# "Manual partitioning" from Calamares: release them first (release-disks).
+"${VELTOS_RELEASE_DISKS:-/usr/libexec/veltos-installer/release-disks}" || true
+
 dark=0
 [ "$mode" = dark ] && dark=1
 if [ "$software" = 1 ]; then

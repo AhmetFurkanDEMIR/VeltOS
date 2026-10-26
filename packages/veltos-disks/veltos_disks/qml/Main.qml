@@ -160,21 +160,16 @@ ApplicationWindow {
         else if (action === "properties")
             openProperties();
     }
+    // Format opens Windows 11's Format window (FormatWindow.qml), a window
+    // of its own over this one.
     function openFormat() {
-        const item = selected, t = backend.texts;
+        const item = selected;
         if (!item || item.kind !== "volume")
-            return;
-        dialog.openWith({
-            title: t.format_title.replace("{name}", item.title || item.device),
-            fields: [{key: "label", label: t.volume_label, type: "text", value: item.label},
-                     {key: "fs", label: t.fs_choice, type: "choice", value: defaultFs(item.fsType),
-                      options: fsOptions()},
-                     {key: "quick", label: t.quick_format, type: "check", value: true}],
-            onAccept: values => dialog.openWith({
-                title: t.format_title.replace("{name}", item.title || item.device), message: t.format_warning,
-                acceptText: t.yes, rejectText: t.no, fields: [],
-                onAccept: () => backend.act("format", item.object, values)})
-        });
+            return null;
+        const format = formatComponent.createObject(window, {volume: item, transientParent: window});
+        format.show();
+        format.requestActivate();
+        return format;
     }
     function openFormatForDevice(device) {
         const volume = backend.volumes.find(item => item.device === device);
@@ -190,6 +185,13 @@ ApplicationWindow {
         select(volume);
         openFormat();
         return true;
+    }
+    Component {
+        id: formatComponent
+        FormatWindow {
+            modality: Qt.WindowModal
+            onVisibleChanged: if (!visible) destroy()
+        }
     }
     function openNewVolume() {
         const item = selected, t = backend.texts;

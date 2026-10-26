@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+"""The chooser shown when a screen is plugged in (KScreen's D-Bus service
+org.kde.kscreen.osdService): veltos_settings/kscreen_osd.py."""
+import sys
+
+from veltos_settings.kscreen_osd import main
+
+sys.exit(main())

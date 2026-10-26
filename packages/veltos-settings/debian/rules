@@ -16,6 +16,17 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-settings-redirect debian/veltos-settings/usr/libexec/veltos/settings-redirect
 	# Mobile hotspot for Quick Settings (veltos_settings/hotspot.py).
 	install -D -m 755 bin/veltos-hotspot debian/veltos-settings/usr/libexec/veltos/hotspot
+	# Plugging in a screen opens Windows 11's Project flyout instead of
+	# KDE's chooser (veltos_settings/kscreen_osd.py takes KScreen's bus name).
+	install -D -m 755 bin/veltos-kscreen-osd debian/veltos-settings/usr/libexec/veltos/kscreen-osd
+	install -D -m 644 data/systemd/plasma-kscreen-osd-veltos.conf \
+		debian/veltos-settings/usr/lib/systemd/user/plasma-kscreen-osd.service.d/veltos.conf
+	# Bluetooth pairing questions in Windows 11's Add a device window
+	# (veltos_settings/btagent.py, started with the session).
+	install -D -m 755 bin/veltos-bt-agent debian/veltos-settings/usr/libexec/veltos/bt-agent
+	install -D -m 644 data/veltos-bt-agent.desktop debian/veltos-settings/etc/xdg/autostart/veltos-bt-agent.desktop
+	install -D -m 644 data/veltos-bluetooth-pair.desktop \
+		debian/veltos-settings/usr/share/applications/veltos-bluetooth-pair.desktop
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/systemsettings
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kcmshell6
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kinfocenter

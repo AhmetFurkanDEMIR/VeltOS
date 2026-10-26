@@ -123,7 +123,7 @@ SubPage {
                     RowLayout {
                         Layout.fillWidth: true
                         Item { Layout.fillWidth: true }
-                        PlasmaComponents3.Button {
+                        OutlineButton {
                             Layout.minimumWidth: Kirigami.Units.gridUnit * 6
                             visible: paired.model.Connected
                             enabled: !paired.model.Connecting
@@ -159,11 +159,18 @@ SubPage {
                     required property var modelData
                     readonly property string pairState: bluetooth.pairing[modelData.ubi] || ""
                     width: list.width
-                    visible: !modelData.paired && !modelData.connected && !modelData.blocked && modelData.name !== ""
+                    // Only devices seen in this search (BlueZ forgets a
+                    // device's signal strength when a search ends) that send
+                    // a name of their own: BlueZ keeps every device it ever
+                    // saw, and nameless ones carry their address as name,
+                    // which made long lists of addresses (product owner,
+                    // 2026-10-26).
+                    visible: !modelData.paired && !modelData.connected && !modelData.blocked
+                             && modelData.remoteName !== "" && modelData.rssi !== -32768 && modelData.rssi !== 0
                     height: visible ? implicitHeight : 0
                     iconName: "bluetooth-symbolic"
                     monochromeIcon: true
-                    title: modelData.name
+                    title: modelData.remoteName
                     busy: pairState === "pairing"
                     expanded: bluetooth.openUbi === modelData.ubi
                     status: pairState === "pairing" ? i18n("Pairing…")

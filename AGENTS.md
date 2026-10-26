@@ -61,7 +61,7 @@ owner sets priorities; agents act as the engineering team.
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
 | `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin script `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
-| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy, Maps location access); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`); Mobile hotspot (`hotspot.py`, also `/usr/libexec/veltos/hotspot` for Quick Settings); Apps > VeltOS AI (`assistant.py`) |
+| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy, Maps location access); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`); Mobile hotspot (`hotspot.py`, also `/usr/libexec/veltos/hotspot` for Quick Settings); Apps > VeltOS AI (`assistant.py`); Windows + P and the chooser on a new screen (`project.py`, `kscreen_osd.py` owning KScreen's `org.kde.kscreen.osdService`); the VeltOS Bluetooth agent (`btagent.py`, `/usr/libexec/veltos/bt-agent`) and its Add a device window (`btpair.py`, `--bt-pair`) |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. This PC offers Format for eligible drives through VeltOS Disk Management and distinguishes USB, removable and fixed Windows drives. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`), and the Windows 11 Properties window (`--properties`, also from the desktop); Windows 11's copy window (`--transfer`, `transfer.py`) and "Delete File" (`--delete-permanently`) |
 | `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
 | `packages/veltos-clock/` | VeltOS Clock: Windows 11 Clock (Focus sessions, Timer, Alarm, Stopwatch, World clock); `veltos-clock-agent` rings alarms and timers while the app is closed, and VeltOS Calendar's reminders |
@@ -81,8 +81,8 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook), start-up screen at the screen's resolution (`resolution/`: set at installation, kept in step at sign-in), GRUB start counting with the Recovery and safe-graphics entries (`grub.d/10_linux`) |
 | `packages/veltos-recovery/` | VeltOS Automatic Repair: after two starts that did not finish, GRUB starts `veltos-recovery.target`, a full-screen Windows 11 style recovery window on Qt's linuxfb (Restart, Startup Repair, Safe mode, Command Prompt as a console sign-in, last start's problems, Turn off); the services that clear the count or restart after a failed start; `veltos-safe-graphics` (starts without a graphics driver sign in to Plasma on X11); persistent journal |
-| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
-| `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format, delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
+| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), `release-disks` (unmounts the PC's disks before Calamares starts, so every partitioning choice is offered), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
+| `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format (Windows 11's Format window, `FormatWindow.qml`, also alone for File Explorer's `--format`), delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil) or the AMD/Intel firmware and Mesa drivers through `pkcon`; also Settings > Display > Graphics cards |
 | `packages/veltos-weather/` | VeltOS Weather: Windows 11 Weather layout (current weather, 10-day forecast, hourly chart, weather details, historical weather, favorites, °F/°C) on Open-Meteo's open data without a key (`openmeteo.py`, cache in `~/.cache/veltos-weather`); first start uses the time zone's city |
 | `packages/veltos-maps/` | VeltOS Maps: Google Maps in one VeltOS window (Windows 11 floating controls, InfoBars, offline page, the app's language) without a Maps Platform API key; optional location through GeoClue (off by default; Maps or Settings > Privacy & security > Location) and Windows 11's default location (`~/.config/veltos/location.json`) |
@@ -1114,3 +1114,39 @@ and JavaScript with no build step, no external requests and no cookies:
   GB/s, so File Explorer's copy window may finish before it appears;
   `tests/results/2026-10-26-items-46-57/slowcopy.sh` runs it with the disk
   limited to 60 MB/s (cgroup `IOReadBandwidthMax`).
+- Calamares (2026-10-26) hides Erase disk, Install alongside and Replace a
+  partition for a disk with any mounted partition (a drive opened in File
+  Explorer in the live session): only Manual partitioning is left.
+  `release-disks` (calamares-settings-veltos) frees the disks first. Its
+  size box (Create/Edit Partition) has no maximum and Calamares corrects
+  the value only on `editingFinished`. KPMcore's size bar is
+  `PartResizerWidget` with a `PartWidget` and two `QLabel` handles whose
+  width comes from `pixelMetric(PM_SplitterWidth)` asked without a widget.
+- In QML a point (or other value type) read from a property is a live
+  reference: `const p = box.moved; box.moved = Qt.point(0, 0)` makes `p`
+  read 0. Copy the numbers (`const dx = box.moved.x`). Qt 6's
+  DragHandler `translation` is back at 0 when `onActiveChanged` runs for
+  the drop: keep the offset in a property of your own.
+- KScreen asks `org.kde.kscreen.osdService` (D-Bus activation through
+  `plasma-kscreen-osd.service`) to show its chooser only for a screen
+  layout it has not saved (`~/.local/share/kscreen/`): delete those files
+  to see it again in the VM. VeltOS' `kscreen-osd` owns that name.
+- KWin 6.3 reads `kcminputrc [Libinput][Defaults][Touchpad]` into the
+  device but never uses it for values (`Device::loadConfiguration` reads
+  only `[Libinput][vendor][product][name]`); set per device over D-Bus
+  (`org.kde.KWin.InputDevice`), as `touchpad-defaults` does.
+- Bluetooth: `bluetoothctl devices` lists every device bluetoothd ever saw,
+  and nameless ones carry their address as alias; RSSI is cleared when a
+  scan stops, so read the scan's own `[NEW]` and `RSSI:` lines. BluezQt's
+  `name` is that alias, `remoteName` the device's own. The dev VM's
+  `out/vm/btsim.sh` must not make its bluetoothctl the default agent
+  (pairing then times out waiting for it; Plasma's agent asks for the PIN
+  otherwise), and the simulated device is discoverable for 180 s only.
+- KDE's colour scheme reaches symbolic icons only through the
+  `current-color-scheme` style sheet and `class="ColorScheme-Text"`; a bare
+  `currentColor` stays black on a dark taskbar. Fluent's dark trees
+  (`*-dark*`) carry #dedede, the light ones #363636.
+- `QGuiApplication.quit()` closes the windows at once, inside the call:
+  a Window's `onClosing` runs before the code after `quit()` (and before
+  the QML that called it continues). Set "answered" flags before quitting
+  (the Bluetooth pairing window answered "no" right after "yes").

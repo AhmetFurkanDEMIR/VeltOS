@@ -118,6 +118,34 @@ class BluetoothTests(unittest.TestCase):
         finally:
             devices.BLUETOOTH_SYSFS = saved
 
+    def test_discover_lists_named_devices_in_range(self):
+        # bluetoothctl's scan output (5.82, colours as it prints them): a new
+        # device with a name, one seen again (RSSI), a nameless one (its
+        # address as alias), one only in bluetoothd's cache (no line in this
+        # scan) and a paired one.
+        scan = ("Discovery started\n"
+                "[\x1b[0;92mNEW\x1b[0m] Device 0C:AE:B0:11:22:33 JBL Flip 6\n"
+                "[\x1b[0;93mCHG\x1b[0m] Device 66:77:88:99:AA:BB RSSI: 0xffffffc4 (-60)\n"
+                "[\x1b[0;92mNEW\x1b[0m] Device 5D:4E:3F:2A:1B:0C 5D-4E-3F-2A-1B-0C\n"
+                "[\x1b[0;93mCHG\x1b[0m] Device AA:BB:CC:DD:EE:FF RSSI: -40\n"
+                "[\x1b[0;93mCHG\x1b[0m] Device 0C:AE:B0:11:22:33 RSSI: -71\n")
+        system = FakeSystem({
+            ("bluetoothctl", "--timeout", "8", "scan", "on"): scan,
+            ("bluetoothctl", "info", "0C:AE:B0:11:22:33"):
+                "Device 0C:AE:B0:11:22:33 (public)\n\tName: JBL Flip 6\n\tAlias: JBL Flip 6\n"
+                "\tIcon: audio-card\n\tPaired: no\n\tBlocked: no\n",
+            ("bluetoothctl", "info", "66:77:88:99:AA:BB"):
+                "Device 66:77:88:99:AA:BB (public)\n\tName: Galaxy Buds2\n\tAlias: Galaxy Buds2\n"
+                "\tIcon: audio-headset\n\tPaired: no\n",
+            ("bluetoothctl", "info", "5D:4E:3F:2A:1B:0C"):
+                "Device 5D:4E:3F:2A:1B:0C (random)\n\tAlias: 5D-4E-3F-2A-1B-0C\n\tPaired: no\n",
+        })
+        found = devices.Bluetooth(system).discover()
+        self.assertEqual(found, [
+            {"mac": "66:77:88:99:AA:BB", "name": "Galaxy Buds2", "rssi": -60, "icon": "audio-headset"},
+            {"mac": "0C:AE:B0:11:22:33", "name": "JBL Flip 6", "rssi": -71, "icon": "audio-card"},
+        ])
+
     def test_actions(self):
         system = FakeSystem()
         bt = devices.Bluetooth(system)
@@ -201,6 +229,52 @@ def two_screens(hdmi_enabled=False, hdmi_x=0):
                          {"id": "12", "refreshRate": 60.0, "size": {"width": 1920, "height": 1080}},
                          {"id": "13", "refreshRate": 59.94, "size": {"width": 1920, "height": 1080}}]}
     return [laptop, monitor]
+
+
+class RearrangeTests(unittest.TestCase):
+    """Settings > Display: a dragged display snaps to an edge of another."""
+
+    @staticmethod
+    def screens(*boxes):
+        return [{"id": i + 1, "enabled": True, "x": x, "y": y, "width": w, "height": h}
+                for i, (x, y, w, h) in enumerate(boxes)]
+
+    def test_dropped_beside_below_and_above(self):
+        outputs = self.screens((0, 0, 1920, 1080), (1920, 0, 1280, 1024))
+        # Dropped to the left of display 1, a little low: it goes left, its
+        # top lined up with display 1's top (within SNAP), and display 1
+        # moves right so the left one starts at 0.
+        self.assertEqual(devices.snap_position(outputs, 2, -1300, 25),
+                         [{"id": 1, "x": 1280, "y": 0}, {"id": 2, "x": 0, "y": 0}])
+        # Dropped under display 1, off to the right: below it, touching it.
+        self.assertEqual(devices.snap_position(outputs, 2, 1200, 1300),
+                         [{"id": 1, "x": 0, "y": 0}, {"id": 2, "x": 1200, "y": 1080}])
+        # Dropped far above: on top, display 1 below it.
+        self.assertEqual(devices.snap_position(outputs, 2, 300, -2000),
+                         [{"id": 1, "x": 0, "y": 1024}, {"id": 2, "x": 300, "y": 0}])
+        # Dropped on top of display 1: the nearest free edge, never covering it.
+        placed = {p["id"]: p for p in devices.snap_position(outputs, 2, 500, 100)}
+        a, b = placed[1], placed[2]
+        overlap = (a["x"] < b["x"] + 1280 and b["x"] < a["x"] + 1920 and a["y"] < b["y"] + 1024
+                   and b["y"] < a["y"] + 1080)
+        self.assertFalse(overlap)
+
+    def test_keeps_touching_and_ignores_unused_displays(self):
+        outputs = self.screens((0, 0, 1920, 1080), (1920, 0, 1280, 1024))
+        # Dropped far away to the right and below: still touching display 1.
+        placed = devices.snap_position(outputs, 2, 5000, 3000)
+        self.assertEqual(placed, [{"id": 1, "x": 0, "y": 0}, {"id": 2, "x": 1920, "y": 1079}])
+        outputs.append({"id": 3, "enabled": False, "x": 0, "y": 0, "width": 800, "height": 600})
+        self.assertEqual([p["id"] for p in devices.snap_position(outputs, 2, 1920, 0)], [1, 2])
+        self.assertEqual(devices.snap_position(outputs[:1], 1, 50, 50), [{"id": 1, "x": 0, "y": 0}])
+
+    def test_positions_in_one_kscreen_call(self):
+        system = FakeSystem()
+        display = devices.Display(system)
+        self.assertTrue(display.set_positions([{"id": 1, "x": 1280, "y": 0}, {"id": 2, "x": 0, "y": 0}]))
+        self.assertEqual(system.commands[-1],
+                         ["kscreen-doctor", "output.1.position.1280,0", "output.2.position.0,0"])
+        self.assertFalse(display.set_positions([]))
 
 
 class MultipleDisplaysTests(unittest.TestCase):

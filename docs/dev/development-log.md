@@ -3,6 +3,79 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-27 — Items 76-77: Project glyphs, Bluetooth pairing window
+
+- 76 Project flyout glyphs redrawn (two monitors on stands in every tile).
+- 77 VeltOS Bluetooth agent and the Add a device window, with a new
+  Bluetooth app icon. First end-to-end try: the window's Connect answered
+  "yes", then `app.quit()` closed the window at once and its onClosing
+  answered "no" before the QML flag was set, so pairing was rejected; the
+  flag is now set before answering and only the first answer counts. After
+  pairing BlueZ asked AuthorizeService for the not-yet-trusted device (a
+  second window); paired devices are now allowed without asking. Paired
+  and connected from Settings in the dev VM (btvirt).
+- The package build of 2026-10-26 evening had stopped at Settings: four
+  UI tests still expected the old Bluetooth scan (10 s, the device cache)
+  and one read a QML array from Python without `toVariant()`.
+- The next build stopped twice more: the pairing window test opened a
+  second window while the first engine still read its replaced backend
+  ("Cannot call method 'text' of null"; the test now deletes the first
+  window before opening the next), and veltos-fluent-icons' install check
+  compared the dark trees' symbolic icons with the light originals (they
+  are #dedede there now; the check accepts the recoloured copy). Then all
+  six packages built with their tests (repository checks 8, Settings 165,
+  desktop 156 with 3 skipped, icons 4, File Explorer 99, installer 58,
+  Disk Management 25).
+
+## 2026-10-26 (evening) — Items 65-75: installer, Format, monitors, Start, flyouts, Bluetooth
+
+The product owner's next list (status items 65-75), each reproduced in
+the QEMU dev VM first where the VM can show it, then fixed and seen again
+there (live ISO 20261026-124246 with the changed files installed).
+
+- 65 Turkish Q could not be added: the drop-down preselected it and
+  VComboBox does nothing for the current entry. A Settings UI test first
+  failed on its own helper (items inside a Window need the item tree,
+  AGENTS.md), then passed.
+- 66 Symbolic icons stayed black on the dark taskbar: KDE recolours only
+  `.ColorScheme-Text` from the `current-color-scheme` style sheet.
+- 67 Installer. "Only Manual partitioning" was reproduced exactly: install
+  VeltOS (Erase disk, a complete installation in the VM), boot the ISO,
+  mount the old system's partition as File Explorer does (udisks), open the
+  installer. `release-disks` fixes it (Calamares then offered all four
+  choices with the partition still mounted beforehand). The Create
+  Partition size box went past the free space (15098 MiB free, + gave
+  15101): Calamares sets no maximum and corrects only on editingFinished;
+  the style now finishes the edit on each step (+ stays at 39633 MB, a typed
+  99999 becomes 39633, dragging the handle works).
+- 68 Format window: a full NTFS format of a 1 GB partition in the VM
+  ("Formatting…" with the running bar, then "Format complete."). Loop
+  devices are not listed by Disk Management (the first try showed
+  "unavailable").
+- 69 Monitors: KDE's chooser came up on a hot-plugged screen (QEMU second
+  output). VeltOS' `kscreen-osd` now opens the Project flyout (after
+  forgetting KScreen's saved layouts: KScreen asks only for new layouts).
+  Dragging display 2 to the left first did nothing: a QML point read from
+  a property is a live reference, reset before use (AGENTS.md); applied
+  positions read back with kscreen-doctor (0,211 and 1024,0).
+- 70 Start's fixed height (47 grid units, ~846 px) overlapped the taskbar
+  at 1280 × 768 and flickered under the pointer; Start and search now fit.
+  A light band seen once under Start right after a screen was unplugged
+  could not be reproduced afterwards.
+- 71 Accent colour in Quick Settings and the clock flyout (outline
+  buttons, tinted open rows, Focus filled).
+- 72 Bluetooth: `bluetoothctl devices` lists every device bluetoothd ever
+  saw; nameless ones have their address as alias. Discovery now reads the
+  scan's own [NEW]/RSSI lines (BlueZ forgets RSSI when a scan stops). The
+  VM test aid `btsim.sh` made its own bluetoothctl the system's default
+  agent, so pairing timed out ("Timed out waiting for reply from agent");
+  without that line Plasma's agent asked for the PIN, and the device paired
+  and connected from Settings. The simulated device stops being
+  discoverable after 180 s.
+- 73-75 Windows drive icon (rendered at 256/48/16 px in the VM), graphics
+  cards in Settings > Display (one virtio card in the VM), touchpad default
+  (unit test only).
+
 ## 2026-10-26 (afternoon) — Items 58-64: VeltOS AI's local model and window; ISO 20261026-124246
 
 The product owner's next list (items 58-64 in `status.md`). They asked for

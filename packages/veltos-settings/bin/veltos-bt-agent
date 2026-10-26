@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+"""The VeltOS Bluetooth agent (veltos_settings/btagent.py), started with the session."""
+import sys
+
+from veltos_settings.btagent import main
+
+sys.exit(main())

@@ -195,19 +195,34 @@ SubPage {
                         Layout.topMargin: Kirigami.Units.smallSpacing
                         spacing: Kirigami.Units.smallSpacing
 
-                        PlasmaComponents3.Button {
+                        // Properties: a link in the accent colour, as in Windows 11.
+                        PlasmaComponents3.Label {
                             visible: network.connected
                             text: i18n("Properties")
-                            flat: true
-                            onClicked: wifi.openSettings()
+                            color: Kirigami.Theme.highlightColor
+                            font.underline: propertiesArea.containsMouse
+                            MouseArea {
+                                id: propertiesArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: wifi.openSettings()
+                            }
                         }
-                        Item { Layout.fillWidth: true }
-                        PlasmaComponents3.Button {
+                        Item {
+                            visible: !network.askingKey
+                            Layout.fillWidth: true
+                        }
+                        // While the key is asked, Next and Cancel share the row
+                        // equally, as in Windows 11.
+                        OutlineButton {
                             visible: network.askingKey
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: Kirigami.Units.gridUnit * 6
                             text: i18n("Cancel")
                             onClicked: network.askingKey = false
                         }
-                        PlasmaComponents3.Button {
+                        OutlineButton {
                             Layout.minimumWidth: Kirigami.Units.gridUnit * 6
                             visible: network.connected && !network.busy
                             text: i18n("Disconnect")
@@ -216,6 +231,8 @@ SubPage {
                         }
                         AccentButton {
                             Layout.minimumWidth: Kirigami.Units.gridUnit * 6
+                            Layout.fillWidth: network.askingKey
+                            Layout.preferredWidth: Kirigami.Units.gridUnit * 6
                             visible: network.askingKey || (!network.connected && !network.busy)
                             enabled: !network.askingKey || key.acceptableInput
                             text: network.askingKey ? i18n("Next") : i18n("Connect")

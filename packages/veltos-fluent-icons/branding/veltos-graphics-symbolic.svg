@@ -3,13 +3,16 @@
        connector — a symbolic icon in the look of Windows 11's Settings
        icons (VeltOS artwork; drawn as a mask in the theme's text colour).
        SPDX-License-Identifier: CC-BY-SA-4.0 -->
-  <g fill="none" stroke="currentColor" stroke-width="1">
-    <path d="M1.5 2v12"/>
-    <path d="M1.5 4.5h11.5a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H1.5"/>
-    <circle cx="5.5" cy="8" r="2"/>
-    <circle cx="10.5" cy="8" r="2"/>
+  <defs>
+    <style id="current-color-scheme" type="text/css">.ColorScheme-Text { color:#363636; }</style>
+  </defs>
+  <g class="ColorScheme-Text" fill="none" stroke="currentColor" stroke-width="1">
+    <path class="ColorScheme-Text" d="M1.5 2v12"/>
+    <path class="ColorScheme-Text" d="M1.5 4.5h11.5a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H1.5"/>
+    <circle class="ColorScheme-Text" cx="5.5" cy="8" r="2"/>
+    <circle class="ColorScheme-Text" cx="10.5" cy="8" r="2"/>
   </g>
-  <path fill="currentColor" d="M5 11.5h6V13H5z"/>
-  <circle fill="currentColor" cx="5.5" cy="8" r="0.75"/>
-  <circle fill="currentColor" cx="10.5" cy="8" r="0.75"/>
+  <path class="ColorScheme-Text" fill="currentColor" d="M5 11.5h6V13H5z"/>
+  <circle class="ColorScheme-Text" fill="currentColor" cx="5.5" cy="8" r="0.75"/>
+  <circle class="ColorScheme-Text" fill="currentColor" cx="10.5" cy="8" r="0.75"/>
 </svg>

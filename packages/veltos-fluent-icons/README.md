@@ -22,8 +22,9 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   "this operating system"); the Wine/Windows icons are removed so Breeze's
   neutral icons are used.
 - **Drives** (`tools/draw-icons.py`): the local disk, the Windows drive
-  (the disk with a blue framed window on its front; not Microsoft's
-  four-pane logo, a trademark), a USB flash drive (light grey, a metal
+  (the disk with Windows 11's four-square logo on its front, product
+  owner 2026-10-26; the logo is a Microsoft trademark, used only to mark
+  drives with Windows on them: see architecture 2.38), a USB flash drive (light grey, a metal
   plug and blue light), and a separate portable removable-disk enclosure
   replace Fluent's `drive-harddisk`, `drive-removable-media`,
   `drive-removable-media-usb` and `-pendrive`. Each has its own 16 px
@@ -87,6 +88,15 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   priority 110 over Debian's Adwaita at 90; `Fluent-cursors/cursor.theme`),
   so programs that do not read the desktop's cursor setting (some X11
   programs, programs started as root) show the same pointer.
+
+- **Symbolic icons in dark mode** (2026-10-26): VeltOS' own line icons
+  (`branding/*-symbolic.svg`) use KDE's `current-color-scheme` style
+  sheet (`ColorScheme-Text`), so Plasma draws them in the theme's text
+  colour; the copies in the dark themes are light (#dedede) for
+  programs that do not recolour (`tests/test_symbolic_icons.py`).
+- **Bluetooth** (`veltos-bluetooth`, `preferences-system-bluetooth`,
+  `tools/app-icons.py`): a blue tile with the white Bluetooth rune, for
+  Settings and the Add a device window.
 
 Checks run during the build (`execute_after_dh_auto_install` in
 `debian/rules`): Breeze fallback, no dangling links, key app icons exist,

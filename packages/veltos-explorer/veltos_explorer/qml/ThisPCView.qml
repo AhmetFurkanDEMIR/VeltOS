@@ -68,9 +68,11 @@ ScrollView {
                         anchors.leftMargin: 8
                         anchors.rightMargin: 10
                         spacing: 12
+                        // 48 px as in Windows 11's tiles: the Windows logo on a
+                        // Windows drive reads at this size.
                         Kirigami.Icon {
-                            Layout.preferredWidth: 44
-                            Layout.preferredHeight: 44
+                            Layout.preferredWidth: 48
+                            Layout.preferredHeight: 48
                             source: tile.modelData.icon || (tile.modelData.usb ? "drive-removable-media-usb"
                                     : tile.modelData.removable ? "drive-removable-media"
                                     : tile.modelData.windows ? "drive-harddisk-windows" : "drive-harddisk")

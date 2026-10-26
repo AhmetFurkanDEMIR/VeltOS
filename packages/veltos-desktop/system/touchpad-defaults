@@ -1,0 +1,77 @@
+#!/usr/bin/python3
+"""Touchpads scroll as on Windows 11 (run by session-fixups at sign-in).
+
+Windows 11's precision touchpads start with "Down motion scrolls up": the
+content follows the fingers, what libinput calls natural scrolling. KWin
+keeps the setting per device in kcminputrc ([Libinput][<vendor>][<product>]
+[<name>] NaturalScroll); KWin 6.3 stores a [Libinput][Defaults][Touchpad]
+group but never reads values from it (Device::loadConfiguration reads only
+the device's own group). So each touchpad the user has not set yet gets
+natural scrolling through KWin's own D-Bus property, saved as VeltOS
+Settings saves a choice (product owner, 2026-10-26). A choice made in
+Settings (Bluetooth & devices > Touchpad) is kept.
+"""
+
+import re
+import subprocess
+import sys
+
+DEVICE_ROOT = "/org/kde/KWin/InputDevice"
+IFACE = "org.kde.KWin.InputDevice"
+
+
+def run(command):
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return 1, ""
+    return result.returncode, result.stdout
+
+
+def gdbus(*args):
+    return ["gdbus", "call", "--session", "--dest", "org.kde.KWin", *args]
+
+
+def properties(text):
+    """{name: value} from a gdbus GetAll reply (strings, numbers, booleans)."""
+    values = {}
+    for match in re.finditer(r"'(\w+)': <(?:(?:u?int\d+|double|byte) )?"
+                             r"('(?:[^'\\]|\\.)*'|true|false|-?\d+(?:\.\d+)?)>", text):
+        key, raw = match.groups()
+        if raw.startswith("'"):
+            values[key] = re.sub(r"\\(.)", r"\1", raw[1:-1])
+        elif raw in ("true", "false"):
+            values[key] = raw == "true"
+        else:
+            values[key] = float(raw) if "." in raw else int(raw)
+    return values
+
+
+def config_group(device):
+    return ["--file", "kcminputrc", "--group", "Libinput", "--group", str(device.get("vendor", 0)),
+            "--group", str(device.get("product", 0)), "--group", device.get("name", "")]
+
+
+def main(runner=run):
+    code, out = runner(gdbus("--object-path", DEVICE_ROOT, "--method", "org.freedesktop.DBus.Properties.Get",
+                             "org.kde.KWin.InputDeviceManager", "devicesSysNames"))
+    changed = []
+    for name in re.findall(r"'(event\d+)'", out) if code == 0 else []:
+        code, out = runner(gdbus("--object-path", f"{DEVICE_ROOT}/{name}", "--method",
+                                 "org.freedesktop.DBus.Properties.GetAll", IFACE))
+        device = properties(out) if code == 0 else {}
+        if not device.get("touchpad") or not device.get("supportsNaturalScroll"):
+            continue
+        _, chosen = runner(["kreadconfig6", *config_group(device), "--key", "NaturalScroll"])
+        if chosen.strip():
+            continue                                  # set by the user (or an earlier sign-in)
+        if runner(gdbus("--object-path", f"{DEVICE_ROOT}/{name}", "--method",
+                        "org.freedesktop.DBus.Properties.Set", IFACE, "naturalScroll", "<true>"))[0] == 0:
+            runner(["kwriteconfig6", *config_group(device), "--key", "NaturalScroll", "true"])
+            changed.append(name)
+    return changed
+
+
+if __name__ == "__main__":
+    main()
+    sys.exit(0)

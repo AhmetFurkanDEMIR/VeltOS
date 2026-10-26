@@ -93,6 +93,7 @@ class Backend(QObject):
     changed = Signal()
     busyChanged = Signal()
     message = Signal(str)                       # an error, shown in a dialog
+    actionFinished = Signal(str, str, bool)     # action, target, succeeded (the Format window)
     _finished = Signal(str, int, str, str)      # action, exit code, stdout, stderr (from the worker)
 
     def __init__(self, lang=None, reader=disks.read_objects, runner=run_command, start=detached,
@@ -109,6 +110,7 @@ class Backend(QObject):
         self._disks, self._volumes, self._error = [], [], ""
         self._busy = ""
         self._after = None          # what to do with a successful reply (open a mount point)
+        self._target = ""
         self._dark = dark_mode()
         self._accent = accent()
         self._finished.connect(self._done)
@@ -343,6 +345,7 @@ class Backend(QObject):
                 return True
             self._after = "open"
         self._busy = action
+        self._target = target
         self.busyChanged.emit()
         if self._threaded:
             threading.Thread(target=self._work, args=(action, commands), daemon=True).start()
@@ -370,6 +373,7 @@ class Backend(QObject):
                 self._open_folder(point)
         self._after = None
         self.refresh()
+        self.actionFinished.emit(action, self._target, code == 0)
 
     def _open_folder(self, path):
         self._start(["veltos-explorer", path])
@@ -393,7 +397,15 @@ def main(argv=None):
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)
     engine.rootContext().setContextProperty("formatDeviceRequest", args.format_device or "")
-    engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
+    if args.format_device:
+        # File Explorer's Format: only Windows 11's Format window.
+        volume = next((v for v in backend.volumes if v["device"] == args.format_device), None)
+        engine.setInitialProperties({"volume": volume})
+        engine.load(QUrl.fromLocalFile(str(QML_DIR / "FormatWindow.qml")))
+        if engine.rootObjects():
+            engine.rootObjects()[0].show()
+    else:
+        engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
     if not engine.rootObjects():
         return 1
     backend.start()

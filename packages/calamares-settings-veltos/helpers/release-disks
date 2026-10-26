@@ -1,0 +1,68 @@
+#!/bin/sh
+# Free the PC's disks for the installer (run as root by start-calamares,
+# before Calamares starts).
+#
+# Calamares offers "Erase disk", "Install alongside" and "Replace a
+# partition" only for a disk none of whose partitions is mounted
+# (ChoicePage::setupActions). A drive opened in File Explorer in the live
+# session is mounted by udisks under /media, and on a disk with an older
+# VeltOS only "Manual partitioning" was left (product owner, 2026-10-26;
+# reproduced in the dev VM). So, like Windows Setup taking over its disks,
+# this unmounts the partitions of every disk except the ones the live system
+# runs from, switches off swap on them and closes their opened encrypted
+# volumes. Nothing is written to any disk. A failure is reported and the
+# installer starts anyway (Calamares then still offers manual partitioning).
+#
+# Only on the live system: without /run/live/medium it does nothing (the
+# package's tests run on build machines).
+set -u
+
+live_medium="${VELTOS_LIVE_MEDIUM:-/run/live/medium}"      # test hook
+mountpoint -q "$live_medium" 2>/dev/null || exit 0
+
+# The disk under a block device (a partition, an encrypted volume ...).
+disk_of() {
+    lsblk -rnspo NAME,TYPE "$1" 2>/dev/null | awk '$2 == "disk" { print $1; exit }'
+}
+
+# The disks the live system runs from (the USB stick; nothing for a DVD).
+live=""
+for target in "$live_medium" /run/live/persistence/*; do
+    source=$(findmnt -rno SOURCE "$target" 2>/dev/null) || continue
+    live="$live $(disk_of "$source")"
+done
+
+# True for a block device on a disk the installer may use.
+releasable() {
+    disk=$(disk_of "$1")
+    [ -n "$disk" ] || return 1
+    case " $live " in *" $disk "*) return 1 ;; esac
+    return 0
+}
+
+# Swap first (a swap file keeps its file system busy).
+swapon --show=NAME --noheadings --raw 2>/dev/null | while read -r swap; do
+    device="$swap"
+    case "$swap" in /dev/*) ;; *) device=$(findmnt -rno SOURCE --target "$swap" 2>/dev/null) ;; esac
+    if [ -n "$device" ] && releasable "$device"; then
+        swapoff "$swap" || echo "release-disks: could not switch off swap $swap" >&2
+    fi
+done
+
+# Mounts, the deepest first (findmnt escapes spaces as \040).
+findmnt -rno TARGET,SOURCE 2>/dev/null | sort -r | while read -r target source; do
+    case "$source" in /dev/*) ;; *) continue ;; esac
+    releasable "$source" || continue
+    target=$(printf '%b' "$target")
+    umount "$target" 2>/dev/null || umount -l "$target" || echo "release-disks: could not unmount $target" >&2
+done
+
+# Encrypted volumes opened in the session (File Explorer asks for the
+# password and opens them).
+dmsetup ls --target crypt 2>/dev/null | while read -r name _; do
+    [ -e "/dev/mapper/$name" ] || continue
+    if releasable "/dev/mapper/$name"; then
+        cryptsetup close "$name" || echo "release-disks: could not close /dev/mapper/$name" >&2
+    fi
+done
+exit 0

@@ -64,12 +64,17 @@ ColumnLayout {
         icon: "list-add-symbolic"
         title: backend.text("add_keyboard")
         VComboBox {
+            objectName: "addKeyboard"
             Layout.preferredWidth: 240
             accessibleName: backend.text("add_keyboard")
             options: backend.layoutOptions.filter(o => !page.layouts.includes(o.value))
-            // Turkish is offered first, as the product owner asked (2026-10-22);
-            // choosing an entry adds it.
-            currentValue: options.length > 0 ? (options.some(o => o.value === "tr") ? "tr" : options[0].value) : ""
+            // Turkish is offered first (the top of the list), as the product
+            // owner asked (2026-10-22); choosing an entry adds it. Nothing is
+            // preselected: a preselected Turkish Q could not be added, as
+            // choosing the current entry does nothing (product owner,
+            // 2026-10-26).
+            currentValue: ""
+            placeholder: backend.text("choose_keyboard")
             onActivated: value => backend.setLayouts(page.layouts.concat([value]))
         }
     }

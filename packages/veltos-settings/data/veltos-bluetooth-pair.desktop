@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Add a device
+Name[tr]=Cihaz ekle
+Comment=Bluetooth pairing
+Comment[tr]=Bluetooth eşleştirme
+Icon=veltos-bluetooth
+Exec=veltos-settings bluetooth
+NoDisplay=true

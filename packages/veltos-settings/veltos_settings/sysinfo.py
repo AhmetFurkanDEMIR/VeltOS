@@ -76,7 +76,8 @@ def gpus(lspci_output=None):
             continue
         if len(fields) >= 4 and fields[1] in ("VGA compatible controller", "3D controller",
                                               "Display controller"):
-            vendor = re.sub(r" (Corporation|Corp\.|Inc\.|Co\., Ltd\.)$", "", fields[2])
+            # "Red Hat, Inc." and "NVIDIA Corporation" lose the company suffix.
+            vendor = re.sub(r",? (Corporation|Corp\.|Inc\.|Co\., Ltd\.)$", "", fields[2])
             vendor = vendor.replace("Advanced Micro Devices, Inc. [AMD/ATI]", "AMD")
             result.append(f"{vendor} {fields[3]}".strip())
     return result

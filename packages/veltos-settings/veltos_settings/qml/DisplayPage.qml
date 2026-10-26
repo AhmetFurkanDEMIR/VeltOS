@@ -19,6 +19,31 @@ ColumnLayout {
                                                                  : (disp.outputs.length > 0 ? disp.outputs[0] : null)
     readonly property bool several: disp.outputs.length > 1
     property var revertTo: null      // {output, mode} while asking to keep a resolution
+    // A rearrangement not applied yet: {id: {x, y}} (logical pixels).
+    property var pending: null
+    function positionOf(o) {
+        return page.pending && page.pending[o.id] ? page.pending[o.id] : { x: o.x, y: o.y };
+    }
+    function drop(o, x, y) {
+        const placed = backend.snapDisplay(o.id, x, y);
+        const next = {};
+        let moved = false;
+        for (const p of placed) {
+            next[p.id] = { x: p.x, y: p.y };
+            const was = (page.disp.outputs || []).find(out => out.id === p.id);
+            if (!was || was.x !== p.x || was.y !== p.y)
+                moved = true;
+        }
+        page.pending = moved ? next : null;
+    }
+    function applyArrangement() {
+        if (!page.pending)
+            return;
+        const positions = Object.keys(page.pending).map(id => ({ id: parseInt(id), x: page.pending[id].x,
+                                                                    y: page.pending[id].y }));
+        backend.setDisplayPositions(positions);
+        page.pending = null;
+    }
     property int secondsLeft: 15
     signal itemActivated(var item)
 
@@ -48,7 +73,10 @@ ColumnLayout {
     }
 
     // The arrangement: one box per display, to scale, numbered as Windows
-    // numbers them; displays not in use sit at the end, dimmed.
+    // numbers them; displays not in use sit at the end, dimmed. As on
+    // Windows 11 a display in use can be dragged: dropped, it snaps to an
+    // edge of another one (devices.snap_position), and Apply moves the
+    // screens there (product owner, 2026-10-26).
     Card {
         id: arrangement
         objectName: "arrangement"
@@ -67,7 +95,8 @@ ColumnLayout {
                     const outs = page.disp.outputs || [];
                     let right = 0;
                     const placed = outs.map(o => {
-                        const box = { x: o.x, y: o.y, w: Math.max(1, o.width), h: Math.max(1, o.height), o: o };
+                        const at = page.positionOf(o);
+                        const box = { x: at.x, y: at.y, w: Math.max(1, o.width), h: Math.max(1, o.height), o: o };
                         if (!o.enabled)
                             box.x = -1;
                         else
@@ -85,7 +114,13 @@ ColumnLayout {
                 }
                 readonly property real spanX: Math.max(1, ...boxes.map(b => b.x + b.w))
                 readonly property real spanY: Math.max(1, ...boxes.map(b => b.y + b.h))
-                readonly property real factor: Math.min((width - 24) / spanX, (height - 16) / spanY)
+                // The scale is kept while a display is dragged (the boxes would
+                // shrink and grow under the pointer otherwise).
+                readonly property real fitFactor: Math.min((width - 24) / spanX, (height - 16) / spanY)
+                property real heldFactor: 0
+                readonly property real factor: heldFactor > 0 ? heldFactor : fitFactor
+                readonly property real originX: (width - spanX * factor) / 2
+                readonly property real originY: (height - spanY * factor) / 2
                 Repeater {
                     model: area.boxes
                     delegate: Rectangle {
@@ -93,8 +128,15 @@ ColumnLayout {
                         required property var modelData
                         required property int index
                         readonly property bool chosen: index === page.selected
-                        x: (area.width - area.spanX * area.factor) / 2 + modelData.x * area.factor + 2
-                        y: (area.height - area.spanY * area.factor) / 2 + modelData.y * area.factor + 2
+                        readonly property bool movable: page.several && modelData.o.enabled
+                        // The drag's offset, kept here: DragHandler's own
+                        // translation is back at 0 when the drop is handled.
+                        property point moved: Qt.point(0, 0)
+                        x: area.originX + modelData.x * area.factor + 2 + moved.x
+                        y: area.originY + modelData.y * area.factor + 2 + moved.y
+                        z: drag.active ? 2 : 1
+                        scale: drag.active ? 1.03 : 1
+                        Behavior on scale { NumberAnimation { duration: 120 } }
                         width: modelData.w * area.factor - 4
                         height: modelData.h * area.factor - 4
                         radius: 4
@@ -111,10 +153,33 @@ ColumnLayout {
                             font.pixelSize: Math.max(14, Math.min(box.height * 0.45, 40))
                             font.weight: Font.DemiBold
                         }
-                        HoverHandler { id: boxHover }
+                        HoverHandler {
+                            id: boxHover
+                            cursorShape: box.movable ? Qt.OpenHandCursor : Qt.ArrowCursor
+                        }
                         TapHandler {
                             gesturePolicy: TapHandler.ReleaseWithinBounds
                             onTapped: page.selected = box.index
+                        }
+                        DragHandler {
+                            id: drag
+                            target: null
+                            enabled: box.movable
+                            cursorShape: Qt.ClosedHandCursor
+                            onTranslationChanged: if (active) box.moved = Qt.point(translation.x, translation.y)
+                            onActiveChanged: {
+                                if (active) {
+                                    page.selected = box.index;
+                                    area.heldFactor = area.factor;
+                                    return;
+                                }
+                                // Plain numbers: a point read from a property stays
+                                // tied to it and would read 0 after the reset below.
+                                const f = area.factor, dx = box.moved.x, dy = box.moved.y;
+                                box.moved = Qt.point(0, 0);
+                                page.drop(box.modelData.o, box.modelData.x + dx / f, box.modelData.y + dy / f);
+                                area.heldFactor = 0;
+                            }
                         }
                     }
                 }
@@ -127,6 +192,19 @@ ColumnLayout {
                     color: Theme.subtext
                     font.pixelSize: Theme.bodySize
                     wrapMode: Text.WordWrap
+                }
+                VButton {
+                    objectName: "applyArrangement"
+                    visible: page.pending !== null
+                    primary: true
+                    text: backend.text("apply")
+                    onClicked: page.applyArrangement()
+                }
+                VButton {
+                    objectName: "cancelArrangement"
+                    visible: page.pending !== null
+                    text: backend.text("cancel")
+                    onClicked: page.pending = null
                 }
                 VButton {
                     objectName: "identify"
@@ -270,9 +348,27 @@ ColumnLayout {
     SectionLabel {
         text: backend.text("related_settings")
     }
-    // VeltOS Graphics Cards: the cards' drivers and properties (its own window).
+    // The PC's graphics cards, one below the other with the graphics card
+    // icon (product owner, 2026-10-26); each opens VeltOS Graphics Cards
+    // (drivers and properties, its own window).
+    Repeater {
+        model: backend.about.gpus || []
+        delegate: SettingCard {
+            objectName: "graphicsCard"
+            required property string modelData
+            required property int index
+            Layout.fillWidth: true
+            icon: "veltos-graphics-symbolic"
+            title: modelData
+            description: backend.format("graphics_card_number", String(index + 1)) + "  ·  "
+                         + backend.text("graphics_cards_desc")
+            external: true
+            onActivated: page.itemActivated({ action: "graphics", page: "" })
+        }
+    }
     SettingCard {
         Layout.fillWidth: true
+        visible: (backend.about.gpus || []).length === 0
         icon: "veltos-graphics-symbolic"
         title: backend.text("graphics_cards")
         description: backend.text("graphics_cards_desc")

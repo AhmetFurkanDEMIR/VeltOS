@@ -670,10 +670,18 @@ class Backend(QObject):
     def discoverBluetooth(self):
         if self._bluetooth.get("scanning"):
             return
-        self._update("_bluetooth", self.bluetoothChanged, {"scanning": True, "found": [], "pairFailed": ""})
+        # The devices found last time stay listed while the next scan runs
+        # (the Bluetooth page scans again every 15 seconds).
+        self._update("_bluetooth", self.bluetoothChanged, {"scanning": True})
         self.jobs.submit(lambda: self.system.bluetooth.discover(),
                          lambda found: self._update("_bluetooth", self.bluetoothChanged,
                                                     {"scanning": False, "found": found or []}))
+
+    @Slot()
+    def startAddDevice(self):
+        """Add a device (the dialog): a fresh list."""
+        self._update("_bluetooth", self.bluetoothChanged, {"found": [], "pairFailed": ""})
+        self.discoverBluetooth()
 
     @Slot(str)
     def pairBluetooth(self, mac):
@@ -743,6 +751,18 @@ class Backend(QObject):
     def setRotation(self, output_id, rotation):
         self.jobs.submit(lambda: self.system.display.set_rotation(output_id, rotation),
                          lambda _ok: self.refreshDisplay())
+
+    @Slot(int, float, float, result="QVariantList")
+    def snapDisplay(self, output_id, x, y):
+        """Where a display dropped at x, y goes (devices.snap_position):
+        [{id, x, y}] for every display in use, not applied yet."""
+        return devices.snap_position(self._display.get("outputs", []), output_id, round(x), round(y))
+
+    @Slot("QVariantList")
+    def setDisplayPositions(self, positions):
+        """Apply a rearrangement (Settings > Display's Apply)."""
+        chosen = [{"id": int(p["id"]), "x": int(p["x"]), "y": int(p["y"])} for p in positions]
+        self.jobs.submit(lambda: self.system.display.set_positions(chosen), lambda _ok: self.refreshDisplay())
 
     @Slot()
     def identifyDisplays(self):
@@ -1158,6 +1178,11 @@ def main(argv=None):
         # Windows + P's flyout and Identify: small windows of their own.
         from . import project
         return project.main(app, argv)
+    if "--bt-pair" in argv:
+        # A Bluetooth pairing question (asked by the VeltOS Bluetooth agent).
+        QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
+        from . import btpair
+        return btpair.main(app, argv)
     try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
         from veltos_controls import use as use_veltos_controls
         use_veltos_controls()

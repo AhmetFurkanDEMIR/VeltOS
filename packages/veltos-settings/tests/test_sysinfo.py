@@ -59,6 +59,9 @@ class SysinfoTests(unittest.TestCase):
             "AMD Navi 33",
         ])
         self.assertEqual(sysinfo.gpus('bad "quote line\n'), [])
+        # A virtual machine's card: "Red Hat, Inc." without its comma.
+        self.assertEqual(sysinfo.gpus('00:01.0 "VGA compatible controller" "Red Hat, Inc." "Virtio 1.0 GPU" -r01 '
+                                      '"Red Hat, Inc." "Device 1100"\n'), ["Red Hat Virtio 1.0 GPU"])
 
     def test_cpu_memory_and_release(self):
         files = {

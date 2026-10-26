@@ -23,6 +23,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Window
 import org.kde.plasma.plasmoid
 import org.kde.plasma.components as PC3
 import org.kde.plasma.extras as PlasmaExtras
@@ -83,10 +84,20 @@ FocusScope {
     readonly property var categoryOrder: ["productivity", "office", "social", "creativity", "entertainment", "games",
                                           "education", "developer", "utilities", "other"]
 
+    // Start fits between the top of the screen and the taskbar, with room
+    // for its gap and frame: on a 1280 × 800 screen its fixed height reached
+    // over the taskbar, and the part on it flickered while the pointer was
+    // on the Start button (product owner, 2026-10-26). Windows 11 makes
+    // Start shorter on small screens too.
+    readonly property int fitHeight: Screen.height
+                                     - (plasmoidItem.compactRepresentationItem
+                                        ? plasmoidItem.compactRepresentationItem.height : Kirigami.Units.gridUnit * 3)
+                                     - Kirigami.Units.gridUnit * 4
     Layout.minimumWidth: Kirigami.Units.gridUnit * 40
-    Layout.minimumHeight: Kirigami.Units.gridUnit * 36
+    Layout.minimumHeight: Math.min(Kirigami.Units.gridUnit * 36, fitHeight)
     Layout.preferredWidth: Kirigami.Units.gridUnit * 46
-    Layout.preferredHeight: Kirigami.Units.gridUnit * 47
+    Layout.preferredHeight: Math.min(Kirigami.Units.gridUnit * 47, fitHeight)
+    Layout.maximumHeight: fitHeight
 
     Kicker.RunnerModel {
         id: runnerModel

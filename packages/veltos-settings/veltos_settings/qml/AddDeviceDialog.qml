@@ -24,7 +24,7 @@ Popup {
     modal: true
     focus: true
     padding: 24
-    onOpened: backend.discoverBluetooth()
+    onOpened: backend.startAddDevice()
 
     background: Rectangle {
         radius: Theme.radius

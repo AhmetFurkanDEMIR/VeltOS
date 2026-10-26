@@ -35,7 +35,8 @@ DARK = {
     "#E1E5EE": "#3A3D46",   # progress track
     "#D7DCE8": "#3A3D46",   # installation progress track
 }
-IMAGES = {"chevron-down.svg": "chevron-down-dark.svg", "ill-disk.svg": "ill-disk-dark.svg"}
+IMAGES = {"chevron-down.svg": "chevron-down-dark.svg", "chevron-up.svg": "chevron-up-dark.svg",
+          "ill-disk.svg": "ill-disk-dark.svg"}
 DECLARATION = re.compile(r"(?P<prop>[a-z-]+)\s*:\s*(?P<value>[^;{}]+);")
 COLOUR = re.compile(r"#[0-9A-Fa-f]{6}\b")
 

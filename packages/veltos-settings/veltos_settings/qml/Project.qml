@@ -50,47 +50,78 @@ Window {
         function onAdvance() { flyout.highlighted = (flyout.highlighted + 1) % backend.modes.length; }
     }
 
-    // Two small screens: filled where the picture is shown.
+    // Windows 11's Project glyphs: always two line-drawn monitors on stands,
+    // so every tile is symmetric (product owner, 2026-10-27: PC screen only
+    // showed one monitor off to the left), the picture filled in where it
+    // is shown: the first screen (PC screen only), both (Duplicate), one
+    // picture across both and the gap (Extend), the second (Second screen
+    // only).
+    component Monitor: Item {
+        id: monitor
+        property color ink
+        property bool shown
+        width: 34
+        height: 32
+        Rectangle {
+            id: frame
+            width: parent.width
+            height: 23
+            radius: 3
+            color: "transparent"
+            border.width: 1.5
+            border.color: monitor.ink
+        }
+        Rectangle {
+            visible: monitor.shown
+            x: 3.5
+            y: 3.5
+            width: frame.width - 7
+            height: frame.height - 7
+            radius: 1.5
+            color: monitor.ink
+        }
+        Rectangle {
+            x: (parent.width - width) / 2
+            y: frame.height
+            width: 1.5
+            height: 4
+            color: monitor.ink
+        }
+        Rectangle {
+            x: (parent.width - width) / 2
+            y: frame.height + 4
+            width: 14
+            height: 1.5
+            radius: 0.75
+            color: monitor.ink
+        }
+    }
     component Screens: Item {
         id: screens
         property string kind
         property color ink
-        implicitWidth: 64
-        implicitHeight: 34
+        implicitWidth: 80
+        implicitHeight: 32
+        // Extend: one picture across both screens and the gap between them.
         Rectangle {
-            id: left
-            x: 0
-            y: 4
-            width: 28
-            height: 20
-            radius: 2
-            color: screens.kind === "second" ? "transparent" : screens.ink
-            border.width: 2
-            border.color: screens.ink
-        }
-        Rectangle {
-            x: 34
-            y: 4
-            width: 28
-            height: 20
-            radius: 2
-            visible: screens.kind !== "pc"
-            color: screens.kind === "pc" ? "transparent" : screens.ink
-            opacity: screens.kind === "duplicate" ? 0.85 : 1
-            border.width: 2
-            border.color: screens.ink
-        }
-        Rectangle {
-            // Extend: one picture over both screens.
             visible: screens.kind === "extend"
-            x: 26
-            y: 10
-            width: 10
-            height: 8
+            x: 3.5
+            y: 3.5
+            width: screens.implicitWidth - 7
+            height: 16
+            radius: 1.5
             color: screens.ink
         }
-        Rectangle { x: 10; y: 26; width: 8; height: 3; radius: 1; color: screens.ink }
-        Rectangle { x: 44; y: 26; width: 8; height: 3; radius: 1; color: screens.ink; visible: screens.kind !== "pc" }
+        Monitor {
+            x: 0
+            ink: screens.ink
+            shown: screens.kind === "pc" || screens.kind === "duplicate"
+        }
+        Monitor {
+            x: screens.implicitWidth - width
+            ink: screens.ink
+            shown: screens.kind === "second" || screens.kind === "duplicate"
+        }
     }
 
     Rectangle {

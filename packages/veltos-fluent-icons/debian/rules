@@ -94,6 +94,16 @@ override_dh_auto_install:
 	done
 	install -D -m 644 branding/network-wireless-hotspot-symbolic.svg \
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/status/network-wireless-hotspot-symbolic.svg
+	# VeltOS' symbolic icons carry KDE's colour-scheme style sheet
+	# (.ColorScheme-Text), which Plasma recolours, in Fluent's light text
+	# colour; in the dark trees they get Fluent's dark one, as Fluent's own
+	# icons there have. Bare currentColor stayed black on the dark taskbar
+	# (product owner, 2026-10-26).
+	for name in $(VELTOS_SYMBOLIC) network-wireless-hotspot-symbolic; do \
+		find $(ICONS) -path '*-dark*' -type f -name "$$name.svg" \
+			-exec sed -i 's/color:#363636;/color:#dedede;/' {} + ; \
+	done
+	test -n "$$(find $(ICONS) -path '*-dark*' -name veltos-safely-remove-symbolic.svg -exec grep -l 'color:#dedede;' {} +)"
 	# App icons as one Windows 11 style family (VeltOS artwork, branding/apps/,
 	# tools/app-icons.py): VeltOS apps and the KDE apps they stand for. All
 	# Fluent themes share .Fluent-base/scalable; a symbolic link of that name
@@ -147,7 +157,8 @@ execute_after_dh_auto_install:
 	for name in $(VELTOS_ICONS); do \
 		test -n "$$(find -L $(ICONS)/Fluent -name "$$name.svg")" || exit 1; \
 		for f in $$(find -L $(ICONS)/Fluent $(ICONS)/Fluent-dark -name "$$name.svg"); do \
-			cmp -s $$f branding/$$name.svg || cmp -s $$f branding/small/$$name.svg || exit 1; done; \
+			cmp -s $$f branding/$$name.svg || cmp -s $$f branding/small/$$name.svg || \
+			sed 's/color:#363636;/color:#dedede;/' branding/$$name.svg | cmp -s - $$f || exit 1; done; \
 	done
 	! grep -rqi 'da4453' $(ICONS)/.Fluent-base/16/actions/window-close.svg $(ICONS)/.Fluent-dark-base/22/actions/tab-close.svg
 	cmp -s $(ICONS)/.Fluent-base/scalable/devices/drive-harddisk-windows.svg branding/drive-harddisk-windows.svg

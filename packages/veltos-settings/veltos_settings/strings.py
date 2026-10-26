@@ -89,6 +89,17 @@ TEXTS = {
     "connected": ("Connected", "Bağlı"),
     "not_connected": ("Not connected", "Bağlı değil"),
     "connect": ("Connect", "Bağlan"),
+    # Bluetooth pairing (btpair.py, the VeltOS Bluetooth agent)
+    "pair_title": ("Add a device", "Cihaz ekle"),
+    "pair_confirm": ("Make sure the PIN on {name} matches this one, then select Connect.",
+                     "{name} cihazındaki PIN'in bununla aynı olduğundan emin olun, ardından Bağlan'ı seçin."),
+    "pair_display": ("Type this PIN on {name}, then press Enter on it.",
+                     "Bu PIN'i {name} cihazında yazın, ardından cihazda Enter'a basın."),
+    "pair_enter": ("Enter the PIN for {name}. You'll find it on the device or in its manual; it is often 0000.",
+                   "{name} için PIN'i girin. PIN cihazın üzerinde veya kılavuzunda yazar; çoğunlukla 0000'dır."),
+    "pair_authorize": ("{name} wants to pair with this PC.", "{name} bu bilgisayarla eşleşmek istiyor."),
+    "pair_service": ("{name} wants to connect to this PC.", "{name} bu bilgisayara bağlanmak istiyor."),
+    "allow": ("Allow", "İzin ver"),
     "disconnect": ("Disconnect", "Bağlantıyı kes"),
     "loading": ("Loading…", "Yükleniyor…"),
     # Network & internet
@@ -219,6 +230,10 @@ TEXTS = {
     "add_device": ("Add device", "Cihaz ekle"),
     "add_device_desc": ("Pair a new Bluetooth device", "Yeni bir Bluetooth cihazı eşleştirin"),
     "your_devices": ("Your devices", "Cihazlarınız"),
+    "new_devices": ("New devices", "Yeni cihazlar"),
+    "ready_to_pair": ("Ready to pair", "Eşleştirmeye hazır"),
+    "couldnt_pair": ("Couldn't pair", "Eşleştirilemedi"),
+    "pair": ("Pair", "Eşleştir"),
     "paired": ("Paired", "Eşleştirildi"),
     "no_devices": ("No devices yet. Turn on Bluetooth and select Add device.",
                    "Henüz cihaz yok. Bluetooth'u açıp Cihaz ekle'yi seçin."),
@@ -257,9 +272,11 @@ TEXTS = {
     "revert": ("Revert", "Geri al"),
     "no_display": ("No display information is available.", "Ekran bilgisi alınamadı."),
     # Several displays (Windows 11's Display page and Windows + P)
-    "arrange_desc": ("Select a display to change its settings. Windows + P switches between the ways to use them.",
-                     "Ayarlarını değiştirmek için bir ekran seçin. Windows + P, ekranları kullanma biçimleri arasında "
-                     "geçiş yapar."),
+    "arrange_desc": ("Select a display to change its settings. Drag displays to rearrange them; Windows + P "
+                     "switches between the ways to use them.",
+                     "Ayarlarını değiştirmek için bir ekran seçin. Ekranları yeniden düzenlemek için sürükleyin; "
+                     "Windows + P, ekranları kullanma biçimleri arasında geçiş yapar."),
+    "apply": ("Apply", "Uygula"),
     "identify": ("Identify", "Tanımla"),
     "multiple_displays": ("Multiple displays", "Birden çok ekran"),
     "multiple_displays_desc": ("Choose the presentation mode for your displays",
@@ -286,6 +303,7 @@ TEXTS = {
     "one_display": ("No other display was found.", "Başka bir ekran bulunamadı."),
     "display_settings": ("Display settings", "Ekran ayarları"),
     "graphics_cards": ("Graphics cards", "Ekran kartları"),
+    "graphics_card_number": ("Graphics card {number}", "Ekran kartı {number}"),
     "graphics_cards_desc": ("Drivers and properties of your graphics cards",
                             "Ekran kartlarınızın sürücüleri ve özellikleri"),
     "advanced_display": ("Advanced display", "Gelişmiş ekran"),
@@ -404,6 +422,7 @@ TEXTS = {
     "keyboard_layouts": ("Keyboard layouts", "Klavye düzenleri"),
     "keyboard_layouts_desc": ("Switch with Windows key + Space", "Windows tuşu + Boşluk ile değiştirin"),
     "add_keyboard": ("Add a keyboard", "Klavye ekle"),
+    "choose_keyboard": ("Choose a keyboard", "Klavye seçin"),
     "remove": ("Remove", "Kaldır"),
     "move_up": ("Move up", "Yukarı taşı"),
     # Lock screen

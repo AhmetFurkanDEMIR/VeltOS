@@ -26,6 +26,7 @@ session_defaults = load("session_defaults", PKG / "system/session-defaults")
 fluent = load("fluent", PKG / "tools/fluent.py")
 display_scale = load("display_scale", PKG / "system/display-scale")
 start_categories = load("start_categories", PKG / "system/start-categories")
+touchpad_defaults = load("touchpad_defaults", PKG / "system/touchpad-defaults")
 
 DOLPHIN = """\
 [Desktop Entry]
@@ -666,6 +667,41 @@ class SessionFixupsTests(unittest.TestCase):
         # Later sign-ins leave the taskbar pins alone (the user may unpin it).
         self.assertIn("if (false) {", self.run_fixups(tmp)[0])
 
+
+
+class TouchpadDefaultsTests(unittest.TestCase):
+    """Natural scrolling for touchpads the user has not set (KWin's D-Bus
+    replies as gdbus 2.84 prints them)."""
+
+    def test_only_unset_touchpads(self):
+        devices = {
+            "event4": "({'name': <'SYNA8018:00 06CB:CE67 Touchpad'>, 'vendor': <uint32 1739>, "
+                      "'product': <uint32 52839>, 'touchpad': <true>, 'supportsNaturalScroll': <true>, "
+                      "'naturalScroll': <false>},)",
+            "event5": "({'name': <'Logitech MX Master 3'>, 'vendor': <uint32 1133>, 'product': <uint32 16514>, "
+                      "'touchpad': <false>, 'supportsNaturalScroll': <true>},)",
+            "event6": "({'name': <'ELAN Touchpad'>, 'vendor': <uint32 1267>, 'product': <uint32 12>, "
+                      "'touchpad': <true>, 'supportsNaturalScroll': <true>},)",
+        }
+        calls = []
+
+        def runner(command):
+            calls.append(command)
+            if "devicesSysNames" in command:
+                return 0, "(<['event4', 'event5', 'event6']>,)"
+            if "org.freedesktop.DBus.Properties.GetAll" in command:
+                return 0, devices[command[command.index("--object-path") + 1].rsplit("/", 1)[1]]
+            if command[0] == "kreadconfig6":
+                return 0, "false\n" if "ELAN Touchpad" in command else ""   # ELAN: chosen in Settings
+            return 0, ""
+        self.assertEqual(touchpad_defaults.main(runner), ["event4"])
+        sets = [c for c in calls if "org.freedesktop.DBus.Properties.Set" in c]
+        self.assertEqual(len(sets), 1)
+        self.assertEqual(sets[0][-3:], ["org.kde.KWin.InputDevice", "naturalScroll", "<true>"])
+        self.assertIn(["kwriteconfig6", "--file", "kcminputrc", "--group", "Libinput", "--group", "1739",
+                       "--group", "52839", "--group", "SYNA8018:00 06CB:CE67 Touchpad", "--key", "NaturalScroll",
+                       "true"], calls)
+        self.assertEqual(touchpad_defaults.main(lambda command: (1, "")), [])   # KWin not answering
 
 
 class DisplayScaleTests(unittest.TestCase):

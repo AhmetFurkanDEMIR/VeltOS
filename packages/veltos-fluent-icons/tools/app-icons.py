@@ -228,6 +228,20 @@ def settings():
                + '  <circle cx="128" cy="128" r="32" fill="url(#hub)"/>\n')
 
 
+def bluetooth():
+    """Bluetooth (the Add a device window, product owner 2026-10-27): the
+    Bluetooth rune in white on a blue tile, light from the top left."""
+    tile_d = rrect(28, 28, 200, 200, 48)
+    rune = "M 90 98 L 166 158 L 128 194 V 62 L 166 98 L 90 158"
+    return svg("Bluetooth", grad("tile", "#4CC2FF", "#0F5FD0", x2="1", y2="1"),
+               shadow(tile_d)
+               + f'  <path d="{tile_d}" fill="url(#tile)"/>\n'
+               + '  <path d="M 76 30 H 180 Q 226 30 226 76 V 84 Q 150 62 30 96 V 76 Q 30 30 76 30 Z" '
+                 'fill="#FFFFFF" opacity="0.14"/>\n'
+               + f'  <path d="{rune}" fill="none" stroke="#FFFFFF" stroke-width="15" '
+                 'stroke-linejoin="round" stroke-linecap="round"/>\n')
+
+
 def task_manager():
     tile_d = rrect(24, 44, 208, 168, 22)
     return svg("Task Manager", grad("tile", "#2E7BE8", "#1A4FB0") + grad("area", "#9FE0FF", "#4FB4F5"),
@@ -489,6 +503,7 @@ NAMES = {
     snipping_tool: ["veltos-snip", "org.kde.spectacle", "spectacle", "accessories-screenshot"],
     store: ["veltos-store", "org.kde.discover", "plasmadiscover"],
     settings: ["veltos-settings", "systemsettings", "preferences-system"],
+    bluetooth: ["veltos-bluetooth", "preferences-system-bluetooth"],
     task_manager: ["veltos-taskmanager", "org.kde.plasma-systemmonitor", "utilities-system-monitor"],
     file_explorer: ["veltos-explorer", "system-file-manager", "file-manager", "org.kde.dolphin"],
     notepad: ["veltos-notepad", "org.kde.kwrite", "kwrite", "accessories-text-editor", "org.kde.kate", "kate"],

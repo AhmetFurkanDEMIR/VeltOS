@@ -387,35 +387,32 @@ def terminal():
 """
 
 
-# Windows drive (NTFS) in File Explorer: the local disk with a blue window
-# mark on its top, the way Windows marks its own drive. The mark is a
-# window (frame and title bar), not Microsoft's four-pane logo, which is a
-# trademark and is not shipped by VeltOS.
-# A Windows drive: the local disk with a window on its front, in Windows
-# 11's blue (product owner, 2026-10-23: "Windows 11's icon on NTFS drives").
-# A framed window with a cross of glazing bars, not Microsoft's four-pane
-# logo, which is a trademark VeltOS does not ship.
+# Windows drive (NTFS) in File Explorer: the local disk with Windows 11's
+# logo, four squares in its blue, medium size on the drive's front, as
+# Windows 11 marks the drive Windows is on. Until 2026-10-26 VeltOS drew a
+# framed window instead because the four-square logo is Microsoft's
+# trademark; the product owner chose the logo itself ("put the Windows 11
+# logo itself, no other icon", 2026-10-26; architecture 2.38).
 WINDOWS_MARK = """  <defs>
-    <linearGradient id="pane" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="logo" gradientUnits="userSpaceOnUse" x1="42" y1="118" x2="114" y2="190">
       <stop offset="0" stop-color="#4CC2FF"/>
-      <stop offset="1" stop-color="#0F6CD8"/>
+      <stop offset="1" stop-color="#0A5FD2"/>
     </linearGradient>
   </defs>
-  <g transform="translate(46 130)">
-    <rect x="0" y="0" width="48" height="48" rx="7" fill="#0B4FB0"/>
-    <rect x="4" y="4" width="40" height="40" rx="4" fill="url(#pane)"/>
-    <rect x="22.5" y="4" width="3" height="40" fill="#FFFFFF" opacity="0.9"/>
-    <rect x="4" y="22.5" width="40" height="3" fill="#FFFFFF" opacity="0.9"/>
-    <path d="M 6 6 H 21 L 6 19 Z" fill="#FFFFFF" opacity="0.25"/>
+  <g fill="url(#logo)">
+    <rect x="42" y="118" width="34" height="34" rx="1.5"/>
+    <rect x="80" y="118" width="34" height="34" rx="1.5"/>
+    <rect x="42" y="156" width="34" height="34" rx="1.5"/>
+    <rect x="80" y="156" width="34" height="34" rx="1.5"/>
   </g>
 """
 
 
 def windows_disk():
-    # The window takes the place of the slot's left part.
+    # The logo takes the place of the slot's left part.
     return local_disk().replace(
         '<rect x="52" y="150" width="104" height="10" rx="5" fill="#5E6873"/>',
-        '<rect x="110" y="150" width="68" height="10" rx="5" fill="#5E6873"/>').replace(
+        '<rect x="128" y="150" width="54" height="10" rx="5" fill="#5E6873"/>').replace(
         "  </g>\n</svg>\n", WINDOWS_MARK + "  </g>\n</svg>\n").replace("<!-- Local disk:", "<!-- Windows drive:")
 
 
@@ -529,8 +526,11 @@ def small_bin(full):
 
 
 def small_windows_disk():
-    return small_disk().replace('<rect x="3" y="9.5" width="6" height="1" fill="#55606B"/>', """  <rect x="2.5" y="8" width="4" height="4" rx="0.8" fill="#1C78E6" stroke="#0B4FB0" stroke-width="0.8"/>
-  <path d="M 4.5 8.4 V 11.6 M 2.9 10 H 6.1" stroke="#FFFFFF" stroke-width="0.7"/>""").replace(
+    # Windows 11's logo, four 2 px squares (the large drawing's mark).
+    return small_disk().replace('<rect x="3" y="9.5" width="6" height="1" fill="#55606B"/>', """  <rect x="2.5" y="7.8" width="2.1" height="2.1" fill="#3AA8F5"/>
+  <rect x="4.9" y="7.8" width="2.1" height="2.1" fill="#2B8EEC"/>
+  <rect x="2.5" y="10.2" width="2.1" height="2.1" fill="#2B8EEC"/>
+  <rect x="4.9" y="10.2" width="2.1" height="2.1" fill="#1673DD"/>""").replace(
         "<!-- Local disk", "<!-- Windows drive")
 
 

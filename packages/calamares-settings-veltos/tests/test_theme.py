@@ -57,6 +57,9 @@ class DarkStyleSheetTests(unittest.TestCase):
                                     r"\s*border: 1px solid #2A55D4;\s*color: #FFFFFF;")
         self.assertIn("image: url(/etc/calamares/branding/veltos/images/chevron-down-dark.svg);", self.dark)
         self.assertTrue((BRANDING / "images/chevron-down-dark.svg").is_file())
+        # The size boxes' up arrow (the partition dialogs) too.
+        self.assertIn("image: url(/etc/calamares/branding/veltos/images/chevron-up-dark.svg);", self.dark)
+        self.assertTrue((BRANDING / "images/chevron-up-dark.svg").is_file())
         # The disk page's picture has a dark variant too.
         self.assertIn("background-image: url(/etc/calamares/branding/veltos/images/ill-disk-dark.svg);", self.dark)
         self.assertTrue((BRANDING / "images/ill-disk-dark.svg").is_file())

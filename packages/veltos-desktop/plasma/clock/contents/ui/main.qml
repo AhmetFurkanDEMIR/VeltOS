@@ -389,6 +389,7 @@ PlasmoidItem {
                 }
                 Item { Layout.fillWidth: true }
                 FlyoutButton {
+                    accent: !root.focusing
                     glyph: root.focusing ? "stop" : "play"
                     glyphSize: 10
                     text: root.focusing ? i18n("Stop") : i18n("Focus")

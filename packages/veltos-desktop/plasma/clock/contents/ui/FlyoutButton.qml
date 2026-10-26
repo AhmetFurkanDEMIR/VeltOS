@@ -1,9 +1,10 @@
 /*
     A Windows 11 standard button as the calendar and notification flyouts
-    show it: a light fill with a hairline border and 4 px corners, an
-    optional glyph left of the text; "flat" buttons only get a fill under
-    the pointer. "accent" fills it with the accent colour (an active
-    do-not-disturb, for example).
+    show it: a light fill with 4 px corners and an optional glyph left of
+    the text, its outline and text in the accent colour (product owner,
+    2026-10-26: the system tray's flyouts use the accent colour for their
+    buttons); "flat" buttons only get a fill under the pointer. "accent"
+    fills it with the accent colour (Focus, an active do-not-disturb).
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -24,7 +25,8 @@ MouseArea {
 
     readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor)
                                  === Kirigami.ColorUtils.Dark
-    readonly property color foreground: accent ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
+    readonly property color foreground: accent ? Kirigami.Theme.highlightedTextColor
+                                        : flat ? Kirigami.Theme.textColor : Kirigami.Theme.highlightColor
 
     implicitHeight: 28
     opacity: enabled ? 1 : 0.4
@@ -48,13 +50,13 @@ MouseArea {
             if (button.flat) {
                 return Qt.alpha(Kirigami.Theme.textColor, button.pressed ? 0.05 : (button.containsMouse ? 0.08 : 0));
             }
-            if (button.dark) {
-                return Qt.alpha("white", button.pressed ? 0.03 : (button.containsMouse ? 0.08 : 0.06));
+            if (button.pressed || button.containsMouse) {
+                return Qt.alpha(Kirigami.Theme.highlightColor, button.pressed ? 0.2 : 0.1);
             }
-            return Qt.alpha("white", button.pressed ? 0.5 : (button.containsMouse ? 0.85 : 0.7));
+            return button.dark ? Qt.alpha("white", 0.06) : Qt.alpha("white", 0.7);
         }
         border.width: button.flat || button.accent ? 0 : 1
-        border.color: button.dark ? Qt.alpha("white", 0.08) : Qt.alpha("black", 0.09)
+        border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.6)
     }
     Rectangle {
         visible: button.activeFocus

@@ -1,6 +1,7 @@
 """Loads the real Disk Management window offscreen with recorded disks:
-the volume list and the disk map, the right-click menu, every dialog.
-Any QML warning or error fails the test."""
+the volume list and the disk map, the right-click menu, every dialog, and
+Windows 11's Format window (from Disk Management and on its own, as File
+Explorer opens it). Any QML warning or error fails the test."""
 
 import os
 import sys
@@ -82,7 +83,7 @@ class WindowTests(unittest.TestCase):
         self.assertTrue(self.call("selectVolume", BLOCKS + "sdb1") is None)
         self.assertEqual(self.window.property("selectedKey"), BLOCKS + "sdb1")
         self.call("menuForSelected")
-        for action in ("format", "label", "delete", "properties"):
+        for action in ("label", "delete", "properties"):
             self.call("run", action)
             self.assertTrue(dialog.property("visible"), action)
             QMetaObject.invokeMethod(dialog, "close")
@@ -127,6 +128,61 @@ class WindowTests(unittest.TestCase):
         self.assertEqual(self.window.property("selectedKey"), "disk:" + BLOCKS + "vda")
         self.assertEqual(self.problems(), [])
 
+    def format_window(self, window):
+        """Start, confirm and wait for the (synchronous) format."""
+        self.assertEqual(window.objectName(), "formatWindow")
+        self.assertTrue(window.property("visible"))
+        self.assertEqual(window.property("phase"), "ready")
+        self.assertEqual(window.property("fs"), "ntfs")
+        QMetaObject.invokeMethod(window, "start")
+        self.app.processEvents()
+        self.assertEqual(window.property("phase"), "confirm")
+        window.setProperty("label", "Backup")
+        QMetaObject.invokeMethod(window, "confirm")
+        self.app.processEvents()
+        self.assertEqual(window.property("phase"), "done")
+        command = self.calls[-1]
+        self.assertIn("Format", command)
+        self.assertIn("ntfs", command)
+        return command
+
+    def test_format_window_from_disk_management(self):
+        from PySide6.QtCore import Q_RETURN_ARG
+        self.call("selectVolume", BLOCKS + "sdb1")
+        window = QMetaObject.invokeMethod(self.window, "openFormat", Q_RETURN_ARG("QVariant"))
+        self.app.processEvents()
+        self.assertEqual(window.property("title"), self.backend.texts["format_title"].replace("{name}", "USB"))
+        self.format_window(window)
+        QMetaObject.invokeMethod(window, "close")
+        self.app.processEvents()
+        self.assertEqual(self.problems(), [])
+
+    def test_format_window_on_its_own(self):
+        from veltos_disks import app
+        volume = next(v for v in self.backend.volumes if v["device"] == "/dev/sdb1")
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", self.backend)
+        engine.setInitialProperties({"volume": volume})
+        engine.load(QUrl.fromLocalFile(str(app.QML_DIR / "FormatWindow.qml")))
+        self.assertTrue(engine.rootObjects(), self.messages)
+        window = engine.rootObjects()[0]
+        window.show()
+        self.app.processEvents()
+        self.format_window(window)
+        # Not formatable: the window says so and Start does nothing.
+        engine.setInitialProperties({"volume": None})
+        engine.load(QUrl.fromLocalFile(str(app.QML_DIR / "FormatWindow.qml")))
+        blocked = engine.rootObjects()[-1]
+        self.assertEqual(blocked.property("phase"), "unavailable")
+        calls = len(self.calls)
+        QMetaObject.invokeMethod(blocked, "start")
+        self.app.processEvents()
+        self.assertEqual(len(self.calls), calls)
+        engine.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        self.app.processEvents()
+        self.assertEqual(self.problems(), [])
+
     def test_format_command_selects_only_a_formatable_volume(self):
         from veltos_disks import app
         from PySide6.QtCore import Q_RETURN_ARG
@@ -137,10 +193,8 @@ class WindowTests(unittest.TestCase):
         opened = QMetaObject.invokeMethod(self.window, "openFormatForDevice", Q_RETURN_ARG("QVariant"),
                                           Q_ARG("QVariant", "/dev/sdb1"))
         self.assertTrue(opened)
-        self.assertTrue(dialog.property("visible"))
-        self.assertEqual(dialog.property("title"), self.backend.texts["format_title"].replace("{name}", "USB"))
-        QMetaObject.invokeMethod(dialog, "close")
-        self.app.processEvents()
+        self.assertFalse(dialog.property("visible"))            # a window of its own
+        self.assertEqual(self.window.property("selectedKey"), BLOCKS + "sdb1")
 
         blocked = QMetaObject.invokeMethod(self.window, "openFormatForDevice", Q_RETURN_ARG("QVariant"),
                                            Q_ARG("QVariant", "/dev/sda2"))

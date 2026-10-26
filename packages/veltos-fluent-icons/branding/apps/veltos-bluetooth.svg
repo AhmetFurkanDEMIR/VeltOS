@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Bluetooth: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4CC2FF"/>
+      <stop offset="1" stop-color="#0F5FD0"/>
+    </linearGradient>
+  </defs>
+  <path d="M 76 28 H 180 Q 228 28 228 76 V 180 Q 228 228 180 228 H 76 Q 28 228 28 180 V 76 Q 28 28 76 28 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 76 28 H 180 Q 228 28 228 76 V 180 Q 228 228 180 228 H 76 Q 28 228 28 180 V 76 Q 28 28 76 28 Z" fill="url(#tile)"/>
+  <path d="M 76 30 H 180 Q 226 30 226 76 V 84 Q 150 62 30 96 V 76 Q 30 30 76 30 Z" fill="#FFFFFF" opacity="0.14"/>
+  <path d="M 90 98 L 166 158 L 128 194 V 62 L 166 98 L 90 158" fill="none" stroke="#FFFFFF" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

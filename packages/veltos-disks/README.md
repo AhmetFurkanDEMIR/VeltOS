@@ -13,12 +13,15 @@ Windows 11's Disk Management, as a VeltOS app (PySide6/QML) on UDisks2:
   Unmount, Eject, Change Volume Label…, Format…, Delete Volume…,
   Properties; of unallocated space: New Simple Volume…; of a blank disk:
   Initialize Disk… (GPT or MBR);
-- dialogs in the Windows 11 layout (`qml/FormDialog.qml`): Format (label,
-  file system, quick format, then the "all data will be erased" question),
-  New Simple Volume (size in MB up to the free space, file system, label),
+- dialogs in the Windows 11 layout (`qml/FormDialog.qml`): New Simple Volume (size in MB up to the free space, file system, label),
   Delete, label, Initialize, Properties and errors.
-- `veltos-disks --format /dev/sdb1` opens the same Format form for a
-  requested volume from File Explorer. Disk Management re-reads UDisks2,
+- **Format** has its own window in Windows 11's layout
+  (`qml/FormatWindow.qml`, 2026-10-26): capacity, file system, volume
+  label, Quick Format, Start; the data-loss question inside the window,
+  then a progress bar while UDisks2 formats and "Format complete" (or
+  the error) at the end.
+- `veltos-disks --format /dev/sdb1` opens the same Format window alone for
+  a requested volume from File Explorer. Disk Management re-reads UDisks2,
   refuses a missing or protected volume, and still requires the user to
   confirm the data-loss warning before formatting.
 

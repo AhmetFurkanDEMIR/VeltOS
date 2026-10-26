@@ -21,6 +21,7 @@ try:
     from PySide6.QtCore import Q_ARG, QCoreApplication, QEvent, QMetaObject, QUrl, qInstallMessageHandler
     from PySide6.QtGui import QGuiApplication
     from PySide6.QtQml import QQmlApplicationEngine
+    import PySide6.QtQuick  # noqa: F401  (the window is then a QQuickWindow with contentItem())
     HAVE_QT = True
 except ImportError:
     HAVE_QT = False
@@ -76,6 +77,19 @@ class SettingsWindowTests(unittest.TestCase):
 
     def show(self, page, sub=""):
         self.call("showPage", page, sub)
+
+    def items(self, name):
+        """Visible items of that objectName (items in a Window, open popups
+        included, are found through the item tree, not with findChild)."""
+        found = []
+
+        def walk(item):
+            if item.objectName() == name and item.isVisible():
+                found.append(item)
+            for child in item.childItems():
+                walk(child)
+        walk(self.window.contentItem())
+        return found
 
     def problems(self):
         return [m for m in self.messages if "qml" in m.lower() or "error" in m.lower()
@@ -304,6 +318,31 @@ class SettingsWindowTests(unittest.TestCase):
                                         ["veltos-graphics"]])
         self.assertEqual(self.window.property("subPage"), "about")
 
+    def test_turkish_q_is_offered_first_and_can_be_added(self):
+        # Product owner, 2026-10-26: Turkish Q, at the top of "Add a keyboard",
+        # was preselected, so choosing it did nothing and it was never added.
+        self.backend.setLayouts(["us"])
+        self.app.processEvents()
+        self.show("time", "keyboard")
+        combos = self.items("addKeyboard")
+        self.assertEqual(len(combos), 1)
+        combo = combos[0]
+        self.assertEqual(combo.property("currentIndex"), -1)
+        self.assertEqual(combo.property("options").toVariant()[0]["value"], "tr")
+        QMetaObject.invokeMethod(combo, "open")
+        self.app.processEvents()
+        lists = self.items("comboList")
+        self.assertEqual(len(lists), 1)
+        QMetaObject.invokeMethod(lists[0], "choose", Q_ARG("QVariant", 0))
+        self.app.processEvents()
+        self.assertEqual(self.backend.prefs["layouts"], ["us", "tr"])
+        commands = [" ".join(c) for c in self.system.commands]
+        self.assertIn("kwriteconfig6 --notify --file kxkbrc --group Layout --key LayoutList us,tr", commands)
+        # Turkish Q is now listed and no longer offered; Turkish F comes first.
+        self.assertEqual(combo.property("options").toVariant()[0]["value"], "tr(f)")
+        self.assertEqual(combo.property("currentIndex"), -1)
+        self.assertEqual(self.problems(), [])
+
     def test_new_pages_change_settings(self):
         self.backend.setPref("lockAfter", 10)
         self.backend.setPref("nightLight", True)
@@ -433,7 +472,7 @@ class SettingsWindowTests(unittest.TestCase):
         self.assertEqual(self.activated, [("New Net", "secret key", "wpa-psk")])
         # Add a device is VeltOS' own dialog: nothing of KDE's is started.
         self.assertNotIn(["bluedevil-wizard"], self.started)
-        self.assertIn("bluetoothctl --timeout 10 scan on", commands)
+        self.assertIn("bluetoothctl --timeout 8 scan on", commands)
         self.assertEqual(self.backend.accent, "#0078D4")
         self.assertEqual(self.problems(), [])
 
@@ -459,10 +498,14 @@ class SettingsWindowTests(unittest.TestCase):
         self.assertEqual(self.problems(), [])
 
     def test_add_device_finds_and_pairs(self):
-        self.system.outputs[("bluetoothctl", "devices")] = (
-            "Device AA:BB:CC:DD:EE:FF WH-1000XM4\nDevice 77:88:99:AA:BB:CC Keyboard K380\n"
-            "Device 12:34:56:78:9A:BC 12-34-56-78-9A-BC\n")
-        self.system.outputs[("bluetoothctl", "info", "77:88:99:AA:BB:CC")] = "\tIcon: input-keyboard\n"
+        # The scan's own lines (bluetoothctl 5.82): the paired headset seen
+        # again, a keyboard, a nameless device.
+        self.system.outputs[("bluetoothctl", "--timeout", "8", "scan", "on")] = (
+            "[CHG] Device AA:BB:CC:DD:EE:FF RSSI: -50\n[NEW] Device 77:88:99:AA:BB:CC Keyboard K380\n"
+            "[NEW] Device 12:34:56:78:9A:BC 12-34-56-78-9A-BC\n")
+        self.system.outputs[("bluetoothctl", "info", "77:88:99:AA:BB:CC")] = (
+            "\tName: Keyboard K380\n\tIcon: input-keyboard\n\tPaired: no\n")
+        self.system.outputs[("bluetoothctl", "info", "12:34:56:78:9A:BC")] = "\tAlias: 12-34-56-78-9A-BC\n"
         self.show("devices", "bluetooth")
         self.backend.discoverBluetooth()
         self.app.processEvents()

@@ -9,7 +9,9 @@
   </defs>
   <path d="M 1.5 7.5 L 3.5 4.5 H 12.5 L 14.5 7.5 Z" fill="#EEF1F4" stroke="#8F99A6" stroke-linejoin="round"/>
   <rect x="1.5" y="7.5" width="13" height="5" rx="1" fill="url(#side)" stroke="#7E8894"/>
-    <rect x="2.5" y="8" width="4" height="4" rx="0.8" fill="#1C78E6" stroke="#0B4FB0" stroke-width="0.8"/>
-  <path d="M 4.5 8.4 V 11.6 M 2.9 10 H 6.1" stroke="#FFFFFF" stroke-width="0.7"/>
+    <rect x="2.5" y="7.8" width="2.1" height="2.1" fill="#3AA8F5"/>
+  <rect x="4.9" y="7.8" width="2.1" height="2.1" fill="#2B8EEC"/>
+  <rect x="2.5" y="10.2" width="2.1" height="2.1" fill="#2B8EEC"/>
+  <rect x="4.9" y="10.2" width="2.1" height="2.1" fill="#1673DD"/>
   <rect x="11" y="9" width="2" height="2" rx="1" fill="#2FBF62"/>
 </svg>

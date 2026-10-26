@@ -1306,6 +1306,63 @@ were measured (below).
   start hands "toggle" or "window" with its activation token to the
   running one over its local socket.
 
+### 2.38 The Windows logo on Windows drives (2026-10-26)
+
+- Decision (product owner): drives with Windows on them show Windows 11's
+  logo itself, four blue squares, on the drive icon (`draw-icons.py`
+  WINDOWS_MARK), as Windows 11 marks its system drive.
+- Before: a framed window drawn by VeltOS, because the four-square logo is
+  a Microsoft trademark and VeltOS had removed Microsoft logos from Fluent
+  (Start, Wine). Trade-off: the logo now ships in veltos-fluent-icons;
+  whether its use to label a Windows drive is acceptable is the owner's
+  call before a public release (it is used only for that, never for VeltOS
+  itself).
+
+### 2.39 The installer frees the disks first (2026-10-26)
+
+- Decision: `release-disks` (calamares-settings-veltos) runs before
+  Calamares: on the live system only, it unmounts every partition of the
+  PC's disks except the live medium's, switches off their swap and closes
+  opened encrypted volumes. Calamares offers Erase disk, Install alongside
+  and Replace a partition only for disks without mounted partitions
+  (ChoicePage::setupActions); a drive opened in File Explorer left Manual
+  partitioning only.
+- Alternatives: patching Calamares (a fork, rule 5); a message asking the
+  user to unmount (Windows Setup does not ask either).
+- The partition dialogs are restyled through the installer's Qt style
+  (KPMcore's size bar painted, the size box stepped within the free space
+  by finishing the edit on each step), not by patching Calamares.
+
+### 2.40 VeltOS answers KScreen's display chooser (2026-10-26)
+
+- Decision: a drop-in for `plasma-kscreen-osd.service` starts VeltOS'
+  `kscreen-osd`, which owns `org.kde.kscreen.osdService` (showActionSelector,
+  hideOsd) and opens the Project flyout (`veltos-settings --project`) when
+  KScreen asks; it quits after a minute idle.
+- Alternatives: diverting `kscreen_osd_service` (a binary of another
+  package); hiding KScreen's chooser (then nothing would appear on a new
+  screen, while Windows offers its choices with Windows + P only; KScreen's
+  question is kept as a convenience).
+- Settings > Display rearranges screens by dragging (snap to an edge,
+  devices.snap_position, Apply through kscreen-doctor).
+
+### 2.41 VeltOS' own Bluetooth agent (2026-10-27)
+
+- Decision: `bt-agent` (veltos-settings, `btagent.py`) registers
+  `org.bluez.Agent1` on the system bus with KeyboardDisplay capability and
+  asks to be BlueZ's default agent at session start, again 10 and 30 s later
+  (Plasma's kded agent asks when kded starts) and whenever bluetoothd
+  reappears. Each question opens `veltos-settings --bt-pair`, a separate
+  short-lived Qt program; the agent itself uses only GLib (a few MB idle).
+- Alternatives: restyling Plasma's notification (its text and buttons are
+  bluedevil's: device address in the title, "PIN correct / PIN
+  incorrect"); disabling kded's bluedevil module (it also restores the
+  adapter's power state and handles file transfers).
+- Trade-off: two agents are registered; BlueZ asks only the default one,
+  so if Plasma's agent asks to be default again later (it does at kded
+  start) Plasma's notification would come back until VeltOS' agent asks
+  again (it does when bluetoothd restarts, not periodically).
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

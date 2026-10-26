@@ -1,5 +1,7 @@
 // Bluetooth & devices > Bluetooth: turn Bluetooth on or off, add a device,
-// connect and disconnect paired devices.
+// connect and disconnect paired devices, and, as the Wi-Fi list shows
+// networks, the devices nearby with Pair while the page is open (product
+// owner, 2026-10-26).
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -10,6 +12,10 @@ ColumnLayout {
     id: page
 
     readonly property var bt: backend.bluetooth
+    // Found devices that are not among "Your devices" (a device just paired
+    // leaves this list at once, before its pairing call has returned).
+    readonly property var newDevices: (bt.found || []).filter(
+        d => !(bt.devices || []).some(p => p.mac.toUpperCase() === d.mac.toUpperCase()))
     signal itemActivated(var item)
 
     spacing: 4
@@ -20,6 +26,15 @@ ColumnLayout {
         repeat: true
         running: page.bt.powered
         onTriggered: backend.refreshBluetooth()
+    }
+    // New devices: a scan when the page opens and again every 15 seconds
+    // (each scan takes about 8), not while a device is being paired.
+    Timer {
+        interval: 15000
+        repeat: true
+        triggeredOnStart: true
+        running: page.bt.available && page.bt.powered
+        onTriggered: if (!page.bt.pairing) backend.discoverBluetooth()
     }
 
     Card {
@@ -79,6 +94,7 @@ ColumnLayout {
     Repeater {
         model: page.bt.available ? page.bt.devices : []
         delegate: SettingRow {
+            objectName: "pairedDevice"
             required property var modelData
             readonly property bool busy: page.bt.busy === modelData.mac
             Layout.fillWidth: true
@@ -100,4 +116,57 @@ ColumnLayout {
         }
     }
 
+    SectionLabel {
+        visible: page.bt.available && page.bt.powered
+        text: backend.text("new_devices")
+    }
+    Repeater {
+        model: page.bt.available && page.bt.powered ? page.newDevices : []
+        delegate: SettingRow {
+            id: newRow
+            objectName: "newDevice"
+            required property var modelData
+            readonly property bool pairing: page.bt.pairing === modelData.mac
+            Layout.fillWidth: true
+            icon: modelData.icon + "-symbolic"
+            title: modelData.name
+            description: pairing ? backend.text("pairing")
+                         : page.bt.pairFailed === modelData.mac ? backend.text("couldnt_pair")
+                         : backend.text("ready_to_pair")
+            BusyIndicator {
+                visible: newRow.pairing
+                running: visible
+                Layout.preferredWidth: 24
+                Layout.preferredHeight: 24
+            }
+            VButton {
+                primary: true
+                text: backend.text("pair")
+                enabledState: !page.bt.pairing
+                onClicked: backend.pairBluetooth(modelData.mac)
+            }
+        }
+    }
+    RowLayout {
+        visible: page.bt.available && page.bt.powered && !!page.bt.scanning
+        Layout.leftMargin: 4
+        spacing: 10
+        BusyIndicator {
+            running: parent.visible
+            Layout.preferredWidth: 20
+            Layout.preferredHeight: 20
+        }
+        Label {
+            text: backend.text("searching_devices")
+            color: Theme.subtext
+            font.pixelSize: Theme.bodySize + 1
+        }
+    }
+    Label {
+        visible: page.bt.available && page.bt.powered && !page.bt.scanning && page.newDevices.length === 0
+        Layout.leftMargin: 4
+        text: backend.text("no_devices_found")
+        color: Theme.subtext
+        font.pixelSize: Theme.bodySize + 1
+    }
 }

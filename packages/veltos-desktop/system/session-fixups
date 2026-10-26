@@ -46,6 +46,10 @@ if ! qdbus6 org.kde.kded6 /kded org.kde.kded6.loadedModules 2>/dev/null | grep -
     qdbus6 org.kde.kded6 /kded org.kde.kded6.loadModule kscreen >/dev/null 2>&1 || true
 fi
 
+# Touchpads scroll as on Windows 11, the content following the fingers,
+# until the user chooses otherwise in Settings (see touchpad-defaults).
+/usr/libexec/veltos/touchpad-defaults >/dev/null 2>&1 || true
+
 # Applets still loading may reset their lock from the saved layout, so
 # the script runs twice.
 script="

@@ -378,6 +378,24 @@ The product owner's requests of 2026-10-22, in the mechanisms above:
   through, folders behind links or of somebody else refused, shared groups
   refused; the owner changes need root, which the package build has).
 
+## Added 2026-10-26 / 2026-10-27
+
+- **Start and search** are never taller than the screen above the
+  taskbar (`fitHeight`): on small screens (1280x768) Start reached over
+  the taskbar and was drawn there as a grey band.
+- **Accent colour** in the flyouts: Wi-Fi's Cancel and Disconnect,
+  Bluetooth's Disconnect (`OutlineButton.qml`, an accent outline), the
+  expanded network or device row (accent tint and border), the clock
+  flyout's Focus button.
+- **Quick Settings' Bluetooth list** shows only named devices in range
+  (BlueZ's cached devices without a signal are left out), by their own
+  name.
+- **Touchpad scrolling** like Windows 11 (content follows the fingers):
+  `touchpad-defaults`, run by `session-fixups`, turns natural scrolling
+  on for touchpads the user has not set (KWin ignores
+  `[Libinput][Defaults]`). Untested on real touchpads.
+- Tests: `tests/test_system.py` (`TouchpadDefaultsTests`).
+
 ## Known limitations
 
 - Notification toasts and the tray's flyouts are Plasma's components

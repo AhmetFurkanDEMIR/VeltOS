@@ -1,5 +1,7 @@
 // Windows 11 drop-down: a button with the current choice and a chevron,
-// opening a rounded list. `options` is a list of {label, value}.
+// opening a rounded list. `options` is a list of {label, value}. Choosing
+// the current entry again does nothing; a box with no current entry shows
+// `placeholder`, and every entry can then be chosen.
 import QtQuick
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
@@ -12,6 +14,7 @@ Rectangle {
     property var currentValue
     property bool enabledState: true
     property string accessibleName
+    property string placeholder: ""
     readonly property int currentIndex: {
         for (let i = 0; i < options.length; ++i) {
             if (options[i].value === currentValue)
@@ -51,8 +54,8 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         anchors.leftMargin: 12
         anchors.rightMargin: 8
-        text: box.currentLabel
-        color: Theme.text
+        text: box.currentIndex >= 0 ? box.currentLabel : box.placeholder
+        color: box.currentIndex >= 0 ? Theme.text : Theme.subtext
         font.pixelSize: 13
         elide: Text.ElideRight
     }
@@ -105,6 +108,7 @@ Rectangle {
 
         contentItem: ListView {
             id: list
+            objectName: "comboList"
             clip: true
             model: box.options
             boundsBehavior: Flickable.StopAtBounds

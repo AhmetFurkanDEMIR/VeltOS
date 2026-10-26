@@ -13,15 +13,26 @@
 // the same model at the same places Calamares computes (visualRect, and the
 // splitter's own arithmetic), so choosing and resizing partitions works
 // exactly as before. Sizes are written as VeltOS Disk Management writes them
-// ("40.00 GB", "512 MB"), also in labels and in the disk list. Nothing else
-// is changed: every other call goes to Kvantum (or Qt's default style).
+// ("40.00 GB", "512 MB"), also in labels and in the disk list.
+//
+// The partition dialogs (Create a Partition, Edit Partition) get the same
+// look: KPMcore's size bar (PartResizerWidget with its PartWidget and two
+// handle labels) is drawn as a VeltOS disk bar with a slider thumb, and the
+// size box keeps to the space there is. Calamares gives that box no maximum
+// (PartitionSizeController::setSpinBox) and only corrects the value when
+// editing finishes, so its arrows counted past the free space (product owner,
+// 2026-10-26); a step now finishes the edit at once, which makes Calamares
+// put the largest possible size back. Nothing else is changed: every other
+// call goes to Kvantum (or Qt's default style).
 
 #include <QAbstractItemView>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QHash>
 #include <QIdentityProxyModel>
+#include <QKeyEvent>
 #include <QLabel>
+#include <QLayout>
 #include <QLocale>
 #include <QMouseEvent>
 #include <QPainter>
@@ -29,11 +40,15 @@
 #include <QPersistentModelIndex>
 #include <QPointer>
 #include <QProxyStyle>
+#include <QRadioButton>
 #include <QRegularExpression>
+#include <QSet>
 #include <QSignalBlocker>
+#include <QSpinBox>
 #include <QStyleFactory>
 #include <QStylePlugin>
 #include <QStyledItemDelegate>
+#include <QTimer>
 
 #include <cmath>
 #include <iterator>
@@ -493,15 +508,67 @@ public:
                      SLOT( splitChanged( QString, qint64, qint64 ) ),
                      Qt::UniqueConnection );
         }
+        else if ( kind == "PartResizerWidget" || kind == "PartWidget" )
+        {
+            widget->installEventFilter( this );
+        }
+        else if ( kind == "Calamares::Widgets::PrettyRadioButton" )
+        {
+            makeCard( widget );
+        }
         else if ( auto* combo = qobject_cast< QComboBox* >( widget ) )
         {
             useListDelegate( combo );
             combo->installEventFilter( this );
             wrapDiskList( combo );
         }
+        else if ( auto* spin = qobject_cast< QSpinBox* >( widget );
+                  spin && spin->objectName() == QLatin1String( "sizeSpinBox" ) )
+        {
+            // Sizes as the rest of VeltOS writes them (Calamares' values are
+            // MiB, which Windows and VeltOS call MB).
+            spin->setSuffix( QStringLiteral( " MB" ) );
+            spin->installEventFilter( this );
+            connect( spin, &QSpinBox::valueChanged, this, &DiskPictures::sizeChanged, Qt::UniqueConnection );
+        }
         else if ( qobject_cast< QLabel* >( widget ) )
         {
             widget->installEventFilter( this );
+        }
+    }
+
+    // The partition page's choices ("Erase disk", "Install alongside" ...)
+    // as Windows 11 setup's option cards: the style sheet draws the card
+    // (Calamares' PrettyRadioButton is a plain QWidget, which draws a style
+    // sheet background only with WA_StyledBackground), the chosen one with
+    // an accent border (property veltosChecked), and a click anywhere on
+    // the card chooses it.
+    void makeCard( QWidget* card )
+    {
+        if ( card->property( "veltosCard" ).toBool() )
+        {
+            return;  // polished again after a change of veltosChecked
+        }
+        card->setProperty( "veltosCard", true );
+        card->setAttribute( Qt::WA_StyledBackground );
+        card->setAttribute( Qt::WA_Hover );
+        card->setContentsMargins( 14, 10, 14, 10 );
+        card->installEventFilter( this );
+        if ( QWidget* list = card->parentWidget(); list && list->layout() )
+        {
+            list->layout()->setSpacing( 8 );
+        }
+        if ( auto* radio = card->findChild< QRadioButton* >() )
+        {
+            const auto mark = [ card, radio ]
+            {
+                card->setProperty( "veltosChecked", radio->isChecked() );
+                card->style()->unpolish( card );
+                card->style()->polish( card );
+                card->update();
+            };
+            connect( radio, &QRadioButton::toggled, card, mark );
+            mark();
         }
     }
 
@@ -544,6 +611,48 @@ protected:
                 }
             }
             break;
+        // The size box: arrows, arrow keys, Page Up/Down and the mouse wheel
+        // step the value; typed digits do not (a half-typed number must not
+        // resize the partition).
+        case QEvent::MouseButtonPress:
+        case QEvent::MouseButtonDblClick:
+        case QEvent::Wheel:
+            if ( qobject_cast< QSpinBox* >( object ) )
+            {
+                m_stepping.insert( object );
+                if ( event->type() == QEvent::Wheel )
+                {
+                    QTimer::singleShot( 0, this, [ this, object ] { m_stepping.remove( object ); } );
+                }
+            }
+            break;
+        case QEvent::KeyPress:
+            if ( qobject_cast< QSpinBox* >( object ) )
+            {
+                const int key = static_cast< QKeyEvent* >( event )->key();
+                if ( key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_PageUp || key == Qt::Key_PageDown )
+                {
+                    m_stepping.insert( object );
+                }
+            }
+            break;
+        case QEvent::MouseButtonRelease:
+            if ( object->property( "veltosCard" ).toBool()
+                 && static_cast< QMouseEvent* >( event )->button() == Qt::LeftButton )
+            {
+                // A click on the card's padding (the radio button and its
+                // text take their own clicks).
+                if ( auto* radio = object->findChild< QRadioButton* >(); radio && !radio->isChecked() )
+                {
+                    radio->click();
+                }
+            }
+            m_stepping.remove( object );
+            break;
+        case QEvent::KeyRelease:
+        case QEvent::FocusOut:
+            m_stepping.remove( object );
+            break;
         default:
             break;
         }
@@ -555,6 +664,31 @@ private Q_SLOTS:
     {
         m_hovered.remove( object );
         m_splits.remove( object );
+        m_stepping.remove( object );
+    }
+
+    // A step of the size box finishes the edit at once: Calamares then fits
+    // the partition into the free space and writes the size it really got
+    // back into the box (a value past the end becomes the largest one).
+    void sizeChanged( int )
+    {
+        auto* spin = qobject_cast< QSpinBox* >( sender() );
+        if ( !spin )
+        {
+            return;
+        }
+        if ( m_stepping.contains( spin ) )
+        {
+            QMetaObject::invokeMethod( spin, "editingFinished" );
+        }
+        const auto parts = spin->window()->findChildren< QWidget* >();
+        for ( QWidget* part : parts )
+        {
+            if ( qstrcmp( part->metaObject()->className(), "PartWidget" ) == 0 )
+            {
+                part->update();
+            }
+        }
     }
 
     void splitChanged( const QString& path, qint64 size, qint64 next )
@@ -631,6 +765,22 @@ private:
             return true;
         }
         auto* widget = qobject_cast< QWidget* >( object );
+        if ( widget && qstrcmp( widget->metaObject()->className(), "PartResizerWidget" ) == 0 )
+        {
+            paintResizer( widget );
+            return true;
+        }
+        if ( widget && qstrcmp( widget->metaObject()->className(), "PartWidget" ) == 0 )
+        {
+            paintPart( widget );
+            return true;
+        }
+        if ( auto* handle = qobject_cast< QLabel* >( object ); handle && handle->parentWidget()
+             && qstrcmp( handle->parentWidget()->metaObject()->className(), "PartResizerWidget" ) == 0 )
+        {
+            paintHandle( handle );
+            return true;
+        }
         if ( widget && qstrcmp( widget->metaObject()->className(), "PartitionSplitterWidget" ) == 0 )
         {
             // Calamares works out where its resize handle is while it paints
@@ -883,8 +1033,97 @@ private:
         }
     }
 
+    // KPMcore's size bar in the partition dialogs: the space the partition
+    // may take, hatched like unallocated space, between the two handles
+    // (QLabel children as wide as the handle).
+    static void paintResizer( QWidget* resizer )
+    {
+        int handle = 0;
+        const auto labels = resizer->findChildren< QLabel* >( Qt::FindDirectChildrenOnly );
+        for ( const QLabel* label : labels )
+        {
+            handle = qMax( handle, label->width() );
+        }
+        QPainter p( resizer );
+        p.setRenderHint( QPainter::Antialiasing );
+        const QRectF area( handle + 0.5, 0.5, resizer->width() - 2.0 * handle - 1.0, resizer->height() - 1.0 );
+        if ( area.width() < 4 )
+        {
+            return;
+        }
+        Bar bar( p, area );
+        bar.part( area, look().free, true, false, true );
+    }
+
+    // The partition itself: the accent colour for a new one, a calm colour
+    // for one being edited, with its name and size (the size box's value,
+    // which Calamares keeps equal to the partition's size).
+    static void paintPart( QWidget* part )
+    {
+        const Look& l = look();
+        QWidget* dialog = part->window();
+        const bool creating = qstrcmp( dialog->metaObject()->className(), "CreatePartitionDialog" ) == 0;
+        const QRectF r = QRectF( part->rect() ).adjusted( 0.5, 0.5, -0.5, -0.5 );
+        if ( r.width() < 4 )
+        {
+            return;
+        }
+        QPainter p( part );
+        p.setRenderHint( QPainter::Antialiasing );
+        p.setPen( Qt::NoPen );
+        p.setBrush( creating ? l.accent : QColor( "#5D6B82" ) );
+        p.drawRoundedRect( r, 6, 6 );
+
+        QString size;
+        if ( const auto* spin = dialog->findChild< QSpinBox* >( QStringLiteral( "sizeSpinBox" ) ) )
+        {
+            size = sizeText( double( spin->value() ) * 1024 * 1024 );
+        }
+        const QString name = creating
+            ? QCoreApplication::translate( "PartitionLabelsView", "New partition", "@label" )
+            : QString();
+        QFont font = part->font();
+        const QFontMetrics metrics( font );
+        const int width = int( r.width() ) - 12;
+        if ( width < metrics.horizontalAdvance( size ) )
+        {
+            return;  // too narrow for text, as Windows' Disk Management
+        }
+        p.setPen( Qt::white );
+        const int line = metrics.height();
+        const int top = int( r.center().y() ) - ( name.isEmpty() ? line / 2 : line );
+        if ( !name.isEmpty() )
+        {
+            QFont bold = font;
+            bold.setWeight( QFont::DemiBold );
+            p.setFont( bold );
+            p.drawText( QRect( int( r.x() ) + 6, top, width, line ),
+                        Qt::AlignCenter,
+                        QFontMetrics( bold ).elidedText( name, Qt::ElideRight, width ) );
+        }
+        p.setFont( font );
+        p.drawText( QRect( int( r.x() ) + 6, top + ( name.isEmpty() ? 0 : line ), width, line ), Qt::AlignCenter, size );
+    }
+
+    // A handle: Windows 11's slider thumb, upright.
+    static void paintHandle( QLabel* handle )
+    {
+        const Look& l = look();
+        QPainter p( handle );
+        p.setRenderHint( QPainter::Antialiasing );
+        const QRectF thumb = QRectF( handle->rect() ).adjusted( 0.5, 0.5, -0.5, -0.5 );
+        p.setPen( QPen( l.border, 1 ) );
+        p.setBrush( l.dark ? QColor( "#454A55" ) : QColor( "#FFFFFF" ) );
+        p.drawRoundedRect( thumb, thumb.width() / 2, thumb.width() / 2 );
+        p.setPen( QPen( l.accent, 2, Qt::SolidLine, Qt::RoundCap ) );
+        const qreal x = thumb.center().x();
+        const qreal middle = thumb.center().y();
+        p.drawLine( QPointF( x, middle - 7 ), QPointF( x, middle + 7 ) );
+    }
+
     QHash< QObject*, QPersistentModelIndex > m_hovered;
     QHash< QObject*, Split > m_splits;
+    QSet< QObject* > m_stepping;  // size boxes being stepped right now
 };
 
 class InstallerStyle : public QProxyStyle
@@ -927,6 +1166,19 @@ public:
         {
             QProxyStyle::unpolish( widget );
         }
+    }
+
+    // KPMcore sizes the handles of its size bar from the splitter width,
+    // asked without a widget (PartResizerWidget::handleWidth); real
+    // splitters ask with theirs and keep Kvantum's width. 11 px leaves room
+    // for a slider thumb that can be grabbed.
+    int pixelMetric( PixelMetric metric, const QStyleOption* option, const QWidget* widget ) const override
+    {
+        if ( metric == PM_SplitterWidth && !widget && !option )
+        {
+            return 11;
+        }
+        return QProxyStyle::pixelMetric( metric, option, widget );
     }
 
     // The list exactly under the box and as wide as it (Kvantum's rect

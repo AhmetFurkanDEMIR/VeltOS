@@ -72,6 +72,12 @@ TEXTS = {
     "volume_label": ("Volume label", "Birim etiketi"),
     "fs_choice": ("File system", "Dosya sistemi"),
     "quick_format": ("Perform a quick format", "Hızlı biçimlendirme yap"),
+    "format_options": ("Format options", "Biçimlendirme seçenekleri"),
+    "formatting": ("Formatting…", "Biçimlendiriliyor…"),
+    "format_complete": ("Format complete.", "Biçimlendirme tamamlandı."),
+    "format_failed": ("The volume couldn't be formatted.", "Birim biçimlendirilemedi."),
+    "start": ("Start", "Başlat"),
+    "close": ("Close", "Kapat"),
     "format_warning": ("Formatting this volume will erase all data on it. Back up any data you want to keep "
                        "before formatting. Do you want to continue?",
                        "Bu birimi biçimlendirmek üzerindeki tüm verileri siler. Biçimlendirmeden önce saklamak "
