@@ -1,12 +1,39 @@
 #!/usr/bin/python3
-"""Select a supported power profile for an AC or battery power source."""
+"""VeltOS power modes, as in Windows 11: a mode for "Plugged in" and one for
+"On battery", switched with the power source.
+
+    power-mode status                  the state as JSON
+    power-mode auto [ac|battery]       apply the mode chosen for the source
+                                       (detected when not given)
+    power-mode set PROFILE             choose PROFILE for the current source
+    power-mode prefer ac|battery PROFILE   choose PROFILE for that source
+
+Profiles are power-profiles-daemon's: power-saver ("Best power
+efficiency"), balanced, performance ("Best performance"). The choices are
+kept per user in ~/.config/veltos/power-modes.json; a profile this PC does
+not offer falls back to balanced (then to the first one offered). Quick
+Settings runs `auto` at the start of the session and whenever the battery
+model reports a change of the power source; Settings and Quick Settings
+both change the choices through this helper, so they always agree.
+Every command prints the state:
+
+    {"success", "error", "profiles", "active", "source", "hasBattery",
+     "modes": {"ac", "battery"}}
+"""
 
 import json
+import os
 import re
 import subprocess
 import sys
+from pathlib import Path
 
 PROFILES = ("power-saver", "balanced", "performance")
+SOURCES = ("ac", "battery")
+# Plugged in: best performance; on battery: best power efficiency (the
+# behaviour the product owner chose, 2026-10-25).
+DEFAULT_MODES = {"ac": "performance", "battery": "power-saver"}
+POWER_SUPPLY = Path("/sys/class/power_supply")
 
 
 def command(command):
@@ -15,6 +42,60 @@ def command(command):
     except OSError as error:
         return 127, "", str(error)
     return result.returncode, result.stdout, result.stderr
+
+
+def config_path():
+    base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    return base / "veltos" / "power-modes.json"
+
+
+def load_modes(path):
+    modes = dict(DEFAULT_MODES)
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return modes
+    if isinstance(data, dict):
+        for source in SOURCES:
+            if data.get(source) in PROFILES:
+                modes[source] = data[source]
+    return modes
+
+
+def save_modes(path, modes):
+    path = Path(path)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(modes) + "\n", encoding="utf-8")
+        tmp.replace(path)
+        return True
+    except OSError:
+        return False
+
+
+def read(path):
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def power_source(root=POWER_SUPPLY):
+    """("ac" | "battery", has a laptop battery). A PC without a battery of
+    its own (a mouse's or a UPS's do not count) is always plugged in."""
+    root = Path(root)
+    battery, online = False, False
+    if root.is_dir():
+        for supply in root.iterdir():
+            kind = read(supply / "type")
+            if kind == "Battery" and read(supply / "scope") != "Device" and read(supply / "present") != "0":
+                battery = True
+            elif kind in ("Mains", "USB", "USB_C", "USB_PD") and read(supply / "online") == "1":
+                online = True
+    if not battery:
+        return "ac", False
+    return ("ac" if online else "battery"), True
 
 
 def parse_profiles(output):
@@ -29,13 +110,17 @@ def parse_profiles(output):
     return [profile for profile in PROFILES if profile in found], active
 
 
-def automatic_profile(on_battery, profiles):
-    preferred = "power-saver" if on_battery else "performance"
+def effective_profile(preferred, profiles):
     if preferred in profiles:
         return preferred
     if "balanced" in profiles:
         return "balanced"
     return profiles[0] if profiles else ""
+
+
+def automatic_profile(on_battery, profiles):
+    """The default choice for a source on this PC."""
+    return effective_profile(DEFAULT_MODES["battery" if on_battery else "ac"], profiles)
 
 
 def current_state(runner):
@@ -75,20 +160,44 @@ def apply_profile(profile, runner=command, state=None):
     return dict(state, active=active)
 
 
-def run(args, runner=command):
-    if len(args) != 2:
-        return {"success": False, "profiles": [], "active": "",
-                "error": "Usage: power-mode auto ac|battery | set PROFILE"}
-    operation, value = args
-    if operation == "auto" and value in ("ac", "battery"):
+def run(args, runner=command, config=None, supply_root=POWER_SUPPLY):
+    config = config or config_path()
+    source, has_battery = power_source(supply_root)
+    modes = load_modes(config)
+
+    def finish(state, source=source):
+        return dict(state, source=source, hasBattery=has_battery, modes=modes)
+
+    if not args or args == ["status"]:
+        return finish(current_state(runner))
+    operation, values = args[0], args[1:]
+    if operation == "auto" and len(values) <= 1 and all(v in SOURCES for v in values):
+        if values:
+            source = values[0]
         state = current_state(runner)
         if not state["success"]:
-            return state
-        profile = automatic_profile(value == "battery", state["profiles"])
-        return apply_profile(profile, runner, state)
-    if operation == "set" and value in PROFILES:
-        return apply_profile(value, runner)
-    return {"success": False, "profiles": [], "active": "", "error": "Invalid power mode request."}
+            return finish(state, source)
+        return finish(apply_profile(effective_profile(modes[source], state["profiles"]), runner, state), source)
+    if operation == "set" and len(values) == 1 and values[0] in PROFILES:
+        values = [source, values[0]]
+        operation = "prefer"
+    if operation == "prefer" and len(values) == 2 and values[0] in SOURCES and values[1] in PROFILES:
+        target, profile = values
+        state = current_state(runner)
+        if not state["success"]:
+            return finish(state)
+        if profile not in state["profiles"]:
+            return finish(dict(state, success=False,
+                               error="This power profile is not supported on this device."))
+        modes[target] = profile
+        if not save_modes(config, modes):
+            return finish(dict(state, success=False, error="Could not save the power mode."))
+        if target == source:
+            state = apply_profile(profile, runner, state)
+        return finish(state)
+    return finish({"success": False, "profiles": [], "active": "",
+                   "error": "Usage: power-mode status | auto [ac|battery] | set PROFILE"
+                            " | prefer ac|battery PROFILE"})
 
 
 def main(args=None):

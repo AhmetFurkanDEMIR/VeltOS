@@ -187,3 +187,6 @@ msgstr "%1 çıkarılırken sorun oluştu"
 #: plasma-overrides/files/devicenotifier/DeviceItem.qml
 msgid "Close any programs or windows that might be using the device, and then try again."
 msgstr "Aygıtı kullanıyor olabilecek programları veya pencereleri kapatın ve yeniden deneyin."
+
+msgid "Paste"
+msgstr "Yapıştır"

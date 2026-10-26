@@ -87,6 +87,21 @@ class FakeSystem:
         self.fail = set(fail)          # command names (first words) that fail
         self.commands = []
         self.inputs = []               # (command, standard input) when there was one
+        # veltos-desktop's power-mode helper (its own tests cover the policy).
+        self.power = {"profiles": ["power-saver", "balanced", "performance"], "active": "balanced",
+                      "source": "ac", "hasBattery": True,
+                      "modes": {"ac": "performance", "battery": "power-saver"}}
+
+    def power_mode(self, args):
+        state = self.power
+        if args[:1] == ["prefer"] and len(args) == 3:
+            source, profile = args[1:]
+            if profile not in state["profiles"]:
+                return 1, json.dumps(dict(state, success=False, error="not supported"))
+            state["modes"][source] = profile
+            if source == state["source"]:
+                state["active"] = profile
+        return 0, json.dumps(dict(state, success=True, error=""))
 
     def __call__(self, command, timeout=20, input=None):
         self.commands.append(list(command))
@@ -95,6 +110,8 @@ class FakeSystem:
         key = tuple(command)
         if command[0] in self.fail or " ".join(command[:3]) in self.fail:
             return 1, ""
+        if command[0] == "/usr/libexec/veltos/power-mode":
+            return self.power_mode(command[1:])
         if command[:3] == ["nmcli", "radio", "wifi"]:
             self.outputs[("nmcli", "-t", "-f", "WIFI", "radio")] = \
                 "enabled\n" if command[3] == "on" else "disabled\n"

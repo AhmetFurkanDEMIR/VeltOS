@@ -1218,6 +1218,57 @@ were measured (below).
   cannot share it ("same-adapter"). Sharing over Bluetooth and Windows'
   power-saving switch are not implemented.
 
+### 2.33 Power modes per power source (2026-10-26, replaces part of 2.31)
+
+- Decision: as Windows 11, one mode for "Plugged in" and one for "On
+  battery", kept per user in `~/.config/veltos/power-modes.json`.
+  veltos-desktop's `power-mode` helper is the only place with the rules:
+  it reads the power source from `/sys/class/power_supply` (a battery that
+  is not a device's; Mains/USB online), applies the chosen mode (or
+  Balanced, then the first offered, when the PC lacks it) and prints the
+  state as JSON. Settings and Quick Settings both call it, so they agree;
+  Quick Settings' battery model calls `auto` at sign-in and on every change
+  of the source.
+- Alternatives: PowerDevil's per-profile `PowerProfile` setting (its
+  config keys could not be confirmed for Plasma 6.3, and PowerDevil cannot
+  say which modes a PC lacks in the way the pages need), a VeltOS daemon
+  watching UPower (another resident process).
+- Trade-off: switching relies on the Quick Settings applet running; a mode
+  the PC does not offer is shown greyed rather than hidden (Windows shows
+  all three).
+
+### 2.34 File Explorer's own copy window (2026-10-26)
+
+- Decision: copying and moving local files (File Explorer's paste and
+  drop, the desktop's paste) run in `veltos-explorer --transfer`
+  (`transfer.py`, `transferwindow.py`, `Transfer.qml`): a planned walk of
+  the sources, 1 MiB pieces with pause/cancel between them, a ".veltos-part"
+  file renamed into place (a cancelled copy leaves nothing), Windows'
+  "name - Copy", "Replace or Skip Files" with "for all", renames for moves
+  on one drive, errors collected and shown at the end. The window appears
+  only after 500 ms and closes itself on success, as Windows' does.
+- Alternatives: KIO (`kioclient`; its progress is a Plasma notification and
+  its conflict dialog KDE's), rsync/cp with parsed progress (no conflict
+  questions, no pause).
+- Trade-offs: local paths only (network places and the Recycle Bin stay
+  with KIO); no "Compare info" in the conflict question; one window per
+  operation.
+
+### 2.35 No plasmashell windows (2026-10-26)
+
+- Decision: KDE's dialogs that plasmashell (the desktop and taskbar
+  process) opened, and that showed as "plasmashell" or "Plasma Desktop
+  Workspace", are replaced where VeltOS controls the action: Shift+Delete
+  on the desktop runs File Explorer's "Delete File" question
+  (`--delete-permanently`), the desktop's paste reads the clipboard in QML
+  (`org.kde.kquickcontrolsaddons` Clipboard: `text/uri-list` and KDE's
+  `application/x-kde-cutselection`) and hands the files to the copy window
+  (2.34); KRunner's box is switched off. What still comes from plasmashell
+  (KIO notifications of drag and drop, KWin's not-responding window) shows
+  "File Explorer" with its icon: update-app-names renames plasmashell's
+  desktop entry, as Windows names its shell Explorer.
+- Trade-off: files dragged onto the desktop still get Plasma's drop menu.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

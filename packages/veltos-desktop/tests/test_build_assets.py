@@ -285,7 +285,9 @@ class QuickSettingsTests(StartMenuTests):
         self.assertIn("onPluggedInChanged", main)
         self.assertIn("onHasInternalBatteriesChanged", main)
         self.assertIn("onMore: stack.push(powerModePage)", main)
-        self.assertIn("power.profileSelected(modelData)", page)
+        # A mode for plugged in and one for battery (tabs), chosen on cards.
+        self.assertIn("power.profileSelected(power.editing, card.modelData.profile)", page)
+        self.assertIn("/usr/libexec/veltos/power-mode prefer ", main)
         self.assertIn("power.errorMessage", page)
         self.assertIn("showSwitch: false", page)
         self.assertIn("visible: page.showSwitch", (ui / "SubPage.qml").read_text(encoding="utf-8"))
@@ -426,6 +428,32 @@ class TaskViewTests(SearchTests):
     PLUGIN_ID = build_assets.TASKVIEW_ID
 
 
+class AIButtonTests(SearchTests):
+    STARTMENU = PKG / "plasma/aibutton"
+    PLUGIN_ID = build_assets.AIBUTTON_ID
+
+    def test_layout_adds_it_next_to_start(self):
+        self.skipTest("at the right end, not next to Start")
+
+    def test_layout_adds_it_after_the_clock(self):
+        js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
+        clock = js.index('addWidget("org.veltos.clock")')
+        here = js.index('addWidget("org.veltos.aibutton")')
+        corner = js.index('addWidget("org.veltos.showdesktop")')
+        self.assertLess(clock, here)
+        self.assertLess(here, corner)
+
+    def test_button_toggles_the_pane_and_hides_like_the_search_box(self):
+        main = (self.STARTMENU / "contents/ui/main.qml").read_text(encoding="utf-8")
+        self.assertIn('root.run("veltos-ai")', main)
+        self.assertIn("Plasmoid.configuration.shown = false", main)
+        for needed in ("clip: true", "opacity: shown ? 1 : 0", "enabled: shown"):
+            self.assertIn(needed, main)
+
+    def test_hidden_search_draws_nothing(self):
+        self.skipTest("the search box's own test")
+
+
 class ClockTests(StartMenuTests):
     STARTMENU = PKG / "plasma/clock"
 
@@ -534,6 +562,13 @@ class TaskbarTests(unittest.TestCase):
                '<path class="ColorScheme-Background" d="M0 0" style="opacity:0.75"/>'
                '<rect class="ColorScheme-Text" style="opacity:0.15"/></svg>')
         out = fluent.white_popup(svg)
+        bar = ('<svg><g id="layer1"><rect\n id="private-hint-show-separator"\n height="2"\n'
+               ' style="opacity:0.1" width="2" />\n<rect id="slider-center" width="4"/></g></svg>')
+        cleaned = fluent.drop_scrollbar_separator(bar)
+        self.assertNotIn("private-hint-show-separator", cleaned)
+        self.assertIn('id="slider-center"', cleaned)
+        with self.assertRaises(SystemExit):
+            fluent.drop_scrollbar_separator(cleaned)
         self.assertIn('id="c" style="opacity:1;fill:#ffffff"', out)
         self.assertIn('<path d="M0 0" style="fill:#ffffff;opacity:0.75"/>', out)
         self.assertIn('class="ColorScheme-Text"', out)

@@ -155,6 +155,17 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
 - Text boxes (address, search, file name, rename) are in the Tab order
   and show the text (I-beam) pointer, like Windows'.
 
+- **Copy window** (`--transfer copy|move FOLDER PATH...`, `transfer.py`,
+  `transferwindow.py`, `qml/Transfer.qml`; 2026-10-26): Windows 11's
+  "37% complete" window for File Explorer's paste and drop and the
+  desktop's paste: More details with the speed graph, name, time and items
+  remaining, Pause and Cancel (no half-written file stays), "Replace or
+  Skip Files" (for all), "name - Copy" in the same folder, renames for
+  moves on one drive, errors listed at the end. Shown after 500 ms, closed
+  on success. Local files only; network places and the Recycle Bin use KIO.
+- **Delete File** (`--delete-permanently PATH...`): Windows 11's question
+  for the desktop's Shift+Delete (the empty-bin window's QML).
+
 ## How it works
 
 - `files.py`: listing, sorting, names ("New folder (2)", "a - Copy.txt"),

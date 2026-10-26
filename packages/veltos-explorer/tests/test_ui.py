@@ -186,8 +186,8 @@ class ExplorerWindowTests(unittest.TestCase):
         self.backend.copy()
         self.assertTrue(self.backend.canPaste)
         self.backend.paste()
-        self.assertEqual(self.started[-1][:3], ["kioclient", "--interactive", "copy"])
-        self.assertTrue(self.started[-1][-1].endswith("report - Copy.txt"))
+        self.assertEqual(self.started[-1][:3], ["veltos-explorer", "--transfer", "copy"])
+        self.assertTrue(self.started[-1][-1].endswith("report.txt"))
         self.backend.createNew("folder")
         self.app.processEvents()
         new_folder = self.home / "Documents" / self.backend.text("new_folder_name")
@@ -343,11 +343,42 @@ class ExplorerWindowTests(unittest.TestCase):
         self.assertEqual(window.findChild(QObject, "yesButton").property("label"), backend.text("yes"))
         self.assertIsNotNone(window.findChild(QObject, "noButton"))
         self.assertIsInstance(backend.property("darkMode"), bool)
-        backend.empty()
+        backend.confirm()
         self.assertEqual(emptied, [True])
         self.assertEqual(self.problems(), [])
         # Delete the window now, while its backend is still alive (a
         # deferred delete after the test re-read bindings from a dead one).
+        from PySide6.QtCore import QCoreApplication, QEvent
+        engine.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        self.app.processEvents()
+
+
+    def test_delete_permanently_window(self):
+        # The desktop's Shift+Delete: Windows 11's "Delete File" question in
+        # File Explorer's window, not KDE's plasmashell dialog.
+        from veltos_explorer import app as explorer
+        deleted = []
+
+        class Operations:
+            def delete(self, paths):
+                deleted.append(list(paths))
+
+        backend = explorer.EmptyBinBackend(lang=self.lang, operations=Operations(),
+                                           paths=["/home/u/Desktop/Report.txt"])
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", backend)
+        engine.load(QUrl.fromLocalFile(str(explorer.QML_DIR / "EmptyBin.qml")))
+        self.app.processEvents()
+        window = engine.rootObjects()[0]
+        self.assertEqual(window.property("title"), backend.text("delete_file"))
+        self.assertIn("Report.txt", backend.property("question"))
+        backend.confirm()
+        self.assertEqual(deleted, [["/home/u/Desktop/Report.txt"]])
+        several = explorer.EmptyBinBackend(lang=self.lang, operations=Operations(), paths=["/a", "/b"])
+        self.assertEqual(several.property("heading"), backend.text("delete_items"))
+        self.assertIn("2", several.property("question"))
+        self.assertEqual(self.problems(), [])
         from PySide6.QtCore import QCoreApplication, QEvent
         engine.deleteLater()
         QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)

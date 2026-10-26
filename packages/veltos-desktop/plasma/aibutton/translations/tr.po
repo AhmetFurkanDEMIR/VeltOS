@@ -1,0 +1,23 @@
+# Turkish translation of the VeltOS AI taskbar button.
+# SPDX-License-Identifier: GPL-3.0-or-later
+msgid ""
+msgstr ""
+"Project-Id-Version: org.veltos.aibutton\n"
+"PO-Revision-Date: 2026-10-26 12:00+0000\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "VeltOS AI"
+msgstr "VeltOS AI"
+
+msgid "Ask VeltOS AI (Windows + C)"
+msgstr "VeltOS AI'a sorun (Windows + C)"
+
+msgid "VeltOS AI settings"
+msgstr "VeltOS AI ayarları"
+
+msgid "Hide from taskbar"
+msgstr "Görev çubuğundan gizle"

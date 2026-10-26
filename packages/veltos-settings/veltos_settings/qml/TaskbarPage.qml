@@ -50,6 +50,17 @@ ColumnLayout {
             onToggled: on => backend.setTaskbar("taskView", on)
         }
     }
+    SettingRow {
+        Layout.fillWidth: true
+        icon: "veltos-ai-symbolic"
+        title: backend.text("taskbar_ai")
+        ToggleSwitch {
+            checked: page.t.aiButton !== false
+            enabledState: page.ready
+            accessibleName: backend.text("taskbar_ai")
+            onToggled: on => backend.setTaskbar("aiButton", on)
+        }
+    }
 
     SectionLabel {
         text: backend.text("taskbar_tray_icons")

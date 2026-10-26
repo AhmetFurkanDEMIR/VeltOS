@@ -155,15 +155,21 @@ this order:
 Added by the product owner on 2026-10-26 (after item 45), in this order,
 then a full ISO with everything:
 
-46. [ ] Quick Settings: the battery figure at the bottom left opens Settings > Power & battery
-47. [ ] No Debian/KDE search box at the top of the screen (KRunner); VeltOS' own search is the only one
-48. [ ] Show hidden icons (taskbar arrow): the same see-through hover box as the other taskbar buttons
-49. [ ] Power modes redone in Windows 11's way: Best performance, Balanced, Best power efficiency, chosen separately for plugged in and on battery, switching with the power source; modern Settings page and Quick Settings
-50. [ ] Start: no vertical line left of the scroll bar
-51. [ ] VeltOS AI: a Copilot-like button at the right of the taskbar by default (removable), opening the pane; a VeltOS AI page in Settings
-52. [ ] Weather starts with the default (Celsius) unit
-53. [ ] Maps and location reviewed: Windows 11 look, no errors
-54. [ ] The window titled "plasmashell" in Windows 11's design
+46. [x] Quick Settings: the battery figure at the bottom left opens Settings > Power & battery. Seen in the dev VM (`tests/results/2026-10-26-items-46-57/`)
+47. [x] No Debian/KDE search box at the top of the screen (KRunner): typing on the desktop does not open it (`/etc/xdg/krunnerrc` ActivateWhenTypingOnDesktop=false) and its shortcuts (Alt+Space, Alt+F2, Search) are off (kglobalaccel override). Dev VM (`tests/results/2026-10-26-items-46-57/`)
+48. [x] Show hidden icons (taskbar arrow): the same see-through hover box as the other taskbar buttons (system tray override). Dev VM (`tests/results/2026-10-26-items-46-57/`)
+49. [x] Power modes redone in Windows 11's way: Best power efficiency, Balanced, Best performance, chosen separately for plugged in and on battery (`~/.config/veltos/power-modes.json`, veltos-desktop's `power-mode` helper switches with the power source read from sysfs); Settings shows one drop-down on a PC without a battery and both on laptops, modes the PC lacks greyed and the effective one shown; Quick Settings has cards with Plugged in / On battery tabs and a tile named after the active mode. Dev VM (no battery; the battery switch is unit-tested only) (`tests/results/2026-10-26-items-46-57/`)
+50. [x] Start: no vertical line left of the scroll bar (the Plasma theme no longer has `private-hint-show-separator`; every Plasma scroll bar). Dev VM (`tests/results/2026-10-26-items-46-57/`)
+51. [x] VeltOS AI: a Copilot-like button after the clock (org.veltos.aibutton; added once to existing taskbars), opening the pane, with "Hide from taskbar" and "VeltOS AI settings"; Settings > Apps > VeltOS AI (service, API key without showing it, model, Azure endpoint, actions, the taskbar button) and Personalization > Taskbar > VeltOS AI. Dev VM; real services untested (no keys) (`tests/results/2026-10-26-items-46-57/`)
+52. [x] Weather starts in °C (°F on request). Dev VM (`tests/results/2026-10-26-items-46-57/`)
+53. [x] Maps and location reviewed: one window (a second start brings it forward), Google's pages in the app's language, the map over the whole window with Windows 11 floating controls, InfoBars, a loading line and an offline page, Google's consent/sign-in kept in Maps' own profile; Windows 11's "Default location" (set in Maps from Settings' "Set default", used when GeoClue finds nothing); the privacy text corrected (Debian's GeoClue uses beaconDB, not Mozilla's closed service). Dev VM; no real location fix (`tests/results/2026-10-26-items-46-57/`)
+54. [x] The "plasmashell" windows in Windows 11's design: Shift+Delete on the desktop asks File Explorer's "Delete File"; desktop paste goes through File Explorer's copy window (Windows' "name - Copy", no KDE "File Already Exists"); plasmashell's desktop entry is named "File Explorer" with its icon (taskbar, copy notifications, the not-responding window). Dev VM (`tests/results/2026-10-26-items-46-57/`)
+
+Added by the product owner on 2026-10-26 during items 46-54:
+
+55. [x] A Windows 11 copy window for copying and moving (large files): `veltos-explorer --transfer` (transfer.py, Transfer.qml) for File Explorer's paste and drop and the desktop's paste: "37% complete", speed graph, name, time and items remaining, Pause/Cancel, "Replace or Skip Files", errors listed at the end; moves on one drive are renames. Dev VM with a 3 GB file and the disk limited to 60 MB/s (`tests/results/2026-10-26-items-46-57/`)
+56. [x] Battery icon back in the taskbar (always: the level and charging state, or a charging battery and "Plugged in" on PCs without one) and at the bottom left of Quick Settings, opening Power & battery. Dev VM without a battery (`tests/results/2026-10-26-items-46-57/`)
+57. [x] A new Windows 11 style removable drive icon (the local disk's box with the USB symbol and a blue light). Dev VM, This PC (`tests/results/2026-10-26-items-46-57/`)
 
 ## Final release steps (after item 45)
 
@@ -238,9 +244,10 @@ order:
   on Calamares' class names and arithmetic (architecture 2.25): check
   them again after a Calamares update.
 - KDE's "open with" dialog remains for programs that open files through
-  KIO without a default app (not through File Explorer). Plasma's own
-  confirmation when deleting permanently (Shift+Delete) is still KDE's;
-  File Explorer and the desktop show VeltOS' Properties window
+  KIO without a default app (not through File Explorer). Shift+Delete and
+  paste on the desktop use File Explorer's windows since 2026-10-26, but
+  files dragged onto the desktop still get Plasma's drop menu and KIO's
+  dialogs; File Explorer and the desktop show VeltOS' Properties window
   (2026-10-23), but a KDE program that opens KDE's properties dialog
   itself still gets KDE's.
 - The desktop's "Sort by" and icon sizes are kept per user, but the
@@ -290,12 +297,17 @@ order:
   only internet is its only Wi-Fi card cannot share it (NetworkManager
   cannot run a second virtual interface). Choosing the shared connection
   changes the PC's own preferred route while the hotspot runs.
+- Copy window (2026-10-26): local files only; network locations (smb://,
+  sftp://) and the Recycle Bin still go through KIO and its notifications.
+  Copies run one window per paste (Windows merges them into one window).
+- VeltOS Maps keeps Google's cookies (consent, sign-in) in its own profile
+  since 2026-10-26 (it was off the record before).
 - ISO is not verified bit-for-bit reproducible. No CI.
 
 ## Next steps
 
-1. Items 46-54 of the product owner's list (2026-10-26), in order, then a
-   full ISO; after them the final release steps F1-F9 in their order.
+1. The product owner's list is done (items 1-57); next the final release
+   steps F1-F9 in their order.
 2. Current ISO: `veltos-0.1.0-dev-20261026-063914` (2.37 GB, sha256
    `ef58a6b5d67b7b620f8817a1293c9ebe87c83fcda9ff6216c1a0ef90c70dcd2c`)
    with items 38-45. QEMU: boot tests UEFI 19/19, BIOS 18/18, Secure Boot

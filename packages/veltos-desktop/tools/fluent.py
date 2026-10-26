@@ -450,6 +450,19 @@ def drop_popup_outline(svg, name="svg"):
     return result, count
 
 
+def drop_scrollbar_separator(svg, name="svg"):
+    """Plasma's scroll bars draw a 1 px line beside themselves when the
+    theme's scrollbar.svg has the element "private-hint-show-separator"
+    (plasma-framework ScrollBar.qml); Fluent has it, so Start showed a
+    vertical line left of its scroll bar (product owner, 2026-10-26: no
+    line, as Windows 11's scroll bars have none)."""
+    result, count = re.subn(r'<(\w+)\b[^>]*\bid="private-hint-show-separator"[^>]*?(?:/>|>.*?</\1>)',
+                            "", svg, flags=re.S)
+    if count != 1:
+        raise SystemExit(f"{name}: scroll bar separator hint not found (Fluent changed?)")
+    return result
+
+
 LIGHT_POPUP = "#ffffff"
 
 
@@ -501,6 +514,7 @@ def build_desktoptheme(upstream, root, name, variant):
         (dest / rel).unlink()
     recoloured = 0
     outlines = 0
+    separators = 0
     for path in sorted(dest.rglob("*.svgz")):
         text = read_svgz(path)
         if re.search(re.escape(FLUENT_BLUE), text, flags=re.IGNORECASE):
@@ -511,9 +525,14 @@ def build_desktoptheme(upstream, root, name, variant):
             outlines += found
         if variant == "light" and path.parent.name == "dialogs" and path.name == "background.svgz":
             text = white_popup(text, str(path))
+        if path.parent.name == "widgets" and path.name == "scrollbar.svgz" and "private-hint-show-separator" in text:
+            text = drop_scrollbar_separator(text, str(path))
+            separators += 1
         write_svgz(path, text)
     if outlines == 0:
         raise SystemExit(f"{name}: no popup outline found (Fluent changed?)")
+    if separators == 0:
+        raise SystemExit(f"{name}: no scroll bar separator hint found (Fluent changed?)")
     (dest / "colors").unlink(missing_ok=True)       # follow the system scheme (docstring)
     for rel, opacity in PANEL_OPACITY.items():
         write_svgz(dest / rel, set_background_opacity(read_svgz(dest / rel), opacity, rel))

@@ -76,7 +76,7 @@ ApplicationWindow {
         "otherusers": otherUsersComponent, "region": regionComponent,
         "accessibility": accessibilityComponent, "searching": searchingComponent,
         "themes": themesComponent, "taskbar": taskbarComponent, "location": locationComponent,
-        "hotspot": hotspotComponent
+        "hotspot": hotspotComponent, "veltosai": assistantComponent
     })
 
     // `veltos-settings PAGE`: a navigation page or a built-in page.
@@ -285,6 +285,10 @@ ApplicationWindow {
         WifiPage {
             onItemActivated: item => window.activate(item)
         }
+    }
+    Component {
+        id: assistantComponent
+        AssistantPage {}
     }
     Component {
         id: hotspotComponent

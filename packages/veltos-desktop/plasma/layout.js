@@ -116,6 +116,11 @@ panel.addWidget("org.veltos.quicksettings");
 var clock = panel.addWidget("org.veltos.clock");
 clock.globalShortcut = "Meta+N";
 
+// VeltOS AI next to the clock, like Windows 11's Copilot button; its menu
+// or Settings > Personalization > Taskbar hide it (product owner,
+// 2026-10-26).
+panel.addWidget("org.veltos.aibutton");
+
 // The thin "show desktop" area at the right end, as on Windows 11.
 panel.addWidget("org.veltos.showdesktop");
 

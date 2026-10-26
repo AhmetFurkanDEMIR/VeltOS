@@ -892,6 +892,11 @@ def main(argv=None):
         return 0
     if "--empty-recycle-bin" in argv[1:]:
         return empty_recycle_bin(argv)
+    if "--delete-permanently" in argv[1:]:
+        return delete_permanently(argv)
+    if "--transfer" in argv[1:]:
+        from . import transferwindow
+        return transferwindow.run(argv, prepare_application, EmptyBinBackend)
     app = prepare_application(argv, "veltos-explorer")
     backend = Backend(open_paths=argv[1:])
     engine = QQmlApplicationEngine()
@@ -912,12 +917,36 @@ def main(argv=None):
 
 class EmptyBinBackend(QObject):
     """Behind EmptyBin.qml: the texts, the theme values Theme.qml reads
-    from `backend`, and the emptying itself."""
+    from `backend`, and the emptying itself. With `paths` the same window
+    asks Windows 11's "Delete File" question for them (the desktop's
+    Shift+Delete) and Yes deletes them for good."""
 
-    def __init__(self, lang=None, operations=None, parent=None):
+    def __init__(self, lang=None, operations=None, paths=None, parent=None):
         super().__init__(parent)
         self.lang = lang or strings.language()
         self.operations = operations or ops.Operations()
+        self.paths = list(paths or [])
+
+    @Property(str, constant=True)
+    def heading(self):
+        if not self.paths:
+            return strings.text(self.lang, "empty_recycle_bin")
+        return strings.text(self.lang, "delete_file" if len(self.paths) == 1 else "delete_items")
+
+    @Property(str, constant=True)
+    def question(self):
+        if not self.paths:
+            return strings.text(self.lang, "empty_bin_question")
+        if len(self.paths) == 1:
+            return strings.text(self.lang, "delete_forever_one", name=os.path.basename(self.paths[0].rstrip("/")))
+        return strings.text(self.lang, "delete_forever", count=len(self.paths))
+
+    @Slot()
+    def confirm(self):
+        if self.paths:
+            self.operations.delete(self.paths)
+        else:
+            self.operations.empty_trash()
 
     @Slot(str, result=str)
     def text(self, key):
@@ -955,6 +984,25 @@ def empty_recycle_bin(argv):
     code = app.exec()
     # The QML goes first: deleted after the objects it reads, its bindings
     # ran once more against dead ones ("Cannot call method ... of null").
+    del engine
+    return code
+
+
+def delete_permanently(argv):
+    """`veltos-explorer --delete-permanently PATH...`: the desktop's
+    Shift+Delete asks Windows 11's question in a small window of its own
+    (EmptyBin.qml), then deletes the items for good."""
+    paths = [a for a in argv[1:] if a != "--delete-permanently" and os.path.lexists(a)]
+    if not paths:
+        return 1
+    app = prepare_application([argv[0]], "veltos-explorer", "delete_file")
+    backend = EmptyBinBackend(paths=paths)
+    engine = QQmlApplicationEngine()
+    engine.rootContext().setContextProperty("backend", backend)
+    engine.load(QUrl.fromLocalFile(str(QML_DIR / "EmptyBin.qml")))
+    if not engine.rootObjects():
+        return 1
+    code = app.exec()
     del engine
     return code
 

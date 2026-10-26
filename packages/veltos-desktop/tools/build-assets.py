@@ -49,6 +49,7 @@ SEARCH_ID = "org.veltos.search"
 TASKVIEW_ID = "org.veltos.taskview"
 CLOCK_ID = "org.veltos.clock"
 SHOWDESKTOP_ID = "org.veltos.showdesktop"
+AIBUTTON_ID = "org.veltos.aibutton"
 
 # UI font for the whole desktop (Debian package fonts-inter). Qt font strings:
 # family, point size, pixel size, style hint, weight, italic, underline, ...
@@ -470,6 +471,13 @@ def build_static_config(root):
         "etc/xdg/klipperrc": (
             "[General]\n"
             "IgnoreImages=false\n"),
+        # KRunner's search box at the top of the screen never appears: not
+        # when typing on the desktop (plasmashell's DesktopView reads this),
+        # and its shortcuts are off (update-app-names); the taskbar's
+        # search is VeltOS' only one (product owner, 2026-10-26).
+        "etc/xdg/krunnerrc": (
+            "[General]\n"
+            "ActivateWhenTypingOnDesktop=false\n"),
         "etc/xdg/ksmserverrc": (
             "[General]\n"
             "confirmLogout=false\n"
@@ -760,7 +768,8 @@ PLASMA_SERVICES = (
 
 # VeltOS plasmoids: source directory under plasma/ -> plugin id.
 PLASMOIDS = {"startmenu": STARTMENU_ID, "quicksettings": QUICKSETTINGS_ID, "search": SEARCH_ID,
-             "taskview": TASKVIEW_ID, "clock": CLOCK_ID, "showdesktop": SHOWDESKTOP_ID}
+             "taskview": TASKVIEW_ID, "clock": CLOCK_ID, "showdesktop": SHOWDESKTOP_ID,
+             "aibutton": AIBUTTON_ID}
 
 
 # Default account picture (artwork/user-avatar.svg): the sign-in screen

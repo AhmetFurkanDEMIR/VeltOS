@@ -288,6 +288,12 @@ class OverrideTests(unittest.TestCase):
         self.assertEqual(view.count("if (!veltos.itemMenu(hoveredItem, listener.mapToItem(main, mouse.x, mouse.y)))"), 2)
         self.assertEqual(view.count("veltos.selectionProtected()"), 4)     # Delete, trash, cut, rename
         self.assertNotIn("                        dir.refresh();\n", view)
+        # Shift+Delete and paste go through File Explorer's Windows 11
+        # windows, not KDE's plasmashell dialogs.
+        self.assertIn("veltos.deletePermanently(); return;", view)
+        self.assertIn("veltos.paste(); // VeltOS", view)
+        self.assertIn("veltos-explorer --delete-permanently ", added)
+        self.assertIn("veltos-explorer --transfer ", added)
         editor = (ui / "RenameEditor.qml").read_text(encoding="utf-8")
         self.assertIn("radius: 2\n", editor)
         self.assertIn("(Plasmoid.configuration.textLines + 8)", editor)

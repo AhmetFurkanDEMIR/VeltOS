@@ -11,6 +11,7 @@ a fake runner. Nothing here needs the administrator password.
 """
 
 import configparser
+import json
 import os
 import re
 from pathlib import Path
@@ -109,6 +110,7 @@ TIMEOUT_MINUTES = [1, 2, 3, 5, 10, 15, 20, 25, 30, 45, 60, 120, 180, 240, 300, 0
 LOCK_MINUTES = [1, 2, 3, 5, 10, 15, 30, 60, 0]     # 0 = never (Autolock off)
 NIGHT_TEMPERATURES = (6500, 1000)       # KWin's range: no change .. strongest
 POWER_MODES = ("power-saver", "balanced", "performance")
+POWER_MODE_HELPER = "/usr/libexec/veltos/power-mode"     # veltos-desktop
 
 # Language & region: the formats that go with each display language, and
 # the [Formats] keys of plasma-localerc that Plasma 6.3's startplasma
@@ -354,40 +356,34 @@ class Preferences:
         values.update(self.power_mode_state())
         return values
 
-    def power_mode_state(self):
-        """Profiles exposed by power-profiles-daemon on this hardware."""
-        code, output = self.run(["powerprofilesctl", "list"])
-        profiles, active = parse_power_profiles(output) if code == 0 else ([], "")
-        if profiles and not active:
-            code, output = self.run(["powerprofilesctl", "get"])
-            if code == 0 and output.strip() in profiles:
-                active = output.strip()
+    def power_mode_state(self, args=("status",)):
+        """Power modes through veltos-desktop's helper, which keeps the
+        choice for "Plugged in" and "On battery" and applies the one for the
+        current source (power-profiles-daemon's profiles; Quick Settings
+        uses the same helper, so both always agree)."""
+        code, output = self.run([POWER_MODE_HELPER, *args])
+        try:
+            data = json.loads(output) if output.strip() else {}
+        except ValueError:
+            data = {}
+        profiles = [p for p in data.get("profiles", []) if p in POWER_MODES]
+        modes = data.get("modes") if isinstance(data.get("modes"), dict) else {}
         return {
             "powerModesAvailable": bool(profiles),
             "powerModes": profiles,
-            "powerMode": active,
+            "powerMode": data.get("active", "") if data.get("active") in POWER_MODES else "",
+            "powerSource": data.get("source", "ac") if data.get("source") in ("ac", "battery") else "ac",
+            "powerModeAC": modes.get("ac", "") if modes.get("ac") in POWER_MODES else "",
+            "powerModeBattery": modes.get("battery", "") if modes.get("battery") in POWER_MODES else "",
+            "powerModeOk": code == 0 and data.get("success") is True,
         }
 
-    def set_power_mode(self, name):
-        if name not in POWER_MODES:
+    def set_power_mode(self, source, name):
+        """Choose `name` for "ac" or "battery"; the helper applies it at once
+        when that is the current source. True when it worked."""
+        if name not in POWER_MODES or source not in ("ac", "battery"):
             return False
-        state = self.power_mode_state()
-        if name not in state["powerModes"]:
-            return False
-        return self.run(["powerprofilesctl", "set", name])[0] == 0
-
-
-def parse_power_profiles(output):
-    """Read profile names and the active marker from `powerprofilesctl list`."""
-    available, active = set(), ""
-    for line in output.splitlines():
-        match = re.fullmatch(r"\s*(\*)?\s*(power-saver|balanced|performance):\s*", line)
-        if match:
-            name = match.group(2)
-            available.add(name)
-            if match.group(1):
-                active = name
-    return [name for name in POWER_MODES if name in available], active
+        return self.power_mode_state(("prefer", source, name))["powerModeOk"]
 
 
 def has_battery(root="/sys/class/power_supply"):

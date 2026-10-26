@@ -79,7 +79,7 @@ More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#galle
 
 | VeltOS | Like Windows 11's | Built on |
 |---|---|---|
-| File Explorer | File Explorer, file dialogs, "Open with", drive formatting and desktop shortcuts from Explorer, Start and Search | KIO, UDisks2 |
+| File Explorer | File Explorer, file dialogs, "Open with", the copy window, drive formatting and desktop shortcuts from Explorer, Start and Search | KIO, UDisks2 |
 | Settings | Settings, including Mobile hotspot (share the internet connection over Wi-Fi) | NetworkManager, BlueZ, PipeWire, KScreen, power-profiles-daemon |
 | Store | Microsoft Store | AppStream, PackageKit |
 | Word, Excel, PowerPoint | Microsoft 365's start screen | LibreOffice 25.2 |
@@ -87,7 +87,7 @@ More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#galle
 | Calendar, Clock, Calculator, Notepad | The apps of the same name | Qt Quick |
 | Maps | Google Maps in a VeltOS window, with optional location access | Qt WebEngine, GeoClue |
 | Weather | Weather (current weather, 10-day and hourly forecast, details, history, favorites) | Open-Meteo's open data, no key |
-| VeltOS AI | Copilot's pane (Windows + C), acting on the PC after "Allow" | ChatGPT, Claude, Gemini or Azure OpenAI with your own API key |
+| VeltOS AI | Copilot's pane and taskbar button (Windows + C), acting on the PC after "Allow" | ChatGPT, Claude, Gemini or Azure OpenAI with your own API key |
 | Photos, Media Player, Camera | The apps of the same name | Pillow, Qt Multimedia |
 | Snipping Tool | Snipping Tool (Print Screen, Win+Shift+S) | Spectacle |
 | PDF Reader | A modern PDF reader | Qt PDF |

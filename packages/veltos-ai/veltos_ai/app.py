@@ -223,6 +223,17 @@ class Backend(QObject):
             self.data["services"][name]["key"] = ""
             self._save()
 
+    @Slot()
+    def reloadSettings(self):
+        """Reads the settings again when VeltOS Settings changed them (its
+        VeltOS AI page writes the same file) while the pane kept running."""
+        data = config.load(self._settings_file)
+        if data != self.data:
+            if data.get("provider") != self.data.get("provider"):
+                self.newChat()
+            self.data = data
+            self.settingsChanged.emit()
+
     def _save(self):
         try:
             config.save(self.data, self._settings_file)
@@ -569,7 +580,8 @@ def main(argv=None):
     def on_connection():
         while server.hasPendingConnections():
             connection = server.nextPendingConnection()
-            connection.readyRead.connect(lambda c=connection: backend.toggleRequested.emit())
+            connection.readyRead.connect(
+                lambda c=connection: (backend.reloadSettings(), backend.toggleRequested.emit()))
     server.newConnection.connect(on_connection)
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)

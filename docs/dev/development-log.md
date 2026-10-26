@@ -3,6 +3,50 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-26 — Product owner's items 46-57
+
+The product owner's list after item 45, then three more requests during the
+work (a Windows 11 copy window, the battery icon, a new removable drive
+icon). All seen in the QEMU dev VM with the rebuilt packages
+(`tests/results/2026-10-26-items-46-57/`); package tests: Settings 146,
+Desktop 155, File Explorer 99, Maps 17, AI 21, Weather 22, icons 2.
+
+- 46/56 Quick Settings: the battery (always shown on the taskbar; "Plugged
+  in" without a battery) and the bottom-left battery button opening Power &
+  battery. QEMU has no battery and Debian's kernel no `test_power`, so the
+  level and charging states were not seen.
+- 47 KRunner never appears: `ActivateWhenTypingOnDesktop=false` (read by
+  plasmashell's DesktopView; found in the binary's strings) and a NoDisplay
+  kglobalaccel copy for `org.kde.krunner.desktop`.
+- 48 The tray arrow got the taskbar's hover box (systemtray override,
+  matched against plasma-workspace 6.3.6).
+- 49 Power modes per power source (architecture 2.33). First attempt in the
+  VM showed "Best performance (not available...)" as the chosen value on a
+  PC without that profile; the pages now show the effective mode.
+- 50 Start's line beside the scroll bar was Plasma's ScrollBar separator,
+  drawn when the theme has `private-hint-show-separator` (Fluent does); the
+  theme build removes it.
+- 51 VeltOS AI button (org.veltos.aibutton) and Settings > Apps > VeltOS
+  AI. Adding the applet to existing taskbars: an AppletOrder written by the
+  script was rewritten by Plasma (the button landed after the show-desktop
+  corner); session-fixups now removes the corner and adds it again after
+  the button, keeping its setting. A new `veltos-ai-symbolic` sparkle icon
+  (Settings' catalogue test wants line icons). The pane reads its settings
+  again when it is opened.
+- 52 Weather defaults to °C (it followed en_US to °F before).
+- 53 Maps rewritten in Windows 11's way (single instance, `hl`/Accept-
+  Language, floating controls, InfoBars, offline page, default location);
+  Settings' privacy text named Mozilla's closed service: Debian 13's GeoClue
+  uses `https://api.beacondb.net` (found in its binary).
+- 54/55 plasmashell's dialogs (architecture 2.35) and the copy window
+  (2.34). The copy of a 1.5 GB file from memory finished in under a second
+  without showing the window; with the disk limited to 60 MB/s through a
+  cgroup (`slowcopy.sh`) the details, pause and cancel were seen.
+- 57 New removable drive icon in the local disk's family.
+- Found on the way: Settings started with `runuser` cannot change the power
+  profile (polkit wants the session); the earlier "power mode could not be
+  changed" in the VM was that.
+
 ## 2026-10-26 — Mobile hotspot; ISO 20261026-063914
 
 Item 45 of the product owner's list. Settings > Network & internet >

@@ -39,7 +39,9 @@ class MapsWindowTests(unittest.TestCase):
     def setUp(self):
         self.messages.clear()
         self.runner = Runner()
+        import tempfile
         self.backend = Backend(
+            settings_dir=tempfile.mkdtemp(),
             lang="en",
             runner=self.runner,
             start_url="about:blank",
@@ -92,8 +94,30 @@ class MapsWindowTests(unittest.TestCase):
         self.backend.requestCurrentLocation()
         loop.exec()
 
-        self.assertEqual(self.backend.mapUrl, "https://www.google.com/maps/@37.422000,-122.084000,16z")
+        self.assertEqual(self.backend.mapUrl, "https://www.google.com/maps/@37.422000,-122.084000,16z?hl=en")
         self.assertEqual(self.backend.status, "Showing your current location.")
+
+    def test_messages_and_default_location_bar(self):
+        window = self.engine.rootObjects()[0]
+        privacy = window.findChild(QObject, "privacyBar")
+        self.assertTrue(privacy.property("visible"))
+        self.backend.dismissPrivacyNote()
+        self.app.processEvents()
+        self.assertFalse(privacy.property("visible"))
+        bar = window.findChild(QObject, "setDefaultBar")
+        self.assertFalse(bar.property("visible"))
+        self.backend.startSettingDefault()
+        self.app.processEvents()
+        self.assertTrue(bar.property("visible"))
+        self.backend.cancelSettingDefault()
+        self.backend.requestCurrentLocation()      # location off: an error bar
+        self.app.processEvents()
+        self.assertTrue(window.findChild(QObject, "statusBar").property("visible"))
+        window.grabWindow()
+        errors = [message for message in self.messages
+                  if "qml" in message.lower() or "error" in message.lower()
+                  or "warning" in message.lower() or "undefined" in message.lower()]
+        self.assertEqual(errors, [])
 
 
 if __name__ == "__main__":

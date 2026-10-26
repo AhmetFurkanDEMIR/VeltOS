@@ -115,6 +115,39 @@ TEXTS = {
     "advanced_network": ("Advanced network settings", "Gelişmiş ağ ayarları"),
     "advanced_network_desc": ("Ethernet, VPN, IP addresses",
                               "Ethernet, VPN, IP adresleri"),
+    "taskbar_ai": ("VeltOS AI", "VeltOS AI"),
+    # Apps > VeltOS AI
+    "ai_title": ("VeltOS AI", "VeltOS AI"),
+    "ai_desc": ("Your assistant at the right edge of the screen. Open it with Windows + C or the button on the "
+                "taskbar.",
+                "Ekranın sağ kenarındaki asistanınız. Windows + C ile veya görev çubuğundaki düğmeyle açın."),
+    "ai_open": ("Open VeltOS AI", "VeltOS AI'ı aç"),
+    "ai_taskbar": ("Show the VeltOS AI button on the taskbar", "VeltOS AI düğmesini görev çubuğunda göster"),
+    "ai_service": ("AI service", "Yapay zekâ hizmeti"),
+    "ai_service_desc": ("The service VeltOS AI uses, with your own API key",
+                        "VeltOS AI'ın kullandığı hizmet, kendi API anahtarınızla"),
+    "ai_key": ("API key", "API anahtarı"),
+    "ai_key_saved": ("A key is saved. Enter a new one to replace it.",
+                     "Bir anahtar kayıtlı. Değiştirmek için yenisini girin."),
+    "ai_key_missing": ("No key yet. Get one from the service's website.",
+                       "Henüz anahtar yok. Hizmetin web sitesinden bir tane alın."),
+    "ai_get_key": ("Get a key", "Anahtar al"),
+    "ai_remove_key": ("Remove key", "Anahtarı kaldır"),
+    "ai_model": ("Model", "Model"),
+    "ai_endpoint": ("Azure OpenAI endpoint", "Azure OpenAI uç noktası"),
+    "ai_deployment": ("Deployment name", "Dağıtım adı"),
+    "ai_ready": ("Ready: VeltOS AI uses {service}.", "Hazır: VeltOS AI {service} kullanıyor."),
+    "ai_not_ready": ("VeltOS AI needs a service and its key before it can answer.",
+                     "VeltOS AI'ın yanıt verebilmesi için bir hizmet ve anahtarı gerekir."),
+    "ai_actions": ("Let VeltOS AI change settings and open apps", "VeltOS AI ayarları değiştirebilsin ve uygulama açabilsin"),
+    "ai_actions_desc": ("It asks you with Allow before every change.", "Her değişiklikten önce İzin ver ile sorar."),
+    "ai_storage_note": ("Keys are kept in a file only your account can read; it is not encrypted. What you type goes "
+                        "to the service you choose.",
+                        "Anahtarlar yalnızca hesabınızın okuyabildiği bir dosyada tutulur; şifrelenmez. Yazdıklarınız "
+                        "seçtiğiniz hizmete gider."),
+    "ai_save_failed": ("The settings couldn't be saved.", "Ayarlar kaydedilemedi."),
+    "ai_missing": ("VeltOS AI is not installed. Get it from VeltOS Store.",
+                   "VeltOS AI kurulu değil. VeltOS Mağaza'dan edinin."),
     # Network & internet > Mobile hotspot
     "mobile_hotspot": ("Mobile hotspot", "Mobil etkin nokta"),
     "hotspot_desc": ("Share my internet connection with other devices",
@@ -295,12 +328,17 @@ TEXTS = {
     "power_saver": ("Best power efficiency", "En iyi güç verimliliği"),
     "power_balanced": ("Balanced", "Dengeli"),
     "power_performance": ("Best performance", "En iyi performans"),
+    "power_section": ("Power", "Güç"),
+    "power_mode_desc": ("Optimize your device based on power use and performance",
+                        "Cihazınızı güç kullanımına ve performansa göre iyileştirin"),
+    "power_mode_now": ("Now: {mode}", "Şu an: {mode}"),
+    "power_mode_not_supported": ("{mode} (not available on this PC)", "{mode} (bu bilgisayarda yok)"),
+    "plugged_in": ("Plugged in", "Prize takılıyken"),
+    "on_battery": ("On battery", "Pil gücündeyken"),
+    "power_source_now": ("now", "şu an"),
     "power_mode_auto_note": (
-        "VeltOS switches to best performance on AC power and best power efficiency on battery.",
-        "VeltOS prize takılıyken en iyi performansa, pil gücündeyken en iyi güç verimliliğine geçer."),
-    "power_mode_performance_unavailable": (
-        "Best performance is not supported by this device; Balanced will be used on AC power.",
-        "Bu cihaz en iyi performans modunu desteklemiyor; prize takıldığında Dengeli kullanılacak."),
+        "When you plug in or unplug this PC, VeltOS switches to the mode you chose for it.",
+        "Bu bilgisayarı prize taktığınızda veya çıkardığınızda VeltOS, o durum için seçtiğiniz moda geçer."),
     "power_modes_unavailable": ("Power modes are unavailable on this device.",
                                 "Güç modları bu cihazda kullanılamıyor."),
     "power_mode_change_failed": ("The power mode could not be changed.",
@@ -456,15 +494,26 @@ TEXTS = {
                              "Başlat ve Dosya Gezgini'nin daha hızlı bulması için dosya içeriklerini dizinle"),
     # Privacy & security > Location
     "location_services": ("Location services", "Konum hizmetleri"),
-    "location_services_desc": ("Allow VeltOS Maps to use your device location when you choose My location",
-                               "Konumum'u seçtiğinizde VeltOS Haritalar'ın cihaz konumunuzu kullanmasına izin verin"),
-    "location_provider_title": ("How location is used", "Konumun nasıl kullanıldığı"),
-    "location_provider_note": ("When location is enabled, GeoClue may send nearby Wi-Fi information to Mozilla "
-                               "Location Service to estimate your position. Google Maps receives your location "
-                               "when you choose My location in VeltOS Maps. You can turn access off at any time.",
-                               "Konum açıkken GeoClue, konumunuzu tahmin etmek için yakındaki Wi-Fi bilgilerini "
-                               "Mozilla Location Service'e gönderebilir. Google Haritalar konumunuzu, kendi "
-                               "Haritalar'da Konumum'u seçtiğinizde alır. Erişimi istediğiniz zaman kapatabilirsiniz."),
+    "location_services_desc": ("Lets VeltOS Maps find where you are when you select My location",
+                               "VeltOS Haritalar'ın, Konumum'u seçtiğinizde nerede olduğunuzu bulmasını sağlar"),
+    "default_location": ("Default location", "Varsayılan konum"),
+    "default_location_desc": ("Maps uses this when the PC can't find a more exact location. Not set.",
+                              "Bilgisayar daha kesin bir konum bulamadığında Haritalar bunu kullanır. Ayarlanmadı."),
+    "default_location_value": ("Maps uses this when the PC can't find a more exact location: {place}",
+                               "Bilgisayar daha kesin bir konum bulamadığında Haritalar bunu kullanır: {place}"),
+    "default_location_set": ("Set default", "Varsayılanı ayarla"),
+    "default_location_clear": ("Clear", "Temizle"),
+    "location_provider_title": ("How location is found", "Konum nasıl bulunur"),
+    "location_provider_note": ("VeltOS looks for your location only when you select My location in Maps. GeoClue "
+                               "uses GPS or a mobile broadband modem when the PC has one; otherwise it sends the "
+                               "Wi-Fi networks around you to beaconDB (api.beacondb.net), a community location "
+                               "service. Google Maps receives the location it shows. You can turn access off at "
+                               "any time.",
+                               "VeltOS konumunuzu yalnızca Haritalar'da Konumum'u seçtiğinizde arar. GeoClue, "
+                               "bilgisayarda varsa GPS'i veya mobil geniş bant modemini kullanır; yoksa çevrenizdeki "
+                               "Wi-Fi ağlarını bir topluluk konum hizmeti olan beaconDB'ye (api.beacondb.net) "
+                               "gönderir. Google Haritalar gösterdiği konumu alır. Erişimi istediğiniz zaman "
+                               "kapatabilirsiniz."),
     # Home (Windows 11 24H2 layout)
     "update_title": ("VeltOS Update", "VeltOS Güncelleme"),
     "last_checked": ("Last checked: {when}", "Son denetleme: {when}"),

@@ -46,9 +46,9 @@
     },
     {
       "file": "contents/ui/FolderView.qml",
-      "why": "the Delete key leaves the protected icons alone",
+      "why": "the Delete key leaves the protected icons alone; Shift+Delete asks Windows 11's question in File Explorer's window instead of KDE's plasmashell dialog",
       "old": "                    onDeleteFile: {\n                        dir.deleteSelected();\n",
-      "new": "                    onDeleteFile: {\n                        if (veltos.selectionProtected()) return; // VeltOS: not the Recycle Bin, This PC, the Store\n                        dir.deleteSelected();\n"
+      "new": "                    onDeleteFile: {\n                        if (veltos.selectionProtected()) return; // VeltOS: not the Recycle Bin, This PC, the Store\n                        veltos.deletePermanently(); return; // VeltOS: Windows 11's question (File Explorer)\n                        dir.deleteSelected();\n"
     },
     {
       "file": "contents/ui/FolderView.qml",
@@ -103,6 +103,12 @@
       "why": "the Recycle Bin's icon shows whether it holds anything, as on Windows (product owner, 2026-10-22: the full bin was not shown)",
       "old": "                    animated: false\n\n                    source: model.decoration\n",
       "new": "                    animated: false\n\n                    // VeltOS: the Recycle Bin full or empty (VeltOSDesktop watches the trash).\n                    source: main.veltosFileName.endsWith(\"/recycle-bin.desktop\") && typeof veltos !== \"undefined\"\n                            ? (veltos.trashFull ? \"user-trash-full\" : \"user-trash\") : model.decoration\n"
+    },
+    {
+      "file": "contents/ui/FolderView.qml",
+      "why": "Ctrl+V on the desktop goes through File Explorer's Windows 11 copy window (no KDE \"File Already Exists\" dialog)",
+      "old": "                    } else if (event.matches(StandardKey.Paste)) {\n                        dir.paste();\n",
+      "new": "                    } else if (event.matches(StandardKey.Paste)) {\n                        veltos.paste(); // VeltOS: File Explorer's copy window\n"
     }
   ]
 }

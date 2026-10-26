@@ -61,7 +61,8 @@ Recommends: bluedevil,
             veltos-graphics,
             veltos-store,
             pulseaudio-utils,
-            veltos-winapps
+            veltos-winapps,
+            veltos-ai
 Description: VeltOS Settings, a Windows 11 style settings app
  Settings laid out like Windows 11: a navigation pane (System, Bluetooth &
  devices, Network & internet, Personalization, Apps, Accounts, Time &

@@ -34,12 +34,6 @@ msgstr "Güç modları kullanılamıyor"
 msgid "Couldn't change the power mode"
 msgstr "Güç modu değiştirilemedi"
 
-msgid "Best performance is not supported by this device; Balanced will be used on AC power."
-msgstr "Bu cihaz En iyi performans modunu desteklemiyor; prize takıldığında Dengeli kullanılacak."
-
-msgid "Automatically switches to best power efficiency on battery and best performance on AC power."
-msgstr "Pil gücündeyken En iyi güç verimliliğine, prize takılıyken En iyi performansa otomatik geçer."
-
 msgid "Not connected"
 msgstr "Bağlı değil"
 
@@ -249,3 +243,30 @@ msgstr "Mobil etkin nokta açılamadı."
 
 msgid "Turning on mobile hotspot disconnects this PC from %1."
 msgstr "Mobil etkin nokta açılınca bu bilgisayarın %1 ağıyla bağlantısı kesilir."
+
+msgid "Power & battery settings"
+msgstr "Güç ve pil ayarları"
+
+msgid "As fast as this PC can go; uses more power"
+msgstr "Bu bilgisayarın en yüksek hızı; daha çok güç kullanır"
+
+msgid "Energy saver"
+msgstr "Enerji tasarrufu"
+
+msgid "Not available on this PC"
+msgstr "Bu bilgisayarda yok"
+
+msgid "On battery"
+msgstr "Pilde"
+
+msgid "Plugged in"
+msgstr "Prize takılı"
+
+msgid "Saves energy; apps may run a little slower"
+msgstr "Enerji tasarrufu yapar; uygulamalar biraz yavaşlayabilir"
+
+msgid "Speed when you need it, energy saved when you don't"
+msgstr "Gerektiğinde hız, gerekmediğinde enerji tasarrufu"
+
+msgid "VeltOS switches modes when you plug in or unplug the PC."
+msgstr "VeltOS, bilgisayarı prize taktığınızda veya çıkardığınızda modu değiştirir."

@@ -79,6 +79,12 @@
       "why": "the tooltip goes away as soon as the arrow is pressed, like Windows 11's",
       "old": "            if (pressed) {\n                tooltip.wasExpanded = systemTrayState.expanded;\n",
       "new": "            if (pressed) {\n                tooltip.hideImmediately(); // VeltOS: no tooltip once clicked\n                tooltip.wasExpanded = systemTrayState.expanded;\n"
+    },
+    {
+      "file": "contents/ui/ExpanderArrow.qml",
+      "why": "a see-through hover box like the taskbar's other buttons (product owner, 2026-10-26)",
+      "old": "    Kirigami.Icon {\n        anchors.fill: parent\n\n        rotation: systemTrayState.expanded ? 180 : 0\n",
+      "new": "    // VeltOS: the same see-through box as the taskbar's other buttons\n    // (Quick Settings, the clock) while the pointer is over the arrow or\n    // its flyout is open (product owner, 2026-10-26).\n    HoverHandler {\n        id: veltosHover\n    }\n    Rectangle {\n        readonly property bool darkTheme: Kirigami.ColorUtils.brightnessForColor(\n            Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark\n        anchors.centerIn: parent\n        width: tooltip.iconSize + Kirigami.Units.largeSpacing * 2\n        height: tooltip.iconSize + Kirigami.Units.largeSpacing * 3\n        radius: Kirigami.Units.cornerRadius\n        color: darkTheme ? Qt.rgba(1, 1, 1, 0.09) : Qt.rgba(1, 1, 1, 0.62)\n        border.width: 1\n        border.color: darkTheme ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.05)\n        opacity: veltosHover.hovered || systemTrayState.expanded ? 1 : 0\n        Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }\n    }\n    Kirigami.Icon {\n        anchors.fill: parent\n\n        rotation: systemTrayState.expanded ? 180 : 0\n"
     }
   ]
 }

@@ -14,6 +14,7 @@ scripts can still change it.
     badges       counters on app buttons (task manager smartLaunchersEnabled)
     combine      "always", "full" (when the taskbar is full) or "never"
     showDesktop  the far corner shows the desktop (org.veltos.showdesktop)
+    aiButton     the VeltOS AI button by the clock (org.veltos.aibutton "shown")
     tray         {applet id: true} for the tray icons shown on the taskbar
                  rather than behind the "^" arrow
 
@@ -38,7 +39,7 @@ SEARCH_MODES = (0, 1, 2, 3)
 ALIGNMENTS = ("center", "left")
 COMBINE = ("always", "full", "never")
 DEFAULTS = {"search": 3, "taskView": True, "alignment": "center", "autoHide": False, "badges": True,
-            "combine": "full", "showDesktop": True,
+            "combine": "full", "showDesktop": True, "aiButton": True,
             "tray": {"org.kde.plasma.keyboardlayout": True}}
 
 # Shared by every script: the taskbar is the panel with the task manager.
@@ -101,6 +102,13 @@ taskbars().slice(0, 1).forEach(function (panel) {
     } else {
         state.showDesktop = false;
     }
+    var ai = first(panel, 'org.veltos.aibutton');
+    if (ai) {
+        ai.currentConfigGroup = ['General'];
+        state.aiButton = String(ai.readConfig('shown', true)) !== 'false';
+    } else {
+        state.aiButton = false;
+    }
     var spacer = leadingSpacer(panel);
     if (spacer) {
         spacer.currentConfigGroup = ['General'];
@@ -151,6 +159,13 @@ taskbars().forEach(function (panel) {
     panel.widgets('org.veltos.showdesktop').forEach(function (w) {
         w.currentConfigGroup = ['General'];
         w.writeConfig('enabled', %(value)s);
+    });
+});""",
+    "aiButton": """
+taskbars().forEach(function (panel) {
+    panel.widgets('org.veltos.aibutton').forEach(function (w) {
+        w.currentConfigGroup = ['General'];
+        w.writeConfig('shown', %(value)s);
     });
 });""",
     "alignment": """
@@ -221,7 +236,7 @@ def valid(name, value):
         return value if value in ALIGNMENTS else None
     if name == "combine":
         return value if value in COMBINE else None
-    if name in ("taskView", "autoHide", "badges", "showDesktop"):
+    if name in ("taskView", "autoHide", "badges", "showDesktop", "aiButton"):
         return value if isinstance(value, bool) else None
     return None
 

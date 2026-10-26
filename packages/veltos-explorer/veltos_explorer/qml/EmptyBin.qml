@@ -1,7 +1,8 @@
 /*
     "Empty Recycle Bin" asked from the desktop (the Recycle Bin icon's menu,
-    veltos-desktop): Windows 11's question in a small window of its own,
-    Yes empties the bin (`backend` is app.EmptyBinBackend). File Explorer
+    veltos-desktop) and "Delete File" (the desktop's Shift+Delete):
+    Windows 11's question in a small window of its own; Yes empties the bin
+    or deletes the items (`backend` is app.EmptyBinBackend). File Explorer
     asks the same inside its window (WinDialog.qml).
 
     SPDX-License-Identifier: GPL-3.0-or-later
@@ -24,13 +25,13 @@ ApplicationWindow {
     minimumHeight: column.implicitHeight
     maximumHeight: column.implicitHeight
     visible: true
-    title: backend.text("empty_recycle_bin")
+    title: backend.heading
     color: Theme.content
     flags: Qt.Dialog | Qt.WindowTitleHint | Qt.WindowCloseButtonHint
 
     function answer(yes) {
         if (yes)
-            backend.empty();
+            backend.confirm();
         Qt.quit();
     }
 
@@ -49,7 +50,7 @@ ApplicationWindow {
             spacing: 12
             Text {
                 Layout.fillWidth: true
-                text: backend.text("empty_recycle_bin")
+                text: backend.heading
                 color: Theme.text
                 font.pixelSize: 18
                 font.weight: Font.DemiBold
@@ -57,7 +58,7 @@ ApplicationWindow {
             }
             Text {
                 Layout.fillWidth: true
-                text: backend.text("empty_bin_question")
+                text: backend.question
                 color: Theme.text
                 font.pixelSize: Theme.fontSize
                 wrapMode: Text.WordWrap

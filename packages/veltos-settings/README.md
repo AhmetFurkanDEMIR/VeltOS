@@ -98,6 +98,14 @@ open VeltOS Settings.
     (`iw`, `ip neigh`, names from the hotspot's dnsmasq). Also
     `/usr/libexec/veltos/hotspot status|start|stop|configure|source` with
     JSON output for Quick Settings (key on standard input);
+  - **Apps > VeltOS AI** (`assistant.py`, 2026-10-26): the service, API
+    key (never shown, only "saved"), model, Azure endpoint and actions in
+    VeltOS AI's own settings file, and its taskbar button;
+  - **Privacy & security > Location**: location services, Windows 11's
+    default location (set in VeltOS Maps), how location is found
+    (GeoClue, beaconDB);
+  - **Power & battery**: the power mode for plugged in and on battery
+    through veltos-desktop's `power-mode` helper;
   - **Bluetooth & devices**: Bluetooth, Mouse and Touchpad (KWin's input
     devices over D-Bus, saved in kcminputrc), Typing (keyboard layouts,
     kxkbrc);

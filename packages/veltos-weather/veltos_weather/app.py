@@ -66,12 +66,10 @@ def config_path():
 
 
 def default_unit(environ=None):
-    """°F where the United States' measures are used (as Windows does), °C elsewhere."""
-    environ = os.environ if environ is None else environ
-    for variable in ("LC_ALL", "LC_MEASUREMENT", "LANG"):
-        value = environ.get(variable, "")
-        if value:
-            return "F" if value.split(".")[0] in ("en_US", "en_LR", "my_MM") else "C"
+    """Celsius until the user chooses Fahrenheit in Settings (product owner,
+    2026-10-26: the default degrees). It followed the locale before, and
+    VeltOS' live system and most installations run en_US, so Weather
+    started in °F in Türkiye too."""
     return "C"
 
 

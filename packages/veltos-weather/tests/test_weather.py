@@ -243,6 +243,8 @@ class BackendTests(unittest.TestCase):
         backend.loadFavorites()
         favorite = backend.favorites[0]
         self.assertEqual((favorite["name"], favorite["temperature"]), ("İstanbul", "14°"))
+        from veltos_weather import app
+        self.assertEqual(app.default_unit({"LANG": "en_US.UTF-8"}), "C")   # °C until chosen otherwise
         backend.setUnit("F")
         self.assertEqual(backend.favorites[0]["temperature"], "57°")
         saved = json.loads(backend._settings_file.read_text(encoding="utf-8"))

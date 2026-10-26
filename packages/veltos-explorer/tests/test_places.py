@@ -235,8 +235,8 @@ class OperationTests(unittest.TestCase):
         self.assertEqual(self.started, [
             ["kioclient", "--interactive", "move", "/home/u/a.txt", "trash:/"],
             ["kioclient", "--interactive", "remove", "/home/u/b.txt"],
-            ["kioclient", "--interactive", "move", "/home/u/c.txt", "/home/u/Documents/"],
-            ["kioclient", "--interactive", "copy", "/home/u/d.txt", "/home/u/Documents/"]])
+            ["veltos-explorer", "--transfer", "move", "/home/u/Documents", "/home/u/c.txt"],
+            ["veltos-explorer", "--transfer", "copy", "/home/u/Documents", "/home/u/d.txt"]])
 
     def test_documents_through_the_portal_programs_through_kio(self):
         # Documents go to the portal with an activation token, so an open
@@ -258,10 +258,12 @@ class OperationTests(unittest.TestCase):
                                         ["kioclient", "exec", str(self.dir / "Setup.EXE")],
                                         ["kioclient", "exec", str(self.dir / "app.desktop")]])
 
-    def test_copy_into_the_same_folder_makes_a_copy(self):
+    def test_copy_into_the_same_folder_goes_to_the_copy_window(self):
+        # The copy window names it "a - Copy.txt" (test_transfer).
         (self.dir / "a.txt").write_text("", encoding="utf-8")
         self.ops.copy([str(self.dir / "a.txt")], str(self.dir))
-        self.assertEqual(self.started[-1][-1], str(self.dir / "a - Copy.txt"))
+        self.assertEqual(self.started[-1], ["veltos-explorer", "--transfer", "copy", str(self.dir),
+                                            str(self.dir / "a.txt")])
 
     def test_move_into_itself_or_same_folder_is_ignored(self):
         self.ops.move([str(self.dir / "x")], str(self.dir))

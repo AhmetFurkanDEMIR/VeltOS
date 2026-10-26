@@ -71,6 +71,33 @@ desktops().forEach(function (desktop) {
     desktop.writeConfig('popups', false);
 });
 panels().forEach(function (panel) {
+    // The VeltOS AI button (2026-10-26) comes to taskbars made before it,
+    // once, between the clock and the show-desktop corner as layout.js
+    // places it; hiding it later is the button's own setting (shown).
+    panel.currentConfigGroup = ['General'];
+    if (panel.readConfig('veltosAIButton', false) !== true && panel.widgets('org.veltos.clock').length > 0) {
+        if (panel.widgets('org.veltos.aibutton').length === 0) {
+            // New applets go to the end (Plasma keeps its own AppletOrder
+            // and rewrote one set here): the show-desktop corner is taken
+            // off and added again after the button, its setting kept.
+            panel.locked = false;
+            var corners = panel.widgets('org.veltos.showdesktop');
+            var cornerOn = true;
+            if (corners.length > 0) {
+                corners[0].currentConfigGroup = ['General'];
+                cornerOn = String(corners[0].readConfig('enabled', true)) !== 'false';
+                corners[0].remove();
+            }
+            panel.addWidget('org.veltos.aibutton');
+            if (corners.length > 0) {
+                var corner = panel.addWidget('org.veltos.showdesktop');
+                corner.currentConfigGroup = ['General'];
+                corner.writeConfig('enabled', cornerOn);
+            }
+        }
+        panel.currentConfigGroup = ['General'];
+        panel.writeConfig('veltosAIButton', true);
+    }
     lockAll(panel);
     panel.widgets('org.kde.plasma.systemtray').forEach(function (tray) {
         var id = tray.readConfig('SystrayContainmentId');

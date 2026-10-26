@@ -89,22 +89,61 @@ class SettingsWindowTests(unittest.TestCase):
 
     def test_location_privacy_disclosure_names_the_provider(self):
         self.show("privacy", "location")
-        self.assertIn("Mozilla Location Service", self.backend.text("location_provider_note"))
+        # Debian 13's GeoClue sends Wi-Fi networks to beaconDB (Mozilla's
+        # service closed in 2024).
+        self.assertIn("api.beacondb.net", self.backend.text("location_provider_note"))
+        self.assertNotIn("Mozilla", self.backend.text("location_provider_note"))
+        # The default location: set in Maps, shown and cleared here.
+        place = Path(os.environ["XDG_CONFIG_HOME"]) / "veltos" / "location.json"
+        place.parent.mkdir(parents=True, exist_ok=True)
+        place.write_text('{"latitude": 39.925533, "longitude": 32.866287}')
+        self.backend.refreshDefaultLocation()
+        self.app.processEvents()
+        self.assertEqual(self.backend.defaultLocation, {"set": True, "label": "39.9255° N, 32.8663° E"})
+        self.backend.setDefaultLocation()
+        self.assertIn(["veltos-maps", "--set-default-location"], self.started)
+        self.backend.clearDefaultLocation()
+        self.assertFalse(place.exists())
+        self.assertFalse(self.backend.defaultLocation["set"])
         self.assertEqual(self.problems(), [])
 
-    def test_power_page_offers_only_supported_profiles_and_reports_change_failure(self):
-        self.system.outputs[("powerprofilesctl", "list")] = "* balanced:\n  power-saver:\n"
+    def test_power_page_offers_modes_for_plugged_in_and_on_battery(self):
+        self.system.power.update(profiles=["power-saver", "balanced"])
         self.show("system", "power")
         self.backend.refreshPrefs()
         self.app.processEvents()
         self.assertEqual(self.backend.prefs["powerModes"], ["power-saver", "balanced"])
-        self.assertEqual(self.backend.prefs["powerMode"], "balanced")
-
-        self.backend.setPowerMode("performance")
+        self.assertEqual(self.backend.prefs["powerModeBattery"], "power-saver")
+        self.backend.setPowerMode("battery", "balanced")
+        self.app.processEvents()
+        self.assertEqual(self.backend.prefs["powerModeBattery"], "balanced")
+        self.assertFalse(self.backend.prefs["powerModeError"])
+        # Best performance is shown but not offered on this PC.
+        self.backend.setPowerMode("ac", "performance")
         self.app.processEvents()
         self.assertTrue(self.backend.prefs["powerModeError"])
-        self.assertNotIn(["powerprofilesctl", "set", "performance"], self.system.commands)
         self.assertEqual(self.problems(), [])
+
+    def test_veltos_ai_page_saves_a_service_without_showing_keys(self):
+        import test_assistant
+        from veltos_settings import assistant
+        saved = (assistant.PROVIDERS, assistant.ORDER)
+        assistant.PROVIDERS, assistant.ORDER = test_assistant.PROVIDERS, test_assistant.ORDER
+        try:
+            fake = test_assistant.FakeConfig()
+            self.backend.system.assistant.config = fake
+            self.show("apps", "veltosai")
+            self.assertTrue(self.backend.assistant["available"])
+            self.backend.saveAiService("claude", "sk-ant-test", "", "")
+            self.app.processEvents()
+            self.assertEqual(fake.saved["provider"], "claude")
+            self.assertTrue(self.backend.assistant["ready"])
+            self.assertNotIn("sk-ant-test", repr(self.backend.assistant))
+            self.backend.openAssistant()
+            self.assertIn(["veltos-ai"], self.started)
+            self.assertEqual(self.problems(), [])
+        finally:
+            assistant.PROVIDERS, assistant.ORDER = saved
 
     def test_mobile_hotspot_page_turns_on_edits_and_lists_devices(self):
         self.show("network", "hotspot")
@@ -233,7 +272,7 @@ class SettingsWindowTests(unittest.TestCase):
             self.assertEqual(self.window.property("pageId"), page["id"])
         for page, sub in (("system", "about"), ("system", "storage"), ("apps", "windows-apps"),
                           ("system", "display"), ("system", "sound"), ("devices", "bluetooth"),
-                          ("network", "wifi"), ("network", "hotspot"), ("personalization", "background"),
+                          ("network", "wifi"), ("network", "hotspot"), ("apps", "veltosai"), ("personalization", "background"),
                           ("personalization", "colours"), ("time", "datetime"),
                           ("system", "notifications"), ("system", "power"), ("system", "nightlight"),
                           ("system", "multitasking"), ("devices", "mouse"), ("devices", "touchpad"),

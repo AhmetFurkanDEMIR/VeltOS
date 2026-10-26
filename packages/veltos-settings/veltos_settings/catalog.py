@@ -20,7 +20,8 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
                  "wifi", "background", "colours", "datetime", "notifications", "power",
                  "nightlight", "multitasking", "mouse", "touchpad", "keyboard", "lockscreen",
                  "defaultapps", "startup", "yourinfo", "signin", "otherusers", "region",
-                 "accessibility", "searching", "themes", "taskbar", "location", "hotspot")
+                 "accessibility", "searching", "themes", "taskbar", "location", "hotspot",
+                 "veltosai")
 # Actions the backend knows (app.Backend.runAction).
 ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website")
 
@@ -132,6 +133,10 @@ PAGES = [
          "title": ("Startup", "Başlangıç"),
          "desc": ("Apps that start when you sign in", "Oturum açınca başlayan uygulamalar"),
          "keywords": "autostart login boot başlangıç"},
+        {"id": "veltosai", "icon": "veltos-ai-symbolic", "page": "veltosai",
+         "title": ("VeltOS AI", "VeltOS AI"),
+         "desc": ("Assistant service, API key, taskbar button", "Asistan hizmeti, API anahtarı, görev çubuğu düğmesi"),
+         "keywords": "ai assistant copilot chatgpt claude gemini openai api key yapay zeka zekâ asistan anahtar"},
     ]},
     {"id": "accounts", "icon": "avatar-default-symbolic", "title": ("Accounts", "Hesaplar"), "items": [
         {"id": "yourinfo", "icon": "user-info-symbolic", "page": "yourinfo",

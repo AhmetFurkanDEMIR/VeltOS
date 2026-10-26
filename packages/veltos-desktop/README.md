@@ -86,11 +86,27 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   searches the web with Google ("Search with Google", a four-colour
   magnifier drawn by VeltOS), the best match when nothing else is found;
   KDE's web shortcuts runner (DuckDuckGo) is not used.
+- **VeltOS AI button** (`org.veltos.aibutton`, 2026-10-26): Windows 11's
+  Copilot button after the clock; a click opens or closes the VeltOS AI
+  pane, its menu hides it or opens Settings > Apps > VeltOS AI
+  (`shown`, also Settings > Personalization > Taskbar). session-fixups
+  adds it once to taskbars made before it.
+- **No KRunner** (2026-10-26): `/etc/xdg/krunnerrc`
+  ActivateWhenTypingOnDesktop=false and its global shortcuts off
+  (update-app-names); the taskbar's search is the only search box.
+- **Desktop files through File Explorer** (2026-10-26): paste (Ctrl+V and
+  the menu) runs File Explorer's copy window, Shift+Delete its "Delete
+  File" question; plasmashell's own desktop entry is named "File Explorer"
+  (update-app-names `ICONS`), so what plasmashell still shows carries that
+  name.
 - **Quick Settings** (`org.veltos.quicksettings`): one taskbar button with
   the network, sound and battery icons opens a Windows 11 style panel —
   Wi-Fi, Bluetooth, Airplane mode, Mobile hotspot, Night light and Power
   mode tiles (the hotspot's arrow shows its name, password, band and
-  devices through VeltOS Settings' `/usr/libexec/veltos/hotspot`),
+  devices through VeltOS Settings' `/usr/libexec/veltos/hotspot`; the
+  power mode page has three cards with Plugged in / On battery tabs and
+  `system/power-mode` keeps a mode per power source; the battery is
+  always on the button and at the bottom left, opening Power & battery),
   brightness and volume sliders, battery level and a Settings button. Power
   mode offers the profiles supported by power-profiles-daemon and
   automatically selects performance on AC or power-saver on battery when

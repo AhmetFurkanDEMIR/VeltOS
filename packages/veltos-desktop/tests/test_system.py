@@ -143,6 +143,32 @@ class AppNameTests(unittest.TestCase):
             self.assertIn("Project flyout", off)
             self.assertNotIn("X-KDE-Shortcuts", off)
 
+    def test_desktop_process_is_file_explorer(self):
+        shell = ("[Desktop Entry]\nExec=plasmashell\nName=Plasma Desktop Workspace\nName[tr]=Plasma\n"
+                 "Icon=plasmashell\nNoDisplay=true\nType=Application\n")
+        out = app_names.rewrite(shell, "org.kde.plasmashell.desktop", app_names.APPS["org.kde.plasmashell.desktop"],
+                                icon=app_names.ICONS["org.kde.plasmashell.desktop"])
+        self.assertIn("\nName=File Explorer\n", out)
+        self.assertIn("\nName[tr]=Dosya Gezgini\n", out)
+        self.assertIn("\nIcon=veltos-explorer\n", out)
+        self.assertNotIn("Icon=plasmashell", out)
+        self.assertIn("NoDisplay=true", out)
+
+    def test_krunner_box_never_opens(self):
+        # KRunner's box at the top of the screen (Alt+Space, Alt+F2, the
+        # Search key) is not VeltOS' search (product owner, 2026-10-26).
+        krunner = ("[Desktop Entry]\nExec=/usr/bin/krunner\nName=KRunner\n"
+                   "X-KDE-Shortcuts=Alt+Space,Alt+F2,Search\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            src, out = Path(tmp) / "applications", Path(tmp) / "xdg" / "applications"
+            src.mkdir()
+            (Path(tmp) / "kglobalaccel").mkdir()
+            (Path(tmp) / "kglobalaccel/org.kde.krunner.desktop").write_text(krunner, encoding="utf-8")
+            app_names.update(src, out)
+            off = (Path(tmp) / "xdg/kglobalaccel/org.kde.krunner.desktop").read_text(encoding="utf-8")
+            self.assertIn("\nNoDisplay=true\n", off)
+            self.assertNotIn("X-KDE-Shortcuts", off)
+
     def test_file_without_name_is_rejected(self):
         with self.assertRaises(ValueError):
             app_names.rewrite("[Desktop Entry]\nExec=x\n", "x", hide=True)

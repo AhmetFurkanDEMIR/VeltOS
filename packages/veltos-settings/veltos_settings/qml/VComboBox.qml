@@ -114,6 +114,9 @@ Rectangle {
             Keys.onSpacePressed: choose(currentIndex)
 
             function choose(index) {
+                // An option with enabled: false is shown greyed and cannot be chosen.
+                if (index >= 0 && box.options[index].enabled === false)
+                    return;
                 popup.close();
                 if (index >= 0 && index !== box.currentIndex)
                     box.activated(box.options[index].value);
@@ -125,11 +128,13 @@ Rectangle {
                 required property var modelData
                 required property int index
                 readonly property bool chosen: index === box.currentIndex
+                readonly property bool usable: modelData.enabled !== false
 
                 width: ListView.view.width
                 height: 34
                 radius: 5
-                color: optionTap.pressed ? Theme.cardPressed
+                opacity: usable ? 1 : 0.45
+                color: !usable ? "transparent" : optionTap.pressed ? Theme.cardPressed
                        : (optionHover.hovered || ListView.isCurrentItem) ? Theme.navHover
                        : chosen ? Theme.navSelected : "transparent"
 
@@ -153,7 +158,7 @@ Rectangle {
                     font.pixelSize: 13
                     elide: Text.ElideRight
                 }
-                HoverHandler { id: optionHover; cursorShape: Qt.PointingHandCursor }
+                HoverHandler { id: optionHover; cursorShape: option.usable ? Qt.PointingHandCursor : Qt.ArrowCursor }
                 // Exclusive grab on press (ReleaseWithinBounds): with the
                 // default passive grab the press went on to the row under
                 // the list as well, and its tap opened "Browse themes"

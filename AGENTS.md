@@ -61,8 +61,8 @@ owner sets priorities; agents act as the engineering team.
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
 | `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin script `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
-| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy, Maps location access); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`); Mobile hotspot (`hotspot.py`, also `/usr/libexec/veltos/hotspot` for Quick Settings) |
-| `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. This PC offers Format for eligible drives through VeltOS Disk Management and distinguishes USB, removable and fixed Windows drives. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`), and the Windows 11 Properties window (`--properties`, also from the desktop) |
+| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy, Maps location access); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`); Mobile hotspot (`hotspot.py`, also `/usr/libexec/veltos/hotspot` for Quick Settings); Apps > VeltOS AI (`assistant.py`) |
+| `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. This PC offers Format for eligible drives through VeltOS Disk Management and distinguishes USB, removable and fixed Windows drives. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`), and the Windows 11 Properties window (`--properties`, also from the desktop); Windows 11's copy window (`--transfer`, `transfer.py`) and "Delete File" (`--delete-permanently`) |
 | `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
 | `packages/veltos-clock/` | VeltOS Clock: Windows 11 Clock (Focus sessions, Timer, Alarm, Stopwatch, World clock); `veltos-clock-agent` rings alarms and timers while the app is closed, and VeltOS Calendar's reminders |
 | `packages/veltos-calendar/` | VeltOS Calendar: Windows 11 Calendar (day, work week, week, month, year views; quick event card and full editor; repeats and reminders) on one iCalendar file (`~/.local/share/veltos-calendar/calendar.ics`) |
@@ -85,7 +85,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format, delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil) or the AMD/Intel firmware and Mesa drivers through `pkcon`; also Settings > Display > Graphics cards |
 | `packages/veltos-weather/` | VeltOS Weather: Windows 11 Weather layout (current weather, 10-day forecast, hourly chart, weather details, historical weather, favorites, °F/°C) on Open-Meteo's open data without a key (`openmeteo.py`, cache in `~/.cache/veltos-weather`); first start uses the time zone's city |
-| `packages/veltos-maps/` | VeltOS Maps: Google Maps in a VeltOS window without a Maps Platform API key; optional location through GeoClue, off by default and controlled from Maps or Settings > Privacy & security > Location |
+| `packages/veltos-maps/` | VeltOS Maps: Google Maps in one VeltOS window (Windows 11 floating controls, InfoBars, offline page, the app's language) without a Maps Platform API key; optional location through GeoClue (off by default; Maps or Settings > Privacy & security > Location) and Windows 11's default location (`~/.config/veltos/location.json`) |
 | `packages/veltos-ai/` | VeltOS AI: assistant pane on the right edge like Windows 11's Copilot (layer shell, Windows + C) with ChatGPT / Claude / Gemini / Azure OpenAI ("Copilot") on the user's own key (`providers.py`, plain HTTPS); actions on the system from a fixed list, each change after "Allow" (`tools.py`, VeltOS Settings' helpers) |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window; `programs.py` reads installed Windows programs from Wine's registry files (Settings' Windows programs page) and removes what Wine leaves after an uninstall (`forget_removed`) |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
@@ -1092,3 +1092,24 @@ and JavaScript with no build step, no external requests and no cookies:
   are in root-only `/var/lib/NetworkManager`. With the world regulatory
   domain ("country 00") every 5 GHz channel is "no IR" and an access point
   there fails after 25 s (`supplicant-timeout`).
+- Plasma panels (2026-10-26): a script that adds an applet and writes the
+  panel's `AppletOrder` itself loses: Plasma rewrites the order and new
+  applets go to the end. To place one, remove the applets that must follow
+  it and add them again (keep their settings). `plasmashell` reads
+  `krunnerrc [General] ActivateWhenTypingOnDesktop` (typing on the desktop
+  opens KRunner); KRunner's shortcuts come from
+  `/usr/share/kglobalaccel/org.kde.krunner.desktop`. Plasma's ScrollBar
+  draws a line beside itself when the theme's scrollbar.svg has
+  `private-hint-show-separator`. QML can read the clipboard with
+  `org.kde.kquickcontrolsaddons` `Clipboard` (`contentFormat("text/uri-list")`
+  gives URLs; KDE's cut mark `application/x-kde-cutselection` comes as an
+  ArrayBuffer holding "1").
+- Power profiles in the dev VM: `powerprofilesctl set` (and VeltOS'
+  `power-mode` helper) work only from a process in the user's session
+  (Quick Settings, `systemd-run --machine=velt@.host --user`); a program
+  started with `runuser` (vsess.py) is refused by polkit. QEMU has no
+  battery and Debian's kernel has no `test_power` module.
+- Copy speeds in the dev VM: QEMU's disk reads from the host's cache at
+  GB/s, so File Explorer's copy window may finish before it appears;
+  `tests/results/2026-10-26-items-46-57/slowcopy.sh` runs it with the disk
+  limited to 60 MB/s (cgroup `IOReadBandwidthMax`).

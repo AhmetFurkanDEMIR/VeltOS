@@ -74,27 +74,25 @@ class Operations:
         self.open_document = open_document
 
     def copy(self, sources, destination):
-        """Copy into a folder. A copy into the same folder gets Windows'
-        "name - Copy" name instead of a conflict question."""
+        """Copy into a folder in Windows 11's copy window (`--transfer`,
+        transfer.py): a copy into the same folder gets Windows' "name -
+        Copy" name, an existing item asks "Replace or Skip Files"."""
         destination = str(destination)
-        same = [s for s in sources if str(Path(s).parent) == destination]
-        other = [s for s in sources if s not in same]
-        if other:
-            self.start(["kioclient", "--interactive", "copy", *other, destination + "/"])
-        for source in same:
-            target = Path(destination) / files.copy_name(destination, Path(source).name,
-                                                         Path(source).is_dir())
-            self.start(["kioclient", "--interactive", "copy", source, str(target)])
+        if sources:
+            self.start(["veltos-explorer", "--transfer", "copy", destination, *map(str, sources)])
 
     def move(self, sources, destination):
         destination = str(destination)
         sources = [s for s in sources if str(Path(s).parent) != destination
                    and not destination.startswith(s.rstrip("/") + "/") and s != destination]
-        if sources:
-            # Items cut in the Recycle Bin leave it through KIO's trash, which
-            # also drops their .trashinfo (a plain move left it behind).
-            sources = [trash_url(s) for s in sources]
-            self.start(["kioclient", "--interactive", "move", *sources, destination + "/"])
+        # Items cut in the Recycle Bin leave it through KIO's trash, which
+        # also drops their .trashinfo (a plain move left it behind).
+        trashed = [trash_url(s) for s in sources if trash_url(s) != s]
+        local = [s for s in sources if trash_url(s) == s]
+        if trashed:
+            self.start(["kioclient", "--interactive", "move", *trashed, destination + "/"])
+        if local:
+            self.start(["veltos-explorer", "--transfer", "move", destination, *local])
 
     def trash(self, sources):
         """Move to the Recycle Bin (can be restored)."""

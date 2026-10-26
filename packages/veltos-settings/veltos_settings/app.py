@@ -19,7 +19,7 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import accounts, apps, catalog, devices, hotspot, inputs, prefs, strings, sysinfo, taskbar
+from . import accounts, apps, assistant, catalog, devices, hotspot, inputs, prefs, strings, sysinfo, taskbar
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 LOOK_AND_FEEL = {False: "org.veltos.light", True: "org.veltos.dark"}
@@ -146,7 +146,7 @@ def system_tools(runner=devices.run, lang="en"):
                            prefs=prefs.Preferences(runner), inputs=inputs.Inputs(runner),
                            accounts=accounts.Accounts(runner), defaults=apps.DefaultApps(runner, lang=lang),
                            startup=apps.StartupApps(lang=lang), taskbar=taskbar.Taskbar(runner),
-                           hotspot=hotspot.Hotspot(runner))
+                           hotspot=hotspot.Hotspot(runner), assistant=assistant.Assistant())
 
 
 # Recently used settings (Home > Recommended settings), most used first.
@@ -221,6 +221,8 @@ class Backend(QObject):
     changed = Signal()
     networkChanged = Signal()
     hotspotChanged = Signal()
+    assistantChanged = Signal()
+    defaultLocationChanged = Signal()
     bluetoothChanged = Signal()
     soundChanged = Signal()
     displayChanged = Signal()
@@ -252,6 +254,9 @@ class Backend(QObject):
         self._appearance_lock = threading.Lock()
         self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
                          "loaded": False, "scanning": False, "connecting": "", "failed": ""}
+        self._default_location = {"set": False, "label": ""}
+        self._assistant = {"loaded": False, "available": False, "provider": "", "providers": [],
+                           "services": {}, "actions": True, "ready": False}
         self._hotspot = {"loaded": False, "available": False, "active": False, "busy": False, "reason": "",
                          "ssid": "", "password": "", "band": "", "bands": [], "sources": [], "source": "",
                          "clients": [], "error": "", "disconnects": "", "device": "", "security": ""}
@@ -511,6 +516,80 @@ class Backend(QObject):
     def forgetWifi(self, ssid):
         self.jobs.submit(lambda: self.system.network.forget(ssid),
                          lambda _ok: self.refreshNetwork(False))
+
+    # --- Privacy & security > Location: the default location ----------------------------
+    # VeltOS Maps keeps it in ~/.config/veltos/location.json and sets it
+    # (`veltos-maps --set-default-location`), as Windows 11's Settings opens
+    # Maps for "Set default".
+
+    @Property("QVariantMap", notify=defaultLocationChanged)
+    def defaultLocation(self):
+        return self._default_location
+
+    def _location_file(self):
+        return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "veltos" / "location.json"
+
+    @Slot()
+    def refreshDefaultLocation(self):
+        place = {"set": False, "label": ""}
+        try:
+            data = json.loads(self._location_file().read_text(encoding="utf-8"))
+            latitude, longitude = float(data["latitude"]), float(data["longitude"])
+            if -90 <= latitude <= 90 and -180 <= longitude <= 180:
+                place = {"set": True, "label": f"{abs(latitude):.4f}° {'N' if latitude >= 0 else 'S'}, "
+                                                f"{abs(longitude):.4f}° {'E' if longitude >= 0 else 'W'}"}
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
+        if place != self._default_location:
+            self._default_location = place
+            self.defaultLocationChanged.emit()
+
+    @Slot()
+    def setDefaultLocation(self):
+        self._start(["veltos-maps", "--set-default-location"])
+
+    @Slot()
+    def clearDefaultLocation(self):
+        try:
+            self._location_file().unlink()
+        except FileNotFoundError:
+            pass
+        except OSError:
+            return
+        self.refreshDefaultLocation()
+
+    # --- Apps > VeltOS AI (assistant.py) ----------------------------------------------
+
+    @Property("QVariantMap", notify=assistantChanged)
+    def assistant(self):
+        return self._assistant
+
+    @Slot()
+    def refreshAssistant(self):
+        self.jobs.submit(self.system.assistant.state, self._merge("_assistant", self.assistantChanged))
+
+    def _assistant_job(self, work):
+        def done(ok):
+            self._update("_assistant", self.assistantChanged, {"saveFailed": not ok})
+            self.refreshAssistant()
+        self.jobs.submit(work, done)
+
+    @Slot(str, str, str, str)
+    def saveAiService(self, name, key, model, endpoint):
+        self._assistant_job(lambda: self.system.assistant.save_service(name, key, model, endpoint))
+
+    @Slot(str)
+    def removeAiKey(self, name):
+        self._assistant_job(lambda: self.system.assistant.remove_key(name))
+
+    @Slot(bool)
+    def setAiActions(self, allowed):
+        self._update("_assistant", self.assistantChanged, {"actions": allowed})
+        self._assistant_job(lambda: self.system.assistant.set_actions(allowed))
+
+    @Slot()
+    def openAssistant(self):
+        self._start(["veltos-ai"])
 
     # --- Network & internet > Mobile hotspot (hotspot.py) ------------------------------
 
@@ -853,17 +932,19 @@ class Backend(QObject):
         self._update("_prefs", self.prefsChanged, {name: value})
         self.jobs.submit(lambda: self.system.prefs.set(name, value))
 
-    @Slot(str)
-    def setPowerMode(self, name):
-        if name not in prefs.POWER_MODES:
+    @Slot(str, str)
+    def setPowerMode(self, source, name):
+        """The power mode for "ac" (plugged in) or "battery"."""
+        if name not in prefs.POWER_MODES or source not in ("ac", "battery"):
             return
-        self._update("_prefs", self.prefsChanged, {"powerMode": name, "powerModeError": False})
+        key = "powerModeAC" if source == "ac" else "powerModeBattery"
+        self._update("_prefs", self.prefsChanged, {key: name, "powerModeError": False})
 
         def done(ok):
             self._update("_prefs", self.prefsChanged, {"powerModeError": not bool(ok)})
             self.refreshPrefs()
 
-        self.jobs.submit(lambda: self.system.prefs.set_power_mode(name), done)
+        self.jobs.submit(lambda: self.system.prefs.set_power_mode(source, name), done)
 
     # --- Personalization > Taskbar (taskbar.py) ------------------------------------------------
 

@@ -420,34 +420,29 @@ def windows_disk():
 
 
 def removable_disk():
-    return HEADER.format(what="Removable disk") + """  <defs>
-    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F4F6F8"/>
-      <stop offset="1" stop-color="#DDE2E8"/>
-    </linearGradient>
-    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#B9C1CB"/>
-      <stop offset="1" stop-color="#8E98A5"/>
-    </linearGradient>
-    <linearGradient id="platter" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#D8DEE5"/>
-    </linearGradient>
-  </defs>
-  <g transform="translate(128 128) rotate(-7) translate(-128 -128)">
-    <rect x="55" y="33" width="146" height="190" rx="24" fill="#65707C" opacity="0.3"/>
-    <rect x="49" y="27" width="146" height="190" rx="24" fill="url(#edge)" stroke="#89939F" stroke-width="3"/>
-    <rect x="56" y="34" width="132" height="174" rx="19" fill="url(#body)"/>
-    <rect x="69" y="48" width="106" height="119" rx="16" fill="#F8FAFC" stroke="#BCC4CD" stroke-width="3"/>
-    <circle cx="122" cy="106" r="36" fill="url(#platter)" stroke="#A7B1BC" stroke-width="3"/>
-    <circle cx="122" cy="106" r="23" fill="none" stroke="#C2CAD2" stroke-width="2"/>
-    <circle cx="122" cy="106" r="7" fill="#7B8794"/>
-    <path d="M 126 108 L 150 137 L 137 143 L 122 109" fill="#7B8794"/>
-    <rect x="94" y="181" width="38" height="9" rx="4.5" fill="#68727E"/>
-    <circle cx="161" cy="185.5" r="6" fill="#2FA8F0"/>
-    <circle cx="161" cy="185.5" r="2.5" fill="#FFFFFF" opacity="0.6"/>
+    """An external drive in the local disk's family (product owner,
+    2026-10-26: the upright disk with its platter did not fit; Windows 11
+    draws removable drives like its other drives): the same box, the USB
+    symbol on its front and a blue light."""
+    return local_disk().replace("<!-- Local disk:", "<!-- Removable disk:").replace(
+        '<stop offset="0" stop-color="#B9C1CB"/>\n      <stop offset="1" stop-color="#8E98A5"/>',
+        '<stop offset="0" stop-color="#B7C2CF"/>\n      <stop offset="1" stop-color="#8794A5"/>').replace(
+        '<rect x="52" y="150" width="104" height="10" rx="5" fill="#5E6873"/>',
+        USB_MARK + '  <rect x="128" y="150" width="44" height="10" rx="5" fill="#5E6873"/>\n').replace(
+        '<circle cx="198" cy="155" r="9" fill="#36C26A"/>',
+        '<circle cx="198" cy="155" r="9" fill="#2FA8F0"/>\n  <circle cx="198" cy="155" r="4" fill="#FFFFFF" opacity="0.55"/>')
+
+
+# The USB symbol (a trident lying on its side) on the drive's front.
+USB_MARK = """  <g fill="none" stroke="#4F5A66" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 56 155 H 112"/>
+    <path d="M 70 155 L 80 141 H 92"/>
+    <path d="M 82 155 L 92 168 H 101"/>
   </g>
-</svg>
+  <path d="M 110 147 L 122 155 L 110 163 Z" fill="#4F5A66"/>
+  <circle cx="56" cy="155" r="6" fill="#4F5A66"/>
+  <circle cx="96" cy="141" r="5" fill="#4F5A66"/>
+  <rect x="99" y="163" width="10" height="10" rx="1.5" fill="#4F5A66"/>
 """
 
 
@@ -540,20 +535,12 @@ def small_windows_disk():
 
 
 def small_removable_disk():
-    return SMALL_HEADER.format(what="Removable disk") + """  <defs>
-    <linearGradient id="case" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F4F6F8"/>
-      <stop offset="1" stop-color="#C8D0D9"/>
-    </linearGradient>
-  </defs>
-  <rect x="3" y="1.5" width="10" height="13" rx="2" fill="url(#case)" stroke="#7E8894"/>
-  <rect x="4.5" y="3" width="7" height="7.5" rx="1" fill="#EEF1F4" stroke="#A3ADB8" stroke-width="0.7"/>
-  <circle cx="8" cy="6.8" r="2.1" fill="#D6DDE4" stroke="#8994A0" stroke-width="0.7"/>
-  <circle cx="8" cy="6.8" r="0.7" fill="#68727E"/>
-  <rect x="6.2" y="11.5" width="3.6" height="0.8" rx="0.4" fill="#68727E"/>
-  <circle cx="11.2" cy="12.3" r="0.8" fill="#2FA8F0"/>
-</svg>
-"""
+    # The small local disk with a blue light and a short slot: the USB
+    # symbol is no longer readable at 16 px.
+    return small_disk().replace("<!-- Local disk", "<!-- Removable disk").replace(
+        '<rect x="3" y="9.5" width="6" height="1" fill="#55606B"/>',
+        '<rect x="3" y="9.5" width="4" height="1" fill="#55606B"/>').replace(
+        'fill="#2FBF62"', 'fill="#2FA8F0"')
 
 
 def small_usb_drive():

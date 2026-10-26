@@ -31,6 +31,10 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
 - **Mobile hotspot** (`branding/network-wireless-hotspot-symbolic.svg`,
   2026-10-26): Windows 11's glyph, a dot with waves to both sides, in
   place of Fluent's (which looked like the Wi-Fi icon) in every theme.
+- **VeltOS AI line icon** (`branding/veltos-ai-symbolic.svg`): two
+  sparkles, for Settings. **Removable drives** (`drive-removable-media`,
+  2026-10-26) are drawn as the local disk's box with the USB symbol and a
+  blue light (`tools/draw-icons.py`), as Windows 11 draws its drives.
 - **App icons as one family** (`branding/apps/`, drawn by
   `tools/app-icons.py`): Calculator, Camera, Mail, Calendar, Snipping
   Tool, Store, Settings, Task Manager, File Explorer, Notepad, Photos,

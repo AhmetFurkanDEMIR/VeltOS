@@ -30,6 +30,7 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.private.desktopcontainment.folder as Folder
+import org.kde.kquickcontrolsaddons as KQuickAddons
 
 Item {
     id: veltos
@@ -137,6 +138,65 @@ Item {
         if (names.indexOf(clicked) < 0)
             return [clicked];
         return [clicked].concat(names.filter(name => name !== clicked));
+    }
+
+    // Shift+Delete: Windows 11's "Delete File" question from File Explorer
+    // (veltos-explorer --delete-permanently) instead of KDE's dialog, which
+    // belonged to plasmashell and showed as "plasmashell" on the taskbar
+    // (product owner, 2026-10-26).
+    function deletePermanently() {
+        const names = [];
+        if (grid && mapper) {
+            for (let i = 0; i < grid.count; ++i) {
+                const modelIndex = mapper.map(i);
+                const item = grid.itemAtIndex(i);
+                if (modelIndex >= 0 && item && folderModel.isSelected(modelIndex)) {
+                    const name = fileNameOf(item);
+                    if (name !== "" && protectedNames.indexOf(name) < 0)
+                        names.push(name);
+                }
+            }
+        }
+        if (names.length > 0)
+            shell.connectSource("veltos-explorer --delete-permanently " + itemArguments(names));
+    }
+
+    // Paste (Ctrl+V and the menu): files go through File Explorer's
+    // Windows 11 copy window (veltos-explorer --transfer), with Windows'
+    // "name - Copy" for a copy into the same folder; KDE's "File Already
+    // Exists" dialog belonged to plasmashell (product owner, 2026-10-26).
+    // Anything else on the clipboard (a picture, text) is Plasma's paste.
+    KQuickAddons.Clipboard { id: clipboard }
+
+    function paste() {
+        const formats = clipboard.formats || [];
+        if (formats.indexOf("text/uri-list") < 0) {
+            folderModel.paste();
+            return;
+        }
+        const urls = clipboard.contentFormat("text/uri-list") || [];
+        const paths = [];
+        for (let i = 0; i < urls.length; ++i) {
+            const path = localPath(String(urls[i]));
+            if (!path) {
+                folderModel.paste();       // network files: KIO
+                return;
+            }
+            paths.push(path);
+        }
+        if (paths.length === 0)
+            return;
+        // KDE marks cut files with "1" in application/x-kde-cutselection.
+        let cut = false;
+        if (formats.indexOf("application/x-kde-cutselection") >= 0) {
+            const mark = clipboard.contentFormat("application/x-kde-cutselection");
+            cut = mark && mark.byteLength > 0 && new Uint8Array(mark)[0] === 49;
+        }
+        const folder = "\"$(/usr/libexec/veltos/desktop-new " + quoted(folderArgument()) + " path)\"";
+        shell.connectSource("veltos-explorer --transfer " + (cut ? "move " : "copy ") + folder + " "
+                            + paths.map(quoted).join(" "));
+        if (cut)
+            clipboard.clear();
     }
 
     // The items as shell words: "$(desktop folder)/name" (the desktop is
@@ -348,9 +408,13 @@ Item {
         }
         PlasmaExtras.MenuItem { separator: true }
         PlasmaExtras.MenuItem {
-            // Plasma's own Paste action (its text and icon): enabled while
-            // the clipboard holds files.
-            action: veltos.folderModel ? veltos.folderModel.action("paste") : null
+            // Plasma's Paste text, icon and state (enabled while the
+            // clipboard holds files); the paste itself is veltos.paste().
+            readonly property var plasmaPaste: veltos.folderModel ? veltos.folderModel.action("paste") : null
+            text: plasmaPaste ? plasmaPaste.text : veltos.tr("Paste")
+            icon: "edit-paste"
+            enabled: !!plasmaPaste && plasmaPaste.enabled
+            onClicked: veltos.paste()
         }
         PlasmaExtras.MenuItem { separator: true }
         PlasmaExtras.MenuItem {

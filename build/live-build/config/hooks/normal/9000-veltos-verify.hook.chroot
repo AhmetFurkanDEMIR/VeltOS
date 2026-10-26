@@ -92,6 +92,11 @@ grep -q '^X-KDE-Shortcuts=Print,Meta+Shift+S$' /usr/share/applications/veltos-sn
     || fail "Snipping Tool shortcuts missing"
 grep -q '^NoDisplay=true$' /var/lib/veltos/xdg/kglobalaccel/org.kde.spectacle.desktop \
     || fail "Spectacle's global shortcuts are not switched off"
+# KRunner's box at the top of the screen never opens (VeltOS' search only).
+grep -q '^NoDisplay=true$' /var/lib/veltos/xdg/kglobalaccel/org.kde.krunner.desktop \
+    || fail "KRunner's global shortcuts are not switched off"
+grep -q '^ActivateWhenTypingOnDesktop=false$' /etc/xdg/krunnerrc \
+    || fail "typing on the desktop still opens KRunner"
 # The e-mail app is VeltOS Mail, its own app in the layout of Windows 11's
 # new Outlook (2026-10-23); Thunderbird is no longer in the image.
 installed veltos-mail || fail "VeltOS Mail is not installed"

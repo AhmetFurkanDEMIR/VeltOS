@@ -86,10 +86,14 @@ PlasmoidItem {
                 const result = JSON.parse(String(data["stdout"] || ""));
                 root.powerProfiles = result.profiles || [];
                 root.activePowerProfile = result.active || "";
+                root.powerSource = result.source || "ac";
+                root.powerHasBattery = result.hasBattery === true;
+                root.powerModes = result.modes || {};
                 root.powerModeError = result.success ? "" : i18n("Couldn't change the power mode");
             } catch (error) {
                 root.powerProfiles = [];
                 root.activePowerProfile = "";
+                root.powerModes = {};
                 root.powerModeError = i18n("Power modes aren't available");
             }
         }
@@ -122,7 +126,13 @@ PlasmoidItem {
         // once while a source of the same text is connected.
         hotspotController.connectSource("/usr/libexec/veltos/hotspot " + command + " #" + Date.now());
     }
-    onExpandedChanged: if (expanded) hotspotCommand("status")
+    onExpandedChanged: {
+        if (!expanded)
+            return;
+        hotspotCommand("status");
+        if (!powerModeBusy)
+            powerModeController.connectSource("/usr/libexec/veltos/power-mode status #" + Date.now());
+    }
 
     readonly property var sink: PreferredDevice.sink
     readonly property int volumePercent: sink ? Math.round(sink.volume / PulseAudio.NormalVolume * 100) : 0
@@ -133,22 +143,43 @@ PlasmoidItem {
     readonly property bool bluetoothOn: BluezQt.Manager.bluetoothOperational
     readonly property bool airplane: PlasmaNM.Configuration.airplaneModeEnabled
     readonly property bool nightLightOn: nightLight.enabled && nightLight.running && !nightLight.inhibited
+    // The battery on the taskbar and at the bottom left of the flyout, as
+    // in Windows 11 (product owner, 2026-10-26): its level and charging
+    // state, or a charging full battery with "Plugged in" on a PC without
+    // one (it runs on mains power), so the power button is always there.
+    readonly property bool hasBattery: battery.hasInternalBatteries === true
     readonly property string batteryIcon: {
+        if (!hasBattery)
+            return "battery-100-charging";
         const level = Math.min(100, Math.round(battery.percent / 10) * 10);
         const name = "battery-" + String(level).padStart(3, "0");
         return battery.pluggedIn ? name + "-charging" : name;
     }
+    readonly property string batteryText: !hasBattery ? i18n("Plugged in")
+                                          : battery.pluggedIn ? i18n("%1% · Charging", battery.percent)
+                                          : i18n("%1%", battery.percent)
     property var powerProfiles: []
     property string activePowerProfile: ""
     property string powerModeError: ""
     property bool powerModeBusy: false
     property string automaticPowerSource: ""
+    property string powerSource: "ac"
+    property bool powerHasBattery: false
+    property var powerModes: ({})
+    readonly property var powerModeIcons: ({
+        "power-saver": "power-profile-power-saver-symbolic",
+        "balanced": "power-profile-balanced-symbolic",
+        "performance": "power-profile-performance-symbolic"
+    })
 
-    function selectPowerMode(profile) {
+    // The mode for "ac" (plugged in) or "battery"; the helper applies it at
+    // once when that is the current source.
+    function selectPowerMode(source, profile) {
         if (powerModeBusy || powerProfiles.indexOf(profile) < 0)
             return;
         powerModeBusy = true;
-        powerModeController.connectSource("/usr/libexec/veltos/power-mode set " + profile);
+        powerModeController.connectSource("/usr/libexec/veltos/power-mode prefer " + source + " " + profile
+                                          + " #" + Date.now());
     }
     function syncAutomaticPowerMode() {
         const source = battery.hasInternalBatteries && !battery.pluggedIn ? "battery" : "ac";
@@ -156,14 +187,17 @@ PlasmoidItem {
             return;
         automaticPowerSource = source;
         powerModeBusy = true;
-        powerModeController.connectSource("/usr/libexec/veltos/power-mode auto " + source);
+        powerModeController.connectSource("/usr/libexec/veltos/power-mode auto " + source + " #" + Date.now());
     }
+    // The tile: energy saving on and off for the current source, like
+    // Windows 11's Energy saver.
     function togglePowerSaver() {
+        const back = powerSource === "ac" && powerProfiles.indexOf("performance") >= 0 ? "performance" : "balanced";
         const target = activePowerProfile === "power-saver"
-                       ? (powerProfiles.indexOf("balanced") >= 0 ? "balanced" : powerProfiles[0])
+                       ? (powerProfiles.indexOf(back) >= 0 ? back : powerProfiles[0])
                        : "power-saver";
         if (target)
-            selectPowerMode(target);
+            selectPowerMode(powerSource, target);
     }
 
     Connections {
@@ -222,8 +256,7 @@ PlasmoidItem {
     toolTipSubText: {
         const parts = [networkStatus.activeConnections || i18n("Not connected"),
                        muted ? i18n("Sound off") : i18n("Volume %1%", volumePercent)];
-        if (battery.hasInternalBatteries)
-            parts.push(i18n("Battery %1%", battery.percent));
+        parts.push(hasBattery ? i18n("Battery %1%", battery.percent) : i18n("Plugged in"));
         return parts.join("\n");
     }
 
@@ -275,7 +308,6 @@ PlasmoidItem {
                 active: button.containsMouse
             }
             Kirigami.Icon {
-                visible: battery.hasInternalBatteries
                 Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
                 Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
                 source: root.batteryIcon + "-symbolic"
@@ -365,10 +397,13 @@ PlasmoidItem {
             PowerPage {
                 profiles: root.powerProfiles
                 activeProfile: root.activePowerProfile
+                source: root.powerSource
+                hasBattery: root.powerHasBattery
+                modes: root.powerModes
                 errorMessage: root.powerModeError
                 busy: root.powerModeBusy
                 onBack: stack.pop()
-                onProfileSelected: profile => root.selectPowerMode(profile)
+                onProfileSelected: (source, profile) => root.selectPowerMode(source, profile)
                 onOpenSettings: root.run("veltos-settings power")
             }
         }
@@ -564,8 +599,10 @@ PlasmoidItem {
                 onMore: root.run("veltos-settings nightlight")
             }
             Tile {
-                iconName: "battery-symbolic"
-                label: i18n("Power mode")
+                iconName: root.powerModeIcons[root.activePowerProfile] || "power-profile-balanced-symbolic"
+                label: root.activePowerProfile === "power-saver" ? i18n("Energy saver")
+                       : root.activePowerProfile === "performance" ? i18n("Best performance")
+                       : root.activePowerProfile === "balanced" ? i18n("Balanced") : i18n("Power mode")
                 available: root.powerProfiles.indexOf("power-saver") >= 0
                 active: root.activePowerProfile === "power-saver"
                 hasMore: true
@@ -614,15 +651,40 @@ PlasmoidItem {
                 anchors.leftMargin: Kirigami.Units.largeSpacing
                 anchors.rightMargin: Kirigami.Units.smallSpacing
 
-                Kirigami.Icon {
-                    visible: battery.hasInternalBatteries
-                    Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                    Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                    source: root.batteryIcon
-                }
-                PlasmaComponents3.Label {
-                    visible: battery.hasInternalBatteries
-                    text: battery.pluggedIn ? i18n("%1% · Charging", battery.percent) : i18n("%1%", battery.percent)
+                // The battery figure opens Settings > Power & battery, as in
+                // Windows 11 (product owner, 2026-10-26).
+                Rectangle {
+                    id: batteryButton
+                    Layout.preferredWidth: batteryRow.implicitWidth + Kirigami.Units.largeSpacing * 2
+                    Layout.preferredHeight: Kirigami.Units.gridUnit * 1.8
+                    Layout.leftMargin: -Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing
+                    radius: Kirigami.Units.cornerRadius
+                    color: Qt.alpha(Kirigami.Theme.textColor, batteryArea.pressed ? 0.05 : batteryArea.containsMouse ? 0.08 : 0)
+                    Accessible.role: Accessible.Button
+                    Accessible.name: i18n("Power & battery settings")
+
+                    RowLayout {
+                        id: batteryRow
+                        anchors.centerIn: parent
+                        spacing: Kirigami.Units.smallSpacing
+                        Kirigami.Icon {
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                            source: root.batteryIcon + "-symbolic"
+                        }
+                        PlasmaComponents3.Label {
+                            text: root.batteryText
+                        }
+                    }
+                    MouseArea {
+                        id: batteryArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.run("veltos-settings power")
+                    }
+                    PlasmaComponents3.ToolTip.text: i18n("Power & battery settings")
+                    PlasmaComponents3.ToolTip.visible: batteryArea.containsMouse
                 }
                 Item { Layout.fillWidth: true }
                 PlasmaComponents3.ToolButton {

@@ -23,6 +23,24 @@ request and revokes the web profile's in-memory geolocation permission. The
 QEMU VM has no physical GPS or nearby Wi-Fi scan source, so a real-device
 location fix and accuracy have not been verified.
 
+## What it does (2026-10-26)
+
+- One window: a second start (`veltos-maps`, Start, Settings' "Set
+  default") brings it forward with the start's activation token.
+- Google Maps over the whole window in the app's language (`hl`,
+  Accept-Language); Google's consent and sign-in kept in Maps' own web
+  profile (`veltos-maps` storage).
+- Windows 11 controls floating at the right edge: My location, location
+  access on/off, the default location, Location settings; messages as
+  InfoBars (information disappears, errors stay); a loading line; an
+  offline page with Try again.
+- Location is opt-in (kdeglobals `[Privacy] LocationServicesEnabled`,
+  shared with Settings). My location asks GeoClue once (15 s); when it
+  finds nothing, the default location is shown. The default location is
+  Windows 11's: Settings > Location > Set default opens Maps with a bar
+  that saves the map's centre (`~/.config/veltos/location.json`, mode 600).
+  Debian 13's GeoClue sends nearby Wi-Fi networks to beaconDB.
+
 ## Files
 
 | File | What |

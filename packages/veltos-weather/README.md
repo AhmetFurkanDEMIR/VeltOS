@@ -25,8 +25,8 @@ on Open-Meteo's open data: no account, no key.
   averages, highest and lowest, precipitation and days with precipitation.
 - **Favorites**: cards with the weather now; a click opens the place, the
   bin removes it.
-- **Settings**: temperature unit (the default follows the locale: °F for
-  en_US, as Windows), launch location (home), about and the data's
+- **Settings**: temperature unit (°C by default, °F on request; product
+  owner, 2026-10-26), launch location (home), about and the data's
   licence.
 - First start: the home place is the city of the computer's time zone
   (`/etc/localtime`, "Europe/Istanbul" → İstanbul); without a network the

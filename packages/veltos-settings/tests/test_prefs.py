@@ -101,31 +101,25 @@ class PrefsTests(unittest.TestCase):
         self.assertIn("kwriteconfig6 --notify --file kwinrc --group NightColor --key Mode Constant", commands)
         self.assertTrue(any("org.kde.KWin.reconfigure" in c for c in commands))
 
-    def test_power_mode_state_lists_only_supported_profiles(self):
-        self.runner.outputs[("powerprofilesctl", "list")] = (
-            "  performance:\n    Driver: placeholder\n"
-            "* balanced:\n    Driver: placeholder\n"
-            "  power-saver:\n    Driver: placeholder\n"
-        )
+    def test_power_modes_come_from_the_helper_per_power_source(self):
+        self.runner.power.update(profiles=["power-saver", "balanced"], source="battery")
         state = self.prefs.power_mode_state()
         self.assertTrue(state["powerModesAvailable"])
-        self.assertEqual(state["powerModes"], ["power-saver", "balanced", "performance"])
-        self.assertEqual(state["powerMode"], "balanced")
+        self.assertEqual(state["powerModes"], ["power-saver", "balanced"])
+        self.assertEqual((state["powerSource"], state["powerModeAC"], state["powerModeBattery"]),
+                         ("battery", "performance", "power-saver"))
+        self.assertTrue(self.prefs.set_power_mode("battery", "balanced"))
+        self.assertIn(["/usr/libexec/veltos/power-mode", "prefer", "battery", "balanced"], self.runner.commands)
+        self.assertEqual(self.prefs.power_mode_state()["powerMode"], "balanced")
+        self.assertFalse(self.prefs.set_power_mode("ac", "performance"))     # not offered here
+        self.assertFalse(self.prefs.set_power_mode("ac", "turbo"))
+        self.assertFalse(self.prefs.set_power_mode("wall", "balanced"))
 
-        self.runner.outputs[("powerprofilesctl", "list")] = "* balanced:\n"
+    def test_power_modes_unavailable_without_the_helper(self):
+        self.runner.fail.add("/usr/libexec/veltos/power-mode")
         state = self.prefs.power_mode_state()
-        self.assertEqual(state["powerModes"], ["balanced"])
-        self.assertFalse(self.prefs.set_power_mode("performance"))
-
-    def test_set_power_mode_validates_the_profile_and_reports_command_failure(self):
-        self.runner.outputs[("powerprofilesctl", "list")] = "* balanced:\n  power-saver:\n"
-        self.assertFalse(self.prefs.set_power_mode("unsupported"))
-        self.assertFalse(self.prefs.set_power_mode("performance"))
-        self.assertTrue(self.prefs.set_power_mode("power-saver"))
-        self.assertIn(["powerprofilesctl", "set", "power-saver"], self.runner.commands)
-
-        self.runner.fail.add("powerprofilesctl")
-        self.assertFalse(self.prefs.set_power_mode("balanced"))
+        self.assertFalse(state["powerModesAvailable"])
+        self.assertFalse(self.prefs.set_power_mode("ac", "balanced"))
 
     def test_do_not_disturb(self):
         self.assertFalse(self.prefs.do_not_disturb())
