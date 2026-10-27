@@ -37,6 +37,21 @@ detail), after VeltOS 1.0 was built.
   every text key has Turkish and every picture exists.
 - READMEs: the root README with the new pictures, GIFs and the download;
   no pre-alpha or virtual-machine-only notes there or on the site.
+- History: "Co-Authored-By: Claude" removed from all 72 commit messages
+  that had it (owner's approval; `git filter-branch --msg-filter`, the
+  same 110 commits and an identical tree, a local backup branch
+  `backup/before-claude-trailer-removal-2026-10-27`), force-pushed with
+  lease. GitHub's contributors list then showed only AhmetFurkanDEMIR.
+- Release v1.0 created through GitHub's API with the owner's git
+  credential (`out/release/publish.py`, git-ignored; the token is never
+  printed); the ISO (2,108,434,432 bytes, about 15 minutes at 2.3 MB/s)
+  and its `.sha256` uploaded, then the ISO downloaded back and checked:
+  `sha256sum -c` OK. tests/repo now checks that the site, its structured
+  data and the README carry the same SHA-256 and download link.
+- Owner's requests while this ran: a third box around the hero picture,
+  an opaque navbar, the download panel's empty space filled, the twelve
+  screenshot tabs in even rows, the hero label on one line on phones, all
+  three boxes on phones as on large screens.
 
 ## 2026-10-27 — VeltOS 1.0: items 78-89, the ISO under 2 GiB
 

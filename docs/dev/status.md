@@ -230,8 +230,8 @@ order:
 - F5. [x] Website on phones: "Download VeltOS" and "Source code" buttons side by side
 - F6. [x] Footer: "Ahmet Furkan Demir" links to https://ahmetfurkandemir.com; README and website show the sign-in screen, the start-up screen and more apps; GIFs recorded in the OS
 - F7. [x] Turkish slogan "Senin Bilgisayarın. Sınır Tanıma."
-- F8. [ ] Claude not in GitHub's contributors; pushes from the owner's account (Ahmet Furkan Demir)
-- F9. [ ] Publish the release (ISO on the GitHub release, website download link)
+- F8. [x] Claude not in GitHub's contributors; pushes from the owner's account (Ahmet Furkan Demir)
+- F9. [x] Publish the release (ISO on the GitHub release, website download link)
 
 Product owner, 2026-10-27 (the same steps in detail, all to be done):
 
@@ -239,8 +239,8 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 - F11. [x] Website redesigned as an operating-system site: every new feature (VeltOS AI too), readable text over the background, striking, fast and fluid, correct on phones and desktops
 - F12. [x] New screenshots of the installed system, light and dark (the site shows the dark set in dark mode, the top picture included, and the light set in light mode); the sign-in screen, the start-up screen and more apps; GIFs recorded in the OS; the same pictures in the README
 - F13. [x] SEO: titles and descriptions in English and Turkish, structured data, sitemap, robots.txt, canonical and language links, link previews, so Google, Yandex and other search engines find VeltOS
-- F14. [ ] Push from the owner's account (Ahmet Furkan Demir); "Co-Authored-By: Claude" removed from the history so Claude is not in GitHub's contributors (owner approved the rewrite and force-push, 2026-10-27)
-- F15. [ ] GitHub release v1.0 published automatically with the ISO and its SHA-256 file and good release notes; the website's download button points at the release's ISO
+- F14. [x] Push from the owner's account (Ahmet Furkan Demir); "Co-Authored-By: Claude" removed from the history so Claude is not in GitHub's contributors (owner approved the rewrite and force-push, 2026-10-27)
+- F15. [x] GitHub release v1.0 published automatically with the ISO and its SHA-256 file and good release notes; the website's download button points at the release's ISO
 
 ## Known gaps
 
@@ -367,7 +367,12 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
    website's download link). Items 58-64 still need a look in the dev VM
    (a real model download and answer, the pane and the window, Maps);
    items 72 and 75 need real hardware (a Bluetooth headset, a touchpad).
-2. Release ISO: `veltos-1.0-amd64.hybrid.iso` (build
+2. Published: GitHub release v1.0
+   (https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.0) with
+   `VeltOS-1.0-amd64.iso` and `VeltOS-1.0-amd64.iso.sha256`; the ISO
+   downloaded back from the release passes `sha256sum -c` (2026-10-27).
+   The website's download button points at it. Release ISO:
+   `veltos-1.0-amd64.hybrid.iso` (build
    `veltos-1.0-20261027-071020`, 2,108,434,432 bytes, sha256
    `3e5273a13b0f87a11bd6a3fb668674b02c5865264065dfe5e570387f4ac1a2af`),
    copy `VeltOS-1.0-amd64.iso` on the owner's Desktop. QEMU: boot tests
