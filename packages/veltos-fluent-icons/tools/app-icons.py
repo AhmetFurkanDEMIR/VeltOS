@@ -405,6 +405,32 @@ def program():
                + '  <rect x="52" y="160" width="128" height="10" rx="5" fill="#DCE2EA"/>\n')
 
 
+def keyboard_lighting():
+    """Keyboard Lighting (product owner, 2026-10-27): a keyboard seen from
+    above whose keys glow in colours from cyan to violet, with the glow
+    spilling onto the frame, light from the top left."""
+    frame = rrect(20, 64, 216, 136, 22)
+    colours = ["#2FD2FF", "#3FA0FF", "#5B7CFF", "#7A5CFF", "#A24DF0", "#D24BD8"]
+    keys = []
+    for row, (y, inset, count) in enumerate(((86, 36, 6), (116, 36, 6), (146, 36, 6))):
+        for col in range(count):
+            x = inset + col * 31
+            keys.append(f'  <rect x="{x}" y="{y}" width="25" height="22" rx="5" fill="{colours[col]}"/>\n')
+    keys.append('  <rect x="74" y="174" width="108" height="14" rx="5" fill="url(#space)"/>\n')
+    return svg("Keyboard Lighting", grad("frame", "#4A5263", "#232833") + grad("space", "#3FA0FF", "#A24DF0", "1", "0")
+               + '    <radialGradient id="glow" cx="0.5" cy="0.55" r="0.6">\n'
+                 '      <stop offset="0" stop-color="#6C8CFF" stop-opacity="0.55"/>\n'
+                 '      <stop offset="1" stop-color="#6C8CFF" stop-opacity="0"/>\n'
+                 '    </radialGradient>\n',
+               '  <ellipse cx="128" cy="134" rx="124" ry="96" fill="url(#glow)"/>\n'
+               + shadow(frame)
+               + f'  <path d="{frame}" fill="url(#frame)"/>\n'
+               + f'  <path d="{rrect(28, 72, 200, 120, 16)}" fill="#151922"/>\n'
+               + "".join(keys)
+               + '  <path d="M 42 70 H 214" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="3" '
+                 'stroke-linecap="round"/>\n')
+
+
 def graphics_cards():
     """A graphics card seen from the side: the metal bracket with display
     ports, the shroud with two fans and the gold PCI Express edge."""
@@ -514,6 +540,7 @@ NAMES = {
     disk_management: ["veltos-disks", "partitionmanager", "org.kde.partitionmanager", "gnome-disks",
                       "org.gnome.DiskUtility"],
     graphics_cards: ["veltos-graphics"],
+    keyboard_lighting: ["veltos-lighting"],
     weather: ["veltos-weather", "org.kde.kweather", "kweather"],
     ai: ["veltos-ai"],
     app_installer: ["veltos-run", "veltos-winapps"],

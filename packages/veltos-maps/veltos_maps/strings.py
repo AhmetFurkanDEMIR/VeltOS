@@ -36,6 +36,8 @@ TEXTS = {
     "location_default_shown": ("This PC couldn't find your location, so Maps shows your default location.",
                                "Bu bilgisayar konumunuzu bulamadı; Haritalar varsayılan konumunuzu gösteriyor."),
     "location_ready": ("Showing your current location.", "Mevcut konumunuz gösteriliyor."),
+    "location_approximate": ("Showing your approximate location, from your internet connection.",
+                             "İnternet bağlantınıza göre yaklaşık konumunuz gösteriliyor."),
     "show_default": ("Show my default location", "Varsayılan konumumu göster"),
     "set_default_title": ("Set your default location", "Varsayılan konumunuzu ayarlayın"),
     "set_default_desc": ("Move the map so your home or office is in the middle, then select Set as default "

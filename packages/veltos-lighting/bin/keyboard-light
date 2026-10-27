@@ -1,0 +1,7 @@
+#!/usr/bin/python3 -I
+"""VeltOS keyboard light helper (pkexec, org.veltos.lighting.set)."""
+import sys
+
+from veltos_lighting.helper import main
+
+sys.exit(main())

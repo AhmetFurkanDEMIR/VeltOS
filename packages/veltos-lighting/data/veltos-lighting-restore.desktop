@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Keyboard lighting at sign-in
+Name[tr]=Oturum açılışında klavye aydınlatması
+Comment=Applies the keyboard lighting chosen in Keyboard Lighting (ends at once on a PC without keyboard lights)
+Exec=veltos-lighting --restore
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2

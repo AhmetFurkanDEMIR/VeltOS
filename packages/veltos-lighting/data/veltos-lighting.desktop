@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Keyboard Lighting
+Name[tr]=Klavye Aydınlatması
+GenericName=Keyboard backlight
+GenericName[tr]=Klavye ışığı
+Comment=Turn the keyboard's lights on or off and choose their brightness and colour
+Comment[tr]=Klavye ışıklarını açın veya kapatın; parlaklığını ve rengini seçin
+Exec=veltos-lighting
+Icon=veltos-lighting
+Categories=Settings;HardwareSettings;
+Keywords=keyboard;backlight;lighting;rgb;colour;color;dynamic lighting;klavye;ışık;aydınlatma;renk;
+StartupNotify=true

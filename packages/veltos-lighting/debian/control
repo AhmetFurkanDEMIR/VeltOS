@@ -1,0 +1,40 @@
+Source: veltos-lighting
+Section: utils
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-pyside6.qtqml,
+               python3-pyside6.qtquick,
+               qml6-module-org-kde-kirigami,
+               qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts,
+               qml6-module-qtquick-window,
+               qt6-svg-plugins
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-lighting
+Architecture: all
+Depends: ${python3:Depends},
+         python3-pyside6.qtqml,
+         python3-pyside6.qtquick,
+         qml6-module-org-kde-kirigami,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-window,
+         qt6-svg-plugins,
+         pkexec,
+         ${misc:Depends}
+Recommends: veltos-fluent-icons
+Description: VeltOS Keyboard Lighting: a laptop keyboard's lights
+ Turns a laptop keyboard's lights on or off and sets their brightness, in
+ the layout of Windows 11's Dynamic Lighting. Keyboards that light up in
+ colour (ASUS through asus-wmi, System76, the kernel's multicolour LEDs)
+ also get a colour, "Match my accent colour" and, on ASUS, the breathing
+ and colour cycle effects. The choices come back at every sign-in.
+ .
+ A small helper writes the light's files in /sys/class/leds through
+ pkexec; polkit lets the signed-in user of the active session do it
+ without a password.

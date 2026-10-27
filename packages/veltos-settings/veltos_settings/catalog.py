@@ -23,7 +23,7 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
                  "accessibility", "searching", "themes", "taskbar", "location", "hotspot",
                  "veltosai")
 # Actions the backend knows (app.Backend.runAction).
-ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website", "graphics")
+ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website", "graphics", "lighting")
 
 # Navigation pane icons are monochrome line icons, as in Windows 11 Settings.
 PAGES = [
@@ -113,6 +113,12 @@ PAGES = [
          "title": ("Lock screen", "Kilit ekranı"),
          "desc": ("When to lock, password on wake", "Ne zaman kilitleneceği, uyanınca parola"),
          "keywords": "lock password screensaver kilit parola"},
+        # Windows 11 has Dynamic Lighting here; VeltOS Keyboard Lighting
+        # (veltos-lighting) is that for laptop keyboards (2026-10-27).
+        {"id": "keyboardlighting", "icon": "input-keyboard-symbolic", "action": "lighting",
+         "title": ("Keyboard lighting", "Klavye aydınlatması"),
+         "desc": ("Keyboard lights on or off, brightness, colour", "Klavye ışıkları açık/kapalı, parlaklık, renk"),
+         "keywords": "keyboard backlight lighting rgb colour color dynamic lighting klavye ışık aydınlatma renk"},
         {"id": "taskbar", "icon": "view-app-grid-symbolic", "page": "taskbar",
          "title": ("Taskbar", "Görev çubuğu"),
          "desc": ("Taskbar items, system tray icons, taskbar behaviors",

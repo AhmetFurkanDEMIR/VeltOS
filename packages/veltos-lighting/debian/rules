@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME = veltos-lighting
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/veltos-lighting/usr/lib/python3/dist-packages
+	cp -r veltos_lighting debian/veltos-lighting/usr/lib/python3/dist-packages/
+	find debian/veltos-lighting -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/veltos-lighting debian/veltos-lighting/usr/bin/veltos-lighting
+	install -D -m 755 bin/keyboard-light debian/veltos-lighting/usr/libexec/veltos/keyboard-light
+	install -D -m 644 data/veltos-lighting.desktop \
+		debian/veltos-lighting/usr/share/applications/veltos-lighting.desktop
+	install -D -m 644 data/veltos-lighting-restore.desktop \
+		debian/veltos-lighting/etc/xdg/autostart/veltos-lighting-restore.desktop
+	install -D -m 644 data/org.veltos.lighting.policy \
+		debian/veltos-lighting/usr/share/polkit-1/actions/org.veltos.lighting.policy
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

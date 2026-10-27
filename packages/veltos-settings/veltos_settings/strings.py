@@ -532,16 +532,18 @@ TEXTS = {
     "default_location_set": ("Set default", "Varsayılanı ayarla"),
     "default_location_clear": ("Clear", "Temizle"),
     "location_provider_title": ("How location is found", "Konum nasıl bulunur"),
-    "location_provider_note": ("VeltOS looks for your location only when you select My location in Maps. GeoClue "
-                               "uses GPS or a mobile broadband modem when the PC has one; otherwise it sends the "
-                               "Wi-Fi networks around you to beaconDB (api.beacondb.net), a community location "
-                               "service. Google Maps receives the location it shows. You can turn access off at "
-                               "any time.",
-                               "VeltOS konumunuzu yalnızca Haritalar'da Konumum'u seçtiğinizde arar. GeoClue, "
-                               "bilgisayarda varsa GPS'i veya mobil geniş bant modemini kullanır; yoksa çevrenizdeki "
-                               "Wi-Fi ağlarını bir topluluk konum hizmeti olan beaconDB'ye (api.beacondb.net) "
-                               "gönderir. Google Haritalar gösterdiği konumu alır. Erişimi istediğiniz zaman "
-                               "kapatabilirsiniz."),
+    "location_provider_note": ("VeltOS looks for your location only when you select My location in Maps. It uses "
+                               "GPS or a mobile broadband modem when the PC has one; otherwise it sends the Wi-Fi "
+                               "networks around you to beaconDB (api.beacondb.net), a community location service, "
+                               "as Windows sends them to Microsoft's. Where beaconDB knows none of them, it finds "
+                               "the approximate place of your internet connection. Google Maps receives the "
+                               "location it shows. You can turn access off at any time.",
+                               "VeltOS konumunuzu yalnızca Haritalar'da Konumum'u seçtiğinizde arar. Bilgisayarda "
+                               "varsa GPS'i veya mobil geniş bant modemini kullanır; yoksa çevrenizdeki Wi-Fi "
+                               "ağlarını, Windows'un Microsoft'a gönderdiği gibi, bir topluluk konum hizmeti olan "
+                               "beaconDB'ye (api.beacondb.net) gönderir. beaconDB bu ağları tanımıyorsa internet "
+                               "bağlantınızın yaklaşık yerini bulur. Google Haritalar gösterdiği konumu alır. "
+                               "Erişimi istediğiniz zaman kapatabilirsiniz."),
     # Home (Windows 11 24H2 layout)
     "update_title": ("VeltOS Update", "VeltOS Güncelleme"),
     "last_checked": ("Last checked: {when}", "Son denetleme: {when}"),

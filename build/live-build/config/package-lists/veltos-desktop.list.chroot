@@ -55,6 +55,9 @@ veltos-disks
 # Graphics Cards: the cards' drivers (NVIDIA's from Debian non-free on request,
 # AMD/Intel firmware and Mesa) and properties; also in Settings > Display.
 veltos-graphics
+# Keyboard Lighting (Windows 11 Dynamic Lighting for laptop keyboards); also
+# in Settings > Personalization.
+veltos-lighting
 veltos-store
 # Clock (Windows 11 layout): alarms, timers, stopwatch, world clock.
 veltos-clock

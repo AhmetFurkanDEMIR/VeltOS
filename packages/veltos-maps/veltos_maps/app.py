@@ -9,6 +9,16 @@ GeoClue once; when it finds nothing, the default location the user set
 (~/.config/veltos/location.json, as Windows 11's "Default location") is
 shown instead. `veltos-maps --set-default-location` (Settings' "Set
 default") opens Maps with a bar that saves the map's centre as it.
+
+Finding the place (product owner, 2026-10-27: "turning location on does
+not find my location; Windows 11 finds it on the same PC"): GeoClue first
+(GPS, a modem, Wi-Fi), then VeltOS asks beaconDB itself with the Wi-Fi
+networks in range (nmcli, which needs no administrator rights; networks
+named *_nomap are left out, as their owners asked) and, where beaconDB
+knows none of them, with the internet connection's address (about 25 km;
+the window says the place is approximate). Windows 11 does the same with
+Microsoft's location service. GeoClue alone found nothing: Plasma has no
+GeoClue agent and its Wi-Fi source needs networks beaconDB knows.
 """
 
 import configparser
@@ -18,6 +28,7 @@ import re
 import subprocess
 import sys
 import threading
+import urllib.request
 from pathlib import Path
 from urllib.parse import urlencode, urlsplit
 
@@ -33,7 +44,13 @@ QML_DIR = Path(__file__).resolve().parent / "qml"
 MAPS_URL = "https://www.google.com/maps"
 # GeoClue's answer comes within seconds when a source knows the place (GPS,
 # a modem, Wi-Fi through beaconDB); waiting longer only delays the default.
-GEOCLUE_TIMEOUT = 15
+GEOCLUE_TIMEOUT = 10
+BEACONDB_URL = "https://api.beacondb.net/v1/geolocate"
+USER_AGENT = "VeltOS-Maps/1.0 (+https://veltos.ahmetfurkandemir.com)"
+NETWORK_TIMEOUT = 15
+# beaconDB's answer for the internet address alone ("fallback": "ipf") is a
+# city-sized area; anything this coarse is shown as approximate.
+APPROXIMATE_METRES = 5000
 SET_DEFAULT_ARGUMENT = "--set-default-location"
 CENTRE = re.compile(r"/@(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)")
 
@@ -125,6 +142,59 @@ def geoclue_location(cancel_event):
         timeout.cancel()
 
 
+def wifi_access_points(runner=subprocess.run):
+    """The Wi-Fi networks in range as beaconDB wants them: [{"macAddress",
+    "signalStrength"}] (NetworkManager's 0-100 signal as dBm)."""
+    try:
+        result = runner(["nmcli", "-t", "-f", "BSSID,SSID,SIGNAL", "device", "wifi", "list", "--rescan", "auto"],
+                        capture_output=True, text=True, timeout=30, env={"LC_ALL": "C", "PATH": "/usr/bin:/bin"})
+    except (OSError, subprocess.SubprocessError):
+        return []
+    found = []
+    for line in (result.stdout or "").splitlines():
+        # Terse output escapes the colons inside a field: "AA\:BB\:..:Name:70".
+        fields = [f.replace("\\:", ":") for f in re.split(r"(?<!\\):", line)]
+        if len(fields) < 3:
+            continue
+        bssid, ssid, signal = fields[0].lower(), fields[1], fields[2]
+        if not re.fullmatch(r"([0-9a-f]{2}:){5}[0-9a-f]{2}", bssid) or ssid.endswith("_nomap"):
+            continue
+        strength = int(signal) if signal.isdigit() else 0
+        found.append({"macAddress": bssid, "signalStrength": strength // 2 - 100})
+    return found
+
+
+def network_location(cancel_event, runner=subprocess.run, opener=None):
+    """(latitude, longitude, approximate) from beaconDB: by the Wi-Fi networks
+    in range, or by the internet address when it knows none of them."""
+    points = wifi_access_points(runner)
+    if cancel_event is not None and cancel_event.is_set():
+        return None
+    body = {"considerIp": True}
+    if len(points) >= 2:            # one network alone is not enough to place
+        body["wifiAccessPoints"] = points
+    request = urllib.request.Request(BEACONDB_URL, data=json.dumps(body).encode(), method="POST",
+                                     headers={"Content-Type": "application/json", "User-Agent": USER_AGENT})
+    with (opener or urllib.request.urlopen)(request, timeout=NETWORK_TIMEOUT) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    location = data.get("location") or {}
+    latitude, longitude = float(location["lat"]), float(location["lng"])
+    approximate = data.get("fallback") == "ipf" or float(data.get("accuracy") or 0) > APPROXIMATE_METRES
+    return latitude, longitude, approximate
+
+
+def current_location(cancel_event, geoclue=geoclue_location, network=network_location):
+    """GeoClue first, then beaconDB (see the module's text)."""
+    try:
+        found = geoclue(cancel_event)
+        if found is not None or (cancel_event is not None and cancel_event.is_set()):
+            return found
+    except Exception:  # GeoClue refused, found nothing or timed out: ask beaconDB
+        if cancel_event is not None and cancel_event.is_set():
+            return None
+    return network(cancel_event)
+
+
 def trusted_google_url(value):
     """Only keep secure Google-owned pages in the embedded map view."""
     try:
@@ -155,10 +225,10 @@ class Backend(QObject):
     defaultChanged = Signal()
     noteChanged = Signal()
     raiseRequested = Signal()
-    locationLookupFinished = Signal(int, float, float, str)
+    locationLookupFinished = Signal(int, float, float, str, bool)
 
     def __init__(self, lang=None, runner=subprocess.run, start_url=MAPS_URL,
-                 location_provider=geoclue_location, set_default=False, settings_dir=None, parent=None):
+                 location_provider=current_location, set_default=False, settings_dir=None, parent=None):
         super().__init__(parent)
         self.lang = lang or strings.language()
         self._hl = "tr" if self.lang == "tr" else "en"
@@ -375,15 +445,16 @@ class Backend(QObject):
             coordinates = self._location_provider(cancel_event)
             if coordinates is None:
                 return
-            latitude, longitude = (float(value) for value in coordinates)
+            latitude, longitude = (float(value) for value in coordinates[:2])
+            approximate = bool(coordinates[2]) if len(coordinates) > 2 else False
             if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
-                raise ValueError("GeoClue returned coordinates outside the valid range")
-            self.locationLookupFinished.emit(request_id, latitude, longitude, "")
+                raise ValueError("the location service returned coordinates outside the valid range")
+            self.locationLookupFinished.emit(request_id, latitude, longitude, "", approximate)
         except Exception as error:
-            self.locationLookupFinished.emit(request_id, 0.0, 0.0, str(error))
+            self.locationLookupFinished.emit(request_id, 0.0, 0.0, str(error), False)
 
-    @Slot(int, float, float, str)
-    def _finish_location_request(self, request_id, latitude, longitude, error):
+    @Slot(int, float, float, str, bool)
+    def _finish_location_request(self, request_id, latitude, longitude, error, approximate=False):
         if request_id != self._location_request_id or not self._location_enabled:
             return
         self._location_cancel_event = None
@@ -396,7 +467,8 @@ class Backend(QObject):
                 self._set_status(strings.text(self.lang, "location_failed"), "error")
             return
         self._show(latitude, longitude)
-        self._set_status(strings.text(self.lang, "location_ready"), "info")
+        self._set_status(strings.text(self.lang, "location_approximate" if approximate else "location_ready"),
+                         "info")
 
     @Slot()
     def cancelLocationRequest(self):

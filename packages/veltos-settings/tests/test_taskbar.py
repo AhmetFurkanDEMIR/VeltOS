@@ -85,7 +85,7 @@ class TaskbarTests(unittest.TestCase):
 
     def test_page_is_in_personalization_and_has_texts(self):
         self.assertEqual(catalog.page_for_module("taskbar"), "taskbar")
-        items = [item["page"] for item in catalog.page("personalization")["items"]]
+        items = [item.get("page") for item in catalog.page("personalization")["items"]]
         self.assertIn("taskbar", items)
         qml = (Path(__file__).resolve().parent.parent / "veltos_settings/qml/TaskbarPage.qml").read_text(encoding="utf-8")
         import re

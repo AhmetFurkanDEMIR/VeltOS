@@ -240,5 +240,82 @@ class MapsBackendTests(unittest.TestCase):
         self.assertEqual(raised, [True, True])
 
 
+
+class NetworkLocationTests(unittest.TestCase):
+    """GeoClue first, then beaconDB with the Wi-Fi networks in range or the
+    internet address (stand-ins for nmcli and the service)."""
+
+    NMCLI = ("AA\\:BB\\:CC\\:DD\\:EE\\:01:Ev Ağı:80\n"
+             "AA\\:BB\\:CC\\:DD\\:EE\\:02:Komşu\\:5G:40\n"
+             "AA\\:BB\\:CC\\:DD\\:EE\\:03:Kafe_nomap:90\n")
+
+    def nmcli(self, command, **_kwargs):
+        self.commands.append(command)
+        return subprocess.CompletedProcess(command, 0, self.NMCLI, "")
+
+    def service(self, answer):
+        requests = []
+
+        class Response:
+            def __init__(self, data):
+                self.data = data
+
+            def read(self):
+                return json.dumps(self.data).encode()
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+        def opener(request, timeout=None):
+            requests.append(json.loads(request.data.decode()))
+            return Response(answer)
+        return opener, requests
+
+    def setUp(self):
+        self.commands = []
+
+    def test_wifi_networks_without_the_opted_out_ones(self):
+        points = maps_app.wifi_access_points(self.nmcli)
+        self.assertEqual(points, [{"macAddress": "aa:bb:cc:dd:ee:01", "signalStrength": -60},
+                                  {"macAddress": "aa:bb:cc:dd:ee:02", "signalStrength": -80}])
+        self.assertEqual(self.commands[0][:5], ["nmcli", "-t", "-f", "BSSID,SSID,SIGNAL", "device"])
+
+    def test_wifi_answer_and_ip_fallback(self):
+        opener, requests = self.service({"location": {"lat": 41.0, "lng": 29.0}, "accuracy": 40})
+        self.assertEqual(maps_app.network_location(threading.Event(), self.nmcli, opener), (41.0, 29.0, False))
+        self.assertTrue(requests[0]["considerIp"])
+        self.assertEqual(len(requests[0]["wifiAccessPoints"]), 2)
+        opener, requests = self.service({"location": {"lat": 39.9, "lng": 32.8}, "accuracy": 25000,
+                                         "fallback": "ipf"})
+        self.assertEqual(maps_app.network_location(threading.Event(), self.nmcli, opener), (39.9, 32.8, True))
+
+    def test_geoclue_first_then_beacondb(self):
+        cancel = threading.Event()
+        self.assertEqual(maps_app.current_location(cancel, geoclue=lambda _c: (1.0, 2.0),
+                                                   network=lambda _c: (3.0, 4.0, True)), (1.0, 2.0))
+
+        def refused(_cancel):
+            raise RuntimeError("Geolocation disabled for UID 1000")
+        self.assertEqual(maps_app.current_location(cancel, geoclue=refused, network=lambda _c: (3.0, 4.0, True)),
+                         (3.0, 4.0, True))
+        cancel.set()
+        self.assertIsNone(maps_app.current_location(cancel, geoclue=refused, network=lambda _c: (3.0, 4.0, True)))
+
+    def test_approximate_place_is_said(self):
+        backend = Backend(lang="tr", runner=Runner(enabled=True), start_url="about:blank",
+                          location_provider=lambda _cancel: (39.9, 32.8, True))
+        backend.requestCurrentLocation()
+        backend._location_worker.join(5)
+        qtapp.application().processEvents()
+        self.assertEqual(backend.status, strings.text("tr", "location_approximate"))
+        self.assertIn("39.9", backend.mapUrl)
+
+    def test_geoclue_lets_maps_in_without_an_agent(self):
+        text = (Path(__file__).resolve().parent.parent / "data/90-veltos-maps.conf").read_text()
+        self.assertIn("[veltos-maps]\nallowed=true\nsystem=true", text)
+
 if __name__ == "__main__":
     unittest.main()

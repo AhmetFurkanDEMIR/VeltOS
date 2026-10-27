@@ -14,11 +14,13 @@ disabled or denied.
 
 Location access is off by default. The switch in VeltOS Maps and Settings >
 Privacy & security > Location writes the same `kdeglobals` preference. The
-Maps toolbar's **My location** action requests a one-time fix from GeoClue 2
-only while access is enabled, then opens that position in Google Maps.
-GeoClue's default Wi-Fi provider may send nearby Wi-Fi information to Mozilla
-Location Service to estimate a position; Google receives the coordinates
-when the user chooses **My location**. Turning access off cancels a pending
+Maps toolbar's **My location** action asks for the position only while
+access is enabled, then opens it in Google Maps: GeoClue 2 first (GPS, a
+modem, Wi-Fi), then beaconDB (api.beacondb.net) directly with the Wi-Fi
+networks in range from `nmcli` (networks named `*_nomap` are left out) and,
+when beaconDB knows none of them, the internet address (about 25 km; the
+InfoBar says "approximate"). Google receives the coordinates when the
+user chooses **My location**. Turning access off cancels a pending
 request and revokes the web profile's in-memory geolocation permission. The
 QEMU VM has no physical GPS or nearby Wi-Fi scan source, so a real-device
 location fix and accuracy have not been verified.
@@ -40,6 +42,15 @@ location fix and accuracy have not been verified.
   Windows 11's: Settings > Location > Set default opens Maps with a bar
   that saves the map's centre (`~/.config/veltos/location.json`, mode 600).
   Debian 13's GeoClue sends nearby Wi-Fi networks to beaconDB.
+- Why it found nothing before (product owner, 2026-10-27, a laptop on
+  which Windows 11 finds the place): Plasma has no GeoClue agent, and
+  Debian's geoclue.conf allows agents, so GeoClue refused Maps with
+  `system=false`; Maps is a system component now (`system=true`; VeltOS'
+  own switch is the user's consent). And GeoClue's Wi-Fi source needs
+  networks beaconDB knows; VeltOS asks beaconDB itself after GeoClue, with
+  the internet address as the last resort (`current_location`). The
+  address fallback was seen answering from the developer host
+  (2026-10-27); a fix by Wi-Fi on the owner's laptop is untested.
 
 ## Files
 

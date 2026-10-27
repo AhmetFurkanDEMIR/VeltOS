@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+"""VeltOS Keyboard Lighting (Windows 11 Dynamic Lighting style)."""
+import os
+import sys
+
+os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
+# Same file times in every package build: compile the QML at start (see
+# AGENTS.md, QML disk cache).
+os.environ["QML_DISABLE_DISK_CACHE"] = "1"
+
+if "--restore" in sys.argv[1:]:
+    # At sign-in: no Qt, ends at once without keyboard lights.
+    from veltos_lighting.config import restore
+    sys.exit(0 if restore() else 1)
+
+from veltos_lighting.app import main
+
+sys.exit(main())

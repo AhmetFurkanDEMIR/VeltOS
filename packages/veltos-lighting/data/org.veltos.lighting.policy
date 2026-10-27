@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!-- veltos-lighting: the signed-in user of the active session changes the
+     keyboard's lights without a password, as on Windows. The helper only
+     writes the brightness and colour files of a keyboard light. -->
+<policyconfig>
+  <vendor>VeltOS</vendor>
+  <action id="org.veltos.lighting.set">
+    <description>Change the keyboard lighting</description>
+    <description xml:lang="tr">Klavye aydınlatmasını değiştir</description>
+    <message>Authentication is required to change the keyboard lighting</message>
+    <message xml:lang="tr">Klavye aydınlatmasını değiştirmek için kimlik doğrulaması gerekiyor</message>
+    <icon_name>veltos-lighting</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/veltos/keyboard-light</annotate>
+  </action>
+</policyconfig>

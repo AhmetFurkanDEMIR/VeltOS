@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Keyboard Lighting: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="frame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4A5263"/>
+      <stop offset="1" stop-color="#232833"/>
+    </linearGradient>
+    <linearGradient id="space" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3FA0FF"/>
+      <stop offset="1" stop-color="#A24DF0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.55" r="0.6">
+      <stop offset="0" stop-color="#6C8CFF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#6C8CFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="128" cy="134" rx="124" ry="96" fill="url(#glow)"/>
+  <path d="M 42 64 H 214 Q 236 64 236 86 V 178 Q 236 200 214 200 H 42 Q 20 200 20 178 V 86 Q 20 64 42 64 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 42 64 H 214 Q 236 64 236 86 V 178 Q 236 200 214 200 H 42 Q 20 200 20 178 V 86 Q 20 64 42 64 Z" fill="url(#frame)"/>
+  <path d="M 44 72 H 212 Q 228 72 228 88 V 176 Q 228 192 212 192 H 44 Q 28 192 28 176 V 88 Q 28 72 44 72 Z" fill="#151922"/>
+  <rect x="36" y="86" width="25" height="22" rx="5" fill="#2FD2FF"/>
+  <rect x="67" y="86" width="25" height="22" rx="5" fill="#3FA0FF"/>
+  <rect x="98" y="86" width="25" height="22" rx="5" fill="#5B7CFF"/>
+  <rect x="129" y="86" width="25" height="22" rx="5" fill="#7A5CFF"/>
+  <rect x="160" y="86" width="25" height="22" rx="5" fill="#A24DF0"/>
+  <rect x="191" y="86" width="25" height="22" rx="5" fill="#D24BD8"/>
+  <rect x="36" y="116" width="25" height="22" rx="5" fill="#2FD2FF"/>
+  <rect x="67" y="116" width="25" height="22" rx="5" fill="#3FA0FF"/>
+  <rect x="98" y="116" width="25" height="22" rx="5" fill="#5B7CFF"/>
+  <rect x="129" y="116" width="25" height="22" rx="5" fill="#7A5CFF"/>
+  <rect x="160" y="116" width="25" height="22" rx="5" fill="#A24DF0"/>
+  <rect x="191" y="116" width="25" height="22" rx="5" fill="#D24BD8"/>
+  <rect x="36" y="146" width="25" height="22" rx="5" fill="#2FD2FF"/>
+  <rect x="67" y="146" width="25" height="22" rx="5" fill="#3FA0FF"/>
+  <rect x="98" y="146" width="25" height="22" rx="5" fill="#5B7CFF"/>
+  <rect x="129" y="146" width="25" height="22" rx="5" fill="#7A5CFF"/>
+  <rect x="160" y="146" width="25" height="22" rx="5" fill="#A24DF0"/>
+  <rect x="191" y="146" width="25" height="22" rx="5" fill="#D24BD8"/>
+  <rect x="74" y="174" width="108" height="14" rx="5" fill="url(#space)"/>
+  <path d="M 42 70 H 214" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="3" stroke-linecap="round"/>
+</svg>
