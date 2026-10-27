@@ -36,6 +36,13 @@ installers in the dev VM.
   One test wrote into the Windows host's home (`Path.home()` reads
   USERPROFILE there); the test now sets it, and the stray folder was
   removed.
+- ISO `veltos-1.1-dev1-amd64.hybrid.iso` (build 20261027-200516):
+  2,111,647,744 bytes (under 2 GiB by 35.8 MB), SHA-256
+  490058e12ba293186c0ee19058be5c70b8055a8d4e3d59b42028cb614eea113a.
+  Boot tests passed in QEMU: UEFI (20 checks), BIOS (19), Secure Boot
+  (21), no failures, no crashed processes; plasmashell after 31.0 / 31.0 /
+  27.5 s (1.0: 30.6-32.5 s). Copied to the owner's Desktop for manual
+  tests. Not yet: an installation from this ISO.
 
 ## 2026-10-27 (evening) — Items 90-101: drivers, Open with, VeltOS AI, first start
 
