@@ -65,6 +65,24 @@ class ArtworkTests(unittest.TestCase):
         for src in set(re.findall(r'(?:src|href)="(assets/[^"]+)"', html)):
             self.assertTrue((REPO / "docs" / src).exists(), src)
 
+    def test_download_checksum_and_link_agree(self):
+        """The ISO's SHA-256 and download link are the same on the website
+        (download panel, structured data) and in the README, so a visitor
+        checks the file against the release's own .sha256."""
+        page = REPO / "docs/index.html"
+        if not page.exists():
+            self.skipTest("no website in this tree")
+        html = page.read_text(encoding="utf-8")
+        readme = (REPO / "README.md").read_text(encoding="utf-8")
+        site_hashes = set(re.findall(r"\b[0-9a-f]{64}\b", html))
+        readme_hashes = set(re.findall(r"\b[0-9a-f]{64}\b", readme))
+        self.assertEqual(len(site_hashes), 1, site_hashes)
+        self.assertEqual(site_hashes, readme_hashes)
+        meta = re.search(r'name="veltos-iso-url" content="([^"]+)"', html).group(1)
+        self.assertIn(f'"downloadUrl": "{meta}"', html)
+        self.assertIn(meta, readme)
+        self.assertIn(meta + ".sha256", html)
+
     def test_website_icons_are_the_systems(self):
         """The website (docs/) shows VeltOS' own icons: each must still be
         identical to a file of the same name in a package's artwork, data or

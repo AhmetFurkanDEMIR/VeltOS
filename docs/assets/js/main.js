@@ -186,7 +186,7 @@
     "dl.release": "Sürüm notları ve tüm dosyalar GitHub'da ›",
     "d.copy": "Kopyala",
     "d.copied": "Kopyalandı",
-    "dl.hashnote": "İndirdikten sonra doğrulayın: Linux'ta <code>sha256sum VeltOS-1.0-amd64.iso</code>, PowerShell'de <code>Get-FileHash VeltOS-1.0-amd64.iso</code>.",
+    "dl.hashnote": "İndirdikten sonra doğrulayın. Linux'ta, ISO'nun yanındaki <a href=\"https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.0/VeltOS-1.0-amd64.iso.sha256\">.sha256 dosyasıyla</a>: <code>sha256sum -c VeltOS-1.0-amd64.iso.sha256</code> komutu <code>OK</code> yazar. Windows PowerShell'de: <code>Get-FileHash VeltOS-1.0-amd64.iso</code> yukarıdaki değerin aynısını büyük harflerle gösterir.",
     "dl.inc.title": "ISO'nun içinde",
     "dl.inc1": "Canlı sistem: hiçbir şey kurmadan VeltOS'u deneyin",
     "dl.inc2": "Kurulum programı: Windows'un yanına, yerine ya da boş alana",

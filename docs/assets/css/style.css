@@ -380,17 +380,18 @@ button.shot-frame { cursor: zoom-in; }
   /* The label stays on one line on phones. */
   .eyebrow { white-space: nowrap; font-size: clamp(10.5px, 3.4vw, 14px); gap: 7px; padding: 6px 12px; max-width: 100%; }
   .eyebrow .dot { width: 7px; height: 7px; flex: none; }
-  /* All three boxes stay around the picture on phones, compact: their
-     titles only, on the picture's corners. */
-  .hero-visual { margin-bottom: 18px; }
-  .float { padding: 6px 10px; gap: 7px; border-radius: 10px; }
+  /* All three boxes stay around the picture on phones, as on large
+     screens (title and line), a little smaller: one at the top right, one
+     at the left in the middle, one at the bottom right. */
+  .hero-visual { margin: 10px 0 26px; }
+  .float { padding: 7px 10px; gap: 8px; border-radius: 11px; }
   .float strong { font-size: 11.5px; white-space: nowrap; }
-  .float span:not(.float-badge) { display: none; }
-  .float img { width: 18px; height: 18px; }
-  .float-badge { width: 18px; height: 18px; font-size: 11px; }
-  .float-sec { top: -14px; right: 6px; }
-  .float-ai { left: 6px; bottom: -16px; }
-  .float-win { right: 6px; bottom: -16px; }
+  .float span { font-size: 10.5px; white-space: nowrap; }
+  .float img { width: 20px; height: 20px; }
+  .float-badge { width: 20px; height: 20px; font-size: 11px; }
+  .float-sec { top: -18px; right: 6px; }
+  .float-ai { left: 6px; bottom: -22px; }
+  .float-win { right: 6px; bottom: -22px; }
   .tilt { transform: none; }
   .reqs ul { grid-template-columns: 1fr 1fr; }
   .footer-inner { grid-template-columns: 1fr; }
@@ -405,6 +406,12 @@ button.shot-frame { cursor: zoom-in; }
   /* The labels keep their whole width next to each other. */
   .cta .btn svg { display: none; }
   .cta .btn { padding: 14px 8px; }
+}
+@media (max-width: 440px) {
+  /* Too narrow for the two bottom boxes side by side (they overlapped by
+     about 45 px at 390 px): VeltOS AI moves up to the picture's left edge,
+     as on large screens. */
+  .float-ai { bottom: auto; top: 34%; }
 }
 @media (max-width: 340px) {
   .cta .btn { font-size: 14px; }
