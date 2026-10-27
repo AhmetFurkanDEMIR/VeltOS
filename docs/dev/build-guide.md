@@ -46,7 +46,7 @@ Environment variables:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `VELTOS_VERSION` | `0.1.0-dev` | Version in the ISO name and volume label |
+| `VELTOS_VERSION` | `1.0` | Version in the ISO name and volume label |
 | `SOURCE_DATE_EPOCH` | last git commit time | Timestamps inside the image |
 | `VELTOS_DEBIAN_MIRROR` | `http://deb.debian.org/debian/` | Mirror used during the build (e.g. a local apt cache or a snapshot.debian.org URL) |
 | `VELTOS_SECURITY_MIRROR` | `http://deb.debian.org/debian-security/` | Security mirror used during the build |

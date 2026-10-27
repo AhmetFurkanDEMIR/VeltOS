@@ -48,6 +48,23 @@ class ArtworkTests(unittest.TestCase):
         splash = (REPO / "build/live-build/config/bootloaders/splash.svg").read_text()
         self.assertIn(inner, splash)
 
+    def test_website_texts_have_turkish(self):
+        """Every text key of the website (data-i18n and data-i18n-attr in
+        docs/index.html) has a Turkish entry in docs/assets/js/main.js, and
+        every picture the page uses exists."""
+        page = REPO / "docs/index.html"
+        if not page.exists():
+            self.skipTest("no website in this tree")
+        html = page.read_text(encoding="utf-8")
+        script = (REPO / "docs/assets/js/main.js").read_text(encoding="utf-8")
+        keys = set(re.findall(r'data-i18n="([^"]+)"', html))
+        for attrs in re.findall(r'data-i18n-attr="([^"]+)"', html):
+            keys.update(pair.split(":", 1)[1] for pair in attrs.split(";"))
+        turkish = set(re.findall(r'^\s*"([^"]+)":', script, re.M))
+        self.assertEqual(sorted(keys - turkish), [], "website keys without Turkish text")
+        for src in set(re.findall(r'(?:src|href)="(assets/[^"]+)"', html)):
+            self.assertTrue((REPO / "docs" / src).exists(), src)
+
     def test_website_icons_are_the_systems(self):
         """The website (docs/) shows VeltOS' own icons: each must still be
         identical to a file of the same name in a package's artwork, data or

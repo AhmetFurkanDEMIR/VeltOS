@@ -12,6 +12,7 @@ A free, Debian-based desktop operating system that looks and works the way
 Windows 11 users already know, with its own apps, a modern installer and
 Windows program support through Wine.
 
+**[⬇ Download VeltOS 1.0](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.0)** ·
 [Website](https://veltos.ahmetfurkandemir.com/) ·
 [Project status](docs/dev/status.md) ·
 [Build guide](docs/dev/build-guide.md) ·
@@ -25,14 +26,15 @@ Windows program support through Wine.
 
 </div>
 
-![The VeltOS desktop with Start open](docs/assets/img/desktop.webp)
+![A tour of VeltOS: Start, search, Task View and VeltOS AI](docs/assets/gif/veltos-tour.gif)
 
 > [!NOTE]
-> **VeltOS 1.0 is the first public release.** Every ISO is booted and
-> installed in QEMU/KVM virtual machines, VirtualBox is tested by hand, and
-> VeltOS has been installed on a real laptop (NVIDIA graphics). Real
-> hardware is varied: [docs/dev/status.md](docs/dev/status.md) lists exactly
-> what works and how it was tested. Back up your files before you install.
+> **VeltOS 1.0 is the first public release.** Every ISO goes through
+> automated start-up and installation tests with UEFI, BIOS and Secure Boot,
+> and VeltOS 1.0 has been installed on a laptop with NVIDIA graphics.
+> [docs/dev/status.md](docs/dev/status.md) lists exactly what works and how
+> it was tested. As with any new system, back up your files before you
+> install it.
 
 ## Highlights
 
@@ -70,16 +72,36 @@ Windows program support through Wine.
 
 ## Screenshots
 
+Every picture was taken on VeltOS 1.0; VeltOS has a light and a dark look.
+
 | | |
 |:---:|:---:|
-| ![File Explorer](docs/assets/img/explorer.webp) | ![Settings](docs/assets/img/settings.webp) |
-| File Explorer with tabs and Office files | Settings in Windows 11's layout |
-| ![VeltOS Store](docs/assets/img/store.webp) | ![Word's start screen](docs/assets/img/office.webp) |
-| VeltOS Store on Debian's archive | Word's start screen, LibreOffice behind it |
-| ![Dark mode](docs/assets/img/dark.webp) | ![The VeltOS installer](docs/assets/img/installer.webp) |
-| Dark mode with the Nebula theme | The VeltOS installer |
+| ![Start in dark mode](docs/assets/img/dark-desktop.webp) | ![VeltOS AI answering in its pane](docs/assets/img/light-ai.webp) |
+| Start in dark mode | VeltOS AI with the free local model |
+| ![File Explorer](docs/assets/img/light-explorer.webp) | ![Settings](docs/assets/img/dark-settings.webp) |
+| File Explorer with tabs | Settings in Windows 11's layout |
+| ![Quick Settings](docs/assets/img/light-quick.webp) | ![VeltOS Store](docs/assets/img/dark-store.webp) |
+| Quick Settings on the taskbar | VeltOS Store on Debian's archive |
+| ![Word's start screen](docs/assets/img/light-word.webp) | ![Media Player](docs/assets/img/dark-media.webp) |
+| Word's start screen, LibreOffice behind it | Media Player with albums |
+| ![Photos](docs/assets/img/light-photos.webp) | ![Weather](docs/assets/img/dark-weather.webp) |
+| Photos by month | Weather without an account |
+| ![Calendar](docs/assets/img/light-calendar.webp) | ![Task Manager](docs/assets/img/dark-taskmanager.webp) |
+| Calendar | Task Manager |
 
-More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#gallery).
+**From power on to the desktop:** the start screen (F1 boot menu, F6
+Recovery), the sign-in screen and the desktop.
+
+| | | |
+|:---:|:---:|:---:|
+| ![The start screen](docs/assets/img/boot-start.webp) | ![The sign-in screen](docs/assets/img/signin-lock.webp) | ![Signing in](docs/assets/img/signin-password.webp) |
+| Start screen | Sign-in screen | Your account |
+| ![The installer](docs/assets/img/installer.webp) | ![The installer introducing VeltOS AI](docs/assets/img/installer-ai-slide.webp) | ![VeltOS is ready](docs/assets/img/installer-done.webp) |
+| The installer | Slides while it installs | Done |
+
+![VeltOS' own apps in light and dark mode](docs/assets/gif/veltos-apps.gif)
+
+More on the [website](https://veltos.ahmetfurkandemir.com/#gallery).
 
 ## What's inside
 
@@ -108,25 +130,28 @@ More screenshots are on the [website](https://veltos.ahmetfurkandemir.com/#galle
 All VeltOS apps are Python 3 and Qt Quick (PySide6), packaged as small
 Debian packages under [packages/](packages/). Firefox ESR is the web browser.
 
-## Try VeltOS
+## Download and install
 
-Download the ISO from the
-[GitHub releases](https://github.com/AhmetFurkanDEMIR/VeltOS/releases) or the
-[website](https://veltos.ahmetfurkandemir.com/#download), or build it yourself
-(below). One hybrid ISO starts a live system and installs VeltOS: write it to
-a USB stick (for example with Rufus or balenaEtcher), start the PC from it,
-look around, then choose "Install VeltOS" — next to Windows or in its place.
+| | |
+|---|---|
+| ISO | [VeltOS-1.0-amd64.iso](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.0/VeltOS-1.0-amd64.iso) (2.1 GB, 64-bit) |
+| SHA-256 | `3e5273a13b0f87a11bd6a3fb668674b02c5865264065dfe5e570387f4ac1a2af` |
+| Release notes | [GitHub release v1.0](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.0) |
 
-In a virtual machine, give VeltOS 4 GB of memory and a 25 GB disk; UEFI and
-BIOS both work. In VirtualBox use the VMSVGA graphics controller and turn on
-3D acceleration for the smoothest desktop; without it VeltOS draws in
-software. On a Windows PC with Hyper-V on (WSL2, Docker Desktop), VirtualBox
-can freeze virtual machines until a key is pressed — a known VirtualBox bug
-([VirtualBox issue 722](https://github.com/VirtualBox/virtualbox/issues/722));
-QEMU/KVM is not affected. The live session signs in by itself (user `velt`,
-password `live`).
+1. Download the ISO and check it: `sha256sum VeltOS-1.0-amd64.iso` (Linux)
+   or `Get-FileHash VeltOS-1.0-amd64.iso` (PowerShell).
+2. Write it to a USB stick of 4 GB or more with Rufus or balenaEtcher.
+3. Start the PC from the stick (its boot menu key is often F12, F11 or
+   Esc). VeltOS starts as a live system; look around first.
+4. Select "Install VeltOS": next to Windows, in its place or on free
+   space, with optional disk encryption. Back up your files first, as with
+   any new system.
 
-As with any new operating system, back up your files before you install it.
+The PC needs a 64-bit Intel or AMD processor, 2 GB of memory (4 GB or more
+recommended), 20 GB of storage and UEFI (Secure Boot on or off) or BIOS.
+The live session signs in by itself (user `velt`, password `live`). After
+installing, there is no boot menu: press F1 while the PC starts to choose
+another system, F6 for Recovery.
 
 ## Build from source
 
@@ -167,7 +192,7 @@ Options, mirrors and troubleshooting are in the
 | Base | Debian 13 "trixie" (stable) |
 | Kernel | Linux 6.12 LTS, Debian's signed kernel |
 | Desktop | KDE Plasma 6.3 on Wayland, with VeltOS' taskbar, Start, Task View and window frames |
-| Graphics | Mesa 25.0; software rendering where a virtual machine has no 3D |
+| Graphics | Mesa 25.0; NVIDIA's driver from Debian with one button (Graphics Cards) |
 | Boot | GRUB 2.12 for BIOS and UEFI, Secure Boot through shim, Plymouth |
 | Installer | Calamares 3.3.14 with VeltOS' pages |
 | Office, web, mail | LibreOffice 25.2, Firefox ESR, VeltOS Mail (IMAP/SMTP) |
@@ -189,15 +214,16 @@ reasons, the alternatives and their trade-offs are in
 - **The image checks itself.** A live-build hook stops the build when a VeltOS
   invariant is broken: required packages, branding, themes, file
   associations, the boot splash, stripped Wine libraries and more.
-- **Boot tests in virtual machines.** ISOs boot in QEMU/KVM with UEFI, BIOS
-  and Secure Boot; the test checks the desktop, looks for crashes and core
-  dumps and records screenshots, memory use and start-up times.
-- **Install tests.** Installations, encrypted ones included, run in QEMU
-  virtual machines and are started again from the installed disk.
+- **Boot tests for every ISO.** Each ISO starts with UEFI, BIOS and Secure
+  Boot in automated tests that check the desktop, look for crashes and core
+  dumps and record screenshots, memory use and start-up times.
+- **Install tests.** Installations (offline, encrypted, English and
+  Turkish) are started again from the installed disk; VeltOS 1.0 was also
+  installed on a laptop with NVIDIA graphics.
 - **Evidence in the repository.** Reports and screenshots of milestone test
   runs are kept in [tests/results/](tests/results/).
 
-What is not tested yet (real hardware beyond one laptop above all) is listed in
+What is not tested yet is listed in
 [docs/dev/status.md](docs/dev/status.md) and
 [docs/dev/testing.md](docs/dev/testing.md).
 
@@ -214,8 +240,8 @@ the full text is in [AGENTS.md](AGENTS.md).
 4. Security, reliability and low resource use are requirements.
 5. No promises of universal Windows compatibility or "native performance"
    without measurements.
-6. Builds and tests stay inside containers and virtual machines, away from
-   the developer's system.
+6. Builds and tests stay inside containers, away from the developer's
+   system.
 7. Everything in the repository is in English, and the documentation is kept
    current so that anyone can continue the work.
 

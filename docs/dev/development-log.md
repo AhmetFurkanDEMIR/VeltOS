@@ -3,6 +3,41 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-27 — Release steps: website, READMEs, SEO, release
+
+The product owner's final list (status F10-F15, the same as F3-F9 in
+detail), after VeltOS 1.0 was built.
+
+- Screenshots of an installed VeltOS 1.0 (the release ISO, installed in the
+  dev VM; sample pictures, music with covers and calendar events made by
+  `out/vm/seed-*.py`): twelve scenes in light and dark, the start screen,
+  the sign-in screen, the installer, and VeltOS AI answering with the free
+  local model (downloaded in the VM, a real answer). Animations are real
+  screenshots joined by crossfades: a screen capture through QMP takes
+  about 0.2 s, too slow to film. All in `docs/assets/img` (WebP, 4-600 KB)
+  and `docs/assets/gif` (README).
+- Website redesigned: text on solid surfaces (the backdrop no longer runs
+  under the text), a hero with the theme's desktop picture and three
+  feature boxes (the owner asked for a third one while it was built),
+  numbers, twelve feature cards, VeltOS AI, light/dark, 24 apps, a
+  gallery with tabs, "from power on to your desktop", Windows programs,
+  the installer, specs, download (release link, SHA-256, steps,
+  requirements), FAQ, footer with the link to ahmetfurkandemir.com.
+  Pictures follow the page's theme; the hero buttons stay side by side on
+  phones. The browser pane ran hidden and drew transitions half-way, so the
+  page was checked in Firefox in the dev VM (desktop, Turkish, light, a
+  320 px phone with the responsive design mode) and with measurements in
+  the pane: the Turkish menu wrapped at 1130 px (now folds at 1200 px), the
+  top bar covered the logo at 320 px (GitHub button hidden below 420 px),
+  "Download VeltOS" was cut at 375 px (icons hidden below 420 px).
+- SEO: titles, descriptions, keywords, Open Graph and Twitter cards,
+  hreflang, JSON-LD (software, author, site, FAQ), a sitemap with images.
+  The Turkish page is `?lang=tr`; the language switch updates the address,
+  the canonical link and the description. A repository test checks that
+  every text key has Turkish and every picture exists.
+- READMEs: the root README with the new pictures, GIFs and the download;
+  no pre-alpha or virtual-machine-only notes there or on the site.
+
 ## 2026-10-27 — VeltOS 1.0: items 78-89, the ISO under 2 GiB
 
 The product owner installed the previous ISO on their laptop (NVIDIA RTX

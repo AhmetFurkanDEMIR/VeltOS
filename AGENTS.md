@@ -145,10 +145,15 @@ and JavaScript with no build step, no external requests and no cookies:
 - Texts: English in `index.html` (`data-i18n` keys), Turkish in the `TR`
   dictionary of `assets/js/main.js`; every key needs both. English and
   dark are the defaults; the visitor's choice is kept in `localStorage`.
-- Pictures: `assets/img/*.webp` (1600x900) are screenshots of an installed
-  system in the QEMU dev VM (English, 1920x1080, downscaled); `og.jpg`
-  (1200x630) is the link preview. Retake them when the desktop changes
-  visibly, and never show something the ISO does not do.
+- Pictures: `assets/img/light-*.webp` and `dark-*.webp` (1600x900) are
+  pairs of screenshots of an installed system (English, 1920x1080,
+  downscaled); the page shows the pair's picture of its own theme (classes
+  `img-light`/`img-dark`, the hidden one lazy and never loaded). `tour-*.webp`
+  are animations made of real screenshots joined by crossfades
+  (`out/vm/make-gif.py`, git-ignored aid); `assets/gif/*.gif` are the same
+  for the README. Start-up, sign-in and installer pictures have one look.
+  `og.jpg` (1200x630) is the link preview. Retake them when the desktop
+  changes visibly, and never show something the ISO does not do.
 - Icons: copies of the OS's own SVGs (`tests/repo` checks they still
   match a file of the same name in `packages/`). Fonts: Inter subsets
   (OFL, `assets/fonts/LICENSE-Inter.txt`).
@@ -156,17 +161,27 @@ and JavaScript with no build step, no external requests and no cookies:
   `<meta name="veltos-iso-url">` in `docs/index.html`; the head script marks
   the page `iso-ready` and every `[data-iso-link]` button follows it (empty:
   "Download ISO · Soon" and a note). Update the size and the SHA-256 in the
-  download panel with the link. A GitHub release file must be under 2 GiB
-  (docs.github.com, "About releases"); the ISO is larger, so it is hosted
-  elsewhere.
+  download panel with the link. The ISO is a file of the GitHub release
+  (`v1.0`: `VeltOS-1.0-amd64.iso` and its `.sha256`), which must stay under
+  2 GiB (docs.github.com, "About releases").
 - Claims on the site follow the project rules: no untested support, no
   "native performance", measured numbers with how they were measured.
+- SEO: title, description and keywords in the head, Turkish description
+  set by `main.js` with the language, `hreflang` alternates (`?lang=tr`
+  opens the Turkish page), JSON-LD (SoftwareApplication, Person, WebSite,
+  FAQPage), `sitemap.xml` with images, `robots.txt`. Keep the JSON-LD's
+  version, download URL and FAQ in step with the page. Search Console
+  (Google) and Webmaster (Yandex, Bing) need the owner's accounts.
+- Every `data-i18n` key needs a Turkish entry (tests/repo checks it, and
+  that every picture the page uses exists). The menu folds at 1200 px (the
+  Turkish names need about 1145 px); on phones the two hero buttons stay
+  side by side (their icons hide below 420 px).
 - Turkish is written as Turkish, not word for word, and uses the names the
   OS shows (VeltOS Mail, VeltOS Mağaza, Bu bilgisayar, Görev Görünümü,
   Başlangıç Onarımı, Komut İstemi; firmware is "üretici yazılımı").
   Numbers follow the language (`data-suffix-tr`, decimal comma). Check a
-  new text for both languages at 1081-1140 px: Turkish menu names are
-  longer (the menu folds at 1120 px).
+  new text for both languages at 1150-1250 px: Turkish menu names are
+  longer (the menu folds at 1200 px).
 - The logo links to `#top`, which HTML treats as the top of the document
   only while no element has that id; an id on the sticky header made the
   link do nothing (the header is always in view).

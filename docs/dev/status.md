@@ -225,13 +225,22 @@ order:
 
 - F1. [x] The ISO under 2 GB so it fits a GitHub release, without losing quality, changing the look or removing any feature or app
 - F2. [x] A full public release instead of pre-alpha; remove the virtual-machine notes from the website and README (the owner tested VeltOS on their own PC: everything worked)
-- F3. [ ] Website: every new feature, new screenshots and pictures, readable text (the background dominates now), a striking, fast, fluid operating-system site design
-- F4. [ ] Website: dark-mode screenshots (also the top one) in dark mode, light-mode ones in light mode
-- F5. [ ] Website on phones: "Download VeltOS" and "Source code" buttons side by side
-- F6. [ ] Footer: "Ahmet Furkan Demir" links to https://ahmetfurkandemir.com; README and website show the sign-in screen, the start-up screen and more apps; GIFs recorded in the OS
+- F3. [x] Website: every new feature, new screenshots and pictures, readable text (the background dominates now), a striking, fast, fluid operating-system site design
+- F4. [x] Website: dark-mode screenshots (also the top one) in dark mode, light-mode ones in light mode
+- F5. [x] Website on phones: "Download VeltOS" and "Source code" buttons side by side
+- F6. [x] Footer: "Ahmet Furkan Demir" links to https://ahmetfurkandemir.com; README and website show the sign-in screen, the start-up screen and more apps; GIFs recorded in the OS
 - F7. [x] Turkish slogan "Senin Bilgisayarın. Sınır Tanıma."
 - F8. [ ] Claude not in GitHub's contributors; pushes from the owner's account (Ahmet Furkan Demir)
 - F9. [ ] Publish the release (ISO on the GitHub release, website download link)
+
+Product owner, 2026-10-27 (the same steps in detail, all to be done):
+
+- F10. [x] Website and every README without virtual-machine-only and pre-alpha notes; final, complete READMEs (package READMEs included)
+- F11. [x] Website redesigned as an operating-system site: every new feature (VeltOS AI too), readable text over the background, striking, fast and fluid, correct on phones and desktops
+- F12. [x] New screenshots of the installed system, light and dark (the site shows the dark set in dark mode, the top picture included, and the light set in light mode); the sign-in screen, the start-up screen and more apps; GIFs recorded in the OS; the same pictures in the README
+- F13. [x] SEO: titles and descriptions in English and Turkish, structured data, sitemap, robots.txt, canonical and language links, link previews, so Google, Yandex and other search engines find VeltOS
+- F14. [ ] Push from the owner's account (Ahmet Furkan Demir); "Co-Authored-By: Claude" removed from the history so Claude is not in GitHub's contributors (owner approved the rewrite and force-push, 2026-10-27)
+- F15. [ ] GitHub release v1.0 published automatically with the ISO and its SHA-256 file and good release notes; the website's download button points at the release's ISO
 
 ## Known gaps
 

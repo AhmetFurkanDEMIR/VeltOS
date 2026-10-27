@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Weather: VeltOS artwork in the look of Windows 11 (tools/app-icons.py).
+       SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE36B"/>
+      <stop offset="1" stop-color="#FF9E1B"/>
+    </linearGradient>
+    <linearGradient id="ray" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD448"/>
+      <stop offset="1" stop-color="#FFAE1F"/>
+    </linearGradient>
+    <linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#C6D9F2"/>
+    </linearGradient>
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BCD3F2"/>
+      <stop offset="1" stop-color="#8FB2E6"/>
+    </linearGradient>
+  </defs>
+  <path d="M 39.0 70.7 L 20.5 63.1" stroke="url(#ray)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 74.7 35.0 L 67.1 16.5" stroke="url(#ray)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 125.3 35.0 L 132.9 16.5" stroke="url(#ray)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 161.0 70.7 L 179.5 63.1" stroke="url(#ray)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 161.0 121.3 L 179.5 128.9" stroke="url(#ray)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 125.3 157.0 L 132.9 175.5" stroke="url(#ray)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 74.7 157.0 L 67.1 175.5" stroke="url(#ray)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 39.0 121.3 L 20.5 128.9" stroke="url(#ray)" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="100" cy="96" r="54" fill="url(#sun)"/>
+  <path d="M 70 218 Q 30 218 30 182 Q 30 148 66 144 Q 72 102 116 96 Q 150 92 168 120 Q 182 110 200 114 Q 226 120 228 148 Q 252 156 250 186 Q 248 218 214 218 Z" fill="#000000" opacity="0.16" transform="translate(0 5)"/>
+  <path d="M 70 218 Q 30 218 30 182 Q 30 148 66 144 Q 72 102 116 96 Q 150 92 168 120 Q 182 110 200 114 Q 226 120 228 148 Q 252 156 250 186 Q 248 218 214 218 Z" fill="url(#cloud)"/>
+  <path d="M 36 196 Q 44 218 70 218 H 214 Q 242 218 248 196 Z" fill="url(#base)" opacity="0.55"/>
+</svg>
