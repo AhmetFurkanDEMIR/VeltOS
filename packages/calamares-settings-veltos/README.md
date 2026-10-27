@@ -142,6 +142,19 @@ centred and Windows-like, and nothing stutters.
   stopped at "Unable to mount root fs" (QEMU, BIOS, 2026-10-23). The
   `boot-check` job (after the bootloader jobs) now stops an installation
   whose kernel has no initramfs, or whose boot menu does not load it.
+- **`console-cache`** (2026-10-27): runs `setupcon --force --save-only` in
+  the target after the keyboard is written and before the initramfs. The
+  console-setup cache came from the live image, older than the
+  installed system's `/etc/default/keyboard`, so the first start rebuilt
+  the console keymap and font for 2.1 s right before the sign-in screen
+  (QEMU), and the initramfs could carry the live system's keymap for the
+  disk-encryption password.
+- **Slideshow and slogan** (2026-10-27): new slides for VeltOS AI (its
+  pane answering a question, typing dots, an Allow button), the everyday
+  apps and Quick Settings with drivers and disks (app icons popping in
+  and floating), and Automatic Repair with F1/F6; the Turkish slogan is
+  "Senin Bilgisayarın. Sınır Tanıma." (sidebar, slideshow, welcome
+  window). The installer says VeltOS 1.0.
 
 ## What it does differently from Debian's settings
 

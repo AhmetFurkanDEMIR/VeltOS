@@ -747,6 +747,11 @@ class FullBuildTest(unittest.TestCase):
         self.assertNotIn("QT_QUICK_BACKEND", sddm)
         dropin = (root / "usr/lib/systemd/system/sddm.service.d/veltos-virtualbox.conf").read_text()
         self.assertIn("ExecStartPre=-/usr/libexec/veltos/sddm-virtualbox-env\n", dropin)
+        # Compressed memory like Windows 11: zram swap, tuned for RAM.
+        zram = (root / "usr/lib/systemd/zram-generator.conf.d/veltos.conf").read_text()
+        self.assertIn("[zram0]\nzram-size = min(ram / 2, 8192)\ncompression-algorithm = zstd\n", zram)
+        sysctl = (root / "usr/lib/sysctl.d/90-veltos-zram.conf").read_text()
+        self.assertIn("vm.swappiness = 100\nvm.page-cluster = 0\n", sysctl)
         # Plasma's own services do not use the portal platform theme (each
         # blocked 25 s on the portal at session start, 2026-10-22).
         for unit in ("plasma-kwin_wayland", "plasma-ksplash", "plasma-kded6", "plasma-ksmserver",

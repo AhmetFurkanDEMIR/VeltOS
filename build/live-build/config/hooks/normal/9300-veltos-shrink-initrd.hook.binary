@@ -1,0 +1,21 @@
+#!/bin/sh
+# The live initrd's main part packed with xz (build/scripts/shrink-initrd.py):
+# 17 MB less of the ISO, which must stay under 2 GiB for a GitHub release.
+# Runs in binary/ after live-build has copied the kernel and the initrd.
+set -e
+
+tool=/src/build/scripts/shrink-initrd.py
+if [ ! -f "$tool" ]; then
+    echo "veltos-shrink-initrd: $tool missing (the image is built by build/run.sh iso)" >&2
+    exit 1
+fi
+found=""
+for initrd in live/initrd.img*; do
+    [ -f "$initrd" ] || continue
+    python3 "$tool" "$initrd"
+    found=1
+done
+if [ -z "$found" ]; then
+    echo "veltos-shrink-initrd: no initrd in binary/live" >&2
+    exit 1
+fi

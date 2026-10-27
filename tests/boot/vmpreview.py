@@ -86,6 +86,8 @@ def play(actions, qmp, outdir):
             qmp.execute("input-send-event", events=[{"type": "btn", "data": {"down": False, "button": "left"}}])
         elif kind == "powerbutton":  # ACPI power button (VirtualBox: "ACPI Shutdown")
             qmp.execute("system_powerdown")
+        elif kind == "reset":  # the reset button: keys sent right after reach the firmware and GRUB
+            qmp.execute("system_reset")
         elif kind == "sleep":
             time.sleep(float(arg))
         elif kind == "shot":

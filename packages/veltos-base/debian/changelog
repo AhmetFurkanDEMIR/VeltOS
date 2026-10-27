@@ -1,3 +1,9 @@
+veltos-base (1.0.0) trixie; urgency=medium
+
+  * VeltOS 1.0: the first public release.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Tue, 27 Oct 2026 12:00:00 +0000
+
 veltos-base (0.1.0~dev1) trixie; urgency=medium
 
   * Initial package: VeltOS os-release identity via dpkg diversion.

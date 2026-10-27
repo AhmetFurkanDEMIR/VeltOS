@@ -1,7 +1,12 @@
 // VeltOS controls style: a scroll view with VeltOS' scroll bars (Breeze's
 // own ScrollView would create Breeze's scroll bars, separator included).
-// Smooth wheel scrolling through Kirigami as in Breeze; space for the bar
-// is kept free only while it is shown.
+// Smooth wheel scrolling through Kirigami as in Breeze. The bars are drawn
+// over the content's edge, as Windows 11 draws them (thin until the pointer
+// is on them): no space is set aside for them. Space kept free only while a
+// bar was shown made the content narrower when the bar appeared; a page
+// whose text then wrapped onto more lines (or fewer) made the bar come and
+// go for ever and the app hung, VeltOS Settings maximised on the Home page
+// among them (product owner, 2026-10-26).
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 import QtQuick.Templates as T
@@ -24,9 +29,9 @@ T.ScrollView {
         }
     ]
 
-    rightPadding: !mirrored && ScrollBar.vertical && ScrollBar.vertical.visible ? ScrollBar.vertical.width : 0
-    leftPadding: mirrored && ScrollBar.vertical && ScrollBar.vertical.visible ? ScrollBar.vertical.width : 0
-    bottomPadding: ScrollBar.horizontal && ScrollBar.horizontal.visible ? ScrollBar.horizontal.height : 0
+    rightPadding: 0
+    leftPadding: 0
+    bottomPadding: 0
 
     ScrollBar.vertical: ScrollBar {
         parent: control

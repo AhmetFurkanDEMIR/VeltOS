@@ -58,6 +58,22 @@ case "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage 2>/d
     *) /usr/libexec/veltos/terminal-theme light ;;
 esac >/dev/null 2>&1 || true
 
+# The taskbar's Plasma theme (plasmarc) matches the light/dark mode of the
+# global theme (kdeglobals), which Settings shows: a switch that was cut off
+# halfway left a dark taskbar in light mode or the other way round until
+# the mode was switched twice (product owner, 2026-10-26). Read before
+# plasmashell starts, so the taskbar comes up in the right mode.
+case "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage 2>/dev/null)" in
+    org.veltos.dark) veltos_theme=VeltOS-Dark ;;
+    org.veltos.light) veltos_theme=VeltOS ;;
+    *) veltos_theme= ;;
+esac
+if [ -n "$veltos_theme" ] &&
+   [ "$(kreadconfig6 --file plasmarc --group Theme --key name 2>/dev/null)" != "$veltos_theme" ]; then
+    kwriteconfig6 --file plasmarc --group Theme --key name "$veltos_theme" || true
+fi
+unset veltos_theme
+
 # GTK programs (Firefox, ...) use the VeltOS GTK theme: Breeze with the
 # Windows 11 caption buttons of the window frames. Breeze, KDE's default,
 # is switched over; any other theme a user picked is kept.

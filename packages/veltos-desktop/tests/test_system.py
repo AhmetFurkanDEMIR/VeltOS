@@ -458,6 +458,29 @@ class ControlsStyleTests(unittest.TestCase):
         self.assertFalse(first.exists())                                              # the old one is gone
         self.assertIsNone(self.controls.use_qml_cache(app / "missing", cache))
 
+    def test_qml_cache_follows_the_style(self):
+        # The style's compiled QML is cached with the app's: a changed style
+        # file gets a new folder too.
+        app = Path(tempfile.mkdtemp()) / "veltos_demo"
+        (app / "qml").mkdir(parents=True)
+        (app / "qml/Main.qml").write_text("import QtQuick\nItem {}\n")
+        style = Path(tempfile.mkdtemp())
+        (style / "ScrollView.qml").write_text("// one\n")
+        cache = Path(tempfile.mkdtemp())
+        self.addCleanup(os.environ.pop, "QML_DISK_CACHE_PATH", None)
+        first = self.controls.use_qml_cache(app / "qml", cache, extra=[style])
+        (style / "ScrollView.qml").write_text("// two\n")
+        self.assertNotEqual(self.controls.use_qml_cache(app / "qml", cache, extra=[style]), first)
+
+    def test_scroll_bars_take_no_space(self):
+        # Space kept free while a bar was shown made pages narrower when it
+        # appeared; wrapped text then made it come and go for ever (Settings
+        # hung maximised, 2026-10-26). The bars are drawn over the content.
+        text = (PKG / "qml/org/veltos/controls/ScrollView.qml").read_text()
+        for side in ("rightPadding", "leftPadding", "bottomPadding"):
+            self.assertIn(f"    {side}: 0\n", text)
+        self.assertNotIn("visible ? ScrollBar", text)
+
     def test_the_package_ships_the_style(self):
         qmldir = PKG / "qml/org/veltos/controls/qmldir"
         self.assertEqual(qmldir.read_text().splitlines()[0], f"module {self.controls.STYLE}")
@@ -481,6 +504,30 @@ class SessionScriptTests(unittest.TestCase):
         out = subprocess.run(["sh", "-c", f". {self.SCRIPT}; . {self.SCRIPT}; echo $LANGUAGE"],
                              env=env, capture_output=True, text=True, check=True)
         return out.stdout.strip()
+
+    def test_taskbar_theme_follows_the_mode(self):
+        # The taskbar's Plasma theme is set to the global theme's mode
+        # before plasmashell starts, when the two disagree.
+        for lnf, theme, written in (("org.veltos.dark", "VeltOS", "VeltOS-Dark"),
+                                    ("org.veltos.light", "VeltOS-Dark", "VeltOS"),
+                                    ("org.veltos.dark", "VeltOS-Dark", None),
+                                    ("org.kde.breeze.desktop", "VeltOS", None)):
+            with self.subTest(lnf=lnf, theme=theme):
+                home = Path(tempfile.mkdtemp())
+                bin_dir = home / "bin"
+                bin_dir.mkdir()
+                log = home / "written"
+                (bin_dir / "kreadconfig6").write_text(
+                    "#!/bin/sh\ncase \"$*\" in *LookAndFeelPackage*) echo " + lnf
+                    + " ;; *plasmarc*) echo " + theme + " ;; esac\n")
+                (bin_dir / "kwriteconfig6").write_text(f"#!/bin/sh\necho \"$*\" >> {log}\n")
+                for tool in bin_dir.iterdir():
+                    tool.chmod(0o755)
+                env = {"HOME": str(home), "PATH": f"{bin_dir}:/usr/bin:/bin"}
+                subprocess.run(["sh", "-c", f". {self.SCRIPT}"], env=env, capture_output=True, check=True)
+                lines = log.read_text().splitlines() if log.exists() else []
+                plasmarc = [line for line in lines if "--file plasmarc" in line]
+                self.assertEqual(plasmarc, [f"--file plasmarc --group Theme --key name {written}"] if written else [])
 
     def test_program_name_catalogs_come_first(self):
         self.assertEqual(self.languages({"LANG": "tr_TR.UTF-8"}), "tr@veltos:tr")

@@ -234,6 +234,35 @@ class SettingsWindowTests(unittest.TestCase):
         # Offscreen there is no Wayland: the layer shell says so and does nothing.
         self.assertEqual([m for m in self.problems() if "not a wayland window" not in m], [])
 
+    def test_stacked_displays_fit_the_arrangement(self):
+        # A monitor above the laptop's screen (a negative position, as
+        # KScreen may report): both boxes inside the arrangement, which is
+        # taller for stacked screens (they ran over the card before,
+        # product owner 2026-10-26). A second drop before Apply works in
+        # the page's shown positions.
+        import json
+        from test_devices import two_screens
+        screens = two_screens(True, 0)
+        screens[1]["pos"] = {"x": 0, "y": -1440}
+        self.system.outputs[("kscreen-doctor", "--json")] = json.dumps({"outputs": screens})
+        self.show("system", "display")
+        self.backend.refreshDisplay()
+        self.app.processEvents()
+        self.window.grabWindow()
+        boxes = self.items("displayBox")
+        self.assertEqual(len(boxes), 2)
+        area = boxes[0].parentItem()
+        self.assertGreaterEqual(area.height(), 240)
+        for box in boxes:
+            self.assertGreaterEqual(box.x(), 0)
+            self.assertGreaterEqual(box.y(), 0)
+            self.assertLessEqual(box.x() + box.width(), area.width())
+            self.assertLessEqual(box.y() + box.height(), area.height())
+        shown = {"1": {"x": 0, "y": 1440}, "2": {"x": 0, "y": 0}}
+        placed = self.backend.snapDisplay(1, 2600, 20, shown)
+        self.assertEqual(sorted((p["id"], p["x"], p["y"]) for p in placed), [(1, 2560, 0), (2, 0, 0)])
+        self.assertEqual(self.problems(), [])
+
     def test_display_follows_screens(self):
         # A monitor plugged in or Windows + P while Display is open: the page
         # reads the displays again, once for a burst of changes.
@@ -383,6 +412,12 @@ class SettingsWindowTests(unittest.TestCase):
         self.assertGreater(joined.index("plasma-apply-colorscheme --accent-color #E81123"), commands.index(command))
         self.assertIn("org.kde.KGlobalSettings.notifyChange", joined[-1])
         self.assertTrue(self.backend.darkMode)
+        # Chosen again: applied again (the taskbar may be in the other mode
+        # while the global theme says dark).
+        self.system.commands.clear()
+        self.backend.setDarkMode(True)
+        self.app.processEvents()
+        self.assertTrue(any(c[:2] == ["sh", "-c"] for c in self.system.commands))
         self.assertEqual(self.problems(), [])
 
     def test_appearance_changes_run_one_after_another(self):

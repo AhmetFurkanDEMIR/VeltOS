@@ -37,8 +37,13 @@ OpenGL renderer, OpenGL and Mesa versions and Vulkan devices.
   `mesa-vulkan-drivers` / `libgl1-mesa-dri` 25.0.7-2+deb13u1. Installed
   systems have `main contrib non-free non-free-firmware` (Calamares'
   `sources-final`).
-- `app.py`: installs with `pkcon -p -y install …` (PackageKit; polkit asks
-  for the administrator's password through VeltOS' prompt), first
+- `app.py`: installs with `pkcon -p install …` (PackageKit; polkit asks
+  for the administrator's password through VeltOS' prompt). pkcon runs in
+  a pseudo terminal that answers its "Proceed with changes?"
+  (`ptyrun.py`, the same file as VeltOS Store's): `-y` made the
+  transaction non-interactive and polkit refused without asking ("The
+  driver could not be installed. Administrator permission was not
+  given." on the product owner's laptop, 2026-10-26). First
   `pkcon refresh` when apt's lists are older than a day, and for NVIDIA
   `nvidia-detect` before choosing the package. Package names carry the
   architecture (`nvidia-driver:amd64`): VeltOS also has i386 (Wine), and

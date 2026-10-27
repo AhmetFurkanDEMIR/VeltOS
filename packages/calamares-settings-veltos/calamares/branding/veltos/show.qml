@@ -2,9 +2,11 @@
     VeltOS installer slideshow (Calamares slideshow API 2), shown while the
     system is being installed, in the manner of Windows 11's setup screens:
     the VeltOS wallpapers crossfade behind the slides with a slow zoom,
-    each slide shows a part of the system that is coming (Start, File
-    Explorer, Settings, the Store, Office, Photos, Windows programs) with a
-    few words, and the bottom of the screen says, beside a spinning
+    each slide shows a part of the system that is coming (Start, VeltOS AI,
+    File Explorer, Settings, the everyday apps, the Store, Office, Photos,
+    Quick Settings and drivers, Windows programs, Automatic Repair) with a
+    few words and an animated picture, and the bottom of the screen says,
+    beside a spinning
     progress ring, that VeltOS is being installed and the PC must stay on.
     The installer's own progress bar runs below the slideshow.
 
@@ -186,8 +188,9 @@ Presentation {
     VeltSlide {
         title: t("Welcome to VeltOS", "VeltOS'a hoş geldiniz")
         body: t("Your PC. No Limits.\nWhile VeltOS is being installed, here is what is waiting for you.",
-                "Your PC. No Limits.\nVeltOS kurulurken sizi bekleyenlere bir göz atın.")
+                "Senin Bilgisayarın. Sınır Tanıma.\nVeltOS kurulurken sizi bekleyenlere bir göz atın.")
         points: [t("A desktop that works the way you already know", "Zaten bildiğiniz gibi çalışan bir masaüstü"),
+                 t("VeltOS AI, your assistant, one key away", "Bir tuş uzağınızda yardımcınız VeltOS AI"),
                  t("Your Windows programs, opened with a double-click", "Çift tıkla açılan Windows programlarınız"),
                  t("Free apps from a trusted store", "Güvenilir bir mağazadan ücretsiz uygulamalar")]
     }
@@ -197,6 +200,19 @@ Presentation {
         body: t("Start, the taskbar, search and Task View work as on Windows 11. Pin your favourite apps and find anything by typing.",
                 "Başlat, görev çubuğu, arama ve Görev Görünümü Windows 11'deki gibi çalışır. Sevdiğiniz uygulamaları sabitleyin, her şeyi yazarak bulun.")
         picture: "images/start.png"
+    }
+
+    VeltSlide {
+        title: t("Meet VeltOS AI", "VeltOS AI ile tanışın")
+        body: t("Press Windows + C and your assistant opens on the right. Ask anything, or let it change a setting for you: it always asks first.",
+                "Windows + C'ye basın, yardımcınız sağda açılsın. İstediğinizi sorun ya da bir ayarı sizin için değiştirsin: her zaman önce size sorar.")
+        points: [t("ChatGPT, Claude, Gemini or Copilot with your own key", "Kendi anahtarınızla ChatGPT, Claude, Gemini veya Copilot"),
+                 t("Or a free model that runs on your PC, without the internet", "Ya da bilgisayarınızda internetsiz çalışan ücretsiz bir model")]
+        art: "assistant"
+        question: t("My eyes get tired in the evening.", "Akşamları gözlerim yoruluyor.")
+        answer: t("I can turn on Night light from sunset, so the screen gets warmer colours. Shall I?",
+                  "Gün batımından itibaren Gece ışığını açabilirim; ekran daha sıcak renkler alır. Açayım mı?")
+        allow: t("Allow", "İzin ver")
     }
 
     VeltSlide {
@@ -211,6 +227,20 @@ Presentation {
         body: t("Wi-Fi, Bluetooth, display, sound, accounts, personalization: every setting on one page you already know, in your language.",
                 "Wi-Fi, Bluetooth, ekran, ses, hesaplar, kişiselleştirme: her ayar zaten bildiğiniz tek bir sayfada, kendi dilinizde.")
         picture: "images/settings.png"
+    }
+
+    VeltSlide {
+        title: t("Apps for every day", "Her gün için uygulamalar")
+        body: t("Mail, calendar, clock, weather and maps are ready from the start, with the tools you reach for every day.",
+                "Posta, takvim, saat, hava durumu ve haritalar ilk günden hazır; her gün kullandığınız araçlarla birlikte.")
+        icons: [{ icon: "veltos-mail", label: "VeltOS Mail" },
+                { icon: "veltos-calendar", label: t("Calendar", "Takvim") },
+                { icon: "veltos-clock", label: t("Clock", "Saat") },
+                { icon: "veltos-weather", label: t("Weather", "Hava Durumu") },
+                { icon: "veltos-maps", label: t("Maps", "Haritalar") },
+                { icon: "veltos-calculator", label: t("Calculator", "Hesap Makinesi") },
+                { icon: "veltos-notepad", label: t("Notepad", "Not Defteri") },
+                { icon: "veltos-pdf", label: t("PDF Reader", "PDF Okuyucu") }]
     }
 
     VeltSlide {
@@ -235,12 +265,32 @@ Presentation {
     }
 
     VeltSlide {
+        title: t("Connected, wherever you are", "Nerede olursanız olun bağlı")
+        body: t("Quick Settings on the taskbar: Wi-Fi, Bluetooth, mobile hotspot, night light and power modes in one place. Pair a device from Settings, project to a second screen with Windows + P.",
+                "Görev çubuğunda Hızlı Ayarlar: Wi-Fi, Bluetooth, mobil etkin nokta, gece ışığı ve güç modları tek yerde. Bir cihazı Ayarlar'dan eşleştirin, Windows + P ile ikinci ekrana yansıtın.")
+        icons: [{ icon: "veltos-bluetooth", label: "Bluetooth" },
+                { icon: "veltos-settings", label: t("Settings", "Ayarlar") },
+                { icon: "veltos-graphics", label: t("Graphics Cards", "Ekran Kartları") },
+                { icon: "veltos-disks", label: t("Disk Management", "Disk Yönetimi") }]
+        points: [t("Graphics drivers, NVIDIA's too, with one click", "NVIDIA'nınkiler dahil ekran kartı sürücüleri tek tıkla"),
+                 t("Format and manage drives as in Windows", "Sürücüleri Windows'taki gibi biçimlendirin ve yönetin")]
+    }
+
+    VeltSlide {
         title: t("Windows programs and games", "Windows programları ve oyunları")
         body: t("Open an .exe or .msi file with a double-click: VeltOS installs it and adds it to Start.",
                 "Bir .exe veya .msi dosyasına çift tıklayın: VeltOS onu kurar ve Başlat'a ekler.")
         points: [t("Programs appear in Start like any other app", "Programlar Başlat'ta diğer uygulamalar gibi görünür"),
                  t("Uninstall them in Settings, as on Windows", "Windows'taki gibi Ayarlar'dan kaldırın"),
                  t("Not every program works yet; VeltOS tells you", "Her program henüz çalışmaz; VeltOS size söyler")]
+    }
+
+    VeltSlide {
+        title: t("Back on its feet by itself", "Kendi kendine toparlanır")
+        body: t("If VeltOS cannot start twice in a row, Automatic Repair opens, as on Windows. F1 at start-up shows the boot menu, F6 opens Recovery.",
+                "VeltOS üst üste iki kez başlayamazsa, Windows'taki gibi Otomatik Onarım açılır. Açılışta F1 önyükleme menüsünü, F6 Kurtarma'yı açar.")
+        points: [t("Disk encryption that asks for your password at start-up", "Açılışta parolanızı soran disk şifrelemesi"),
+                 t("Startup Repair, safe mode and a command prompt when something goes wrong", "Bir şey ters giderse Başlangıç Onarımı, güvenli mod ve Komut İstemi")]
     }
 
     VeltSlide {

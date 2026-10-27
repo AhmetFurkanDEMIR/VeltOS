@@ -28,8 +28,14 @@ DRIVER_KEYS = {"nvidia": "drv_nvidia", "nouveau": "drv_nouveau", "amdgpu": "drv_
                "i915": "drv_i915", "xe": "drv_xe"}
 REBOOT = ["dbus-send", "--session", "--type=method_call", "--dest=org.kde.Shutdown", "/Shutdown",
           "org.kde.Shutdown.logoutAndReboot"]
-PKCON_ARGUMENTS = {"refresh": ["-p", "refresh"], "install": ["-p", "-y", "install"],
-                   "update": ["-p", "-y", "update"], "remove": ["-p", "-y", "remove"]}
+# No -y: it makes PackageKit's transaction non-interactive, and polkit then
+# refused at once instead of asking for the administrator's password ("The
+# driver could not be installed. Administrator permission was not given.",
+# product owner, 2026-10-26, a laptop with an RTX 4070). pkcon runs in a
+# pseudo terminal that answers its "Proceed with changes?" (ptyrun.py, as
+# VeltOS Store does).
+PKCON_ARGUMENTS = {"refresh": ["-p", "refresh"], "install": ["-p", "install"],
+                   "update": ["-p", "update"], "remove": ["-p", "remove"]}
 
 
 def kde_value(group, key):
@@ -340,6 +346,11 @@ class Backend(QObject):
         environment = QProcessEnvironment.systemEnvironment()
         environment.insert("LC_ALL", "C")
         environment.insert("LANGUAGE", "C")
+        # ptyrun comes from the same place as this module (the tests run
+        # from the source tree).
+        here = str(Path(__file__).resolve().parent.parent)
+        environment.insert("PYTHONPATH", here + (":" + environment.value("PYTHONPATH")
+                                                 if environment.contains("PYTHONPATH") else ""))
         process.setProcessEnvironment(environment)
         process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
         process.readyReadStandardOutput.connect(self._read)
@@ -351,7 +362,8 @@ class Backend(QObject):
         # asks which one is meant when a name has both ("More than one
         # package matches"), waiting for an answer that never comes.
         names = [p if ":" in p else f"{p}:{self._arch}" for p in packages]
-        process.start(self.program, PKCON_ARGUMENTS[action] + names)
+        process.start(sys.executable, ["-m", "veltos_graphics.ptyrun", self.program,
+                                       *PKCON_ARGUMENTS[action], *names])
         process.closeWriteChannel()      # any other question ends instead of waiting
         self.jobChanged.emit()
 

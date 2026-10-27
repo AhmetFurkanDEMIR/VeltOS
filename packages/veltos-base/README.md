@@ -8,7 +8,8 @@ Makes the system identify itself as VeltOS.
   `NAME="VeltOS"`, `ID=veltos`, `ID_LIKE=debian`, `VERSION_ID`, `LOGO=veltos-logo`,
   `HOME_URL` and `SUPPORT_URL` (the VeltOS website,
   https://veltos.ahmetfurkandemir.com/).
-- `/etc/issue`, `/etc/issue.net`: "VeltOS 0.1" console login banners.
+- `/etc/issue`, `/etc/issue.net`: "VeltOS 1.0" console login banners
+  (VeltOS 1.0, 2026-10-27: `PRETTY_NAME="VeltOS 1.0"`, `VERSION_ID="1.0"`).
 - `/etc/motd`, the message after a console sign-in (Automatic Repair's
   Command Prompt, Ctrl+Alt+F2): VeltOS' wording of Debian's licence and
   warranty notice. base-files owns no `/etc/motd` (it copies its text there

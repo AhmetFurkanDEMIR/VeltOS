@@ -411,7 +411,16 @@ def build_static_config(root):
             "library=org.kde.kwin.aurorae\n"
             f"theme=__aurorae__svg__{lnf['decoration']}\n"
             "ButtonsOnLeft=M\n"
-            "ButtonsOnRight=IAX\n"),
+            "ButtonsOnRight=IAX\n"
+            # KWin's "sliding popups" left the last frames of a popup's slide
+            # on screen at fractional display scales: a grey strip on the
+            # taskbar's top edge under Start, search and the flyouts that
+            # flickered when the pointer passed over the Start button
+            # (product owner, 2026-10-26; reproduced at 125 % in the dev VM,
+            # gone with the effect unloaded). Start and search rise in by
+            # their own QML animation; the flyouts fade in (fadingpopups).
+            "\n[Plugins]\n"
+            "slidingpopupsEnabled=false\n"),
         "etc/xdg/plasmarc": (
             "[Theme]\n"
             f"name={lnf['plasma_theme']}\n"),
@@ -544,6 +553,25 @@ def build_static_config(root):
             "# starts (VirtualBox: Mesa llvmpipe; /usr/libexec/veltos/sddm-virtualbox-env).\n"
             "[Service]\n"
             "ExecStartPre=-/usr/libexec/veltos/sddm-virtualbox-env\n"
+        ),
+        # Compressed memory, as Windows 11 compresses memory by default: half
+        # the RAM (8 GB at most) as zstd-compressed swap in RAM
+        # (systemd-zram-generator, Debian main; no daemon). Dev VM with 8 GB,
+        # 2026-10-27: 3.9 GB of zram, 73 ms at start-up off the path to the
+        # sign-in screen, 9 GB of data allocated without the OOM killer.
+        # page-cluster 0 reads one page at a time, which suits RAM; a higher
+        # swappiness moves idle pages into zram before the page cache.
+        "usr/lib/systemd/zram-generator.conf.d/veltos.conf": (
+            "# Installed by veltos-desktop: compressed memory (zram), like Windows 11.\n"
+            "[zram0]\n"
+            "zram-size = min(ram / 2, 8192)\n"
+            "compression-algorithm = zstd\n"
+            "swap-priority = 100\n"
+        ),
+        "usr/lib/sysctl.d/90-veltos-zram.conf": (
+            "# Installed by veltos-desktop: settings for swap in compressed RAM (zram).\n"
+            "vm.swappiness = 100\n"
+            "vm.page-cluster = 0\n"
         ),
         "usr/lib/sddm/sddm.conf.d/10-veltos.conf": (
             "[General]\n"

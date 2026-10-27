@@ -1,0 +1,7 @@
+# VeltOS installer job: the console's keymap and font cache for the installed system
+---
+type:       "job"
+name:       "console-cache"
+interface:  "process"
+command:    "/usr/libexec/veltos-installer/console-cache"
+timeout:    120

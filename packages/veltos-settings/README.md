@@ -260,3 +260,17 @@ with the C library's `toupper()`, which broke in a Turkish locale).
   `tests/test_kscreen_osd.py`, `tests/test_bluetooth_pair.py` (the agent's
   questions and replies, the window in English and Turkish),
   `tests/test_ui.py` (adding Turkish Q, the Bluetooth page's scan).
+
+## Changed 2026-10-27
+
+- **Display**: the arrangement fits screens stacked above each other or
+  placed left of display 1 (negative positions): the boxes are laid out in
+  the arrangement's own bounds and the area is taller for stacked screens
+  (the boxes ran over the card before). A second drag before Apply works in
+  the positions the page shows (`snapDisplay` takes them).
+- **Colours**: choosing light or dark always applies it, also when Settings
+  already shows that mode (the taskbar could be in the other mode, see
+  veltos-desktop's session check); `plasma-apply-lookandfeel` gets 90 s so
+  the taskbar's theme is always written within the 120 s Settings waits.
+- Maximised, Settings no longer hangs: the scroll bars of VeltOS' controls
+  style take no room (veltos-desktop).

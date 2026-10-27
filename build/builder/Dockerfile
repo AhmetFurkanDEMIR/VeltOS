@@ -17,6 +17,7 @@ RUN apt-get update \
       qemu-system-x86 qemu-utils ovmf \
       python3 python3-pil \
       rsync git file procps \
+      zstd \
       locales \
  && rm -rf /var/lib/apt/lists/*
 

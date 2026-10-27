@@ -30,10 +30,17 @@ import samples  # noqa: E402
 
 OPEN_STACK = {"firmware-amd-graphics": "20250410-2", "firmware-intel-graphics": "20250410-2",
               "mesa-vulkan-drivers": "25.0.7-2+deb13u1", "libgl1-mesa-dri": "25.0.7-2+deb13u1"}
-# Stand-in for pkcon: records the arguments, reports progress like `pkcon -p`.
+# Stand-in for pkcon: records the arguments, reports progress like `pkcon -p`
+# and, for changes, asks "Proceed with changes?" on its terminal as pkcon
+# does without -y (ptyrun answers it; without an answer it gives up).
 FAKE_PKCON = ('#!/bin/sh\n'
               'echo "$*" >> "$(dirname "$0")/calls"\n'
               'echo "Status:\tRunning"\n'
+              'case "$*" in *install*|*update*|*remove*)\n'
+              '  printf "Proceed with changes? [N/y] "; read answer\n'
+              '  [ "$answer" = y ] || exit 4\n'
+              '  echo "$answer" >> "$(dirname "$0")/answers";;\n'
+              'esac\n'
               'echo "Percentage:\t40"\n'
               'if [ -n "$FAKE_PKCON_ERROR" ]; then echo "Fatal error: $FAKE_PKCON_ERROR"; exit 1; fi\n'
               'exit 0\n')
@@ -146,8 +153,10 @@ class WindowTests(unittest.TestCase):
         backend = self.make()
         self.call("press", "01:00.0", "install")
         self.wait()
-        self.assertEqual(self.calls(), ["-p -y install nvidia-detect:amd64",
-                                        "-p -y install nvidia-driver:amd64 linux-headers-amd64:amd64"])
+        self.assertEqual(self.calls(), ["-p install nvidia-detect:amd64",
+                                        "-p install nvidia-driver:amd64 linux-headers-amd64:amd64"])
+        # Interactive transactions (no -y), so polkit asks for the password.
+        self.assertEqual((self.fake.parent / "answers").read_text().split(), ["y", "y"])
         nvidia = self.card("01:00.0")
         self.assertEqual(nvidia["message"], backend.texts["done_install"])
         self.assertTrue(nvidia["messageOk"])
@@ -180,12 +189,12 @@ class WindowTests(unittest.TestCase):
         self.assertEqual(values[backend.texts["p_package"]], "nvidia-driver 550.163.01-2")
         self.call("press", "01:00.0", "update")
         self.wait()
-        self.assertEqual(self.calls(), ["-p refresh", "-p -y update nvidia-driver:amd64"])
+        self.assertEqual(self.calls(), ["-p refresh", "-p update nvidia-driver:amd64"])
         self.assertEqual(self.card("01:00.0")["message"], backend.texts["done_update"])
         self.calls_file.unlink()
         self.call("press", "01:00.0", "open")
         self.wait()
-        self.assertEqual(self.calls(), ["-p -y remove nvidia-driver:amd64 nvidia-kernel-dkms:amd64 libnvidia-glcore:i386"])
+        self.assertEqual(self.calls(), ["-p remove nvidia-driver:amd64 nvidia-kernel-dkms:amd64 libnvidia-glcore:i386"])
         self.assertEqual(self.problems(), [])
 
     def test_up_to_date(self):
@@ -199,7 +208,7 @@ class WindowTests(unittest.TestCase):
         backend._outdated = lambda packages: ["mesa-vulkan-drivers"]
         self.call("press", "03:00.0", "update")
         self.wait()
-        self.assertEqual(self.calls(), ["-p refresh", "-p -y update mesa-vulkan-drivers:amd64"])
+        self.assertEqual(self.calls(), ["-p refresh", "-p update mesa-vulkan-drivers:amd64"])
         self.assertEqual(self.card("03:00.0")["message"], backend.texts["done_update"])
         self.assertEqual(self.problems(), [])
 
@@ -215,7 +224,7 @@ class WindowTests(unittest.TestCase):
             self.wait()
         finally:
             del os.environ["FAKE_PKCON_ERROR"]
-        self.assertEqual(self.calls(), ["-p -y install firmware-amd-graphics:amd64"])
+        self.assertEqual(self.calls(), ["-p install firmware-amd-graphics:amd64"])
         (card,) = backend.cards
         self.assertFalse(card["messageOk"])
         self.assertIn(backend.texts["failed_auth"], card["message"])

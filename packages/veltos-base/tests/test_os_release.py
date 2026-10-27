@@ -53,7 +53,7 @@ class LoginBannerTests(unittest.TestCase):
         self.assertTrue(issue.startswith("VeltOS "))
         self.assertIn("\\l", issue)   # getty: name of the terminal
         self.assertNotIn("Debian", issue)
-        self.assertEqual((PKG / "issue.net").read_text(), "VeltOS 0.1\n")
+        self.assertEqual((PKG / "issue.net").read_text(), "VeltOS 1.0\n")
 
     def test_banners_follow_the_version(self):
         version = parse_os_release((PKG / "os-release").read_text())["VERSION_ID"]

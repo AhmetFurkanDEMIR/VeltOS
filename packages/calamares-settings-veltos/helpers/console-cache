@@ -1,0 +1,19 @@
+#!/bin/sh
+# The text console's keymap and font for the installed system, built once
+# here. console-setup builds them again at every start when its cache
+# (/etc/console-setup/cached_*) is older than /etc/default/keyboard or
+# /etc/default/console-setup: the cache comes from the live image and the
+# installer writes the keyboard afterwards, so every start of an installed
+# system spent 2.1 s on it right before the sign-in screen (QEMU,
+# 2026-10-27). The initramfs, made after this job, takes the keymap of the
+# disk-encryption password from the same cache. A failure never stops the
+# installation: the console then builds the files at start-up as before.
+set -e
+. /usr/libexec/veltos-installer/common.sh
+
+if in_target setupcon --force --save-only; then
+    echo "console-cache: console keymap and font saved for the installed system"
+else
+    echo "console-cache: setupcon failed; the console builds them at start-up" >&2
+fi
+exit 0

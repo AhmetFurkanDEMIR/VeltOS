@@ -1,7 +1,7 @@
-PRETTY_NAME="VeltOS 0.1 (pre-alpha)"
+PRETTY_NAME="VeltOS 1.0"
 NAME="VeltOS"
-VERSION_ID="0.1"
-VERSION="0.1 (pre-alpha)"
+VERSION_ID="1.0"
+VERSION="1.0"
 VERSION_CODENAME=trixie
 ID=veltos
 ID_LIKE=debian

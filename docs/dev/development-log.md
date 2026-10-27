@@ -3,6 +3,80 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-27 — VeltOS 1.0: items 78-89, the ISO under 2 GiB
+
+The product owner installed the previous ISO on their laptop (NVIDIA RTX
+4070 Max-Q) and sent seven bugs (step 1), then asked for the final image
+(step 2: Turkish slogan, installer slides with the new features and VeltOS
+AI, the ISO under 2 GB without losing anything, a faster system, a full
+release instead of pre-alpha, final READMEs). Each bug was reproduced in
+the QEMU dev VM first where it could be.
+
+- 78 The band under windows in dark mode: measured the frame at #272830
+  around a #1c1d26 window; Fluent's decoration.svg lays 5 % white over the
+  title bar and edges (25 % #f3fdff in light mode). Tints off, inactive
+  frames the same colour.
+- 79 Stacked screens ran over the arrangement card: positions above display
+  1 are negative and the fit measured from 0. Boxes are placed in the
+  arrangement's own bounds; snapDisplay gets the shown positions.
+- 80 Settings maximised froze at 100 % CPU and growing memory; gdb showed a
+  layout recursion through `setRightPadding`: the controls style's
+  ScrollView took room for its bar only while the bar was shown. Bars over
+  the content now (every VeltOS app); the QML cache folder follows the
+  style's files too.
+- 81 Taskbar not following the mode: 8 mode switches and 6 theme tiles all
+  switched it in the VM, so the reported "sometimes" was not reproduced.
+  Settings skipped a mode it believed set (it reads kdeglobals, the
+  taskbar plasmarc); it now always applies, the global theme gets 90 s of
+  the 120 s Settings waits, and sign-in sets plasmarc to the global
+  theme's mode when they disagree.
+- 82 Boot menu: Debian's 30_os-prober shows it with Windows installed.
+  Read GRUB 2.12's menu.c (sources.debian.org): hotkeys work during a
+  hidden wait, no hidden entries. F1 entry that reloads grub.cfg with
+  veltos_menu=1; start screen hints "F1 Boot menu" / "F6 Recovery". The VM
+  needed a `reset` action in `vm do` (a reboot reached the desktop before
+  a key sequence could start).
+- 83 "Sürücü yüklenemedi. Yönetici izni verilmedi.": VeltOS Graphics still
+  ran `pkcon -y` (the Store's fix of 2026-10-23 had not reached it). It
+  uses a copy of ptyrun.py now (tests/repo checks the copies); the VM
+  showed the password prompt and installed.
+- 84 Strip between Start and the taskbar: only at a fractional scale (125 %
+  in the VM); pixels outside every window (KWin script listing windows);
+  gone with the sliding-popups effect unloaded. The effect is off.
+- 85 Slogan and slides: Turkish slogan in the sidebar (wrapped after the
+  first try cut it), slideshow, welcome window, website; slides for VeltOS
+  AI (animated chat), everyday apps, connections and drivers, Automatic
+  Repair. Calamares showed the version "1.0" as "1" (it reads number-like
+  branding strings as numbers, quotes or not): the sidebar takes it from
+  the versioned name.
+- 86 ISO size: measured with unsquashfs (6.0 GB of files) and the initrd's
+  cpio parts. squashfs xz -Xbcj x86: 2155.9 -> 1985.3 MB (zstd 22: no gain);
+  initrd main part xz: 84.2 -> 66.6 MB; pool trimmed to the 11 packages
+  the installed system lacks (49.7 MB less); the image's APT lists left out
+  (the Store's DEP-11 data kept). ISO 2,381,074,432 -> 2,108,434,432 bytes.
+  Translations, firmware, ibus' emoji dictionaries, 32-bit libraries and
+  Wine Mono/Gecko stay. An offline installation then failed: Calamares'
+  removal listed Debian's live-task-* packages, which VeltOS does not have,
+  and apt without lists refused the whole command. Removed from the list;
+  the verify hook checks every name.
+- 87 Version 1.0: os-release, banners, installer, 29 packages at 1.0.0, ISO
+  `veltos-1.0`, website and README.
+- 88 Speed: installed systems reach the sign-in screen in about 4 s in
+  QEMU; the first start spent 2.1 s rebuilding console-setup's cache (the
+  installer writes the keyboard after the image's cache); the new
+  `console-cache` job saves it during installation. kcminit's 1.3 s at
+  sign-in is waiting (the modules take 70 ms together): nothing to gain.
+- 89 zram swap (systemd-zram-generator, Debian main): 3.9 GB in the 8 GB
+  VM, 73 ms at start-up; 9 GB allocated without the OOM killer (the
+  comparison without zram did not run: swapoff left zram on).
+- Builds: two package builds stopped on test files the Git Bash heredoc
+  had broken (`\n` became a line break; AGENTS.md); every Python file is
+  now parsed before a build. Docker Desktop hung once and was restarted
+  with the owner's approval.
+- Final ISO `veltos-1.0-20261027-071020`: boot tests UEFI 19/19, BIOS 18/18,
+  Secure Boot 20/20; offline installations UEFI (English) and BIOS
+  (Turkish) start; `tests/results/2026-10-27-veltos-1.0/`.
+
 ## 2026-10-27 — Items 76-77: Project glyphs, Bluetooth pairing window
 
 - 76 Project flyout glyphs redrawn (two monitors on stands in every tile).

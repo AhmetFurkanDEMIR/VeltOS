@@ -6,6 +6,8 @@
 
 **Your PC. No Limits.**
 
+*Senin Bilgisayarın. Sınır Tanıma.*
+
 A free, Debian-based desktop operating system that looks and works the way
 Windows 11 users already know, with its own apps, a modern installer and
 Windows program support through Wine.
@@ -16,7 +18,7 @@ Windows program support through Wine.
 [Architecture](docs/dev/architecture.md) ·
 [Contributing](CONTRIBUTING.md)
 
-![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-orange)
+![Version 1.0](https://img.shields.io/badge/version-1.0-4F7CFF)
 ![Debian 13 trixie](https://img.shields.io/badge/Debian-13%20trixie-A81D33?logo=debian&logoColor=white)
 ![KDE Plasma 6.3](https://img.shields.io/badge/KDE%20Plasma-6.3-1D99F3?logo=kde&logoColor=white)
 ![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)
@@ -25,12 +27,12 @@ Windows program support through Wine.
 
 ![The VeltOS desktop with Start open](docs/assets/img/desktop.webp)
 
-> [!IMPORTANT]
-> **VeltOS is pre-alpha.** It builds as a bootable, installable ISO that is
-> tested in virtual machines (QEMU/KVM for every ISO, VirtualBox by hand), but
-> it has not been tested on real hardware yet and is not ready for daily use.
-> [docs/dev/status.md](docs/dev/status.md) lists exactly what works and how it
-> was tested.
+> [!NOTE]
+> **VeltOS 1.0 is the first public release.** Every ISO is booted and
+> installed in QEMU/KVM virtual machines, VirtualBox is tested by hand, and
+> VeltOS has been installed on a real laptop (NVIDIA graphics). Real
+> hardware is varied: [docs/dev/status.md](docs/dev/status.md) lists exactly
+> what works and how it was tested. Back up your files before you install.
 
 ## Highlights
 
@@ -55,12 +57,16 @@ Windows program support through Wine.
   start-up, like BitLocker.
 - **Automatic Repair.** When VeltOS does not finish starting twice in a row,
   the PC opens a repair screen with Startup Repair, Safe mode, Command Prompt
-  and the last start's problems.
+  and the last start's problems. No boot menu at start-up: F1 shows it,
+  F6 opens Recovery.
+- **VeltOS AI.** An assistant pane like Copilot's (Windows + C) with
+  ChatGPT, Claude, Gemini or Copilot on your own key, or a free model that
+  runs on the PC; it changes settings only after you allow it.
 - **Safe and light by default.** Software comes only from Debian's signed
   archives or is built from this repository. AppArmor is on, and the ISO
   boots with Secure Boot through Debian's signed shim. Every background
-  service has to earn its place, and start-up times are measured for every
-  ISO.
+  service has to earn its place, start-up times are measured for every ISO,
+  and memory is compressed (zram) as on Windows 11.
 
 ## Screenshots
 
@@ -104,11 +110,12 @@ Debian packages under [packages/](packages/). Firefox ESR is the web browser.
 
 ## Try VeltOS
 
-The ISO's download link will be in the
-[download section of the website](https://veltos.ahmetfurkandemir.com/#download)
-(at 2.45 GB it is larger than a GitHub release file may be). Until then,
-build the ISO yourself (below). One hybrid ISO starts a live system and
-installs VeltOS.
+Download the ISO from the
+[GitHub releases](https://github.com/AhmetFurkanDEMIR/VeltOS/releases) or the
+[website](https://veltos.ahmetfurkandemir.com/#download), or build it yourself
+(below). One hybrid ISO starts a live system and installs VeltOS: write it to
+a USB stick (for example with Rufus or balenaEtcher), start the PC from it,
+look around, then choose "Install VeltOS" — next to Windows or in its place.
 
 In a virtual machine, give VeltOS 4 GB of memory and a 25 GB disk; UEFI and
 BIOS both work. In VirtualBox use the VMSVGA graphics controller and turn on
@@ -119,8 +126,7 @@ can freeze virtual machines until a key is pressed — a known VirtualBox bug
 QEMU/KVM is not affected. The live session signs in by itself (user `velt`,
 password `live`).
 
-Try VeltOS in a virtual machine or on a spare PC, not on a computer you depend
-on.
+As with any new operating system, back up your files before you install it.
 
 ## Build from source
 
@@ -168,7 +174,7 @@ Options, mirrors and troubleshooting are in the
 | Windows programs | Wine 10.0, DXVK 2.6, Wine Mono and Gecko |
 | VeltOS apps | Python 3.13, PySide6 6.8 (Qt Quick) |
 | Languages | English and Turkish |
-| ISO | 2.45 GB, one hybrid image for USB sticks and DVDs (2026-10-23 build) |
+| ISO | 2.11 GB (under 2 GiB), one hybrid image for USB sticks and DVDs (VeltOS 1.0, 2026-10-27) |
 
 VeltOS reuses mature upstream software instead of forking it: Debian
 packages, KDE Plasma, Mesa, Wine and Calamares are used as they are and
@@ -179,7 +185,7 @@ reasons, the alternatives and their trade-offs are in
 ## Quality and testing
 
 - **Unit tests in every package build.** Each package runs its tests while it
-  builds (694 tests in the 2026-10-23 ISO build).
+  builds (1055 tests in the 2026-10-27 build of VeltOS 1.0).
 - **The image checks itself.** A live-build hook stops the build when a VeltOS
   invariant is broken: required packages, branding, themes, file
   associations, the boot splash, stripped Wine libraries and more.
@@ -191,7 +197,7 @@ reasons, the alternatives and their trade-offs are in
 - **Evidence in the repository.** Reports and screenshots of milestone test
   runs are kept in [tests/results/](tests/results/).
 
-What is not tested yet (real hardware above all) is listed in
+What is not tested yet (real hardware beyond one laptop above all) is listed in
 [docs/dev/status.md](docs/dev/status.md) and
 [docs/dev/testing.md](docs/dev/testing.md).
 

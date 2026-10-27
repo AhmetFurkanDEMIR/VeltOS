@@ -28,6 +28,13 @@ class ArtworkTests(unittest.TestCase):
         for copy in copies:
             self.assertEqual(copy.read_bytes(), source, f"{copy} differs from the source logo")
 
+    def test_pkcon_runner_copies_match(self):
+        """VeltOS Store and VeltOS Graphics Cards build on their own and each
+        carry the runner that keeps pkcon's transactions interactive."""
+        source = (REPO / "packages/veltos-store/veltos_store/ptyrun.py").read_bytes()
+        copy = REPO / "packages/veltos-graphics/veltos_graphics/ptyrun.py"
+        self.assertEqual(copy.read_bytes(), source, f"{copy} differs from veltos-store's ptyrun.py")
+
     def test_grub_png_tool_copies_match(self):
         """veltos-boot builds in isolation and keeps a copy of the tool that
         rewrites GRUB's pictures (build/scripts/plain-png.py)."""

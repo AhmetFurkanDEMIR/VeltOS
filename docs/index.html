@@ -87,7 +87,7 @@
 <!-- Hero -->
 <section class="hero">
   <div class="hero-text">
-    <p class="eyebrow reveal"><span class="dot"></span><span data-i18n="hero.eyebrow">Version 0.1 · pre-alpha · built on Debian 13</span></p>
+    <p class="eyebrow reveal"><span class="dot"></span><span data-i18n="hero.eyebrow">Version 1.0 · built on Debian 13</span></p>
     <h1 class="reveal"><span data-i18n="hero.title1">Your PC.</span> <span class="gradient-text" data-i18n="hero.title2">No Limits.</span></h1>
     <p class="lead reveal" data-i18n="hero.lead">VeltOS is a desktop operating system that works the way Windows 11 users are used to: Start, the taskbar, File Explorer, Settings and an app store, right where you expect them. It brings its own apps, a modern installer and support for Windows programs through Wine. Free, open source and built on Debian.</p>
     <div class="cta reveal">
@@ -224,7 +224,7 @@
   <div class="section-head reveal">
     <p class="kicker" data-i18n="gallery.kicker">Take a look</p>
     <h2 data-i18n="gallery.title">Screenshots from VeltOS</h2>
-    <p data-i18n="gallery.lead">All taken on VeltOS itself, running in a virtual machine. Select a picture to see it larger.</p>
+    <p data-i18n="gallery.lead">All taken on VeltOS itself. Select a picture to see it larger.</p>
   </div>
   <div class="tabs reveal" role="tablist" data-i18n-attr="aria-label:aria.shots" aria-label="Screenshots">
     <button role="tab" aria-selected="true" data-shot="0" data-i18n="g.desktop">Desktop</button>
@@ -286,14 +286,14 @@
 <section class="section" id="download">
   <div class="section-head reveal">
     <p class="kicker" data-i18n="d.kicker">Download</p>
-    <h2 data-i18n="d.title">Get VeltOS 0.1</h2>
-    <p data-i18n="d.lead">One ISO for 64-bit PCs both starts a live system and installs VeltOS. VeltOS is still pre-alpha, so try it in a virtual machine or on a spare PC, not on the computer you rely on.</p>
+    <h2 data-i18n="d.title">Get VeltOS 1.0</h2>
+    <p data-i18n="d.lead">One ISO for 64-bit PCs both starts a live system and installs VeltOS. Try it live first, then install it next to Windows or in its place.</p>
   </div>
   <div class="dl-panel reveal">
     <div class="dl-info">
       <div class="dl-mark"><img decoding="async" src="assets/icons/veltos-logo.svg" alt="" width="60" height="60"></div>
       <div>
-        <h3>VeltOS 0.1 <span class="dl-badge" data-i18n="dl.badge">pre-alpha</span></h3>
+        <h3>VeltOS 1.0 <span class="dl-badge" data-i18n="dl.badge">first release</span></h3>
         <ul class="dl-meta">
           <li data-i18n="dl.meta.arch">64-bit PCs (amd64)</li>
           <li data-i18n="dl.meta.size">ISO · 2.45 GB</li>
@@ -318,7 +318,7 @@
   </div>
   <ol class="dl-steps">
     <li class="reveal"><span>1</span><div><strong data-i18n="dl.s1.t">Download</strong><p data-i18n="dl.s1.d">A single ISO file of about 2.45 GB. After downloading, compare its SHA-256 with the one shown above.</p></div></li>
-    <li class="reveal"><span>2</span><div><strong data-i18n="dl.s2.t">Start it</strong><p data-i18n="dl.s2.d">Open it in a virtual machine, or write it to a USB stick and start a spare PC from it. So far VeltOS has been tested in virtual machines only.</p></div></li>
+    <li class="reveal"><span>2</span><div><strong data-i18n="dl.s2.t">Start it</strong><p data-i18n="dl.s2.d">Write it to a USB stick and start your PC from it (or open it in a virtual machine). VeltOS starts as a live system, so you can look around before installing.</p></div></li>
     <li class="reveal"><span>3</span><div><strong data-i18n="dl.s3.t">Try or install</strong><p data-i18n="dl.s3.d">Try VeltOS without changing anything on your PC, then install it from the desktop when you are ready.</p></div></li>
   </ol>
   <div class="cards cards-2">
@@ -344,7 +344,7 @@ build/run.sh test</code></pre>
         <div><dt data-i18n="r.fw">Firmware</dt><dd data-i18n="r.fw.v">UEFI (Secure Boot supported) or BIOS</dd></div>
         <div><dt data-i18n="r.gpu">Graphics</dt><dd data-i18n="r.gpu.v">Any; without 3D acceleration, VeltOS renders in software</dd></div>
       </dl>
-      <p class="req-note" data-i18n="r.note">Tested in virtual machines (QEMU/KVM, VirtualBox); not yet on real PCs.</p>
+      <p class="req-note" data-i18n="r.note">Tested in virtual machines (QEMU/KVM, VirtualBox) and installed on a real PC (a laptop with an NVIDIA graphics card).</p>
     </article>
   </div>
 </section>
@@ -353,13 +353,13 @@ build/run.sh test</code></pre>
 <section class="section" id="specs">
   <div class="section-head reveal">
     <p class="kicker" data-i18n="s.kicker">Under the hood</p>
-    <h2 data-i18n="s.title">Version 0.1, built on proven parts</h2>
+    <h2 data-i18n="s.title">Version 1.0, built on proven parts</h2>
     <p data-i18n="s.lead">VeltOS reuses mature upstream software instead of forking it, and adds small, tested packages of its own.</p>
   </div>
   <div class="spec-wrap reveal">
     <table class="specs">
       <tbody>
-        <tr><th data-i18n="s.version">Version</th><td data-i18n="s.version.v">0.1 (pre-alpha)</td></tr>
+        <tr><th data-i18n="s.version">Version</th><td data-i18n="s.version.v">1.0</td></tr>
         <tr><th data-i18n="s.base">Base</th><td>Debian 13 “trixie”</td></tr>
         <tr><th data-i18n="s.kernel">Kernel</th><td>Linux 6.12 LTS</td></tr>
         <tr><th data-i18n="s.desktop">Desktop</th><td data-i18n="s.desktop.v">KDE Plasma 6.3 on Wayland, with VeltOS' taskbar, Start and Task View</td></tr>
@@ -396,7 +396,7 @@ build/run.sh test</code></pre>
     <details class="reveal"><summary data-i18n="q.1.q">Is VeltOS Windows?</summary><p data-i18n="q.1.a">No. VeltOS is a Linux system built on Debian. It looks and behaves like Windows 11 so that you feel at home, but it is a different operating system and is not affiliated with Microsoft.</p></details>
     <details class="reveal"><summary data-i18n="q.2.q">Will my Windows programs run?</summary><p data-i18n="q.2.a">Many do, through Wine; some do not, and some run with problems. VeltOS never promises that every program works — it shows you what happened, and for many tasks it offers its own apps instead.</p></details>
     <details class="reveal"><summary data-i18n="q.3.q">Does it cost anything?</summary><p data-i18n="q.3.a">No. VeltOS is free and open source, and so is the software it is built from.</p></details>
-    <details class="reveal"><summary data-i18n="q.4.q">Is it ready for daily use?</summary><p data-i18n="q.4.a">Not yet: version 0.1 is a pre-alpha for testing. Try it in a virtual machine or on a spare PC and report what you find on GitHub.</p></details>
+    <details class="reveal"><summary data-i18n="q.4.q">Is it ready for daily use?</summary><p data-i18n="q.4.a">VeltOS 1.0 is the first public release. As with any new system, back up your files before you install it, and report anything that does not work on GitHub.</p></details>
     <details class="reveal"><summary data-i18n="q.7.q">Can I try VeltOS in a virtual machine?</summary><p data-i18n="q.7.a">Yes, that is how VeltOS is tested. Give the virtual machine 4 GB of memory and a 25 GB disk; UEFI and BIOS both work, and turning on 3D acceleration makes the desktop smoother. On a Windows PC with Hyper-V on (WSL2, Docker Desktop), VirtualBox can freeze a virtual machine until a key is pressed — a known VirtualBox bug; QEMU/KVM is not affected.</p></details>
     <details class="reveal"><summary data-i18n="q.5.q">Where do updates come from?</summary><p data-i18n="q.5.a">From Debian's signed archives, installed through VeltOS Store and Settings. VeltOS' own packages are built from its source code on GitHub.</p></details>
     <details class="reveal"><summary data-i18n="q.6.q">Which languages does it support?</summary><p data-i18n="q.6.a">English and Turkish, everywhere VeltOS has its own windows. Debian's and KDE's parts are available in many more languages.</p></details>

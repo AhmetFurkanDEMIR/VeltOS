@@ -36,7 +36,7 @@ TEXTS = {
     },
     "tr": {
         "title": "VeltOS'a hoş geldiniz",
-        "tagline": "Your PC. No Limits.",
+        "tagline": "Senin Bilgisayarın. Sınır Tanıma.",
         "try": "VeltOS'u deneyin",
         "try_body": "Bu bilgisayarda hiçbir şeyi değiştirmeden VeltOS'u kullanın. "
                     "Yeniden başlatınca yaptıklarınız saklanmaz.",

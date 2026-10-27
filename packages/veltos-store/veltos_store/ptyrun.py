@@ -10,9 +10,10 @@ on its controlling terminal (pk_readline_unbuffered opens ctermid()), so
 it runs here in a pty that answers that question; the transaction stays
 interactive and polkit asks through the session's agent (VeltOS' prompt).
 
-Usage: python3 -m veltos_store.ptyrun pkcon -p install NAME
-Everything pkcon prints is passed on to standard output; the exit code is
-pkcon's.
+Usage: python3 -m PACKAGE.ptyrun pkcon -p install NAME (VeltOS Store and
+VeltOS Graphics Cards each carry this file, as packages build on their
+own; tests/repo checks that the copies match). Everything pkcon prints is
+passed on to standard output; the exit code is pkcon's.
 """
 
 import os
@@ -68,7 +69,7 @@ def run(command, out=None):
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     if not argv:
-        print("usage: python3 -m veltos_store.ptyrun COMMAND...", file=sys.stderr)
+        print("usage: python3 -m PACKAGE.ptyrun COMMAND...", file=sys.stderr)
         return 2
     return run(argv)
 

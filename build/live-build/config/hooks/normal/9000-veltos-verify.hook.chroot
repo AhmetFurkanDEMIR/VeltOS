@@ -284,6 +284,13 @@ done
 [ ! -e /usr/share/doc/firefox-esr/changelog.Debian.gz ] || fail "documentation is not left out (dpkg.cfg.d/veltos-lean)"
 [ -s /etc/.updated ] && [ -s /var/.updated ] || fail "/etc or /var not stamped (8900-veltos-update-done)"
 
+# Every package the installer removes is in the image: apt refuses a removal
+# naming a package it does not know, and offline installations have no
+# package lists (rootfs/excludes), so one unknown name failed them all.
+for pkg in $(sed -n "s/^ *- *'\([a-z0-9][a-z0-9.+-]*\)' *$/\1/p" /etc/calamares/modules/packages.conf); do
+    installed "$pkg" || fail "the installer removes $pkg, which the image does not have"
+done
+
 # User-visible text audit: no launcher in the menus may mention Debian.
 debian_launchers="$(grep -l -i -E '^(Name|GenericName|Comment)(\[[^]]*\])?=.*debian' \
     /usr/share/applications/*.desktop /etc/xdg/autostart/*.desktop \

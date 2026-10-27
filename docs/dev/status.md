@@ -1,10 +1,11 @@
 # VeltOS Status
 
-Last updated: 2026-10-26 (item 45). Every "Implemented" item names the
-evidence that shows it working. "Untested" means nobody has observed it
-working yet. All observations so far are from QEMU/KVM virtual machines (no
-3D acceleration) and one VirtualBox VM of the product owner; **VeltOS has
-not been run on real hardware yet.**
+Last updated: 2026-10-27 (VeltOS 1.0, items 78-89 and release steps F1,
+F2, F7). Every "Implemented" item names the evidence that shows it working.
+"Untested" means nobody has observed it working yet. Most observations are
+from QEMU/KVM virtual machines (no 3D acceleration) and VirtualBox VMs; the
+product owner installed VeltOS on their own laptop (NVIDIA RTX 4070 Max-Q)
+on 2026-10-26 and reported items 78-84 from it.
 
 ## Implemented
 
@@ -202,18 +203,33 @@ Product owner, 2026-10-27:
 76. [x] Windows + P (Project): Windows 11 style line glyphs, always two monitors on stands with the picture filled in where it is shown, so every tile is symmetric (PC screen only showed one monitor off to the left). Dev VM
 77. [x] Bluetooth pairing in Windows 11's "Add a device" window instead of Plasma's notification ("veltos (00:AA:...) is asking if the PIN is correct", "PIN correct"): the VeltOS Bluetooth agent (`bt-agent`, GLib only, started with the session) is BlueZ's default agent and asks with the device, the PIN large ("000 123"), Connect / Cancel (also "type this PIN", "enter the PIN", Allow); devices being paired are allowed to connect without a second question. The window and taskbar show a new Windows 11 style Bluetooth app icon (`veltos-bluetooth`). Dev VM with btvirt: paired and connected from Settings through the window. Real devices untested
 
+Product owner, 2026-10-27 (evening; step 1 bugs, then step 2 the final image):
+
+78. [x] Window frames without the band at the bottom (and the lighter side edges and title bar) in dark mode, in Settings, the Format window and every other window: Fluent's frame tints are off and inactive frames take the window's colour. Dev VM: title, edges and bottom all #1c1d26 around a #1c1d26 window (before: #272830), installed system with the new packages
+79. [x] Settings > Display: screens stacked above each other (or left of display 1) fit the arrangement, which is taller for stacked screens; a second drag before Apply uses the shown positions. UI test (a monitor at y = -1440: both boxes inside the area); not seen with two real screens
+80. [x] Settings no longer hangs when maximised (it froze at 100 % CPU: the controls style's scroll bar took room only while shown and the page re-wrapped for ever, gdb). Scroll bars are drawn over the content in every VeltOS app. Dev VM: maximised, five pages visited, restored and maximised again, 0 % CPU
+81. [x] The taskbar follows light/dark: choosing a mode always applies it, plasma-apply-lookandfeel has 90 s so the taskbar's theme is always written, and sign-in repairs a taskbar theme that disagrees with the global theme. 8 switches and 6 theme tiles in a row switched the taskbar each time in the dev VM; the original "sometimes" was not reproduced, so the fix covers the two ways it could happen (unit tests)
+82. [x] No boot menu at start-up, also with Windows installed (Debian's os-prober part showed it); F1 (or held F1) shows it, F6 opens Recovery; the start screen shows both keys. Dev VM (installed, UEFI): hints seen, F1 from the reset opened the themed menu without the helper entry, no key started VeltOS
+83. [x] Graphics driver install asked for no password ("Yönetici izni verilmedi" on the owner's laptop): pkcon ran with -y, which makes polkit refuse; it now runs through `ptyrun.py` like the Store. Dev VM (installed, administrator): VeltOS' password prompt came up and the package installed. Not repeated with an NVIDIA card
+84. [x] The strip between Start (and search, the flyouts) and the taskbar, and its flicker: KWin's sliding-popups effect left the last frames on screen at fractional scales (reproduced at 125 %); the effect is off. Dev VM: no strip with the effect off, Start, search and Quick Settings
+85. [x] Turkish slogan "Senin Bilgisayarın. Sınır Tanıma." (installer sidebar on two lines, slideshow, live welcome, website); installer slideshow with VeltOS AI (question, typing dots, answer, Allow), everyday apps, connections and drivers, Automatic Repair, animated (icons pop in and bob). Dev VM, Turkish installation: seen on screen
+86. [x] The ISO under 2 GiB (F1): 2,108,446,720 bytes (2,381,074,432 before) with nothing left out: squashfs xz -Xbcj x86, live initrd main part xz, pool without what the installed system has, the image's APT lists (not the Store's catalogue) left out. Offline UEFI installation in QEMU (network off): bootloader from the pool, desktop, Store catalogue; the Store refreshed the lists itself and installed VLC
+87. [x] VeltOS 1.0 (F2): os-release, banners, installer, packages 1.0.0, ISO `veltos-1.0`; website and README without pre-alpha and virtual-machine-only notes
+88. [x] Faster start of a new installation: the installer saves the console keymap cache (`console-cache`): the first start spent 2.1 s on it before the sign-in screen; now 3.9 s to the sign-in screen on the first start (QEMU)
+89. [x] Compressed memory (zram, half the RAM at most 8 GB, zstd) like Windows 11: 73 ms at start-up, 9 GB of data allocated in an 8 GB VM
+
 ## Final release steps (after item 45)
 
 Product owner, 2026-10-25: only after every item above is done, in this
 order:
 
-- F1. [ ] The ISO under 2 GB so it fits a GitHub release, without losing quality, changing the look or removing any feature or app
-- F2. [ ] A full public release instead of pre-alpha; remove the virtual-machine notes from the website and README (the owner tested VeltOS on their own PC: everything worked)
+- F1. [x] The ISO under 2 GB so it fits a GitHub release, without losing quality, changing the look or removing any feature or app
+- F2. [x] A full public release instead of pre-alpha; remove the virtual-machine notes from the website and README (the owner tested VeltOS on their own PC: everything worked)
 - F3. [ ] Website: every new feature, new screenshots and pictures, readable text (the background dominates now), a striking, fast, fluid operating-system site design
 - F4. [ ] Website: dark-mode screenshots (also the top one) in dark mode, light-mode ones in light mode
 - F5. [ ] Website on phones: "Download VeltOS" and "Source code" buttons side by side
 - F6. [ ] Footer: "Ahmet Furkan Demir" links to https://ahmetfurkandemir.com; README and website show the sign-in screen, the start-up screen and more apps; GIFs recorded in the OS
-- F7. [ ] Turkish slogan "Senin Bilgisayarın. Sınır Tanıma."
+- F7. [x] Turkish slogan "Senin Bilgisayarın. Sınır Tanıma."
 - F8. [ ] Claude not in GitHub's contributors; pushes from the owner's account (Ahmet Furkan Demir)
 - F9. [ ] Publish the release (ISO on the GitHub release, website download link)
 
@@ -228,9 +244,8 @@ order:
 - Settings left out until they have a VeltOS page: VPN and wired network
   details, proxy, firewall, fonts, pointer style, per-app volume, game
   controllers, tablets, on-screen keyboard, spelling. Display arrangement
-  and refresh rate have a page since 2026-10-25, but the displays cannot
-  be dragged to a new place yet (Extend puts them side by side, display 1
-  on the left).
+  and refresh rate have a page since 2026-10-25; displays are dragged into
+  place since 2026-10-26 (item 69).
 - Several monitors (2026-10-25): the taskbar is only on the main display
   (Windows 11 shows it on every display by default); untested with real
   monitors, laptops and projectors.
@@ -337,24 +352,20 @@ order:
 
 ## Next steps
 
-1. The product owner's list is done (items 1-77); next the final release
-   steps F1-F9 in their order. Items 58-64 still need a look in the dev VM
+1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
+   built (F1, F2, F7); the remaining release steps are F3-F6 (website),
+   F8 (contributors) and F9 (publishing the ISO on a GitHub release and the
+   website's download link). Items 58-64 still need a look in the dev VM
    (a real model download and answer, the pane and the window, Maps);
    items 72 and 75 need real hardware (a Bluetooth headset, a touchpad).
-2. Newest ISO: `veltos-0.1.0-dev-20261026-124246` (2.38 GB, sha256
-   `0f15ffab50b2e8cd0cf39ef6c96bc2ead48298a46f723f3b6afe2f8b16f33bd3`)
-   with items 1-64; built and verified by the image's verify hook, not yet
-   boot-tested (`build/run.sh test` is the next check). ISO
-   `20261026-112406` (items 46-57) was built; its test run was stopped by
-   the product owner before it finished. Last fully tested ISO:
-   `veltos-0.1.0-dev-20261026-063914` (2.37 GB, sha256
-   `ef58a6b5d67b7b620f8817a1293c9ebe87c83fcda9ff6216c1a0ef90c70dcd2c`)
-   with items 38-45. QEMU: boot tests UEFI 19/19, BIOS 18/18, Secure Boot
-   20/20 and a BIOS installation that starts
-   (`tests/results/2026-10-26-iso-063914/`). The previous ISO
-   (`20261023-061442`, copy on the owner's Desktop) also passed
-   `test-winapps` 7/7 and UEFI and encrypted installations
-   (`tests/results/2026-10-23-installation-bios/`).
+2. Release ISO: `veltos-1.0-amd64.hybrid.iso` (build
+   `veltos-1.0-20261027-071020`, 2,108,434,432 bytes, sha256
+   `3e5273a13b0f87a11bd6a3fb668674b02c5865264065dfe5e570387f4ac1a2af`),
+   copy `VeltOS-1.0-amd64.iso` on the owner's Desktop. QEMU: boot tests
+   UEFI 19/19, BIOS 18/18, Secure Boot 20/20; offline installations UEFI
+   (English) and BIOS (Turkish) that start (`tests/results/2026-10-27-veltos-1.0/`).
+   The previous ISO (`20261023-061442`) also passed `test-winapps` 7/7 and
+   encrypted installations (`tests/results/2026-10-23-installation-bios/`).
    Still to see on screen: the search window's "no results", the text
    pointer, a real video in Media Player's full screen, Windows programs
    listed in Settings, VeltOS Mail in dark mode, Automatic Repair's Turn

@@ -5,11 +5,12 @@
 
 Like Windows there is no boot menu (product owner, 2026-10-23); during
 GRUB's short wait the screen shows the VeltOS start screen - the boot
-splash's background and logo at the boot splash's place - with a small
-"F6  Recovery" hint in the bottom right corner. F6 starts VeltOS Recovery
-(Automatic Repair). Writes two pictures at the given screen mode:
+splash's background and logo at the boot splash's place - with small
+"F1  Boot menu" and "F6  Recovery" hints in the bottom right corner. F1
+shows the boot menu, F6 starts VeltOS Recovery (Automatic Repair). Writes
+two pictures at the given screen mode:
 
-  start-hint.tga  the start screen with the hint (while GRUB waits);
+  start-hint.tga  the start screen with the hints (while GRUB waits);
   start.tga       the start screen alone (from the moment VeltOS starts,
                   so the hint does not stay on the screen while Linux loads).
 

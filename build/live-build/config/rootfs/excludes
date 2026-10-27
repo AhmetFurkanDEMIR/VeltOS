@@ -1,2 +1,9 @@
 boot/initrd.img*
 var/cache/apt/*.bin
+var/lib/apt/lists/*_Packages
+var/lib/apt/lists/*_Translation-*
+var/lib/apt/lists/*_InRelease
+var/lib/apt/lists/*_Release
+var/lib/apt/lists/*_Release.gpg
+usr/share/doc/*/changelog*
+usr/share/doc/*/NEWS*

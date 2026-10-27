@@ -34,7 +34,10 @@ DESKTOP_THEME = {False: "VeltOS", True: "VeltOS-Dark"}
 # /etc/os-release (HOME_URL, veltos-base).
 VELTOS_WEBSITE = "https://veltos.ahmetfurkandemir.com/"
 
-APPLY_THEME = r'''plasma-apply-lookandfeel --apply "$1" >/dev/null 2>&1
+# plasma-apply-lookandfeel is given 90 s, so the taskbar's Plasma theme is
+# always written within the 120 s Settings waits: a cut-off run left the
+# global theme switched but the taskbar in the other mode.
+APPLY_THEME = r'''timeout 90 plasma-apply-lookandfeel --apply "$1" >/dev/null 2>&1
 f="${XDG_CONFIG_HOME:-$HOME/.config}/plasmarc"
 touch "$f"
 awk -v name="$2" '
@@ -411,8 +414,10 @@ class Backend(QObject):
 
     @Slot(bool)
     def setDarkMode(self, dark):
-        if dark == self._dark:
-            return
+        # Applied even when the mode looks set already: Settings reads the
+        # mode from the global theme, the taskbar follows plasmarc, and when
+        # the two disagreed, choosing the mode again did nothing and the
+        # taskbar stayed in the other one (product owner, 2026-10-26).
         # The global theme switches colours, Plasma theme, window frames and
         # (through the kvantum / kvantum-dark style key) the application style.
         mode = ["sh", "-c", APPLY_THEME, "sh", LOOK_AND_FEEL[dark], DESKTOP_THEME[dark],
@@ -752,11 +757,18 @@ class Backend(QObject):
         self.jobs.submit(lambda: self.system.display.set_rotation(output_id, rotation),
                          lambda _ok: self.refreshDisplay())
 
-    @Slot(int, float, float, result="QVariantList")
-    def snapDisplay(self, output_id, x, y):
+    @Slot(int, float, float, "QVariantMap", result="QVariantList")
+    def snapDisplay(self, output_id, x, y, shown):
         """Where a display dropped at x, y goes (devices.snap_position):
-        [{id, x, y}] for every display in use, not applied yet."""
-        return devices.snap_position(self._display.get("outputs", []), output_id, round(x), round(y))
+        [{id, x, y}] for every display in use, not applied yet. `shown` holds
+        the positions the page shows ({id: {x, y}}, a rearrangement not
+        applied yet), so a second drag before Apply works in the same
+        coordinates as the first."""
+        outputs = []
+        for output in self._display.get("outputs", []):
+            at = (shown or {}).get(str(output["id"]))
+            outputs.append(dict(output, x=at["x"], y=at["y"]) if at else output)
+        return devices.snap_position(outputs, output_id, round(x), round(y))
 
     @Slot("QVariantList")
     def setDisplayPositions(self, positions):

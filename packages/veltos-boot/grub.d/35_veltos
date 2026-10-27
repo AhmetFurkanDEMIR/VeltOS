@@ -5,16 +5,21 @@
 # ...") is drawn black on black, so the screen goes from the firmware logo
 # straight to the VeltOS boot screen. The themed menu has its own colours.
 #
-# The menu is hidden like on Windows (GRUB_TIMEOUT_STYLE=hidden). With
-# Automatic Repair (veltos-recovery, see 10_linux) GRUB shows the VeltOS
-# start screen while it waits - the boot splash's background and logo with
-# a small "F6  Recovery" hint in the bottom right corner (product owner,
-# 2026-10-23) - and F6 starts VeltOS Recovery; the menu also stays hidden
-# after a start that did not finish (Debian shows it for 30 s then;
-# VeltOS counts such starts and opens Automatic Repair after two). When
-# other operating systems are installed (found by os-prober, as
-# 30_os-prober does), the menu is shown for 5 seconds so they can be
-# chosen.
+# The menu is hidden like on Windows (GRUB_TIMEOUT_STYLE=hidden), also
+# when other operating systems are installed (Debian's 30_os-prober shows it
+# then; the product owner did not want it, 2026-10-26): F1 while GRUB waits,
+# or held down while the PC starts, shows the boot menu, where Windows and
+# the other entries are (Esc, F4 or Shift also do, GRUB's own keys). F1 is
+# the hotkey of a "Boot menu" entry that reads grub.cfg again with
+# veltos_menu=1, and then this script shows the menu and leaves that entry
+# out (GRUB 2.12 starts an entry's hotkey during a hidden wait, and has no
+# hidden entries). With Automatic Repair (veltos-recovery, see 10_linux)
+# GRUB shows the VeltOS start screen while it waits - the boot splash's
+# background and logo with small "F1  Boot menu" and "F6  Recovery" hints
+# in the bottom right corner (product owner, 2026-10-23) - and F6 starts
+# VeltOS Recovery; the menu also stays hidden after a start that did not
+# finish (Debian shows it for 30 s then; VeltOS counts such starts and
+# opens Automatic Repair after two).
 set -e
 
 recovery_unit="${VELTOS_RECOVERY_UNIT:-/usr/lib/systemd/system/veltos-recovery.target}"   # test hooks
@@ -37,31 +42,29 @@ grubenv_writable() {
     [ -z "$abstraction" ]
 }
 
-other_systems=""
-if [ "${GRUB_DISABLE_OS_PROBER}" != "true" ] && command -v os-prober >/dev/null 2>&1; then
-    other_systems="$(os-prober 2>/dev/null || true)"
-fi
-
-if [ -n "$other_systems" ]; then
-    cat <<'GRUB'
-# Other operating systems found: show the boot menu.
-set timeout_style=menu
-set timeout=5
+cat <<'GRUB'
+if [ "${veltos_menu}" = 1 ]; then
+  # F1 was pressed: the boot menu, until an entry is chosen.
+  set timeout_style=menu
+  set timeout=-1
+else
+  menuentry 'Boot menu' --hotkey=f1 --id veltos-boot-menu {
+    set veltos_menu=1
+    export veltos_menu
+    configfile "${prefix}/grub.cfg"
+  }
+  # Hidden, whatever 30_os-prober decided for other operating systems.
+  set timeout_style=hidden
+  set timeout=2
 GRUB
-elif [ -e "$recovery_unit" ] && grubenv_writable && [ -x "$start_screen" ]; then
+
+if [ -e "$recovery_unit" ] && grubenv_writable && [ -x "$start_screen" ]; then
     lang="$(sed -n 's/^LANG=["]\{0,1\}\([^"]*\)["]\{0,1\}$/\1/p' "$locale_file" 2>/dev/null | tail -n 1)"
     if "$start_screen" --mode "${GRUB_GFXMODE:-}" --lang "${lang:-${LANG:-}}" --out "$screen_dir" >&2; then
         cat <<'GRUB'
-# No boot menu after a start that did not finish either: VeltOS counts such
-# starts and opens Automatic Repair after the second (10_linux).
-if [ "${recordfail}" = 1 ]; then
-  set timeout_style=hidden
-  set timeout=2
-fi
-# While GRUB waits: the start screen with the "F6  Recovery" hint. Every
-# VeltOS entry puts the start screen without the hint back before Linux
-# loads (veltos_start_screen).
-if [ "${timeout_style}" = hidden ]; then
+  # While GRUB waits: the start screen with the "F1  Boot menu" and
+  # "F6  Recovery" hints. Every VeltOS entry puts the start screen without
+  # the hints back before Linux loads (veltos_start_screen).
   insmod tga
   if background_image -m stretch "${prefix}/veltos/start-hint.tga"; then
     set veltos_screen="${prefix}/veltos/start.tga"
@@ -69,9 +72,10 @@ if [ "${timeout_style}" = hidden ]; then
     # this the screen stayed black while GRUB waited (QEMU, 2026-10-24).
     clear
   fi
-fi
 GRUB
     else
         echo "veltos-boot: the start screen could not be made; GRUB waits without it" >&2
     fi
 fi
+
+echo "fi"

@@ -39,6 +39,7 @@ Depends: breeze-icon-theme,
          qml6-module-qtquick-controls,
          qml6-module-qtquick-layouts,
          qt-style-kvantum,
+         systemd-zram-generator,
          veltos-fluent-icons,
          veltos-explorer,
          ${misc:Depends}

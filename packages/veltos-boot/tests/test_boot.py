@@ -305,25 +305,39 @@ class GrubTests(unittest.TestCase):
         self.assertTrue(values["GRUB_GFXMODE"].startswith("1024x768,800x600"))
         self.assertEqual(values["GRUB_TIMEOUT_STYLE"], "hidden")
 
-    def test_menu_script_shows_menu_only_with_other_systems(self):
+    def test_menu_script_hides_the_menu_and_f1_shows_it(self):
+        # Hidden also with Windows installed (30_os-prober shows the menu
+        # then; product owner, 2026-10-26): F1 reads grub.cfg again with
+        # veltos_menu=1, and then the menu is shown without the F1 entry.
         import subprocess
         import tempfile
         script = PKG / "grub.d/35_veltos"
         subprocess.run(["sh", "-n", str(script)], check=True)
         with tempfile.TemporaryDirectory() as bin_dir:
             fake = Path(bin_dir) / "os-prober"
-            for found, expect in (("/dev/sda1:Windows Boot Manager:Windows:efi", True), ("", False)):
+            for found in ("/dev/sda1:Windows Boot Manager:Windows:efi", ""):
                 fake.write_text(f"#!/bin/sh\necho '{found}'\n" if found else "#!/bin/sh\n")
                 fake.chmod(0o755)
                 out = subprocess.run(["sh", str(script)], capture_output=True, text=True, check=True,
                                      env={"PATH": f"{bin_dir}:/usr/bin:/bin"}).stdout
-                self.assertEqual("set timeout_style=menu" in out, expect, out)
                 self.assertIn("set color_normal=black/black", out)
+                self.assertIn('if [ "${veltos_menu}" = 1 ]; then\n'
+                              "  # F1 was pressed: the boot menu, until an entry is chosen.\n"
+                              "  set timeout_style=menu\n  set timeout=-1\nelse\n", out)
+                self.assertIn("menuentry 'Boot menu' --hotkey=f1 --id veltos-boot-menu {\n"
+                              "    set veltos_menu=1\n    export veltos_menu\n"
+                              '    configfile "${prefix}/grub.cfg"\n  }\n', out)
+                self.assertIn("  set timeout_style=hidden\n  set timeout=2\n", out)
+                self.assertTrue(out.rstrip().endswith("fi"), out)
+                # The GRUB script's if/else/fi are balanced.
+                lines = [line.strip() for line in out.splitlines()]
+                self.assertEqual(sum(line.startswith("if ") for line in lines), lines.count("fi"))
 
 
 class StartScreenTests(unittest.TestCase):
     """GRUB's wait before VeltOS starts: no menu, the start screen with the
-    "F6  Recovery" hint (product owner, 2026-10-23)."""
+    "F1  Boot menu" and "F6  Recovery" hints (product owner, 2026-10-23 and
+    2026-10-26)."""
 
     @classmethod
     def setUpClass(cls):
@@ -381,10 +395,12 @@ class StartScreenTests(unittest.TestCase):
         box = [(x, y) for x in range(left, left + 168, 4) for y in range(top, top + 168, 4)]
         self.assertTrue(any(self.pixel(plain, x, y) != background for x, y in box))
         self.assertTrue(all(self.pixel(plain, x, top - 10) == background for x in range(left, left + 168)))
-        # The hint in the bottom right corner only while GRUB waits.
-        corner = [(x, y) for x in range(1600, 1892) for y in range(1020, 1052)]
-        self.assertTrue(any(self.pixel(hint, x, y) != background for x, y in corner))
-        self.assertTrue(all(self.pixel(plain, x, y) == background for x, y in corner))
+        # The hints in the bottom right corner (two rows: F1, then F6) only
+        # while GRUB waits.
+        for top_row in (986, 1020):
+            corner = [(x, y) for x in range(1600, 1892) for y in range(top_row, top_row + 30)]
+            self.assertTrue(any(self.pixel(hint, x, y) != background for x, y in corner), top_row)
+            self.assertTrue(all(self.pixel(plain, x, y) == background for x, y in corner))
         # Small: a flat screen is mostly runs.
         self.assertLess((out / "start-hint.tga").stat().st_size, 200_000)
 
@@ -424,18 +440,19 @@ class StartScreenTests(unittest.TestCase):
         self.assertIn('set veltos_screen="${prefix}/veltos/start.tga"', out)
         # Without "clear" GRUB did not paint the picture while it waited.
         self.assertRegex(out, r'start\.tga"\n(?:\s*#.*\n)*\s*clear\n')
-        # Debian's 30 s menu after an unfinished start stays hidden.
-        self.assertIn('if [ "${recordfail}" = 1 ]; then\n  set timeout_style=hidden\n  set timeout=2\n', out)
-        self.assertNotIn("timeout_style=menu", out)
-        # Dual boot: the menu for 5 s, no start screen.
+        # Debian's 30 s menu after an unfinished start (and 30_os-prober's
+        # menu with Windows) stay hidden: set after them, in every case.
+        self.assertIn("  set timeout_style=hidden\n  set timeout=2\n", out)
+        self.assertLess(out.index("set timeout_style=hidden"), out.index("background_image"))
+        # Dual boot: hidden too, with the start screen (F1 shows the menu).
         log.unlink()
         prober = bin_dir / "os-prober"
         prober.write_text("#!/bin/sh\necho '/dev/sda1:Windows Boot Manager:Windows:efi'\n")
         prober.chmod(0o755)
         out = subprocess.run(["sh", str(script)], capture_output=True, text=True, check=True, env=env).stdout
-        self.assertIn("set timeout_style=menu\nset timeout=5", out)
-        self.assertNotIn("background_image", out)
-        self.assertFalse(log.exists())
+        self.assertIn("  set timeout_style=hidden\n  set timeout=2\n", out)
+        self.assertIn("background_image", out)
+        self.assertTrue(log.exists())
         prober.unlink()
         # The pictures could not be made: GRUB waits as before, no error.
         result = subprocess.run(["sh", str(script)], capture_output=True, text=True, check=True,

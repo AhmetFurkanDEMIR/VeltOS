@@ -65,6 +65,16 @@ class ConfigTests(unittest.TestCase):
         branding = load(CALAMARES / "branding/veltos/branding.desc")
         self.assertEqual(branding["componentName"], "veltos")
         self.assertEqual(branding["strings"]["productName"], "VeltOS")
+        # Text, not a number: an unquoted 1.0 is the YAML number 1, and the
+        # installer's sidebar said "VeltOS 1" (2026-10-27). Same as os-release.
+        os_release = (PKG.parent / "veltos-base/os-release")
+        expected = "1.0"
+        if os_release.exists():         # the package is also built outside the repository
+            expected = next(line.split("=", 1)[1].strip('"') for line in os_release.read_text().splitlines()
+                            if line.startswith("VERSION_ID="))
+        for key in ("version", "shortVersion"):
+            self.assertEqual(branding["strings"][key], expected, key)
+        self.assertEqual(branding["strings"]["versionedName"], f"VeltOS {expected}")
 
     def test_custom_job_commands_are_shipped(self):
         for name, desc in self.custom.items():

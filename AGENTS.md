@@ -57,7 +57,7 @@ owner sets priorities; agents act as the engineering team.
 |---|---|
 | `build/run.sh` | Single entry point: `image`, `packages [name...]`, `iso`, `test`, `test-winapps`, `preview`, `vm`, `shell`, `clean` |
 | `build/builder/Dockerfile` | Build/test container (Debian trixie, pinned by digest) |
-| `build/scripts/` | In-container scripts: package build, ISO build |
+| `build/scripts/` | In-container scripts: package build, ISO build, and what keeps the ISO under 2 GiB (`trim-pool.py`, `shrink-initrd.py`, run by binary hooks 9200/9300) |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
 | `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin script `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
@@ -81,7 +81,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook), start-up screen at the screen's resolution (`resolution/`: set at installation, kept in step at sign-in), GRUB start counting with the Recovery and safe-graphics entries (`grub.d/10_linux`) |
 | `packages/veltos-recovery/` | VeltOS Automatic Repair: after two starts that did not finish, GRUB starts `veltos-recovery.target`, a full-screen Windows 11 style recovery window on Qt's linuxfb (Restart, Startup Repair, Safe mode, Command Prompt as a console sign-in, last start's problems, Turn off); the services that clear the count or restart after a failed start; `veltos-safe-graphics` (starts without a graphics driver sign in to Plasma on X11); persistent journal |
-| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), `release-disks` (unmounts the PC's disks before Calamares starts, so every partitioning choice is offered), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
+| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), `release-disks` (unmounts the PC's disks before Calamares starts, so every partitioning choice is offered), `console-cache` (the installed system's console keymap cache), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format (Windows 11's Format window, `FormatWindow.qml`, also alone for File Explorer's `--format`), delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil) or the AMD/Intel firmware and Mesa drivers through `pkcon`; also Settings > Display > Graphics cards |
 | `packages/veltos-weather/` | VeltOS Weather: Windows 11 Weather layout (current weather, 10-day forecast, hourly chart, weather details, historical weather, favorites, °F/°C) on Open-Meteo's open data without a key (`openmeteo.py`, cache in `~/.cache/veltos-weather`); first start uses the time zone's city |
@@ -118,7 +118,11 @@ owner sets priorities; agents act as the engineering team.
 ## Conventions
 
 - Debian packaging: debhelper compat 13, `3.0 (native)`, one package per
-  directory in `packages/`, version `X.Y.Z~devN` during development. Put
+  directory in `packages/`. VeltOS 1.0 (2026-10-27) is the first public
+  release: its packages are `1.0.0` and `/etc/os-release` says 1.0; work
+  toward the next release uses `X.Y.Z~devN` (for example `1.1.0~dev1`),
+  which sorts before `X.Y.Z`, and `VERSION_ID` follows the changelog
+  (veltos-base's test). The ISO's version is `VELTOS_VERSION`. Put
   generated files in `build-assets/` (git-ignored) via `debian/rules`.
 - Package unit tests: Python `unittest` under `packages/<pkg>/tests/`, run
   by `override_dh_auto_test`. Standard library only.
@@ -1150,3 +1154,67 @@ and JavaScript with no build step, no external requests and no cookies:
   a Window's `onClosing` runs before the code after `quit()` (and before
   the QML that called it continues). Set "answered" flags before quitting
   (the Bluetooth pairing window answered "no" right after "yes").
+- Fluent's Aurorae frames lay a tint over the title bar and the window
+  edges (dark: `opacity:0.05;fill:#ffffff`, light: 25 % `#f3fdff`), so
+  the frame came out a shade lighter than the window (#272830 around a
+  #1c1d26 window): a band under every window in dark mode (2026-10-26).
+  `tools/fluent.py` switches the tints off (`FRAME_TINTS`). KWin keeps a
+  decoration theme's SVG in memory: switch the theme to Breeze and back
+  (`kwriteconfig6 ... org.kde.kdecoration2 theme` + `qdbus6 org.kde.KWin
+  /KWin reconfigure`) to see a changed copy without signing out.
+- A ScrollView that sets aside room for its scroll bar only while the
+  bar is visible loops when the page's text re-wraps at the narrower
+  width (the bar comes and goes for ever, 100 % CPU, the window frozen):
+  VeltOS Settings hung maximised on its Home page. gdb on the stuck
+  process showed `QQuickControlPrivate::setRightPadding` in a layout
+  recursion. The VeltOS controls style draws scroll bars over the content
+  (no padding); never bind padding to a scroll bar's `visible`.
+- KWin's "sliding popups" effect left the last frames of a popup's slide
+  on screen at fractional display scales (125 %): a strip of the popup on
+  the taskbar's top edge under Start, search and the flyouts that came and
+  went when the pointer moved over the Start button (repaints). The effect
+  is off (`/etc/xdg/kwinrc [Plugins] slidingpopupsEnabled=false`); test
+  popups at a fractional scale (`kscreen-doctor output.Virtual-1.scale.1.25`)
+  and diff screenshots with the popup open and closed. A KWin script can
+  list windows with geometry (`workspace.stackingOrder`, `print()`, read
+  with `journalctl _UID=1000 | grep`): the strip belonged to no window.
+- console-setup rebuilds the console keymap and font at every start while
+  its cache (`/etc/console-setup/cached_*`) is older than
+  `/etc/default/keyboard`; the cache came from the live image and the
+  installer writes the keyboard later, so the first start of an installed
+  system spent 2.1 s on it before the sign-in screen (it re-saves the cache
+  then). The installer's `console-cache` job runs `setupcon --force
+  --save-only` in the target before the initramfs.
+- GRUB 2.12 (Debian) starts an entry's `--hotkey` (`f1`..`f12` are valid
+  names) during a hidden timeout (`grub-core/normal/menu.c`), and Esc, F4
+  or a held Shift show the menu; it has no hidden entries. Debian's
+  `30_os-prober` sets `timeout_style=menu` when it finds another system, so
+  `35_veltos` (later) sets the hidden style again and adds F1's "Boot
+  menu" entry, which reads grub.cfg again with `veltos_menu=1`.
+- The ISO must stay under 2 GiB (2147483648 bytes) for a GitHub release.
+  Where the space goes: `unsquashfs -lls` of the live squashfs summed by
+  directory, `xorriso -find / -exec lsdl` for the ISO, the initrd's cpio
+  parts (`build/scripts/shrink-initrd.py`). squashfs xz with `-Xbcj x86`
+  and 1 MiB blocks is 8 % smaller than zstd 19 (zstd 22 gains nothing);
+  the live initrd is mostly graphics firmware. Translations, firmware and
+  ibus' emoji dictionaries (Plasma's emoji picker) are features: they stay.
+- Calamares' package job (backend apt) purges the live packages with
+  autoremove, so a package installed in the live system may be gone from
+  the target before the bootloader job installs from the ISO's pool;
+  `trim-pool.py` simulates that removal before leaving installed packages
+  out of the pool.
+- The image's APT lists (except the DEP-11 data the Store's catalogue
+  reads) are left out of the squashfs: they were weeks old on every
+  installed system, and VeltOS Store and Graphics Cards refresh missing or
+  old lists before they install anything (`lists_need_refresh`). In a
+  terminal, `apt update` comes first.
+- `pkcon -y` (non-interactive transactions, polkit refuses without asking)
+  was fixed in VeltOS Store first and stayed in VeltOS Graphics Cards: the
+  driver install on a real laptop said "Administrator permission was not
+  given" (2026-10-26). Every pkcon caller goes through `ptyrun.py`
+  (tests/repo checks the copies match).
+- An installed dev VM reaches the desktop in about 10 s after `systemctl
+  reboot`, before a separate `vm do` sequence starts: keys meant for GRUB
+  (F1, F6) need `vm do "reset sleep:0.4 key:f1 ..."` (QMP `system_reset`,
+  2026-10-27). `nmcli networking off` in the live session tests an offline
+  installation.

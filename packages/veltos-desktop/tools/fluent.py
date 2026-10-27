@@ -82,8 +82,18 @@ CLOSE_RED = "#c42b1c"
 # the window read as one surface; inactive windows a shade lighter (light)
 # or darker (dark). Fluent's solid frames are white / #202020.
 FRAME_COLOURS = {
-    "light": {"#ffffff": "#f3f5fa", "#f5f5f5": "#f8f9fc"},
-    "dark": {"#202020": "#1c1d26", "#2c2c2c": "#24252f"},
+    "light": {"#ffffff": "#f3f5fa", "#f5f5f5": "#f3f5fa"},
+    "dark": {"#202020": "#1c1d26", "#2c2c2c": "#1c1d26"},
+}
+# Fluent lays a tint over its frames (dark: 5 % white, light: 25 % of a cyan
+# white), so the title bar, the side edges and the bottom edge came out a
+# shade lighter than the window (#272830 around #1c1d26): a visible band
+# under every window in dark mode (product owner, 2026-10-26). The tints are
+# switched off; inactive windows keep the same colour too (their caption
+# text is dimmed instead), so no edge ever stands apart from the window.
+FRAME_TINTS = {
+    "light": {"opacity:0.25;fill:#f3fdff": "opacity:0;fill:#f3fdff"},
+    "dark": {"opacity:0.05;fill:#ffffff": "opacity:0;fill:#ffffff"},
 }
 CAPTION_W, CAPTION_H = 46, 32
 WINDOW_RADIUS = 8
@@ -299,6 +309,10 @@ def build_aurorae(upstream, root):
             if f"fill:{old}" not in frame:
                 raise SystemExit(f"{fluent}/decoration.svg: frame colour {old} not found")
             frame = frame.replace(f"fill:{old}", f"fill:{new}")
+        for old, new in FRAME_TINTS[variant].items():
+            if old not in frame:
+                raise SystemExit(f"{fluent}/decoration.svg: frame tint {old} not found")
+            frame = frame.replace(old, new)
         decoration.write_text(frame, encoding="utf-8")
         # The window buttons are monochrome; only the frame may carry the accent.
         for svg in dest.glob("*.svg"):

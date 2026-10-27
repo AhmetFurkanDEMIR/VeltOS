@@ -42,22 +42,25 @@ def cache_dir():
     return Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "veltos-qml"
 
 
-def qml_hash(app_qml):
-    """A short hash of every file below the app's QML folder (and of Qt's
-    version: compiled QML is tied to it)."""
+def qml_hash(app_qml, extra=()):
+    """A short hash of every file below the app's QML folder and the `extra`
+    folders (the style: its compiled QML is cached with the app's, and a
+    changed ScrollView stayed in use after an update otherwise), and of
+    Qt's version: compiled QML is tied to it."""
     digest = hashlib.sha1()
     try:
         from PySide6 import __version__ as qt_version
     except ImportError:
         qt_version = ""
     digest.update(qt_version.encode())
-    for path in sorted(p for p in Path(app_qml).rglob("*") if p.is_file()):
-        digest.update(str(path.relative_to(app_qml)).encode())
-        digest.update(path.read_bytes())
+    for folder in (Path(app_qml), *map(Path, extra)):
+        for path in sorted(p for p in folder.rglob("*") if p.is_file()):
+            digest.update(str(path.relative_to(folder)).encode())
+            digest.update(path.read_bytes())
     return digest.hexdigest()[:12]
 
 
-def use_qml_cache(app_qml, cache=None):
+def use_qml_cache(app_qml, cache=None, extra=()):
     """Turns Qt's QML disk cache on in a folder for these exact QML files
     and removes this app's folders for older files. Returns the folder,
     or None when there is no QML folder."""
@@ -66,7 +69,7 @@ def use_qml_cache(app_qml, cache=None):
         return None
     cache = Path(cache) if cache else cache_dir()
     name = app_qml.parent.name                        # veltos_calculator
-    folder = cache / f"{name}-{qml_hash(app_qml)}"
+    folder = cache / f"{name}-{qml_hash(app_qml, extra)}"
     try:
         folder.mkdir(parents=True, exist_ok=True)
         for old in cache.glob(f"{name}-*"):
@@ -90,7 +93,7 @@ def use(qml_dir=QML_DIR, plugin_dir=PLUGIN_DIR, app_qml=None):
     if os.environ.get("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop") not in ("org.kde.desktop", STYLE):
         return False
     if app_qml is not None:
-        use_qml_cache(app_qml)
+        use_qml_cache(app_qml, extra=[os.path.join(qml_dir, *STYLE.split("."))])
     if not os.path.isfile(os.path.join(qml_dir, *STYLE.split("."), "qmldir")):
         return False
     try:

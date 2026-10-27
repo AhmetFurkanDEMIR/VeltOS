@@ -1363,6 +1363,86 @@ were measured (below).
   start) Plasma's notification would come back until VeltOS' agent asks
   again (it does when bluetoothd restarts, not periodically).
 
+### 2.42 Window frames in exactly the window's colour (2026-10-27)
+
+- Decision: Fluent's frame tints are switched off and inactive frames
+  take the active colour (`tools/fluent.py` `FRAME_TINTS`,
+  `FRAME_COLOURS`), so the title bar, the side edges and the bottom edge
+  are the window's own colour; the caption text shows whether a window is
+  active, as on Windows 11.
+- Alternatives: give the VeltOS apps the frame's colour (every other
+  program would still differ); remove the bottom border (KWin then shows
+  a 1 px seam to the desktop, see `AURORAE_LAYOUT`).
+- Trade-off: inactive windows are told apart only by their caption text
+  and buttons.
+
+### 2.43 Scroll bars over the content (2026-10-27)
+
+- Decision: the VeltOS controls style's ScrollView sets aside no room for
+  its scroll bars; they are drawn over the content's edge, thin until the
+  pointer is on them (Windows 11's overlay bars).
+- Alternatives: a Flickable per app page (Settings first); a scroll bar
+  that is always shown (and always takes room).
+- Trade-off: content under the bar's 12 px may be covered while the
+  pointer is on the bar; VeltOS' pages have wider margins.
+
+### 2.44 No "sliding popups" (2026-10-27)
+
+- Decision: KWin's sliding popups effect is off (`/etc/xdg/kwinrc`).
+  Start and search rise in with their own QML animation inside their
+  window; the other flyouts fade in (fadingpopups).
+- Alternatives: keep the effect and force a repaint of the screen below
+  the popup when it is shown (no API for that from the applets).
+- Trade-off: the flyouts no longer slide; the strip the effect left at
+  fractional scales is gone.
+
+### 2.45 Boot menu on F1 (2026-10-27)
+
+- Decision: GRUB's menu is hidden on every installed system, dual boot
+  included; F1 (or Esc, F4, Shift) during the 2 s wait shows it, F6
+  starts Recovery; the start screen shows both keys.
+- Alternatives: Debian's behaviour (menu for 5-10 s with another system);
+  a Windows-style boot manager of VeltOS' own (a second boot loader to
+  maintain and sign for Secure Boot).
+- Trade-off: with Windows installed, Windows is one key press away
+  instead of on screen; the wait stays 2 s so the key can be pressed.
+
+### 2.46 The ISO under 2 GiB without leaving anything out (2026-10-27)
+
+- Decision: squashfs with xz and its x86 filter (1 MiB blocks); the live
+  initrd's main part in xz; the package pool without what the installed
+  system already has; the image's APT lists (but not the Store's DEP-11
+  catalogue data) and package changelogs left out of the squashfs.
+  Measured on ISO 20261026-212523: squashfs 2155.9 -> 1985.3 MB, initrd
+  main part 84.2 -> 66.8 MB.
+- Alternatives considered and not taken: leaving out translations other
+  than English and Turkish (the installer offers every language),
+  firmware, ibus' emoji dictionaries (Plasma's emoji picker), the 32-bit
+  libraries (Windows programs), Wine Mono/Gecko; zstd 22 (no gain).
+- Trade-off: xz unpacks more slowly than zstd: the live system and the
+  installer's copy are slower (all files: 18 s instead of 7 s in the
+  builder); the installed system is unaffected. `apt install` in a
+  terminal needs `apt update` first on a new installation.
+
+### 2.47 Compressed memory (2026-10-27)
+
+- Decision: zram swap, half the RAM at most 8 GB, zstd
+  (systemd-zram-generator from Debian main; `vm.swappiness=100`,
+  `vm.page-cluster=0`), as Windows 11 compresses memory by default.
+- Alternatives: a swap file on disk (slower, wears SSDs; Calamares makes
+  none by default); zswap in front of a disk swap.
+- Trade-off: compression costs CPU when memory is short; 73 ms at
+  start-up, off the path to the sign-in screen (dev VM).
+
+### 2.48 Version 1.0 (2026-10-27)
+
+- Decision: the first public release is VeltOS 1.0 (`/etc/os-release`
+  `VERSION_ID="1.0"`, packages `1.0.0`, ISO `veltos-1.0-...`); the product
+  owner installed it on their own laptop before the release.
+- Alternatives: keep 0.x until more real hardware is tested.
+- Trade-off: real-hardware testing so far is one laptop plus virtual
+  machines; `docs/dev/status.md` says what was tested where.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

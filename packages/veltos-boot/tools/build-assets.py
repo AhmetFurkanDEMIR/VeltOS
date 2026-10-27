@@ -11,7 +11,8 @@
     reuses the fonts and highlight (build/scripts/build-iso.sh);
   * the start screen's pieces (startscreen/start-screen puts them together
     at the screen's resolution on the installed system): the logo at the
-    boot splash's size and the "F6  Recovery" hint, as raw RGBA pixels.
+    boot splash's size and the "F1  Boot menu" / "F6  Recovery" hints, as
+    raw RGBA pixels.
 
 Requires the Python standard library, rsvg-convert, grub-mkfont and Inter.
 """
@@ -132,21 +133,28 @@ START_SCREEN_DIR = Path("usr/share/veltos-boot/start-screen")
 # The boot splash draws its logo at 168 px (watermark.png); 4K screens get
 # everything twice as large.
 START_LOGO = 168
-HINT_TEXTS = {"en": "Recovery", "tr": "Kurtarma"}
-HINT_HEIGHT, HINT_WIDTH = 28, 220
+# Two key caps in the bottom right corner while GRUB waits: F1 shows the
+# boot menu (35_veltos), F6 starts VeltOS Recovery.
+HINT_TEXTS = {"en": ("Boot menu", "Recovery"), "tr": ("Önyükleme menüsü", "Kurtarma")}
+HINT_ROW, HINT_GAP, HINT_WIDTH = 28, 6, 260
+HINT_HEIGHT = 2 * HINT_ROW + HINT_GAP
 
 
-def hint_svg(label):
-    """The hint as Windows shows such keys: a small key cap with "F6" and a
-    word next to it, quiet colours on the boot splash's background."""
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{HINT_WIDTH}" height="{HINT_HEIGHT}" '
-            f'viewBox="0 0 {HINT_WIDTH} {HINT_HEIGHT}">'
-            '<rect x="0.75" y="2.75" width="30.5" height="22.5" rx="5" fill="#FFFFFF" fill-opacity="0.06" '
+def hint_svg(labels):
+    """The hints as Windows shows such keys: a small key cap with "F1" or
+    "F6" and a word next to it, one row each, quiet colours on the boot
+    splash's background."""
+    rows = []
+    for row, (key, label) in enumerate(zip(("F1", "F6"), labels)):
+        y = row * (HINT_ROW + HINT_GAP)
+        rows.append(
+            f'<rect x="0.75" y="{y + 2.75}" width="30.5" height="22.5" rx="5" fill="#FFFFFF" fill-opacity="0.06" '
             'stroke="#6E7BA8" stroke-width="1.5"/>'
-            '<text x="16" y="18.5" text-anchor="middle" font-family="Inter" font-weight="600" font-size="12" '
-            'fill="#E6EBFA">F6</text>'
-            f'<text x="40" y="18.5" font-family="Inter" font-size="13" fill="#A9B4D6">{label}</text>'
-            '</svg>')
+            f'<text x="16" y="{y + 18.5}" text-anchor="middle" font-family="Inter" font-weight="600" '
+            f'font-size="12" fill="#E6EBFA">{key}</text>'
+            f'<text x="40" y="{y + 18.5}" font-family="Inter" font-size="13" fill="#A9B4D6">{label}</text>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{HINT_WIDTH}" height="{HINT_HEIGHT}" '
+            f'viewBox="0 0 {HINT_WIDTH} {HINT_HEIGHT}">' + "".join(rows) + '</svg>')
 
 
 def rgba(png):
@@ -185,8 +193,8 @@ def build_start_screen(root, tmp):
         name = f"logo-{scale}x.rgba"
         (dest / name).write_bytes(data)
         assets["logo"][str(scale)] = [width, height, name]
-        for lang, label in HINT_TEXTS.items():
-            render(hint_svg(label), HINT_WIDTH * scale, HINT_HEIGHT * scale, tmp / "hint.png", tmp / "hint.svg")
+        for lang, labels in HINT_TEXTS.items():
+            render(hint_svg(labels), HINT_WIDTH * scale, HINT_HEIGHT * scale, tmp / "hint.png", tmp / "hint.svg")
             width, height, data = trim_right(*rgba((tmp / "hint.png").read_bytes()))
             name = f"hint-{lang}-{scale}x.rgba"
             (dest / name).write_bytes(data)

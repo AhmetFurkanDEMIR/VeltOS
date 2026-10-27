@@ -396,6 +396,28 @@ The product owner's requests of 2026-10-22, in the mechanisms above:
   `[Libinput][Defaults]`). Untested on real touchpads.
 - Tests: `tests/test_system.py` (`TouchpadDefaultsTests`).
 
+## Added 2026-10-27
+
+- **Window frames** in exactly the window's colour, active or not: Fluent's
+  frame tints are off (`tools/fluent.py` `FRAME_TINTS`); a lighter band
+  under every window in dark mode is gone (Settings, Format and every other
+  window).
+- **Scroll bars** of the VeltOS controls style are drawn over the content
+  and take no room; the room they took only while shown made pages re-wrap
+  for ever (VeltOS Settings hung maximised).
+- **No sliding popups** (`/etc/xdg/kwinrc`): KWin's effect left a strip of
+  Start, search and the flyouts on the taskbar at fractional scales.
+- **Light/dark at sign-in**: `veltos-session.sh` sets the taskbar's Plasma
+  theme (`plasmarc`) to the global theme's mode before plasmashell starts
+  when the two disagree.
+- **Compressed memory**: zram swap, half the RAM at most 8 GB, zstd
+  (`systemd-zram-generator`, `/usr/lib/systemd/zram-generator.conf.d/
+  veltos.conf`, `/usr/lib/sysctl.d/90-veltos-zram.conf`), as Windows 11
+  compresses memory.
+- Tests: `tests/test_system.py` (scroll bars without padding, the QML
+  cache following the style's files, the session's theme check),
+  `tests/test_build_assets.py` (zram files).
+
 ## Known limitations
 
 - Notification toasts and the tray's flyouts are Plasma's components

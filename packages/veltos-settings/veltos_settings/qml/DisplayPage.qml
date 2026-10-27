@@ -25,7 +25,7 @@ ColumnLayout {
         return page.pending && page.pending[o.id] ? page.pending[o.id] : { x: o.x, y: o.y };
     }
     function drop(o, x, y) {
-        const placed = backend.snapDisplay(o.id, x, y);
+        const placed = backend.snapDisplay(o.id, x, y, page.pending || {});
         const next = {};
         let moved = false;
         for (const p of placed) {
@@ -90,25 +90,39 @@ ColumnLayout {
             Item {
                 id: area
                 Layout.fillWidth: true
-                Layout.preferredHeight: 170
+                // Screens stacked one above the other get a taller area.
+                Layout.preferredHeight: spanY > spanX * 0.75 ? 240 : 170
+                // Boxes in the arrangement's own coordinates, starting at 0,0:
+                // a screen above or left of another has negative positions,
+                // and measuring from 0 drew such layouts outside the card
+                // (product owner, 2026-10-26).
                 readonly property var boxes: {
                     const outs = page.disp.outputs || [];
-                    let right = 0;
+                    let right = -Infinity;
                     const placed = outs.map(o => {
                         const at = page.positionOf(o);
-                        const box = { x: at.x, y: at.y, w: Math.max(1, o.width), h: Math.max(1, o.height), o: o };
-                        if (!o.enabled)
-                            box.x = -1;
-                        else
-                            right = Math.max(right, o.x + box.w);
+                        const box = { x: at.x, y: at.y, rx: at.x, ry: at.y, w: Math.max(1, o.width), h: Math.max(1, o.height),
+                                      o: o, parked: !o.enabled };
+                        if (o.enabled)
+                            right = Math.max(right, box.x + box.w);
                         return box;
                     });
+                    const enabled = placed.filter(b => !b.parked);
+                    const top = enabled.length ? Math.min(...enabled.map(b => b.y)) : 0;
+                    if (right === -Infinity)
+                        right = 0;
                     for (const box of placed) {
-                        if (box.x < 0) {
+                        if (box.parked) {
                             box.x = right + 160;
-                            box.y = 0;
+                            box.y = top;
                             right = box.x + box.w;
                         }
+                    }
+                    const minX = Math.min(...placed.map(b => b.x));
+                    const minY = Math.min(...placed.map(b => b.y));
+                    for (const box of placed) {
+                        box.x -= minX;
+                        box.y -= minY;
                     }
                     return placed;
                 }
@@ -125,6 +139,7 @@ ColumnLayout {
                     model: area.boxes
                     delegate: Rectangle {
                         id: box
+                        objectName: "displayBox"
                         required property var modelData
                         required property int index
                         readonly property bool chosen: index === page.selected
@@ -177,7 +192,7 @@ ColumnLayout {
                                 // tied to it and would read 0 after the reset below.
                                 const f = area.factor, dx = box.moved.x, dy = box.moved.y;
                                 box.moved = Qt.point(0, 0);
-                                page.drop(box.modelData.o, box.modelData.x + dx / f, box.modelData.y + dy / f);
+                                page.drop(box.modelData.o, box.modelData.rx + dx / f, box.modelData.ry + dy / f);
                                 area.heldFactor = 0;
                             }
                         }

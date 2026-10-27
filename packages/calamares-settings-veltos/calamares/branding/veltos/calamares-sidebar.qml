@@ -90,7 +90,10 @@ Rectangle {
                     font.weight: Font.DemiBold
                 }
                 Text {
-                    text: Branding.string(Branding.Version)
+                    // From the versioned name ("VeltOS 1.0"): Calamares reads
+                    // branding strings that look like numbers as numbers, and
+                    // the version "1.0" came out as "1" (2026-10-27).
+                    text: Branding.string(Branding.VersionedName).replace(Branding.string(Branding.ProductName), "").trim()
                     color: sideBar.subtext
                     font.family: "Inter"
                     font.pixelSize: 12
@@ -182,7 +185,11 @@ Rectangle {
 
         Text {
             Layout.fillWidth: true
-            text: "Your PC. No Limits."
+            // The slogan; in Turkish "Senin Bilgisayarın. Sınır Tanıma."
+            // (product owner, 2026-10-26).
+            text: sideBar.language === "tr" ? "Senin Bilgisayarın. Sınır Tanıma." : "Your PC. No Limits."
+            // The Turkish slogan is wider than the bar: on two lines, whole.
+            wrapMode: Text.WordWrap
             color: sideBar.subtext
             font.family: "Inter"
             font.pixelSize: 12

@@ -1,0 +1,13 @@
+#!/bin/sh
+# The ISO's package pool without the packages the installed system already
+# has at the same version (build/scripts/trim-pool.py): part of keeping the
+# ISO under 2 GiB, the most a GitHub release file may have. Runs in binary/
+# after live-build has made the pool.
+set -e
+
+tool=/src/build/scripts/trim-pool.py
+if [ ! -f "$tool" ]; then
+    echo "veltos-trim-pool: $tool missing (the image is built by build/run.sh iso)" >&2
+    exit 1
+fi
+python3 "$tool"

@@ -4,7 +4,7 @@
 # at /build and the output directory at /out.
 set -euo pipefail
 
-VELTOS_VERSION="${VELTOS_VERSION:-0.1.0-dev}"
+VELTOS_VERSION="${VELTOS_VERSION:-1.0}"
 export VELTOS_VERSION
 export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date +%s)}"
 
@@ -47,13 +47,15 @@ cd "$LB_DIR"
 lb config
 echo "==> lb build (log: $RESULT_DIR/build.log)"
 mkdir -p "$RESULT_DIR"
-# 1 MiB squashfs blocks (live-build's default is 128 KiB): with zstd level
-# 19 (auto/config) the image is 11 % smaller, and zstd unpacks as fast as
-# before (measured on the 2026-10-23 image's libraries, fonts and
-# translations: 1372 -> 1220 MB, unpacking 3 s either way; xz would save
-# 20 % but unpack twice as slowly). live-build adds MKSQUASHFS_OPTIONS to
-# its mksquashfs call.
-export MKSQUASHFS_OPTIONS="-b 1M"
+# 1 MiB squashfs blocks (live-build's default is 128 KiB) and xz with the
+# x86 filter for programs (auto/config): the ISO must stay under 2 GiB, the
+# most a GitHub release file may have, without leaving anything out. On the
+# ISO of 2026-10-26 (6.0 GB of files) zstd level 19 made 2155.9 MB, zstd 22
+# 2155.4 MB and xz with -Xbcj x86 1985.3 MB; xz unpacks more slowly (all
+# files: 18 s instead of 7 s), which only the live system and the
+# installer's copy feel, not the installed system. live-build adds
+# MKSQUASHFS_OPTIONS after its "-comp xz".
+export MKSQUASHFS_OPTIONS="-b 1M -Xbcj x86"
 set +e
 lb build 2>&1 | tee "$RESULT_DIR/build.log"
 status=${PIPESTATUS[0]}

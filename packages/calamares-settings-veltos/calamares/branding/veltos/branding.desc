@@ -21,10 +21,10 @@ navigation: qml
 strings:
     productName:         VeltOS
     shortProductName:    VeltOS
-    version:             0.1
-    shortVersion:        0.1
-    versionedName:       VeltOS 0.1
-    shortVersionedName:  VeltOS 0.1
+    version:             "1.0"
+    shortVersion:        "1.0"
+    versionedName:       VeltOS 1.0
+    shortVersionedName:  VeltOS 1.0
     # Used for the firmware boot entry name only if efiBootloaderId is unset
     # (it is set; see modules/bootloader.conf).
     bootloaderEntryName: VeltOS
