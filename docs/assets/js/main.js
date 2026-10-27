@@ -19,7 +19,7 @@
     "nav.menu": "Menü",
     "theme.toggle": "Açık veya koyu",
 
-    "hero.eyebrow": "Sürüm 1.0 · Ücretsiz ve açık kaynak · Debian 13 tabanlı",
+    "hero.eyebrow": "Sürüm 1.0 · Ücretsiz · Açık kaynak · Debian 13",
     "hero.title1": "Senin Bilgisayarın.",
     "hero.title2": "Sınır Tanıma.",
     "hero.lead": "VeltOS, Windows 11 kullanıcılarının zaten bildiği gibi çalışan ücretsiz bir işletim sistemidir: Başlat, görev çubuğu, Dosya Gezgini, Ayarlar ve mağaza tam beklediğiniz yerde. Yirmiden fazla kendi uygulaması, VeltOS AI yardımcısı, Office, modern bir kurulum programı ve Windows programı desteğiyle gelir.",
