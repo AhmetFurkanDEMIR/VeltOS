@@ -31,7 +31,7 @@ html[data-theme="dark"] {
   --accent-text: #9fb5ff;
   --shadow: 0 30px 80px rgba(0, 0, 0, .55);
   --card-glow: rgba(110, 140, 255, .14);
-  --nav-bg: rgba(6, 10, 28, .92);
+  --nav-bg: #060a1c;
   color-scheme: dark;
 }
 html[data-theme="light"] {
@@ -47,7 +47,7 @@ html[data-theme="light"] {
   --accent-text: #2f55dd;
   --shadow: 0 30px 70px rgba(30, 50, 120, .18);
   --card-glow: rgba(79, 124, 255, .10);
-  --nav-bg: rgba(244, 246, 252, .94);
+  --nav-bg: #f4f6fc;
   color-scheme: light;
 }
 
@@ -223,9 +223,11 @@ button.shot-frame { cursor: zoom-in; }
 .tour { max-width: 960px; margin: 0 auto; }
 
 /* Gallery */
-.tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 22px; }
+/* Two even rows of six (four per row on tablets, one scrolling row on
+   phones): a lone last button on its own row looked unfinished. */
+.tabs { display: grid; grid-template-columns: repeat(6, auto); justify-content: center; gap: 8px; margin-bottom: 22px; }
 .tabs button {
-  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+  white-space: nowrap; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
   font: 500 14px inherit; font-family: inherit; cursor: pointer;
 }
 .tabs button[aria-selected="true"] { background: linear-gradient(135deg, #4f7cff, #5b3fe0); border-color: transparent; color: #fff; }
@@ -266,8 +268,8 @@ button.shot-frame { cursor: zoom-in; }
 .specs th { width: 34%; color: var(--muted); font-weight: 600; }
 
 /* Download */
-.dl-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
-.dl-panel { padding: 30px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.dl-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: stretch; }
+.dl-panel { display: flex; flex-direction: column; padding: 30px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
 .dl-top { display: flex; gap: 16px; align-items: center; margin-bottom: 22px; }
 .dl-top h3 { margin: 0; font-size: 24px; }
 .dl-badge { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff; background: #1f9d55; }
@@ -279,6 +281,9 @@ button.shot-frame { cursor: zoom-in; }
 .hash code { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 12.5px; color: var(--text); }
 .copy { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 8px; padding: 6px 12px; font: 600 13px inherit; font-family: inherit; cursor: pointer; }
 .hash-note { color: var(--soft); font-size: 13.5px; margin: 12px 0 0; }
+.dl-inside { margin-top: auto; padding-top: 22px; }
+.dl-inside h4 { margin: 0 0 4px; font-size: 15px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+.dl-inside .checks { margin-top: 12px; gap: 10px; font-size: 15.5px; }
 .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
 .steps li { display: flex; gap: 16px; padding: 20px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
 .steps li > span { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, #4f7cff, #5b3fe0); }
@@ -348,6 +353,7 @@ button.shot-frame { cursor: zoom-in; }
   .cards { grid-template-columns: repeat(2, 1fr); }
   .filmstrip { grid-template-columns: repeat(3, 1fr); }
   .reqs ul { grid-template-columns: repeat(2, 1fr); }
+  .tabs { grid-template-columns: repeat(4, auto); }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .float-ai { left: 8px; }
   .float-sec { right: 8px; }
@@ -369,6 +375,8 @@ button.shot-frame { cursor: zoom-in; }
   .app-grid img { width: 40px; height: 40px; }
   .filmstrip, .filmstrip.three { grid-template-columns: repeat(2, 1fr); }
   .arrow { display: none; }
+  .tabs { display: flex; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+  .tabs::-webkit-scrollbar { display: none; }
   .float { padding: 8px 12px; font-size: 12px; }
   .float strong { font-size: 12.5px; }
   .float span { font-size: 11.5px; }
