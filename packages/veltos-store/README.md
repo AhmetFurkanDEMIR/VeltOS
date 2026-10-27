@@ -30,6 +30,42 @@ taskbar and Settings; Discover stays installed but hidden.
   installs in progress (one backend). Before, a second start only raised
   the window on the first desktop (product owner, 2026-10-22).
 
+## App Installer for .deb files (2026-10-27)
+
+Double-clicking a `.deb` (File Explorer, Firefox's "Open") opens
+`veltos-store --install-file FILE` in the layout of Windows 11's App
+Installer: "Install VLC?" with publisher, version, size and package from
+the control file, the description, the app's icon taken from the package
+(`debfile.py`, read with `dpkg-deb` as a stream; nothing of the package
+runs), "Launch when ready", a trust note, then the progress and Open
+buttons for the apps it added. An installed package of the same name
+turns the question into Update, Reinstall or "a newer version is
+installed"; a package for another processor cannot be installed.
+Installing is `pkcon -p --allow-untrusted install-local FILE` (plus
+`--allow-reinstall` / `--allow-downgrade`), which also brings what the
+package needs from Debian's archive; polkit asks for the administrator's
+password. Details shows pkcon's output after a failure. Dev VM
+(2026-10-27): xterm's .deb installed and launched.
+
+## The first start of a new installation (2026-10-27)
+
+`veltos-first-update.service` (enabled, never started while the package is
+installed; `Type=exec` and not ordered after network-online.target, so the
+sign-in screen does not wait) runs `/usr/libexec/veltos/first-update`
+once on a new installation and never in the live system: it waits for the
+network (`nm-online`), runs `apt-get update` and `apt-get -y full-upgrade`
+(`--force-confold`, a 10 min dpkg lock wait), writes its progress to
+`/run/veltos/first-update.json` (APT::Status-Fd: download 0-50 %,
+installation 50-100 %) and `/var/lib/veltos/first-update-done` at the end
+(also offline or after a failure: VeltOS Update brings the updates later).
+Systems that update veltos-store from 1.0 are marked done (postinst).
+
+At sign-in `veltos-store --first-start` (autostart; decides without Qt)
+shows the Windows 11 style full-screen "Hi. We're getting everything ready
+for you" with drifting brand colours, the moving dots, the step and a
+progress line; "Continue in the background" after 20 s; "You're ready to
+go" (Başlayabiliriz) when done, then it closes; once per user.
+
 ## How it works
 
 | Part | File | Notes |

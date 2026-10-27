@@ -19,6 +19,17 @@ def load(name):
     return module
 
 
+class IsoLimitTests(unittest.TestCase):
+    def test_build_fails_for_an_iso_of_2_gib_or_more(self):
+        """Every ISO is a GitHub release file (under 2 GiB, product owner
+        2026-10-27): build-iso.sh stops when the ISO is not smaller."""
+        script = (REPO / "build/scripts/build-iso.sh").read_text(encoding="utf-8")
+        self.assertIn("ISO_LIMIT=2147483648", script)
+        self.assertIn('if [ "$iso_size" -ge "$ISO_LIMIT" ]; then', script)
+        limit_at = script.index("ISO_LIMIT=")
+        self.assertLess(limit_at, script.index("(cd \"$RESULT_DIR\" && sha256sum"))
+
+
 class TrimPoolTests(unittest.TestCase):
     def setUp(self):
         self.tool = load("trim-pool")

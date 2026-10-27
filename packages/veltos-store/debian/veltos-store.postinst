@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# An installed system that updates veltos-store from an older version has
+# had its first start: the "getting everything ready" update is only for
+# new installations (the image installs the package fresh).
+if [ "$1" = "configure" ] && [ -n "$2" ] && ! grep -qw "boot=live" /proc/cmdline 2>/dev/null; then
+    mkdir -p /var/lib/veltos
+    [ -e /var/lib/veltos/first-update-done ] || echo "updated from $2" > /var/lib/veltos/first-update-done
+fi
+
+#DEBHELPER#

@@ -77,13 +77,14 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-archive/` | VeltOS Archive: WinRAR's layout (toolbar, archive list, Extract To, Add, Test, passwords) on 7-Zip (+ 7zip-rar) and bsdtar; File Explorer's extract/compress |
 | `packages/veltos-camera/` | VeltOS Camera: Windows 11 Camera layout (photo, video, timer, framing grid, Camera Roll) on Qt Multimedia (FFmpeg backend, V4L2) |
 | `packages/veltos-snip/` | VeltOS Snipping Tool: Print Screen / Win+Shift+S overlay (rectangle, window, full screen, freeform), clipboard + Pictures/Screenshots + notification, markup window; captures through Spectacle in the background |
-| `packages/veltos-store/` | VeltOS Store: Microsoft Store layout (Home, Apps, Gaming, Library, app pages) on AppStream (gir1.2-appstream-1.0) and PackageKit (pkcon); replaces Discover |
+| `packages/veltos-store/` | VeltOS Store: Microsoft Store layout (Home, Apps, Gaming, Library, app pages) on AppStream (gir1.2-appstream-1.0) and PackageKit (pkcon); replaces Discover. Also the App Installer window for `.deb` files (`--install-file`, `installer.py`, `debfile.py`) and the first start of a new installation (`veltos-first-update.service` + `firstupdate.py`, the "Getting everything ready" screen `--first-start`, `firststart.py`) |
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook), start-up screen at the screen's resolution (`resolution/`: set at installation, kept in step at sign-in), GRUB start counting with the Recovery and safe-graphics entries (`grub.d/10_linux`) |
 | `packages/veltos-recovery/` | VeltOS Automatic Repair: after two starts that did not finish, GRUB starts `veltos-recovery.target`, a full-screen Windows 11 style recovery window on Qt's linuxfb (Restart, Startup Repair, Safe mode, Command Prompt as a console sign-in, last start's problems, Turn off); the services that clear the count or restart after a failed start; `veltos-safe-graphics` (starts without a graphics driver sign in to Plasma on X11); persistent journal |
 | `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), `release-disks` (unmounts the PC's disks before Calamares starts, so every partitioning choice is offered), `console-cache` (the installed system's console keymap cache), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format (Windows 11's Format window, `FormatWindow.qml`, also alone for File Explorer's `--format`), delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
-| `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil) or the AMD/Intel firmware and Mesa drivers through `pkcon`; also Settings > Display > Graphics cards |
+| `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil, kernel modesetting `veltos-nvidia.conf`, Repair) or the AMD/Intel firmware and Mesa drivers through `pkcon`; the Driver log window (`diagnostics.py`); also Settings > Display > Graphics cards |
+| `packages/veltos-lighting/` | VeltOS Keyboard Lighting: a laptop keyboard's lights (sysfs LEDs; colour on multicolour LEDs, ASUS, System76) in Windows 11's Dynamic Lighting layout, a pkexec helper (`/usr/libexec/veltos/keyboard-light`, allowed for the active user), restore at sign-in; Settings > Personalization > Keyboard lighting |
 | `packages/veltos-weather/` | VeltOS Weather: Windows 11 Weather layout (current weather, 10-day forecast, hourly chart, weather details, historical weather, favorites, °F/°C) on Open-Meteo's open data without a key (`openmeteo.py`, cache in `~/.cache/veltos-weather`); first start uses the time zone's city |
 | `packages/veltos-maps/` | VeltOS Maps: Google Maps in one VeltOS window (Windows 11 floating controls, InfoBars, offline page, the app's language) without a Maps Platform API key; optional location through GeoClue (off by default; Maps or Settings > Privacy & security > Location) and Windows 11's default location (`~/.config/veltos/location.json`) |
 | `packages/veltos-ai/` | VeltOS AI: assistant pane on the right edge like Windows 11's Copilot (layer shell, Windows + C) with ChatGPT / Claude / Gemini / Azure OpenAI ("Copilot") on the user's own key (`providers.py`, plain HTTPS); actions on the system from a fixed list, each change after "Allow" (`tools.py`, VeltOS Settings' helpers); a free local model (`local.py`: Gemma 3 270M by default, more GGUF models from Hugging Face, downloaded with a progress screen and checked) run by veltos-llama; the pane from the taskbar button and Windows + C, a normal window from Start and search (`--window`) |
@@ -1014,6 +1015,28 @@ and JavaScript with no build step, no external requests and no cookies:
   or ProgID is gone (`shortcuts.remove_stale`). Their Exec lines quote the
   Windows path twice (desktop-file escaping on top of shell quoting: four
   backslashes per separator in the file).
+- Debian 13's NVIDIA modules (550, Tesla 535, open 550) default to
+  `nvidia-drm modeset=0` and Debian sets no option; Wayland (KWin) then
+  sees no screen on the NVIDIA card. Options must name Debian's module
+  files (`nvidia-current-drm`, `nvidia-current-open-drm`,
+  `nvidia-tesla-535-drm`): `/etc/modprobe.d/nvidia.conf` installs them
+  under those names (veltos-graphics `veltos-nvidia.conf`, 2026-10-27).
+- Firefox makes its "Choose an application" dialog through
+  `@mozilla.org/applicationchooser;1` (GTK's GtkAppChooserDialog, no
+  portal); an autoconfig script can register its own component for that
+  contract (veltos-desktop `firefox/app-chooser.js`). Test the helper-app
+  dialog with `browser.download.always_ask_before_handling_new_types`.
+- `pkcon install-local` of a downloaded .deb needs `--allow-untrusted`
+  (the file is signed by no archive; polkit then asks for the
+  administrator's password); `pkcon -p` prints no status for it at first.
+- Offscreen QML tests that send QMouseEvents: a move carries no button of
+  its own (`Qt.NoButton`, buttons = LeftButton); a move with
+  button=LeftButton made DragHandler end the drag at once. Boxes of a
+  Repeater whose model changed are deleted later: flush DeferredDelete
+  before looking for the new ones.
+- A KWin script's `onCursorPosChanged` runs on KWin's own thread for
+  every pointer move (1000 times a second with a gaming mouse): keep it
+  to a rectangle check and look at windows only where needed.
 - Wine's Start shortcuts have spaces in their file names ("7-Zip File
   Manager.desktop"): pipe file lists with `-print0`/`-0` or use `find
   -exec`, never plain `xargs` (the Windows program test reported a

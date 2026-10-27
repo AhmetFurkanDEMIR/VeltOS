@@ -1,0 +1,7 @@
+#!/usr/bin/python3 -I
+"""VeltOS first start: apt-get update and full-upgrade (veltos-first-update.service)."""
+import sys
+
+from veltos_store.firstupdate import main
+
+sys.exit(main())

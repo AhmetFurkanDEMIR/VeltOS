@@ -220,18 +220,18 @@ Product owner, 2026-10-27 (evening; step 1 bugs, then step 2 the final image):
 
 Product owner, 2026-10-27 (after the 1.0 release; for the next version):
 
-90. [ ] Graphics drivers: the install log can be seen by the user; after installing NVIDIA's driver (proprietary or open kernel modules) the monitors stay connected (on the owner's laptop no monitor was seen until the driver was removed)
-91. [ ] Settings > Display: stacked (above/below) screens no longer overflow the arrangement while being dragged and right after the drop (only revisiting the page showed them right)
-92. [ ] Double-clicking a `.deb` installs it in a Windows 11 style window (it could not be installed)
-93. [ ] Firefox's "Open with" for downloads uses File Explorer's "Select an app to open this file" window; both offer "Choose an app on your PC" to pick any program
-94. [ ] VeltOS AI: a better default local model (about 1.5 GB, more parameters, Turkish and English); it understands and carries out requests such as "switch to dark mode" or "turn Wi-Fi off" and can act on the whole system at the user's direction, with VeltOS' password prompt where administrator rights are needed
-95. [ ] Location: turning location on finds the real current position (Windows 11 finds it on the same PC)
-96. [ ] Keyboard lighting: a new app (and a Settings page) to turn a laptop's keyboard backlight on and off and set its colours
-97. [ ] Performance: find and fix the stutter without removing anything or lowering quality; fast, light, stable
-98. [ ] First start after installation: a Windows 11 style animated "Getting everything ready" window runs apt-get update and upgrade, says it is done ("You're ready to go") and closes; only on the first start
-99. [ ] Windows programs through Wine: test several programs and fix what fails
-100. [ ] The installer lets the user choose Wine or Bottles for Windows programs; a complete Bottles setup for opening Windows programs
-101. [ ] Every ISO stays under 2 GiB (each one is a GitHub release); a build check stops an ISO that is larger
+90. [x] Graphics drivers: the install log can be seen by the user; after installing NVIDIA's driver (proprietary or open kernel modules) the monitors stay connected (on the owner's laptop no monitor was seen until the driver was removed). Cause found in Debian's packages: nvidia-drm modeset off; VeltOS turns it on, installs matching kernel headers, says why a driver did not start (Repair), Driver log window. Unit tests and the log window in the dev VM; **not tested with an NVIDIA card**
+91. [x] Settings > Display: stacked (above/below) screens no longer overflow the arrangement while being dragged and right after the drop (only revisiting the page showed them right). Dev VM, two screens: dragged above, stayed inside, applied
+92. [x] Double-clicking a `.deb` installs it in a Windows 11 style window (it could not be installed). VeltOS Store's App Installer; dev VM: xterm installed and launched (standard user's password prompt untested)
+93. [x] Firefox's "Open with" for downloads uses File Explorer's "Select an app to open this file" window; both offer "Choose an app on your PC" to pick any program. Dev VM with Firefox ESR 153: Other… opened VeltOS' window, the file opened with the chosen app
+94. [x] VeltOS AI: a better default local model (about 1.5 GB, more parameters, Turkish and English); it understands and carries out requests such as "switch to dark mode" or "turn Wi-Fi off" and can act on the whole system at the user's direction, with VeltOS' password prompt where administrator rights are needed. Qwen3.5 2B (1.47 GB): 23/26 right actions alone in the builder, recognised commands for the rest; dev VM: dark mode through Allow
+95. [x] Location: turning location on finds the real current position (Windows 11 finds it on the same PC). GeoClue allowed without an agent, then beaconDB by Wi-Fi or the internet address; Wi-Fi fix on real hardware untested
+96. [x] Keyboard lighting: a new app (and a Settings page) to turn a laptop's keyboard backlight on and off and set its colours. veltos-lighting; made-up sysfs only, no real backlit keyboard tried
+97. [x] Performance: find and fix the stutter without removing anything or lowering quality; fast, light, stable. Idle measured quiet; the taskbar preview script no longer works on every pointer move; GPU stutter on the owner's laptop not measurable in the VM (llvmpipe)
+98. [x] First start after installation: a Windows 11 style animated "Getting everything ready" window runs apt-get update and upgrade, says it is done ("You're ready to go") and closes; only on the first start. Dev VM: screen with a made-up status, update program ran for real; a full first start of a new installation still to see
+99. [ ] Windows programs through Wine: test several programs and fix what fails. Waiting: running downloaded installers (Notepad++, PuTTY .msi, 7-Zip 32-bit, portable putty.exe, in `out/vm/winapps/`) in the dev VM needs the product owner's permission for the agent
+100. [ ] The installer lets the user choose Wine or Bottles for Windows programs; a complete Bottles setup for opening Windows programs. Waiting for the product owner: Bottles is not in Debian 13 (Flathub only), which rule 8 (packages from signed Debian archives) does not allow
+101. [x] Every ISO stays under 2 GiB (each one is a GitHub release); a build check stops an ISO that is larger (build-iso.sh, tests/repo)
 
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
@@ -381,6 +381,12 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 
 ## Next steps
 
+0. Items 99 and 100 wait for the product owner: permission for the agent
+   to run the downloaded Windows installers in the dev VM
+   (`out/vm/winapps/`), and a decision on Bottles (Flathub only, against
+   rule 8). Then check on real hardware: NVIDIA monitors after the driver
+   (item 90), a backlit keyboard (96), location by Wi-Fi (95), a full
+   first start of a new installation (98).
 1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
    built (F1, F2, F7); the remaining release steps are F3-F6 (website),
    F8 (contributors) and F9 (publishing the ISO on a GitHub release and the

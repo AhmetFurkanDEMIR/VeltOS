@@ -8,6 +8,12 @@ os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
 # AGENTS.md, QML disk cache).
 os.environ["QML_DISABLE_DISK_CACHE"] = "1"
 
+if "--first-start" in sys.argv[1:]:
+    # At every sign-in: decide without loading Qt; usually nothing to show.
+    from veltos_store.firstupdate import should_show
+    if not should_show():
+        sys.exit(0)
+
 from veltos_store.app import main
 
 sys.exit(main())

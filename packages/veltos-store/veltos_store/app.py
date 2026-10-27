@@ -440,6 +440,14 @@ def main(argv=None):
         pass
     # veltos-store --install-file FILE.deb: the package installer window (a
     # .deb opened from File Explorer); one window per file, not the Store.
+    # veltos-store --first-start: the first start's "Getting everything
+    # ready" screen (the launcher decided already that it is wanted).
+    if "--first-start" in argv[1:]:
+        from . import firststart
+        QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
+        app.setApplicationName("veltos-first-start")
+        app.setDesktopFileName("veltos-store")
+        return firststart.main(app, QQmlApplicationEngine)
     if "--install-file" in argv[1:-1]:
         from . import installer
         QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)

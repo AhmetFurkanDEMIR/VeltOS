@@ -1,3 +1,10 @@
+veltos-store (1.1.0~dev1) trixie; urgency=medium
+
+  * App Installer window for .deb files (veltos-store --install-file).
+  * First start of a new installation: updates with the "Getting everything ready" screen.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Tue, 27 Oct 2026 20:00:00 +0000
+
 veltos-store (1.0.0) trixie; urgency=medium
 
   * VeltOS 1.0: the first public release.

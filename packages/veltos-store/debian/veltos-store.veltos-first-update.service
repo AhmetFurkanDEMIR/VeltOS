@@ -1,0 +1,22 @@
+# VeltOS: the first start of an installed system brings it up to date
+# (apt-get update, full-upgrade) while veltos-store --first-start shows
+# "We're getting everything ready" (veltos_store/firstupdate.py). Once only
+# (the done file), never in the live system. Type=exec and no ordering
+# after network-online.target: the sign-in screen does not wait for it;
+# the program waits for the network itself.
+[Unit]
+Description=VeltOS first start: getting everything ready (updates)
+ConditionPathExists=!/var/lib/veltos/first-update-done
+ConditionKernelCommandLine=!boot=live
+After=NetworkManager.service
+
+[Service]
+Type=exec
+ExecStart=/usr/libexec/veltos/first-update
+RuntimeDirectory=veltos
+RuntimeDirectoryPreserve=yes
+TimeoutStartSec=infinity
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

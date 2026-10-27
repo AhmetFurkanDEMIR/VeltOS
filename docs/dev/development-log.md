@@ -3,6 +3,69 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-27 (evening) — Items 90-101: drivers, Open with, VeltOS AI, first start
+
+The product owner's list after the 1.0 release (status items 90-101).
+
+- Graphics (90): Debian 13's NVIDIA 550 / Tesla 535 / open 550 modules
+  leave `nvidia-drm modeset` off (checked in nvidia-kernel-dkms
+  550.163.01-2: `nv_drm_modeset_module_param = false`, no Debian option),
+  and KWin drives screens only through KMS: the monitors on the NVIDIA card
+  disappeared. veltos-graphics ships `/usr/lib/modprobe.d/veltos-nvidia.conf`
+  (modeset=1 for Debian's module names; Debian loads nvidia-drm through
+  `/etc/modules-load.d/nvidia.conf`). The install adds `linux-image-amd64`
+  and the running kernel's headers (DKMS built nothing for an older running
+  kernel). After a restart the card says why the driver did not start
+  (Secure Boot key, not built: Repair, other) and the Driver log window
+  shows everything. Unit tests; log window seen in the dev VM. **Not tested
+  with an NVIDIA card.**
+- Display (91): one scale for every arrangement (sum of the screens'
+  sizes), a dragged box stays inside, the drop runs after the drag handler.
+  Dev VM with two screens: screen 2 dragged above screen 1 stayed inside,
+  Apply set 452,0 / 0,768 (kscreen-doctor). A mouse-event drag test.
+- .deb (92): VeltOS Store's App Installer (`--install-file`, `pkcon
+  install-local --allow-untrusted`). Dev VM: xterm's .deb opened from a
+  double-click (kioclient exec), installed and launched (live user: no
+  password asked because of the live rules; a standard user's prompt is
+  untested).
+- Open with (93): File Explorer's window has "Choose an app on your PC" and
+  a `--choose` mode; it is the portal's AppChooser; Firefox's autoconfig
+  replaces `@mozilla.org/applicationchooser;1`. Dev VM, Firefox ESR 153:
+  "Open with > Other…" opened VeltOS' window and Firefox opened the file
+  with the app chosen (VeltOS Archive). Hidden handlers that ask for it
+  (`X-VeltOS-OpenWith`) are listed.
+- VeltOS AI (94): Qwen3.5 2B UD-Q5_K_XL (1.47 GB, Apache 2.0; SHA-256
+  checked after the download) is the default; llama-server runs with
+  `--jinja`, thinking off; the local model gets the actions; many new
+  actions (run_command with administrator through pkexec); short commands
+  are recognised directly (intents.py). Builder, real model and llama.cpp
+  b11456: 23 of 26 requests chose the right action by themselves (1.2 s
+  each); the recognised commands cover the misses. Dev VM: "Switch to dark
+  mode" → Allow → dark mode (placeholder model file).
+- Location (95): GeoClue refused Maps (no agent in Plasma, `system=false`);
+  now `system=true`, then VeltOS asks beaconDB itself (Wi-Fi from nmcli,
+  then the internet address, "approximate"). The address fallback answered
+  from the developer host; a Wi-Fi fix on real hardware is untested.
+- Keyboard Lighting (96): new package veltos-lighting (sysfs LEDs, ASUS,
+  System76, multicolour; pkexec helper allowed for the active user) and
+  Settings > Personalization > Keyboard lighting. Made-up sysfs in tests;
+  the VM has no keyboard light.
+- Performance (97): the live VM is quiet when idle (99.7 % idle,
+  plasmashell 0.2 %); the taskbar preview KWin script read every window on
+  each pointer move on KWin's thread, now only near the taskbar. The VM
+  renders with llvmpipe, so GPU stutter on the owner's laptop could not be
+  measured here.
+- First start (98): veltos-first-update.service (Type=exec, waits for the
+  network itself, once, never live) and the "Getting everything ready"
+  screen. Dev VM: the screen with a made-up status file (download 38 %,
+  then "You're ready to go", closed by itself); the program itself ran
+  apt-get update for real (nothing to upgrade on today's image).
+- Wine (99) and Bottles (100): not done. Running downloaded Windows
+  installers in the dev VM was refused by the agent's safety check, so no
+  new program was tried; Bottles is not in Debian 13 (Flathub only), which
+  the rule on package sources does not allow without the product owner.
+- ISO limit (101): build-iso.sh fails an ISO of 2 GiB or more.
+
 ## 2026-10-27 — Release steps: website, READMEs, SEO, release
 
 The product owner's final list (status F10-F15, the same as F3-F9 in

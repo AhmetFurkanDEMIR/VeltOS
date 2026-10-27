@@ -18,6 +18,14 @@ override_dh_auto_install:
 		debian/veltos-store/usr/share/applications/veltos-package-installer.desktop
 	install -D -m 644 data/veltos-store.svg \
 		debian/veltos-store/usr/share/icons/hicolor/scalable/apps/veltos-store.svg
+	install -D -m 755 bin/first-update debian/veltos-store/usr/libexec/veltos/first-update
+	install -D -m 644 data/veltos-first-start.desktop \
+		debian/veltos-store/etc/xdg/autostart/veltos-first-start.desktop
+
+# Enabled for the first start of an installed system; never started while
+# the package is installed (the image build, updates).
+override_dh_installsystemd:
+	dh_installsystemd --name=veltos-first-update --no-start
 
 override_dh_auto_test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

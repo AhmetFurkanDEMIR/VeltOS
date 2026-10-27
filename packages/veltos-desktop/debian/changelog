@@ -1,3 +1,11 @@
+veltos-desktop (1.1.0~dev1) trixie; urgency=medium
+
+  * Firefox's "Open with" > "Other…" opens File Explorer's window.
+  * .deb files open in VeltOS Store's App Installer.
+  * Taskbar previews look at windows only near the taskbar (KWin's thread).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Tue, 27 Oct 2026 20:00:00 +0000
+
 veltos-desktop (1.0.0) trixie; urgency=medium
 
   * VeltOS 1.0: the first public release.

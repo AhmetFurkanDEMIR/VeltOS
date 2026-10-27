@@ -1443,6 +1443,53 @@ were measured (below).
 - Trade-off: real-hardware testing so far is one laptop plus virtual
   machines; `docs/dev/status.md` says what was tested where.
 
+### 2.49 NVIDIA's driver with kernel modesetting (2026-10-27)
+
+- Decision: veltos-graphics turns `nvidia-drm modeset=1` on for Debian's
+  module names (`/usr/lib/modprobe.d/veltos-nvidia.conf`) and installs the
+  newest kernel and the running kernel's headers with the driver.
+- Why: KWin (Wayland) drives screens only through KMS; Debian's 550 modules
+  default to modeset=0, and the owner's monitors vanished with the driver.
+- Alternatives: a kernel parameter in GRUB (changes boot configuration for
+  every start, also without the driver); `fbdev=1` too (left out: 550's
+  fbdev support is experimental).
+- Trade-off: untested on NVIDIA hardware; the driver log shows the state.
+
+### 2.50 VeltOS AI acts with the local model (2026-10-27)
+
+- Decision: Qwen3.5 2B (1.47 GB, Apache 2.0) as the default local model with
+  every action; short commands recognised by VeltOS itself; a
+  `run_command` action for what no other action does, shown in full and run
+  only after "Allow" (with administrator: pkexec, VeltOS' password prompt).
+- Why: the product owner wants the assistant to reach the whole system;
+  the 2B model alone picked the wrong action for 3 of 26 test requests.
+- Alternatives: no shell at all (the 1.0 rule: a fixed list only); a
+  bigger model (4B, ~2.5 GB: slower on laptops, over the 1.5 GB asked).
+- Trade-off: a shell command can do anything the user allows; the panel
+  shows it exactly and nothing runs without "Allow".
+
+### 2.51 First start updates in the background (2026-10-27)
+
+- Decision: veltos-first-update.service (Type=exec, not ordered after
+  network-online.target) runs apt-get update and full-upgrade once on a new
+  installation; a full-screen "Getting everything ready" window shows it,
+  with "Continue in the background" after 20 s.
+- Why: the owner asked for an up-to-date system after installation, shown
+  the way Windows 11 shows its first start.
+- Alternatives: PackageKit (needs a session and an agent); unattended-
+  upgrades (no visible progress, security updates only).
+- Trade-off: the first sign-in waits for the updates unless the user goes
+  on; updates of 1.0 systems mark the step as done (postinst).
+
+### 2.52 Location after GeoClue (2026-10-27)
+
+- Decision: Maps is a GeoClue system component (no agent in Plasma) and
+  asks beaconDB itself after GeoClue, with Wi-Fi networks and then the
+  internet address ("approximate").
+- Alternatives: Google's or Apple's location services (need a key or are
+  not public APIs); a GeoClue agent for Plasma (none exists in Debian).
+- Trade-off: beaconDB knows fewer networks than Microsoft's service.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

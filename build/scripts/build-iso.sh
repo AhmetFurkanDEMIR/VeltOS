@@ -66,6 +66,17 @@ if [ "$status" -ne 0 ]; then
 fi
 
 iso="$(ls ./*.iso)"
+# Every ISO is published as a GitHub release file, which must stay under
+# 2 GiB (docs.github.com, "About releases"; product owner, 2026-10-27:
+# "the ISO must always stay under 2 GB"). A larger one fails the build.
+ISO_LIMIT=2147483648
+iso_size="$(stat -c %s "$iso")"
+if [ "$iso_size" -ge "$ISO_LIMIT" ]; then
+    echo "error: $(basename "$iso") is $iso_size bytes; a GitHub release file must stay under $ISO_LIMIT" >&2
+    cp "$iso" "$RESULT_DIR/" 2>/dev/null || true
+    exit 3
+fi
+echo "==> ISO size: $iso_size bytes ($(( (ISO_LIMIT - iso_size) / 1048576 )) MiB under the 2 GiB limit)"
 cp "$iso" "$RESULT_DIR/"
 cp ./*.packages "$RESULT_DIR/" 2>/dev/null || true
 cp ./*.contents "$RESULT_DIR/" 2>/dev/null || true

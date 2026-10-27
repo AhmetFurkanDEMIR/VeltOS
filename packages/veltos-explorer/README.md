@@ -168,6 +168,19 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
 - **Delete File** (`--delete-permanently PATH...`): Windows 11's question
   for the desktop's Shift+Delete (the empty-bin window's QML).
 
+## Open with (2026-10-27)
+
+"Select an app to open this file" lists the apps for the type (also those
+hidden from Start that say `X-VeltOS-OpenWith=true`, such as App Installer
+for `.deb`), More apps, and **Choose an app on your PC**: any program file
+(through the Windows 11 file dialog) gets a hidden launcher
+(`~/.local/share/applications/veltos-chosen-*.desktop`) and stays in the
+list for its types. `--open-with --choose [--type MIME] [--choices A,B]`
+only answers with the chosen app's desktop file name: Firefox's "Open
+with > Other…" (veltos-desktop's Firefox autoconfig replaces GTK's
+chooser) and the desktop portal's AppChooser (`portal.py`,
+`kde-portals.conf`) use it. Checked in the dev VM with Firefox ESR 153.
+
 ## How it works
 
 - `files.py`: listing, sorting, names ("New folder (2)", "a - Copy.txt"),

@@ -1,3 +1,11 @@
+veltos-ai (1.1.0~dev1) trixie; urgency=medium
+
+  * Qwen3.5 2B (1.5 GB, Turkish and English) is the default local model, with actions.
+  * Many new actions; administrator ones through VeltOS' password prompt.
+  * Short Turkish and English commands are recognised directly.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Tue, 27 Oct 2026 20:00:00 +0000
+
 veltos-ai (1.0.0) trixie; urgency=medium
 
   * VeltOS 1.0: the first public release.

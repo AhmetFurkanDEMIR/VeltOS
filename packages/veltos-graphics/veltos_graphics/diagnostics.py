@@ -9,6 +9,7 @@ need them (`journalctl -k`) and are added on request."""
 import datetime
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -112,7 +113,10 @@ def report(runner=run):
         connectors.append(f"{status.parent.name}: {read(status).strip()}")
     out.extend(connectors or ["(none)"])
     out.append(heading("DKMS"))
-    out.append(runner(["dkms", "status"]) or "(no DKMS modules)")
+    if shutil.which("dkms") or runner is not run:
+        out.append(runner(["dkms", "status"]) or "(no DKMS modules)")
+    else:
+        out.append("(DKMS is not installed: no driver is built by it)")
     for path in dkms_logs():
         out.append(heading(f"DKMS build log {path}"))
         out.append(read(path, 20000))
