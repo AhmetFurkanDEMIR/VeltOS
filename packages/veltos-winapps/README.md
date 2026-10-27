@@ -76,8 +76,15 @@ verify hook checks both); only debuggers lose Wine's symbols, and
   run as the user and can read and change the user's files. The window
   says so while it prepares and starts the program (the product owner
   asked for no question before a program starts, like Windows).
-- Bottles (a second engine was asked for) is not in Debian 13; only Wine
-  from Debian is used.
+- Bottles (added 2026-10-27, `bottles.py`): the installer or Settings
+  records the choice (`/etc/veltos/windows-apps.conf`, the user's
+  `~/.config/veltos/windows-apps.conf` wins). Bottles is not in Debian 13;
+  when chosen it comes from Flathub (the owner's exception, architecture
+  2.53). At sign-in `veltos-run --bottles-setup` (autostart) makes the
+  "VeltOS" bottle once; afterwards a double-click hands the file to
+  Bottles with `gio launch` (`kioclient exec ENTRY FILE` opened "Choose
+  Application" for the entry). Until the bottle exists VeltOS' own window
+  opens the file. With Wine chosen the choose page never appears.
 - Installed Windows programs are listed and uninstalled in VeltOS
   Settings > Apps > Windows programs (`programs.py`, laid out like
   Windows 11's Installed apps); there is no separate manager window.

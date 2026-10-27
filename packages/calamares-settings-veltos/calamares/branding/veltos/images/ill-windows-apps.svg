@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS installer: Windows programs (a program window with a setup file). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DDE5F6"/>
+    </linearGradient>
+    <linearGradient id="key" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5A85FF"/>
+      <stop offset="1" stop-color="#2F4FD6"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="44" width="208" height="150" rx="18" fill="#000000" opacity="0.12" transform="translate(0 6)"/>
+  <rect x="24" y="44" width="208" height="150" rx="18" fill="url(#body)" stroke="#C9D4EC" stroke-width="2"/>
+  <path d="M 25 76 H 231" stroke="#C9D4EC" stroke-width="2"/>
+  <g fill="#2F4FD6" opacity="0.22">
+    <rect x="186" y="56" width="10" height="10" rx="2"/><rect x="202" y="56" width="10" height="10" rx="2"/>
+    <rect x="44" y="96" width="96" height="10" rx="5"/><rect x="44" y="116" width="72" height="10" rx="5"/>
+    <rect x="44" y="136" width="84" height="10" rx="5"/>
+  </g>
+  <rect x="40" y="56" width="10" height="10" rx="5" fill="url(#key)"/>
+  <rect x="146" y="98" width="64" height="76" rx="10" fill="url(#key)"/>
+  <path d="M 162 118 H 194 M 162 132 H 186" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+  <rect x="158" y="146" width="40" height="18" rx="5" fill="#FFFFFF"/>
+  <path d="M 172 150 V 160 M 167 155 L 172 160 L 177 155" fill="none" stroke="#2F4FD6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="44" y="160" width="76" height="20" rx="6" fill="url(#key)"/>
+</svg>

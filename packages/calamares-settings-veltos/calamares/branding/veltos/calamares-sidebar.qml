@@ -37,10 +37,11 @@ Rectangle {
     readonly property string helper: "http://127.0.0.1:47823/website"
 
     // The steps of settings.conf: welcomeq, localeq, keyboardq, partition,
-    // usersq, the installation, finishedq.
+    // usersq, packagechooserq@windowsapps, the installation, finishedq.
     readonly property var steps: [
         ["Welcome", "Hoş geldiniz"], ["Location", "Konum"], ["Keyboard", "Klavye"],
-        ["Disk", "Disk"], ["Account", "Hesap"], ["Install", "Yükleme"], ["Finish", "Bitiş"]
+        ["Disk", "Disk"], ["Account", "Hesap"], ["Windows programs", "Windows programları"],
+        ["Install", "Yükleme"], ["Finish", "Bitiş"]
     ]
     // The installer's language (Calamares sets Qt's default locale when the
     // language is chosen on the first page; nothing announces it here).

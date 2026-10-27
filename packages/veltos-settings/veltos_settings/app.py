@@ -248,6 +248,8 @@ class Backend(QObject):
         self._storage = None
         self._windows_apps = None
         self._start_page = start_page
+        self._bottles_installing = False
+        self._bottles_failed = False
         self.system = system or system_tools(lang=self.lang)
         self.jobs = Jobs(threaded)
         # Light/dark, theme and accent changes run one after another: side by
@@ -341,6 +343,68 @@ class Backend(QObject):
                 return
             self._windows_apps = [dict(app, icon=icons.get(app.get("exe"), "") or app.get("icon", ""))
                                   for app in self._windows_apps]
+            self.changed.emit()
+        self.jobs.submit(work, done)
+
+    # --- How Windows programs open: VeltOS' Wine or Bottles (veltos_winapps.bottles) ----
+
+    @Property("QVariantMap", notify=changed)
+    def windowsRunner(self):
+        """{"runner": "wine"|"bottles", "bottles": installed, "installing": bool,
+        "failed": bool, "flatpak": available}."""
+        try:
+            from veltos_winapps import bottles
+        except ImportError:
+            return {"runner": "wine", "bottles": False, "installing": False, "failed": False, "flatpak": False}
+        import shutil
+        return {"runner": bottles.preference() or "wine", "bottles": bottles.installed(),
+                "installing": self._bottles_installing, "failed": self._bottles_failed,
+                "flatpak": shutil.which("flatpak") is not None}
+
+    @Slot(str)
+    def setWindowsRunner(self, runner):
+        try:
+            from veltos_winapps import bottles
+        except ImportError:
+            return
+        bottles.set_preference(runner)
+        self.changed.emit()
+        if runner == "bottles" and not bottles.installed():
+            self.installBottles()
+
+    @Slot()
+    def installBottles(self):
+        """Bottles from Flathub for this user (flatpak --user: no administrator
+        rights), then its VeltOS bottle; the product owner allowed Flathub for
+        Bottles (2026-10-27)."""
+        try:
+            from veltos_winapps import bottles
+        except ImportError:
+            return
+        if self._bottles_installing:
+            return
+        self._bottles_installing, self._bottles_failed = True, False
+        self.changed.emit()
+
+        def work():
+            import subprocess
+            for command in bottles.install_commands("--user"):
+                try:
+                    result = subprocess.run(command, stdin=subprocess.DEVNULL, capture_output=True, timeout=3 * 3600)
+                except (OSError, subprocess.SubprocessError):
+                    return False
+                if result.returncode != 0:
+                    return False
+            # The VeltOS bottle comes with the next sign-in's set-up, or now.
+            try:
+                subprocess.Popen(["veltos-run", "--bottles-setup"], start_new_session=True,
+                                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except OSError:
+                pass            # the next sign-in prepares the bottle
+            return True
+
+        def done(ok):
+            self._bottles_installing, self._bottles_failed = False, not ok
             self.changed.emit()
         self.jobs.submit(work, done)
 

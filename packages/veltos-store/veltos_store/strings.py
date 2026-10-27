@@ -80,6 +80,7 @@ TEXTS = {
     "fs_lists": ("Checking for updates…", "Güncelleştirmeler denetleniyor…"),
     "fs_download": ("Downloading updates · {percent}%", "Güncelleştirmeler indiriliyor · %{percent}"),
     "fs_install": ("Installing updates · {percent}%", "Güncelleştirmeler yükleniyor · %{percent}"),
+    "fs_bottles": ("Installing Bottles for Windows programs…", "Windows programları için Bottles yükleniyor…"),
     "fs_ready": ("You're ready to go", "Başlayabiliriz"),
     "fs_done_sub": ("VeltOS is up to date.", "VeltOS güncel."),
     "fs_offline_sub": ("There was no internet connection. VeltOS Update brings the updates later.",

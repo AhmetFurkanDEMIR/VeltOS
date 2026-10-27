@@ -89,7 +89,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-maps/` | VeltOS Maps: Google Maps in one VeltOS window (Windows 11 floating controls, InfoBars, offline page, the app's language) without a Maps Platform API key; optional location through GeoClue (off by default; Maps or Settings > Privacy & security > Location) and Windows 11's default location (`~/.config/veltos/location.json`) |
 | `packages/veltos-ai/` | VeltOS AI: assistant pane on the right edge like Windows 11's Copilot (layer shell, Windows + C) with ChatGPT / Claude / Gemini / Azure OpenAI ("Copilot") on the user's own key (`providers.py`, plain HTTPS); actions on the system from a fixed list, each change after "Allow" (`tools.py`, VeltOS Settings' helpers); a free local model (`local.py`: Gemma 3 270M by default, more GGUF models from Hugging Face, downloaded with a progress screen and checked) run by veltos-llama; the pane from the taskbar button and Windows + C, a normal window from Start and search (`--window`) |
 | `packages/veltos-llama/` | llama.cpp's `llama-server` built from a pinned upstream tag (`upstream.json`; llama.cpp is not in Debian 13), every x86-64 CPU variant loaded at run time, at `/usr/libexec/veltos/llama-server`, for VeltOS AI's local model |
-| `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window; `programs.py` reads installed Windows programs from Wine's registry files (Settings' Windows programs page) and removes what Wine leaves after an uninstall (`forget_removed`) |
+| `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window; `programs.py` reads installed Windows programs from Wine's registry files (Settings' Windows programs page) and removes what Wine leaves after an uninstall (`forget_removed`); `bottles.py`: Bottles from Flathub when the installer or Settings chose it (the VeltOS bottle, hand-off) |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
 | `tests/boot/vmtest.py` | QEMU/KVM boot test with screenshots, checks and measurements (`build/run.sh test`) |
@@ -1256,3 +1256,18 @@ and JavaScript with no build step, no external requests and no cookies:
   (F1, F6) need `vm do "reset sleep:0.4 key:f1 ..."` (QMP `system_reset`,
   2026-10-27). `nmcli networking off` in the live session tests an offline
   installation.
+- Bottles (Flathub, 2026-10-27): `kioclient exec ENTRY.desktop FILE`
+  opens KDE's "Choose Application" for the entry itself; `gio launch
+  ENTRY.desktop FILE` starts the entry with the file (Bottles gets it
+  through the document portal, `/run/user/UID/doc/...`). Bottles handed a
+  file before any bottle exists stays running without a window ("No such
+  file or directory: .../data/bottles/bottles" in the user journal).
+  `bottles-cli new` downloads more than 1.5 GB: in a live VM grow the
+  memory-backed overlay first (`mount -o remount,size=6800M
+  /run/live/overlay`) and still expect it to fill up; test in an
+  installed system. `kioclient exec FILE` from `vm exec-user` lacks the
+  session's menu prefix and asks "Choose Application" too: start it with
+  `systemd-run --machine=velt@.host --user`.
+- Package tests run on the Windows host write to the real home folder:
+  Python's `Path.home()` reads USERPROFILE there, not HOME. Tests that
+  patch HOME also patch USERPROFILE (veltos-winapps `test_bottles.py`).

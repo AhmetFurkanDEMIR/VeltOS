@@ -88,6 +88,48 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(json.loads(self.status.read_text())["state"], "failed")
         self.assertTrue(self.done.exists())         # only once, as asked: VeltOS Update tries again
 
+    def test_bottles_when_chosen(self):
+        folder = self.status.parent.parent
+        conf, attempts, desktop = folder / "windows-apps.conf", folder / "attempts", folder / "bottles.desktop"
+        conf.write_text("[Windows programs]\nrunner=bottles\n")
+        apt = FakeApt()
+        flatpak = []
+
+        def run(command, **kwargs):
+            if command[0] == "flatpak":
+                flatpak.append(command)
+                code = 0 if len(flatpak) > 2 else (0 if command[1] == "remote-add" else 1)
+                if command[1] == "install" and code == 0:
+                    desktop.write_text("[Desktop Entry]\n")
+                return subprocess.CompletedProcess(command, code, "", "")
+            return apt.run(command, **kwargs)
+        # Offline: no done file, the next start tries again.
+        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: False, conf, attempts, desktop)
+        self.assertFalse(self.done.exists())
+        self.assertEqual(attempts.read_text().strip(), "1")
+        # Online, Flathub fails: still waiting.
+        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: True, conf, attempts, desktop)
+        self.assertIn(("bottles", 0), self.seen)
+        self.assertEqual(flatpak[1][:3], ["flatpak", "install", "--system"])
+        self.assertFalse(self.done.exists())
+        # Then it works: done.
+        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: True, conf, attempts, desktop)
+        self.assertTrue(desktop.exists())
+        self.assertTrue(self.done.exists())
+        # Wine chosen: no Flatpak at all.
+        flatpak.clear()
+        self.done.unlink()
+        conf.write_text("[Windows programs]\nrunner=wine\n")
+        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: True, conf, attempts, desktop)
+        self.assertEqual(flatpak, [])
+        # Five failed starts: given up, the done file is written.
+        conf.write_text("[Windows programs]\nrunner=bottles\n")
+        desktop.unlink()
+        attempts.write_text("5\n")
+        self.done.unlink()
+        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: False, conf, attempts, desktop)
+        self.assertTrue(self.done.exists())
+
     def test_progress_lines(self):
         self.assertEqual(firstupdate.progress("dlstatus:1:42.5:Retrieving"), ("download", 42.5))
         self.assertEqual(firstupdate.progress("pmstatus:dpkg-exec:0:Running dpkg"), ("install", 0.0))

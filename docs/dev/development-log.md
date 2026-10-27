@@ -3,6 +3,40 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-27 (night) — Items 99 and 100: Wine tests, Wine or Bottles
+
+The owner allowed Flathub for Bottles and running downloaded Windows
+installers in the dev VM.
+
+- Wine (99), dev VM, installers downloaded from the publishers' sites:
+  Notepad++ 8.9.8.1 (NSIS, 64-bit), PuTTY 0.85 (.msi), 7-Zip 26.04
+  (32-bit) installed with Start entries; portable putty.exe opened.
+  Fixed in `veltos-run`: the choose page's information bar lay under the
+  buttons (the window now grows with its content, one height property),
+  and the title broke inside "Notepad++" (word wrap). An .msi's publisher
+  is still "unknown".
+- Bottles (100): installer step "Windows programs" (Calamares
+  `packagechooserq@windowsapps`, VeltOS QML, `windows-apps` job writing
+  `/etc/veltos/windows-apps.conf`); first start installs Bottles from
+  Flathub when chosen (`firstupdate.py`, state "bottles", five tries);
+  `veltos_winapps/bottles.py` makes the "VeltOS" bottle at sign-in and
+  hands files over with `gio launch`; Settings > Apps > Windows programs
+  switches runner (Bottles for the user there).
+- Found in the VM: `kioclient exec ENTRY FILE` opened KDE's "Choose
+  Application" for the entry itself; `gio launch` works (Bottles started
+  with the file through the document portal). Bottles given a file before
+  any bottle exists stays running without a window: VeltOS opens the file
+  itself until the bottle is made. `bottles-cli new` downloads its
+  Windows environment (more than 1.5 GB) and filled the live VM's
+  memory-backed disk, so the bottle and a full installation with Bottles
+  are untested.
+- Seen in the live VM: the installer step with both choices; the choose
+  page fitting its window. Tests: veltos-winapps 35, calamares-settings
+  62, veltos-store 42, veltos-settings 169, all passing in the builder.
+  One test wrote into the Windows host's home (`Path.home()` reads
+  USERPROFILE there); the test now sets it, and the stray folder was
+  removed.
+
 ## 2026-10-27 (evening) — Items 90-101: drivers, Open with, VeltOS AI, first start
 
 The product owner's list after the 1.0 release (status items 90-101).

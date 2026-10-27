@@ -40,8 +40,12 @@ class RunnerWindowTests(unittest.TestCase):
 
     def tearDown(self):
         # Destroy windows before their runner objects, as the real app does.
+        from PySide6.QtCore import QCoreApplication, QEvent
         for runner, engine in reversed(self.keep):
             engine.deleteLater()
+        # Delete the engines now, while their runners still exist: a later
+        # test saw this one's bindings read a dead runner.
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         self.app.processEvents()
         self.keep.clear()
 
@@ -79,6 +83,33 @@ class RunnerWindowTests(unittest.TestCase):
         # Publisher (unknown here) and kind, as in the Windows App Installer.
         self.assertEqual(len(installer.details), 2)
         self.assertTrue(installer.details[1].endswith("64-bit"))
+
+    def test_choose_page_fits(self):
+        """Two alternatives: the window grows so that the information bar
+        stays above Open/Cancel (they overlapped in a 400 px window)."""
+        from unittest import mock
+        from veltos_winapps import app as runner_app
+        alternatives = [{"id": name, "name": name.title(), "icon": "application-x-executable",
+                         "desktop": f"/usr/share/applications/{name}.desktop"} for name in ("bottles", "lutris")]
+        with mock.patch.object(runner_app, "alternative_runners", return_value=alternatives), \
+                mock.patch.object(runner_app.bottles, "preference", return_value=""):
+            runner, engine, warnings = self.load("Notepad++ Installer.exe", minimal_pe())
+        self.assertEqual(runner.page, "choose")
+        window = engine.rootObjects()[0]
+        window.grabWindow()
+        self.assertGreater(window.height(), 400)
+
+        def items(item):
+            for child in item.childItems():
+                yield child
+                yield from items(child)
+        all_items = list(items(window.contentItem()))
+        footer = next(i for i in all_items if i.objectName() == "footer")
+        bar = next(i for i in all_items if i.objectName() == "infoBar")
+        self.assertTrue(bar.isVisible())
+        self.assertLessEqual(bar.mapToScene(bar.boundingRect().bottomLeft()).y(),
+                             footer.mapToScene(footer.boundingRect().topLeft()).y())
+        self.assertEqual(warnings, [])
 
     def test_batch_file_pages(self):
         runner, engine, warnings = self.load("start.cmd", b"@echo off\r\necho hi\r\n")

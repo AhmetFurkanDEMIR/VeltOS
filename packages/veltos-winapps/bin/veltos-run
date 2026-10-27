@@ -11,6 +11,31 @@ os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "org.kde.desktop")
 # 2026-10-19). Compile the QML at start instead.
 os.environ["QML_DISABLE_DISK_CACHE"] = "1"
 
+# Bottles (veltos_winapps/bottles.py), decided without loading Qt:
+#   veltos-run --bottles-setup   at sign-in: prepare the VeltOS bottle once
+#   veltos-run FILE              with Bottles chosen and installed: Bottles
+#                                opens the file (its "Run executable")
+if "--bottles-setup" in sys.argv[1:]:
+    from pathlib import Path
+    from veltos_winapps import bottles
+    state = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state") / "veltos"
+    state.mkdir(parents=True, exist_ok=True)
+    with open(state / "bottles-setup.log", "a", encoding="utf-8") as log:
+        sys.exit(0 if bottles.setup(log=log) else 1)
+if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+    from veltos_winapps import bottles
+    if bottles.preference() == "bottles" and bottles.ready():
+        command = bottles.open_command(os.path.abspath(sys.argv[1]))
+        if command:
+            os.execvp(command[0], command)
+    elif bottles.preference() == "bottles" and bottles.installed():
+        # Bottles is there but its bottle is not made yet (the sign-in set-up
+        # failed or is still running): VeltOS opens this file, the set-up
+        # tries again in the background.
+        import subprocess
+        subprocess.Popen(["veltos-run", "--bottles-setup"], start_new_session=True, stdin=subprocess.DEVNULL,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 from veltos_winapps.app import main
 
 sys.exit(main())

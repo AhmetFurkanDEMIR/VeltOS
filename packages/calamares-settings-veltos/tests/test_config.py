@@ -45,9 +45,14 @@ class ConfigTests(unittest.TestCase):
                 self.assertIsInstance(load(path), dict)
 
     def test_sequence_modules_exist(self):
+        instances = {f"{i['module']}@{i['id']}": i for i in self.settings.get("instances", [])}
         for step in self.settings["sequence"]:
             for module in next(iter(step.values())):
                 with self.subTest(module=module):
+                    if "@" in module:
+                        self.assertIn(module, instances)
+                        self.assertTrue((CALAMARES / "modules" / instances[module]["config"]).is_file())
+                        module = module.split("@")[0]
                     self.assertTrue(module in BUILTIN_MODULES or module in self.custom,
                                     f"unknown module {module}")
 
@@ -80,6 +85,9 @@ class ConfigTests(unittest.TestCase):
         for name, desc in self.custom.items():
             with self.subTest(module=name):
                 self.assertEqual(desc["name"], name)
+                if desc.get("interface") == "python":
+                    self.assertTrue((PKG / "modules" / name / desc["script"]).is_file())
+                    continue
                 script = desc["command"].split()[0]
                 self.assertTrue(script.startswith("/usr/libexec/veltos-installer/"))
                 self.assertTrue((PKG / "helpers" / Path(script).name).is_file())
@@ -88,16 +96,19 @@ class ConfigTests(unittest.TestCase):
         # Every page except partitioning (a C++ page, styled by the QSS) is a
         # Calamares QML module whose QML comes from the VeltOS branding.
         shown = [m for step in self.settings["sequence"] for m in step.get("show", [])]
-        self.assertEqual(shown, ["welcomeq", "localeq", "keyboardq", "partition", "usersq", "finishedq"])
+        self.assertEqual(shown, ["welcomeq", "localeq", "keyboardq", "partition", "usersq",
+                                 "packagechooserq@windowsapps", "finishedq"])
         executed = [m for step in self.settings["sequence"] for m in step.get("exec", [])]
         for name in ("localeq", "keyboardq", "usersq"):
             self.assertIn(name, executed)
         for name in ("locale", "keyboard", "users", "welcome", "finished"):
             self.assertNotIn(name, shown + executed)
             self.assertFalse((CALAMARES / "modules" / f"{name}.conf").exists(), name)
-        for name in [m for m in shown if m.endswith("q")]:
-            with self.subTest(page=name):
-                conf = load(CALAMARES / "modules" / f"{name}.conf")
+        conf_names = {f"{i['module']}@{i['id']}": i["config"] for i in self.settings.get("instances", [])}
+        for page in [m for m in shown if m.split("@")[0].endswith("q")]:
+            name = page.split("@")[0]
+            with self.subTest(page=page):
+                conf = load(CALAMARES / "modules" / conf_names.get(page, f"{name}.conf"))
                 self.assertEqual(conf["qmlSearch"], "both")
                 self.assertTrue((CALAMARES / "branding/veltos" / f"{name}.qml").is_file())
 
@@ -110,6 +121,38 @@ class ConfigTests(unittest.TestCase):
             for name in re.findall(r'picture: "([A-Za-z0-9_.-]+\.svg)"', path.read_text(encoding="utf-8")):
                 with self.subTest(qml=path.name, picture=name):
                     self.assertTrue((branding / "images" / name).is_file())
+
+    def test_windows_programs_choice(self):
+        """Wine or Bottles (product owner, 2026-10-27): the page offers both,
+        the job writes the choice to the new system after usersq."""
+        import importlib.util
+        import sys
+        import tempfile
+        import types
+        conf = load(CALAMARES / "modules/packagechooserq-windowsapps.conf")
+        self.assertEqual([i["id"] for i in conf["items"]], ["wine", "bottles"])
+        self.assertEqual((conf["method"], conf["default"]), ("legacy", "wine"))
+        qml = (CALAMARES / "branding/veltos/packagechooserq.qml").read_text(encoding="utf-8")
+        self.assertIn('config.packageChoice = choice', qml)
+        self.assertIn('value: "bottles"', qml)
+        executed = [m for step in self.settings["sequence"] for m in step.get("exec", [])]
+        self.assertLess(executed.index("usersq"), executed.index("windows-apps"))
+        root = tempfile.mkdtemp()
+        values = {"rootMountPoint": root}
+        fake = types.SimpleNamespace(globalstorage=types.SimpleNamespace(value=values.get),
+                                     utils=types.SimpleNamespace(debug=lambda *a: None))
+        sys.modules["libcalamares"] = fake
+        try:
+            spec = importlib.util.spec_from_file_location("windows_apps", PKG / "modules/windows-apps/main.py")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            for choice, runner in ((None, "wine"), ("bottles", "bottles"), ("wine", "wine"), ("odd", "wine")):
+                values["packagechooser_windowsapps"] = choice
+                self.assertIsNone(module.run())
+                text = (Path(root) / "etc/veltos/windows-apps.conf").read_text()
+                self.assertIn(f"runner={runner}\n", text)
+        finally:
+            del sys.modules["libcalamares"]
 
     def test_install_screen_like_windows_setup(self):
         # While installing: slideshow and progress only, no buttons.
@@ -160,7 +203,8 @@ class ConfigTests(unittest.TestCase):
         # translated there), in the order of the sequence: each page, and
         # the installation as one step.
         names = {"welcomeq": "Welcome", "localeq": "Location", "keyboardq": "Keyboard",
-                 "partition": "Disk", "usersq": "Account", "finishedq": "Finish"}
+                 "partition": "Disk", "usersq": "Account", "packagechooserq@windowsapps": "Windows programs",
+                 "finishedq": "Finish"}
         expected = []
         for step in self.settings["sequence"]:
             if "show" in step:

@@ -17,12 +17,18 @@ import org.kde.kirigami as Kirigami
 ApplicationWindow {
     id: window
 
+    // A fixed size, but tall enough for the page's content: the choose page
+    // with two alternatives put the information bar under the buttons
+    // (VM 2026-10-27). All heights follow one property (a height bound to
+    // its own minimum/maximum loops).
+    readonly property int fittingHeight: Math.max(400, Math.ceil(28 + header.implicitHeight + 20
+        + content.implicitHeight + 12 + footer.implicitHeight + 24))
     width: 600
-    height: 400
-    minimumWidth: width
-    minimumHeight: height
-    maximumWidth: width
-    maximumHeight: height
+    height: fittingHeight
+    minimumWidth: 600
+    minimumHeight: fittingHeight
+    maximumWidth: 600
+    maximumHeight: fittingHeight
     visible: true
     title: runner.tr("window_title")
     color: Theme.window
@@ -64,7 +70,8 @@ ApplicationWindow {
                 color: Theme.text
                 font.pixelSize: Theme.titleSize
                 font.weight: Font.DemiBold
-                wrapMode: Text.Wrap
+                // Between words: "Notepad++" broke as "Notepad+" / "+?".
+                wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
             }
@@ -104,6 +111,7 @@ ApplicationWindow {
 
     // What happens: explanation, result, programs the installer added.
     ColumnLayout {
+        id: content
         anchors.top: header.bottom
         anchors.left: parent.left
         anchors.right: parent.right
@@ -252,6 +260,7 @@ ApplicationWindow {
 
         // Information bar (Windows 11 InfoBar): Wine is not a sandbox.
         Rectangle {
+            objectName: "infoBar"
             Layout.fillWidth: true
             visible: window.page === "preparing" || window.page === "running" || window.page === "choose"
             implicitHeight: note.implicitHeight + 24
@@ -292,6 +301,7 @@ ApplicationWindow {
     // Footer: progress while busy; option on the left, buttons on the right.
     ColumnLayout {
         id: footer
+        objectName: "footer"
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom

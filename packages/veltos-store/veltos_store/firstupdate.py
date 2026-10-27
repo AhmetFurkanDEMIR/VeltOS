@@ -10,8 +10,14 @@ later) and never in the live system. It waits for the network itself
 so the sign-in screen is not held up. Progress goes to STATUS as JSON for
 the window (firststart.py):
 
-    {"state": "network" | "lists" | "download" | "install" | "done" | "offline" | "failed",
+    {"state": "network" | "lists" | "download" | "install" | "bottles" | "done" | "offline" | "failed",
      "percent": 0-100, "packages": N}
+
+When the installer's choice for Windows programs was Bottles
+(/etc/veltos/windows-apps.conf, runner=bottles), Bottles is installed from
+Flathub after the updates (state "bottles"; the same commands as
+veltos-winapps' bottles.py). Without internet or after a failure the done
+file waits, so the next start tries again, up to BOTTLES_ATTEMPTS times.
 
 apt's own progress comes from APT::Status-Fd ("dlstatus:" and "pmstatus:"
 lines); the download is the first half of the bar, the installation the
@@ -29,6 +35,15 @@ from pathlib import Path
 STATUS = Path("/run/veltos/first-update.json")
 DONE = Path("/var/lib/veltos/first-update-done")
 LOG = Path("/var/log/veltos-first-update.log")
+WINDOWS_CONF = Path("/etc/veltos/windows-apps.conf")
+BOTTLES_ATTEMPTS_FILE = Path("/var/lib/veltos/bottles-attempts")
+BOTTLES_ATTEMPTS = 5
+BOTTLES_DESKTOP = Path("/var/lib/flatpak/exports/share/applications/com.usebottles.bottles.desktop")
+BOTTLES_COMMANDS = [
+    ["flatpak", "remote-add", "--system", "--if-not-exists", "flathub",
+     "https://dl.flathub.org/repo/flathub.flatpakrepo"],
+    ["flatpak", "install", "--system", "-y", "--noninteractive", "flathub", "com.usebottles.bottles"],
+]
 SHOW_AFTER_DONE = 30 * 60        # a sign-in this soon after the update still says "ready"
 APT_OPTIONS = ["-o", "APT::Status-Fd=1", "-o", "DPkg::Lock::Timeout=600", "-o", "Dpkg::Options::=--force-confdef",
                "-o", "Dpkg::Options::=--force-confold"]
@@ -103,19 +118,75 @@ def upgradable(runner=subprocess.run):
     return len(re.findall(r"^Inst ", out, re.M))
 
 
-def main(status=STATUS, done=DONE, log_path=LOG, runner=subprocess.run, popen=subprocess.Popen, wait=online):
+def wants_bottles(conf=WINDOWS_CONF):
+    try:
+        text = Path(conf).read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return any(line.strip().replace(" ", "") == "runner=bottles" for line in text.splitlines())
+
+
+def install_bottles(runner=subprocess.run, log=None):
+    """Bottles from Flathub, system-wide; True when it is there."""
+    for command in BOTTLES_COMMANDS:
+        try:
+            result = runner(command, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=3 * 3600)
+        except (OSError, subprocess.SubprocessError) as error:
+            if log:
+                log.write(f"{command[0]}: {error}\n")
+            return False
+        if log:
+            log.write(" ".join(command) + "\n" + (result.stdout or "")[-3000:] + (result.stderr or "")[-3000:])
+        if result.returncode != 0:
+            return False
+    return True
+
+
+def bottles_pending(attempts_file=BOTTLES_ATTEMPTS_FILE, conf=WINDOWS_CONF, desktop=BOTTLES_DESKTOP):
+    """Bottles chosen, not installed and not given up yet: the done file waits."""
+    if not wants_bottles(conf) or Path(desktop).exists():
+        return False
+    try:
+        attempts = int(Path(attempts_file).read_text().strip() or 0)
+    except (OSError, ValueError):
+        attempts = 0
+    return attempts < BOTTLES_ATTEMPTS
+
+
+def count_attempt(attempts_file=BOTTLES_ATTEMPTS_FILE):
+    try:
+        attempts = int(Path(attempts_file).read_text().strip() or 0)
+    except (OSError, ValueError):
+        attempts = 0
+    try:
+        Path(attempts_file).parent.mkdir(parents=True, exist_ok=True)
+        Path(attempts_file).write_text(f"{attempts + 1}\n")
+    except OSError:
+        pass
+
+
+def main(status=STATUS, done=DONE, log_path=LOG, runner=subprocess.run, popen=subprocess.Popen, wait=online,
+         conf=WINDOWS_CONF, attempts_file=BOTTLES_ATTEMPTS_FILE, bottles_desktop=BOTTLES_DESKTOP):
     try:
         log = open(log_path, "a", encoding="utf-8")
     except OSError:
         log = None
 
     def finish(state, code):
+        if state == "done" and wants_bottles(conf) and not Path(bottles_desktop).exists():
+            write_status("bottles", 0, status)
+            if not install_bottles(runner, log):
+                count_attempt(attempts_file)
         write_status(state, 100 if state == "done" else 0, status)
-        try:
-            done.parent.mkdir(parents=True, exist_ok=True)
-            done.write_text(time.strftime("%Y-%m-%d %H:%M:%S ") + state + "\n", encoding="utf-8")
-        except OSError:
-            pass
+        if bottles_pending(attempts_file, conf, bottles_desktop):
+            if log:
+                log.write("== Bottles not installed yet: the next start tries again\n")
+        else:
+            try:
+                done.parent.mkdir(parents=True, exist_ok=True)
+                done.write_text(time.strftime("%Y-%m-%d %H:%M:%S ") + state + "\n", encoding="utf-8")
+            except OSError:
+                pass
         if log:
             log.write(f"== {state}\n")
             log.close()
@@ -123,6 +194,8 @@ def main(status=STATUS, done=DONE, log_path=LOG, runner=subprocess.run, popen=su
 
     write_status("network", 0, status)
     if not wait(runner):
+        if wants_bottles(conf):
+            count_attempt(attempts_file)
         return finish("offline", 0)
     write_status("lists", 0, status)
     if run_apt(["update"], lambda line: None, popen, log) != 0:

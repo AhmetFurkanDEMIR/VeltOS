@@ -37,6 +37,36 @@ ColumnLayout {
         wrapMode: Text.WordWrap
     }
 
+    // How Windows programs open (the installer asked; product owner,
+    // 2026-10-27): VeltOS' own Wine environment or Bottles from Flathub.
+    SettingRow {
+        objectName: "windowsRunner"
+        Layout.fillWidth: true
+        icon: "application-x-executable-symbolic"
+        title: backend.text("windows_runner")
+        description: {
+            const r = backend.windowsRunner;
+            if (r.installing)
+                return backend.text("bottles_installing");
+            if (r.failed)
+                return backend.text("bottles_failed");
+            if (r.runner === "bottles" && !r.bottles)
+                return backend.text("bottles_missing");
+            return backend.text(r.runner === "bottles" ? "windows_runner_bottles_desc" : "windows_runner_desc");
+        }
+        VComboBox {
+            Layout.preferredWidth: 260
+            accessibleName: backend.text("windows_runner")
+            enabled: !backend.windowsRunner.installing
+            options: [
+                { label: backend.text("windows_runner_wine"), value: "wine" },
+                { label: backend.text("windows_runner_bottles_option"), value: "bottles" }
+            ]
+            currentValue: backend.windowsRunner.runner
+            onActivated: value => backend.setWindowsRunner(value)
+        }
+    }
+
     Card {
         Layout.fillWidth: true
         visible: backend.windowsApps.length === 0

@@ -2,8 +2,8 @@
 Type=Application
 Name=App Installer
 Name[tr]=Uygulama Yükleyicisi
-Comment=Install a Debian package (.deb)
-Comment[tr]=Bir Debian paketi (.deb) yükleyin
+Comment=Install an app package (.deb)
+Comment[tr]=Bir uygulama paketi (.deb) yükleyin
 Exec=veltos-store --install-file %f
 Icon=veltos-store
 NoDisplay=true

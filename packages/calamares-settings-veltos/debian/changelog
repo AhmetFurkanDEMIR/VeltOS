@@ -1,3 +1,10 @@
+calamares-settings-veltos (1.1.0~dev1) trixie; urgency=medium
+
+  * Windows programs step: VeltOS (Wine) or Bottles from Flathub
+    (packagechooserq instance, windows-apps job).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Tue, 27 Oct 2026 22:00:00 +0000
+
 calamares-settings-veltos (1.0.0) trixie; urgency=medium
 
   * VeltOS 1.0: the first public release.

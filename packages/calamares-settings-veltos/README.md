@@ -65,6 +65,11 @@ helper scripts are derived, ISC licence).
   - **Account** (`usersq`): name, account name and PC name (suggested from
     the name), password twice, automatic sign-in as a toggle switch. Any
     non-empty password is accepted, as on Windows.
+  - **Windows programs** (`packagechooserq@windowsapps`,
+    `packagechooserq.qml`, added 2026-10-27): "How should Windows programs
+    open?" with VeltOS' own Wine (recommended, default) or Bottles from
+    Flathub (downloaded at the first start). The `windows-apps` job writes
+    the choice to `/etc/veltos/windows-apps.conf` in the target.
   - **Installing**: a slideshow over the VeltOS wallpapers (cross-fading,
     slowly zooming) with current pictures of the system, a Windows 11
     progress ring and "Don't turn off your PC", and a thin progress bar.

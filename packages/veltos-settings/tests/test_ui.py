@@ -138,6 +138,38 @@ class SettingsWindowTests(unittest.TestCase):
         self.assertTrue(self.backend.prefs["powerModeError"])
         self.assertEqual(self.problems(), [])
 
+    def test_windows_programs_open_with_wine_or_bottles(self):
+        # Apps > Windows programs: the installer's choice can be changed;
+        # Bottles is installed for the user from Flathub when missing.
+        import types
+        state = {"runner": "", "installed": False}
+        fake = types.SimpleNamespace(
+            preference=lambda: state["runner"], installed=lambda: state["installed"],
+            set_preference=lambda runner: state.__setitem__("runner", runner) or True,
+            install_commands=lambda scope: [["true"], ["true"]])
+        package = types.ModuleType("veltos_winapps")
+        package.bottles = fake
+        saved = sys.modules.get("veltos_winapps")
+        sys.modules["veltos_winapps"] = package
+        sys.modules["veltos_winapps.bottles"] = fake
+        try:
+            self.show("apps", "windows-apps")
+            self.assertEqual(self.backend.windowsRunner["runner"], "wine")
+            self.assertEqual(len(self.items("windowsRunner")), 1)
+            self.backend.setWindowsRunner("bottles")
+            self.app.processEvents()
+            self.assertEqual(state["runner"], "bottles")
+            self.assertFalse(self.backend.windowsRunner["installing"])   # the stand-in "install" finished
+            self.assertIn("installing", self.backend.windowsRunner)
+            self.window.grabWindow()
+            self.assertEqual(self.problems(), [])
+        finally:
+            del sys.modules["veltos_winapps.bottles"]
+            if saved is None:
+                del sys.modules["veltos_winapps"]
+            else:
+                sys.modules["veltos_winapps"] = saved
+
     def test_veltos_ai_page_saves_a_service_without_showing_keys(self):
         import test_assistant
         from veltos_settings import assistant

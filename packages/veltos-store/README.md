@@ -59,6 +59,10 @@ network (`nm-online`), runs `apt-get update` and `apt-get -y full-upgrade`
 installation 50-100 %) and `/var/lib/veltos/first-update-done` at the end
 (also offline or after a failure: VeltOS Update brings the updates later).
 Systems that update veltos-store from 1.0 are marked done (postinst).
+When the installer's choice for Windows programs was Bottles, the same
+service then installs Bottles from Flathub (`flatpak install --system`,
+state "bottles"); without internet or after a failure the done file waits
+and the next start tries again, five starts at most.
 
 At sign-in `veltos-store --first-start` (autostart; decides without Qt)
 shows the Windows 11 style full-screen "Hi. We're getting everything ready

@@ -23,6 +23,7 @@ Depends: ${python3:Depends},
          binutils-mingw-w64-x86-64,
          dxvk,
          icoutils,
+         libglib2.0-bin,
          kde-cli-tools,
          python3-pefile,
          python3-pil,
@@ -36,7 +37,7 @@ Depends: ${python3:Depends},
          wine,
          xdg-user-dirs,
          ${misc:Depends}
-Recommends: wine32, dxvk-wine32, dxvk-wine64, winetricks
+Recommends: wine32, dxvk-wine32, dxvk-wine64, winetricks, flatpak
 Description: open Windows programs on VeltOS with a double click
  Double-clicking an .exe or .msi file shows its name, publisher and icon
  and asks whether to install or open it. Installers get their own private

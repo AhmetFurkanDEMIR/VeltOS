@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Bottles set-up
+Name[tr]=Bottles kurulumu
+Comment=Prepares the VeltOS bottle when Bottles opens Windows programs (ends at once otherwise)
+Exec=veltos-run --bottles-setup
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2

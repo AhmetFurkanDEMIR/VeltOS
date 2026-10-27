@@ -1490,6 +1490,28 @@ were measured (below).
   not public APIs); a GeoClue agent for Plasma (none exists in Debian).
 - Trade-off: beaconDB knows fewer networks than Microsoft's service.
 
+### 2.53 Bottles from Flathub, only when chosen (2026-10-27)
+
+- Decision: the installer asks how Windows programs open: VeltOS' own
+  Wine (default) or Bottles. Bottles is not in Debian 13, so with Bottles
+  chosen the first start adds the Flathub remote and installs
+  `com.usebottles.bottles` system-wide; Flatpak itself is in the image
+  (Debian package). A "VeltOS" bottle (`--environment application`) is
+  made at sign-in, and `veltos-run` hands `.exe`/`.msi` files to Bottles
+  with `gio launch <Bottles' desktop entry> FILE` once it exists.
+- Why: the product owner asked for the choice and allowed Flathub for
+  Bottles only (2026-10-27): an exception to rule 8, which otherwise
+  allows only signed Debian archives and this repository.
+- Alternatives: packaging Bottles ourselves (it needs its own runners and
+  libraries, which Flathub's runtime brings); preinstalling the Flatpak in
+  the ISO (more than 1 GB, against the 2 GiB limit, and for everybody).
+- Trade-off: Flathub's build is signed by Flathub, not reviewed by Debian
+  or VeltOS; it needs the internet at the first start (retried at five
+  starts at most). Bottles' sandbox has no access to the home folder, so
+  files come through the document portal. Until the bottle exists VeltOS
+  opens the file itself (Bottles handed a file without any bottle stayed
+  running without a window).
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

@@ -229,8 +229,8 @@ Product owner, 2026-10-27 (after the 1.0 release; for the next version):
 96. [x] Keyboard lighting: a new app (and a Settings page) to turn a laptop's keyboard backlight on and off and set its colours. veltos-lighting; made-up sysfs only, no real backlit keyboard tried
 97. [x] Performance: find and fix the stutter without removing anything or lowering quality; fast, light, stable. Idle measured quiet; the taskbar preview script no longer works on every pointer move; GPU stutter on the owner's laptop not measurable in the VM (llvmpipe)
 98. [x] First start after installation: a Windows 11 style animated "Getting everything ready" window runs apt-get update and upgrade, says it is done ("You're ready to go") and closes; only on the first start. Dev VM: screen with a made-up status, update program ran for real; a full first start of a new installation still to see
-99. [ ] Windows programs through Wine: test several programs and fix what fails. Waiting: running downloaded installers (Notepad++, PuTTY .msi, 7-Zip 32-bit, portable putty.exe, in `out/vm/winapps/`) in the dev VM needs the product owner's permission for the agent
-100. [ ] The installer lets the user choose Wine or Bottles for Windows programs; a complete Bottles setup for opening Windows programs. Waiting for the product owner: Bottles is not in Debian 13 (Flathub only), which rule 8 (packages from signed Debian archives) does not allow
+99. [x] Windows programs through Wine: test several programs and fix what fails. Dev VM (owner's permission, 2026-10-27), real downloads from the publishers' sites: Notepad++ 8.9.8.1 (NSIS, 64-bit) installed and opened, Start entry; PuTTY 0.85 (.msi) installed, six Start entries, PuTTY opened from Start; 7-Zip 26.04 (32-bit, through wine32) installed, its shortcuts on the Done page; portable putty.exe opened. Fixed: the choose page's information bar lay under Open/Cancel (the window grows to fit now) and a title broke inside "Notepad++". Open: an .msi's publisher shows as unknown (Wine's msiexec gives none). Games and larger programs not tried
+100. [x] The installer lets the user choose Wine or Bottles for Windows programs; a complete Bottles setup for opening Windows programs. The owner allowed Flathub for Bottles only (2026-10-27): the installer's "Windows programs" step (packagechooserq, `windows-apps` job writes `/etc/veltos/windows-apps.conf`); with Bottles chosen the first start installs it system-wide from Flathub (retried on the next starts, five at most), the sign-in set-up makes a "VeltOS" bottle (`bottles-cli new --environment application`), and a double-click hands `.exe`/`.msi` to Bottles once that bottle exists (until then VeltOS' own window opens it and the set-up tries again); Settings > Apps > Windows programs switches between them (Bottles installed for the user there). Dev VM (live): the installer step and both choices on screen; Bottles installed from Flathub, opened a file through `gio launch`; the fallback window without a bottle. **Not tested:** a full installation with Bottles chosen (the first start's Flathub install and the bottle in an installed system): the live VM's memory-backed disk filled up while `bottles-cli new` downloaded its Windows environment
 101. [x] Every ISO stays under 2 GiB (each one is a GitHub release); a build check stops an ISO that is larger (build-iso.sh, tests/repo)
 
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
@@ -267,9 +267,7 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 - Product owner's requests still open (2026-10-20 list): taskbar transparency/colour/animations closer
   to Windows 11; Windows 11 style for the grey KDE/Qt window
   backgrounds and for inputs, spin boxes and radio buttons in KDE
-  programs; a busy pointer while apps start; a Windows 11 style "Run/Install Windows program" for
-  Bottles — **Bottles is not in Debian 13** (Flathub only), decision
-  pending.
+  programs; a busy pointer while apps start.
 - Settings left out until they have a VeltOS page: VPN and wired network
   details, proxy, firewall, fonts, pointer style, per-app volume, game
   controllers, tablets, on-screen keyboard, spelling. Display arrangement
@@ -343,9 +341,10 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
   no window flags, so the window frame only knows "modal". Modal dialogs
   (message boxes) have only Close, as on Windows.
 - Bottles, Lutris and PlayOnLinux are not in Debian 13 (checked
-  2026-10-21); the runner offers them only when the user installs them.
-  Preinstalling them would need Flatpak/Flathub in the image: the
-  product owner's decision.
+  2026-10-21). Bottles comes from Flathub when the user chooses it (the
+  owner's exception to rule 8, 2026-10-27; architecture 2.53): Flathub's
+  packages are signed by Flathub, not reviewed by Debian or VeltOS.
+  Lutris and PlayOnLinux are offered only when the user installs them.
 - The authentication prompt is not kept above other windows (KWin on
   Wayland has no secure desktop); the prompt's details are polkit's.
 - A busy pointer while a program starts is not possible with KWin on
@@ -381,12 +380,12 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 
 ## Next steps
 
-0. Items 99 and 100 wait for the product owner: permission for the agent
-   to run the downloaded Windows installers in the dev VM
-   (`out/vm/winapps/`), and a decision on Bottles (Flathub only, against
-   rule 8). Then check on real hardware: NVIDIA monitors after the driver
-   (item 90), a backlit keyboard (96), location by Wi-Fi (95), a full
-   first start of a new installation (98).
+0. Items 90-101 are done; the owner tests the 1.1-dev1 ISO by hand.
+   Still to check on real hardware or a full installation: NVIDIA
+   monitors after the driver (item 90), a backlit keyboard (96), location
+   by Wi-Fi (95), a full first start of a new installation (98) and one
+   with Bottles chosen (100: Flathub install, the VeltOS bottle, a
+   double-click opening in Bottles).
 1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
    built (F1, F2, F7); the remaining release steps are F3-F6 (website),
    F8 (contributors) and F9 (publishing the ISO on a GitHub release and the

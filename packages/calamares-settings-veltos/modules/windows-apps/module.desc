@@ -1,0 +1,6 @@
+# VeltOS installer job: how Windows programs open (Wine or Bottles) on the new system
+---
+type:       "job"
+name:       "windows-apps"
+interface:  "python"
+script:     "main.py"

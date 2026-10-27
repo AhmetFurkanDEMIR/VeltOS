@@ -62,6 +62,20 @@ TEXTS = {
     "disk_management": ("Disk Management", "Disk Yönetimi"),
     "disk_management_desc": ("Partitions and formatting", "Bölümler ve biçimlendirme"),
     # Windows programs
+    "windows_runner": ("Open Windows programs with", "Windows programlarını şununla aç"),
+    "windows_runner_desc": ("VeltOS' own Windows environment: a double-click installs or opens the program.",
+                            "VeltOS'un kendi Windows ortamı: çift tıklama programı yükler veya açar."),
+    "windows_runner_bottles_desc": ("Bottles opens .exe and .msi files and asks which bottle to use (VeltOS' first).",
+                                    "Bottles .exe ve .msi dosyalarını açar ve hangi şişenin kullanılacağını sorar "
+                                    "(önce VeltOS'unki)."),
+    "windows_runner_wine": ("VeltOS (Wine)", "VeltOS (Wine)"),
+    "windows_runner_bottles_option": ("Bottles (from Flathub)", "Bottles (Flathub'dan)"),
+    "bottles_installing": ("Installing Bottles from Flathub… This needs the internet and may take a while.",
+                           "Bottles Flathub'dan yükleniyor… İnternet gerekir ve biraz sürebilir."),
+    "bottles_failed": ("Bottles couldn't be installed. Check the internet connection and choose Bottles again.",
+                       "Bottles yüklenemedi. İnternet bağlantısını denetleyip Bottles'ı yeniden seçin."),
+    "bottles_missing": ("Bottles isn't installed yet: until it is, VeltOS opens Windows programs itself.",
+                        "Bottles henüz yüklü değil: yüklenene kadar Windows programlarını VeltOS açar."),
     "windows_apps_intro": ("Programs you installed by opening a Windows .exe or .msi file. "
                            "They run in VeltOS's Windows environment (Wine), which is not a "
                            "security sandbox: install only programs you trust.",

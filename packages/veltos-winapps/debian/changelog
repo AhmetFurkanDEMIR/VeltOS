@@ -1,3 +1,12 @@
+veltos-winapps (1.1.0~dev1) trixie; urgency=medium
+
+  * Bottles from Flathub as the choice for Windows programs (bottles.py):
+    the VeltOS bottle is made at sign-in, a double-click hands the file to
+    Bottles once that bottle exists.
+  * The choose page grows to fit its content; titles break between words.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Tue, 27 Oct 2026 22:00:00 +0000
+
 veltos-winapps (1.0.0) trixie; urgency=medium
 
   * VeltOS 1.0: the first public release.

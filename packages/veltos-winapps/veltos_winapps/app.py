@@ -23,7 +23,7 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import exeinfo, programs, shortcuts
+from . import bottles, exeinfo, programs, shortcuts
 from .strings import Texts
 from .winenv import Environment, alternative_runners, has_hardware_vulkan, live_session
 
@@ -78,8 +78,9 @@ class Runner(QObject):
         self._setup = False
         self._before = {}
         self._new_apps = []
-        # Bottles / Lutris / PlayOnLinux installed: ask which to use first.
-        self._alternatives = alternative_runners() if self.info.valid else []
+        # Bottles / Lutris / PlayOnLinux installed: ask which to use first,
+        # unless Wine was chosen (the installer or Settings, bottles.py).
+        self._alternatives = alternative_runners() if self.info.valid and bottles.preference() != "wine" else []
         self._chosen = "wine"
         self._page = ("choose" if self._alternatives else "running") if self.info.valid else "invalid"
         self._title = self._body = ""
@@ -188,7 +189,9 @@ class Runner(QObject):
             return
         for alternative in self._alternatives:
             if alternative["id"] == runner_id:
-                QProcess.startDetached("kioclient", ["exec", alternative["desktop"], str(self.info.path)])
+                # gio launch: the entry with the file (kioclient exec opened the
+                # entry itself in "Choose Application", VM 2026-10-27).
+                QProcess.startDetached("gio", ["launch", alternative["desktop"], str(self.info.path)])
                 QGuiApplication.instance().quit()
                 return
 
