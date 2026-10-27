@@ -218,6 +218,26 @@ Product owner, 2026-10-27 (evening; step 1 bugs, then step 2 the final image):
 88. [x] Faster start of a new installation: the installer saves the console keymap cache (`console-cache`): the first start spent 2.1 s on it before the sign-in screen; now 3.9 s to the sign-in screen on the first start (QEMU)
 89. [x] Compressed memory (zram, half the RAM at most 8 GB, zstd) like Windows 11: 73 ms at start-up, 9 GB of data allocated in an 8 GB VM
 
+Product owner, 2026-10-27 (after the 1.0 release; for the next version):
+
+90. [ ] Graphics drivers: the install log can be seen by the user; after installing NVIDIA's driver (proprietary or open kernel modules) the monitors stay connected (on the owner's laptop no monitor was seen until the driver was removed)
+91. [ ] Settings > Display: stacked (above/below) screens no longer overflow the arrangement while being dragged and right after the drop (only revisiting the page showed them right)
+92. [ ] Double-clicking a `.deb` installs it in a Windows 11 style window (it could not be installed)
+93. [ ] Firefox's "Open with" for downloads uses File Explorer's "Select an app to open this file" window; both offer "Choose an app on your PC" to pick any program
+94. [ ] VeltOS AI: a better default local model (about 1.5 GB, more parameters, Turkish and English); it understands and carries out requests such as "switch to dark mode" or "turn Wi-Fi off" and can act on the whole system at the user's direction, with VeltOS' password prompt where administrator rights are needed
+95. [ ] Location: turning location on finds the real current position (Windows 11 finds it on the same PC)
+96. [ ] Keyboard lighting: a new app (and a Settings page) to turn a laptop's keyboard backlight on and off and set its colours
+97. [ ] Performance: find and fix the stutter without removing anything or lowering quality; fast, light, stable
+98. [ ] First start after installation: a Windows 11 style animated "Getting everything ready" window runs apt-get update and upgrade, says it is done ("You're ready to go") and closes; only on the first start
+99. [ ] Windows programs through Wine: test several programs and fix what fails
+100. [ ] The installer lets the user choose Wine or Bottles for Windows programs; a complete Bottles setup for opening Windows programs
+101. [ ] Every ISO stays under 2 GiB (each one is a GitHub release); a build check stops an ISO that is larger
+
+Release rule (product owner, 2026-10-27): ISOs are built for the owner's
+manual tests. A new version is released (GitHub release with ISO and
+SHA-256, website download and pictures updated) only when the owner says
+so ("Relase çık"); never on an agent's own initiative.
+
 ## Final release steps (after item 45)
 
 Product owner, 2026-10-25: only after every item above is done, in this

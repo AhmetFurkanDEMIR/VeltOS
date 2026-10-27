@@ -50,6 +50,10 @@ def accent():
     return "#%02x%02x%02x" % tuple(int(p) for p in parts[:3]) if len(parts) >= 3 else ""
 
 
+def dark_mode():
+    return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
+
+
 def detached(command):
     subprocess.Popen(command, start_new_session=True, stdin=subprocess.DEVNULL,
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -434,6 +438,17 @@ def main(argv=None):
         use_veltos_controls()
     except ImportError:
         pass
+    # veltos-store --install-file FILE.deb: the package installer window (a
+    # .deb opened from File Explorer); one window per file, not the Store.
+    if "--install-file" in argv[1:-1]:
+        from . import installer
+        QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
+        app.setApplicationName("veltos-package-installer")
+        app.setWindowIcon(QIcon.fromTheme("veltos-store"))
+        path = argv[argv.index("--install-file") + 1]
+        if path.startswith("file://"):
+            path = QUrl(path).toLocalFile()
+        return installer.main(path, app, QQmlApplicationEngine, detached)
     if raise_running():
         return 0
     QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)

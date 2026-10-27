@@ -807,6 +807,9 @@ class FullBuildTest(unittest.TestCase):
         self.assertNotIn("\\", cfg.split("for (let sheet of [", 1)[1].split("]", 1)[0])
         self.assertIn("file:///usr/share/veltos/firefox/downloads.css", cfg)
         self.assertIn("#downloadsPanel", (root / "usr/share/veltos/firefox/downloads.css").read_text())
+        # "Open with" > "Other…" opens File Explorer's window, not GTK's.
+        self.assertIn('"@mozilla.org/applicationchooser;1", factory', cfg)
+        self.assertIn('"--open-with", "--choose", "--type"', cfg)
         # VeltOS Mail is its own app (veltos-mail) since 2026-10-23: nothing
         # for Thunderbird any more.
         self.assertFalse((root / "usr/lib/thunderbird").exists())

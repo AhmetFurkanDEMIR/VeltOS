@@ -14,6 +14,8 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-store debian/veltos-store/usr/bin/veltos-store
 	install -D -m 644 data/veltos-store.desktop \
 		debian/veltos-store/usr/share/applications/veltos-store.desktop
+	install -D -m 644 data/veltos-package-installer.desktop \
+		debian/veltos-store/usr/share/applications/veltos-package-installer.desktop
 	install -D -m 644 data/veltos-store.svg \
 		debian/veltos-store/usr/share/icons/hicolor/scalable/apps/veltos-store.svg
 

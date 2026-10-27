@@ -32,7 +32,7 @@ FALLBACK_BETA = "server-side-fallback-2026-07-01"
 PROVIDERS = {
     # A small model on this PC (local.py, veltos-llama): free, offline, no
     # key; the model is a downloaded GGUF file.
-    "local": {"title": "Local model (free, offline)", "model": "gemma-3-270m-it-UD-IQ3_XXS.gguf",
+    "local": {"title": "Local model (free, offline)", "model": "Qwen3.5-2B-UD-Q5_K_XL.gguf",
               "prefer": (), "keys": ""},
     "openai": {"title": "ChatGPT (OpenAI)", "model": "gpt-5.5",
                "prefer": ("gpt-6.1-sol", "gpt-6-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.5"),
@@ -453,11 +453,15 @@ class Gemini(Adapter):
 
 class Local(Adapter):
     """llama.cpp's server on 127.0.0.1 (local.Server starts it with the
-    chosen model). Plain chat: a model this small does not call tools."""
+    chosen model and --jinja, so the model's own chat template formats the
+    actions). The default model (Qwen3.5 2B) calls tools: "switch to dark
+    mode" or "turn Wi-Fi off" become actions as with the online services
+    (product owner, 2026-10-27; the 270M model before could only chat).
+    The model's thinking is off (enable_thinking): answers come at once."""
 
     name = "local"
-    system = ("You are VeltOS AI, a helpful assistant on a VeltOS computer. Answer in the language the user "
-              "writes in, briefly and politely.")
+    LOCAL_NOTE = ("\n\nYou run on this PC as a small local model. Keep answers short. For a request to change or "
+                  "open something, call the matching tool at once instead of explaining.")
 
     def __init__(self, settings, server=None):
         super().__init__(settings)
@@ -476,12 +480,18 @@ class Local(Adapter):
             base = self.server.base(path)
         except self.local.DownloadError as error:
             raise ServiceError("local", str(error)) from error
-        body = {"model": self.model, "stream": True, "temperature": 0.7, "max_tokens": 1024,
-                "messages": [{"role": "system", "content": self.system}] + history[-12:]}
+        # A low temperature: the right action matters more than varied words.
+        body = {"model": self.model, "stream": True, "temperature": 0.2, "max_tokens": 1024,
+                "chat_template_kwargs": {"enable_thinking": False},
+                "messages": [{"role": "system", "content": (system or "") + self.LOCAL_NOTE}]
+                + trimmed(history, 24)}
+        if tools:
+            body["tools"] = [{"type": "function", "function": {"name": t["name"], "description": t["description"],
+                                                               "parameters": t["parameters"]}} for t in tools]
         return json_request(base + "/v1/chat/completions", body, {})
 
     def read(self, events):
-        text, stop = "", "end_turn"
+        text, stop, calls = "", "end_turn", {}
         for _event, data in events:
             if data == "[DONE]":
                 break
@@ -490,17 +500,46 @@ class Local(Adapter):
             except ValueError:
                 continue
             for choice in obj.get("choices") or []:
-                delta = (choice.get("delta") or {}).get("content") or ""
-                if delta:
-                    text += delta
-                    yield "text", delta
+                delta = choice.get("delta") or {}
+                content = delta.get("content") or ""
+                if content:
+                    text += content
+                    yield "text", content
+                # Tool calls come in pieces: the name first, then the
+                # arguments' JSON text, by index.
+                for piece in delta.get("tool_calls") or []:
+                    call = calls.setdefault(piece.get("index", len(calls)), {"id": "", "name": "", "arguments": ""})
+                    call["id"] = piece.get("id") or call["id"]
+                    function = piece.get("function") or {}
+                    call["name"] += function.get("name") or ""
+                    call["arguments"] += function.get("arguments") or ""
                 if choice.get("finish_reason") == "length":
                     stop = "max_tokens"
-        self.turn = [{"role": "assistant", "content": text}] if text else []
+        ordered = [calls[i] for i in sorted(calls)]
+        for number, call in enumerate(ordered):
+            call["id"] = call["id"] or f"call_{number}"
+        turn = {"role": "assistant", "content": text}
+        if ordered:
+            turn["tool_calls"] = [{"id": c["id"], "type": "function",
+                                   "function": {"name": c["name"], "arguments": c["arguments"] or "{}"}}
+                                  for c in ordered]
+        self.turn = [turn] if text or ordered else []
+        for call in ordered:
+            yield "tool", {"id": call["id"], "name": call["name"], "input": parse_arguments(call["arguments"])}
         yield "end", {"stop": stop}
 
     def add_tool_results(self, history, results):
-        pass
+        for call, output, _failed in results:
+            history.append({"role": "tool", "tool_call_id": call["id"], "content": output})
+
+
+def trimmed(history, count):
+    """The last `count` messages, starting at a user message: a tool result
+    without the assistant turn that asked for it is refused."""
+    recent = history[-count:]
+    while recent and recent[0].get("role") != "user":
+        recent = recent[1:]
+    return recent or history[-1:]
 
 
 ADAPTERS = {"local": Local, "openai": OpenAI, "copilot": Copilot, "claude": Claude, "gemini": Gemini}

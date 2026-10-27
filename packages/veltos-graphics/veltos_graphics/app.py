@@ -16,12 +16,13 @@ import threading
 import time
 from pathlib import Path
 
-from PySide6.QtCore import Property, QObject, QProcess, QProcessEnvironment, QUrl, Signal, Slot
-from PySide6.QtGui import QGuiApplication, QIcon
+from PySide6.QtCore import (Property, QObject, QProcess, QProcessEnvironment, QStandardPaths, QUrl, Signal,
+                            Slot)
+from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import drivers, gpus, strings
+from . import diagnostics, drivers, gpus, strings
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 DRIVER_KEYS = {"nvidia": "drv_nvidia", "nouveau": "drv_nouveau", "amdgpu": "drv_amdgpu", "radeon": "drv_radeon",
@@ -116,6 +117,8 @@ class Backend(QObject):
     cardsChanged = Signal()
     jobChanged = Signal()
     keyChanged = Signal()
+    logChanged = Signal()
+    logRequested = Signal()
     _collected = Signal(object)
 
     def __init__(self, lang=None, detect=gpus.detect, installed=drivers.installed_packages,
@@ -124,7 +127,8 @@ class Backend(QObject):
                  key_enrolled=drivers.key_enrolled, memory=gpus.video_memory, version=gpus.driver_version,
                  is_boot=boot_card, start=detached, program="pkcon", needs_refresh=lists_need_refresh,
                  outdated=drivers.outdated, nvidia_packages=drivers.open_driver_packages, arch=None,
-                 threaded=True):
+                 health=lambda sb: drivers.health(sb), kernel=drivers.running_kernel, report=diagnostics.report,
+                 append_log=diagnostics.append, threaded=True):
         super().__init__()
         self._threaded = threaded
         self._loaded = False
@@ -139,6 +143,11 @@ class Backend(QObject):
         self._start, self.program, self._needs_refresh = start, program, needs_refresh
         self._outdated, self._nvidia_packages = outdated, nvidia_packages
         self._arch = arch or drivers.native_arch()
+        self._health, self._kernel = health, kernel
+        self._report, self._append_log = report, append_log
+        self._job_log = []
+        self._log_text = ""
+        self._log_note = ""
         self._cards = []
         self._raw = {}             # slot -> (card, plan)
         self._busy = ""            # slot of the card being worked on
@@ -191,6 +200,14 @@ class Backend(QObject):
     def textScale(self):
         return self._scale
 
+    @Property(str, notify=logChanged)
+    def logText(self):
+        return self._log_text
+
+    @Property(str, notify=logChanged)
+    def logNote(self):
+        return self._log_note
+
     # --- reading the cards ------------------------------------------------------------------
 
     def _driver_name(self, card, driver):
@@ -234,10 +251,13 @@ class Backend(QObject):
                 recommendation = self._recommend()
                 if recommendation and recommendation != "unsupported" and not self._available(recommendation):
                     recommendation = "unsupported"
-            plan = drivers.plan(card, installed, modules, recommendation)
+            status = None
+            if card["kind"] == "nvidia" and any(p in installed for p in drivers.NVIDIA_DRIVERS):
+                status = self._health(sb)
+            plan = drivers.plan(card, installed, modules, recommendation, status)
             raw[card["slot"]] = (card, plan)
             state = plan["state"]
-            text = self._texts.get("st_" + state, "")
+            text = self._texts.get("st_" + state + ("_" + plan["reason"] if plan.get("reason") else ""), "")
             if state == "missing":
                 text = text.replace("{packages}", ", ".join(plan["packages"]))
             # Only the card the PC draws with gets the renderer's details (one
@@ -247,8 +267,9 @@ class Backend(QObject):
                 "slot": card["slot"], "kind": card["kind"], "name": card["name"], "vendor": card["vendor"],
                 "driverName": self._driver_name(card, plan["driver"]), "state": state, "stateText": text,
                 "action": plan["action"], "packages": plan["packages"], "openDriver": plan["openDriver"],
+                "reason": plan.get("reason", ""),
                 "properties": self._properties(card, plan, render if draws else {}, vulkan if draws else [], sb),
-                "needsKey": card["kind"] == "nvidia" and state in ("proprietary", "restart") and sb
+                "needsKey": card["kind"] == "nvidia" and state in ("proprietary", "restart", "failed") and sb
                 and not self._key_enrolled(),
                 "message": self._messages.get(card["slot"], ("", True))[0],
                 "messageOk": self._messages.get(card["slot"], ("", True))[1],
@@ -288,8 +309,29 @@ class Backend(QObject):
             if "nvidia-detect" not in self._installed():
                 steps.append(("install", ["nvidia-detect"]))
             steps.append(("detect", []))
-        steps.append(("install", list(plan["packages"])))
+        packages = list(plan["packages"])
+        if card["kind"] == "nvidia":
+            # DKMS builds for the kernels whose headers are installed: the
+            # running kernel's too, in case the PC starts it again.
+            headers = drivers.running_headers(self._kernel())
+            if headers not in self._installed() and self._available(headers):
+                packages.append(headers)
+        steps.append(("install", packages))
         self._run(slot, "install", steps)
+
+    @Slot(str)
+    def repairDriver(self, slot):
+        """NVIDIA's driver has no module for the running kernel: install its
+        headers (DKMS then builds the module) and build it again."""
+        card, plan = self._raw.get(slot, (None, None))
+        if not card or plan["action"] != "repair" or self._busy:
+            return
+        steps = [("refresh", [])] if self._needs_refresh() else []
+        headers = drivers.running_headers(self._kernel())
+        if headers not in self._installed():
+            steps.append(("install", [headers]))
+        steps.append(("dkms", []))
+        self._run(slot, "repair", steps)
 
     @Slot(str)
     def updateDriver(self, slot):
@@ -362,13 +404,22 @@ class Backend(QObject):
         # asks which one is meant when a name has both ("More than one
         # package matches"), waiting for an answer that never comes.
         names = [p if ":" in p else f"{p}:{self._arch}" for p in packages]
-        process.start(sys.executable, ["-m", "veltos_graphics.ptyrun", self.program,
-                                       *PKCON_ARGUMENTS[action], *names])
+        if action == "dkms":
+            # pkexec asks for the administrator's password (VeltOS' prompt).
+            program, arguments = self.dkms_program, ["dkms", "autoinstall", "-k", self._kernel()]
+            shown = [program, *arguments]
+        else:
+            program = sys.executable
+            arguments = ["-m", "veltos_graphics.ptyrun", self.program, *PKCON_ARGUMENTS[action], *names]
+            shown = [self.program, *PKCON_ARGUMENTS[action], *names]
+        self._job_log.append(f"\n[{diagnostics.stamp()}] {' '.join(shown)}\n")
+        process.start(program, arguments)
         process.closeWriteChannel()      # any other question ends instead of waiting
         self.jobChanged.emit()
 
     def _read(self):
         data = bytes(self.process.readAllStandardOutput()).decode("utf-8", "replace")
+        self._job_log.append(data)
         for line in data.splitlines():
             parsed = parse_progress(line)
             if parsed and parsed[0] == "percent":
@@ -385,6 +436,7 @@ class Backend(QObject):
     def _done(self, code, status):
         if self.process is None:
             return
+        self._job_log.append(f"\n(exit {code})\n")
         self.process.deleteLater()
         self.process = None
         # pkcon exits 5 when there was nothing to do ("nothing useful was
@@ -413,8 +465,67 @@ class Backend(QObject):
             text = self._texts["failed_" + job].replace("{detail}", detail).strip()
         self._busy, self._busy_text, self._percent, self._job, self._step = "", "", -1, "", ""
         self._messages[slot] = (text, ok)
+        if self._job_log:
+            self._append_log("".join(self._job_log) + f"[{diagnostics.stamp()}] {text}\n")
+            self._job_log = []
         self.jobChanged.emit()
         self.refresh()
+
+    # --- the driver log ----------------------------------------------------------------------
+
+    @Slot()
+    def openLog(self):
+        self._log_text, self._log_note = self._report(), ""
+        self.logChanged.emit()
+        self.logRequested.emit()
+
+    @Slot()
+    def kernelLog(self):
+        """Adds the kernel's messages about graphics drivers (journalctl -k
+        needs administrator rights: pkexec asks for the password)."""
+        process = QProcess(self)
+        process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
+
+        def finished(code, status):
+            text = bytes(process.readAllStandardOutput()).decode("utf-8", "replace")
+            process.deleteLater()
+            if status == QProcess.ExitStatus.NormalExit and code == 0:
+                self._log_text += diagnostics.kernel_messages(text)
+                self._log_note = ""
+            else:
+                self._log_note = self._texts["log_kernel_failed"]
+            self.logChanged.emit()
+
+        process.finished.connect(finished)
+        process.start(self.kernel_program, ["journalctl", "-k", "-b", "--no-pager", "-o", "short-monotonic"])
+
+    kernel_program = "pkexec"
+    dkms_program = "pkexec"
+
+    @Slot()
+    def copyLog(self):
+        QGuiApplication.clipboard().setText(self._log_text)
+        self._log_note = self._texts["log_copied"]
+        self.logChanged.emit()
+
+    @Slot()
+    def saveLog(self):
+        """Saves the log in Documents and opens it (in Notepad)."""
+        folder = Path(QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DocumentsLocation)
+                      or Path.home())
+        path = folder / (self._texts["log_file"] + time.strftime(" %Y-%m-%d %H%M") + ".txt")
+        try:
+            folder.mkdir(parents=True, exist_ok=True)
+            path.write_text(self._log_text, encoding="utf-8")
+        except OSError:
+            self._log_note = self._texts["log_save_failed"]
+        else:
+            self._log_note = self._texts["log_saved"].replace("{path}", str(path))
+            if self.open_saved:
+                QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+        self.logChanged.emit()
+
+    open_saved = True
 
     # --- Secure Boot ------------------------------------------------------------------------
 

@@ -13,6 +13,7 @@ button that completes its driver:
 |---|---|---|
 | NVIDIA without NVIDIA's driver | NVIDIA's driver is available | Install driver |
 | NVIDIA, driver installed, not loaded yet | restart needed | Restart now |
+| NVIDIA, driver installed, PC restarted, not loaded | why: Secure Boot key, not built for this kernel, or other | Repair (rebuilds with DKMS) / Details (driver log) |
 | NVIDIA with NVIDIA's driver in use | complete | Check for updates; "Use the open-source driver" under Properties |
 | NVIDIA that needs a legacy series (390/340/470) | Debian 13 has none: stays on Nouveau | — |
 | AMD / Intel, firmware or Mesa missing | missing parts named | Install |
@@ -60,6 +61,31 @@ OpenGL renderer, OpenGL and Mesa versions and Vulkan devices.
   /var/lib/dkms/mok.pub`; the firmware's MOK manager asks for it at the
   next start.
 
+- Monitors with NVIDIA's driver: Debian 13's NVIDIA modules (550,
+  Tesla 535, the open 550 modules) leave the kernel's modesetting off
+  (`nvidia-drm` `modeset` defaults to false, no Debian option turns it
+  on; checked in the packages on 2026-10-27), and KWin on Wayland drives
+  screens only through it: every monitor on the NVIDIA card disappeared
+  once the driver replaced Nouveau (product owner's laptop).
+  `/usr/lib/modprobe.d/veltos-nvidia.conf` sets `modeset=1` for Debian's
+  module names (`nvidia-current-drm`, `nvidia-current-open-drm`,
+  `nvidia-tesla-535-drm`); Debian loads `nvidia-drm` at start-up
+  (`/etc/modules-load.d/nvidia.conf`).
+- Kernel and headers: DKMS builds the module for kernels whose headers
+  are installed. The install brings `linux-headers-amd64`,
+  `linux-image-amd64` (so the newest kernel and its headers match) and the
+  running kernel's headers. After a restart without NVIDIA's module the
+  card says why: Secure Boot's key (register it), no module for this
+  kernel ("Repair": the running kernel's headers, then `pkexec dkms
+  autoinstall -k KERNEL`), or anything else (Details).
+- Driver log (`diagnostics.py`, "Driver log" at the top, "Details" on a
+  failure): the commands VeltOS ran with pkcon's and DKMS's output
+  (`~/.local/state/veltos-graphics/driver.log`, last 512 KB), Secure Boot,
+  loaded modules with `modeset`, the screens' DRM connectors, `dkms
+  status`, DKMS's build log and dpkg's history of driver packages; "Add
+  kernel messages" adds `journalctl -k` (pkexec asks for the password),
+  Copy, and "Save and open" (Documents, opens in Notepad).
+
 ## Tests
 
 `tests/` (run by the package build): recorded lspci/eglinfo/vulkaninfo/
@@ -67,5 +93,6 @@ nvidia-detect output (`samples.py`) for an Intel + NVIDIA laptop, an AMD
 card, QEMU's virtio GPU and a legacy NVIDIA card; the real window
 offscreen in English and Turkish with a stand-in for pkcon.
 
-Not tested on real NVIDIA/AMD/Intel hardware or with Secure Boot on: the
+Not tested on real NVIDIA/AMD/Intel hardware (the modesetting fix
+included) or with Secure Boot on: the
 developer machine has none in a VM (see `docs/dev/status.md`).

@@ -151,7 +151,8 @@ class FakeProcess:
     """A dialog process that answers when `end` is called."""
     instances = []
 
-    def __init__(self, *_args, **_kwargs):
+    def __init__(self, *args, **_kwargs):
+        self.args = args
         self.stdin = io.StringIO()
         self.stdout = io.StringIO()
         self.pid = 1000 + len(FakeProcess.instances)
@@ -225,6 +226,43 @@ class PortalServiceTests(unittest.TestCase):
         self.assertTrue(FakeProcess.instances[0].terminated)
         self.assertEqual(second.replies[0].value[0], portal.CANCELLED)
         self.assertEqual(close.replies, [None])
+
+
+class AppChooserTests(PortalServiceTests):
+    """The portal's "Open with" (AppChooser) opens File Explorer's window."""
+
+    def choose(self, handle, choices, options):
+        invocation = FakeInvocation()
+        self.service.handle_call(None, ":1.5", "/", portal.APP_IFACE, "ChooseApplication",
+                                 FakeVariant("(ossasa{sv})", (handle, "org.mozilla.firefox", "wayland:1", choices,
+                                                              options)), invocation)
+        return invocation
+
+    def test_chosen_app_is_the_answer(self):
+        request = self.choose("/req/9", ["org.kde.okular", "veltos-pdf"],
+                              {"content_type": "application/pdf", "filename": "report.pdf"})
+        (process,) = FakeProcess.instances
+        self.assertEqual(process.args[0][-7:], ["--open-with", "--choose", "--type", "application/pdf",
+                                                "--choices", "org.kde.okular,veltos-pdf", "report.pdf"])
+        process.stdout = io.StringIO("veltos-pdf.desktop\n")
+        self.glib.watches[0][1](process.pid, 0)
+        code, results = request.replies[0].value
+        self.assertEqual((code, results["choice"].value), (portal.SUCCESS, "veltos-pdf"))
+        self.assertEqual([p for p in self.connection.registered.values() if p.startswith("/req/")], [])
+
+    def test_cancel_and_close(self):
+        request = self.choose("/req/1", [], {})
+        FakeProcess.instances[0].stdout = io.StringIO("\n")
+        self.glib.watches[0][1](FakeProcess.instances[0].pid, 0)
+        self.assertEqual(request.replies[0].value[0], portal.CANCELLED)
+        request = self.choose("/req/2", [], {})
+        self.service.close_chooser("/req/2", None, ":1.5", "/req/2", "", "Close", None, FakeInvocation())
+        self.assertEqual(request.replies[0].value[0], portal.CANCELLED)
+        self.assertTrue(FakeProcess.instances[1].terminated)
+        updated = FakeInvocation()
+        self.service.handle_call(None, ":1.5", "/", portal.APP_IFACE, "UpdateChoices",
+                                 FakeVariant("(oas)", ("/req/3", ["a"])), updated)
+        self.assertEqual(updated.replies, [None])
 
 
 class PortalTests(unittest.TestCase):
@@ -448,6 +486,67 @@ class OpenWithWindowTests(unittest.TestCase):
         finally:
             qInstallMessageHandler(None)
             places.HOME = Path.home()
+
+    def test_choose_mode_and_a_program_from_the_pc(self):
+        # Firefox's "Choose an application" and the portal: the window only
+        # answers with the app's desktop file name; "Choose an app on your
+        # PC" adds any program, which stays in the list for the type.
+        import io
+        from veltos_explorer import places
+        home = Path(tempfile.mkdtemp())
+        apps = home / "applications"
+        apps.mkdir()
+        (apps / "reader.desktop").write_text("[Desktop Entry]\nType=Application\nName=Reader\nExec=reader %f\n"
+                                             "MimeType=application/pdf;\n")
+        (apps / "viewer.desktop").write_text("[Desktop Entry]\nType=Application\nName=Viewer\nExec=viewer %U\n")
+        os.environ["XDG_DATA_DIRS"] = str(home)
+        data = home / "data"
+        os.environ["XDG_DATA_HOME"] = str(data)
+        program = home / "My Tool"
+        program.write_text("#!/bin/sh\n")
+        program.chmod(0o755)
+        app = QGuiApplication.instance() or QGuiApplication([])
+        messages = []
+        qInstallMessageHandler(lambda _type, _ctx, msg: messages.append(msg))
+        try:
+            out = io.StringIO()
+            opener = openwith.Opener(mime="application/pdf", choose=True, choices=["viewer"], out=out,
+                                     lang="en", config_home=home, data_home=data)
+            self.assertEqual([a["id"] for a in opener.apps], ["viewer.desktop", "reader.desktop"])
+            self.assertIn(".pdf", opener.heading)
+            engine = QQmlApplicationEngine()
+            engine.rootContext().setContextProperty("backend", opener)
+            engine.rootContext().setContextProperty("opener", opener)
+            engine.load(QUrl.fromLocalFile(str(openwith.QML_DIR / "OpenWith.qml")))
+            app.processEvents()
+            self.assertTrue(engine.rootObjects(), messages)
+            opener.add_program(str(home / "notes.txt"))          # not a program
+            self.assertIn("notes.txt", opener.message)
+            opener.add_program(str(program))
+            self.assertEqual(opener.apps[0]["id"], "veltos-chosen-my-tool.desktop")
+            self.assertEqual(opener.selected, 0)
+            launcher = (data / "applications/veltos-chosen-my-tool.desktop").read_text()
+            self.assertIn(f'Exec="{program}" %F', launcher)
+            self.assertIn("NoDisplay=true", launcher)
+            self.assertEqual(places.exec_command(data / "applications/veltos-chosen-my-tool.desktop", ["/x.pdf"]),
+                             [str(program), "/x.pdf"])
+            opener.open(0, False)
+            self.assertEqual(out.getvalue(), "veltos-chosen-my-tool.desktop\n")
+            opener.cancel()                                      # answered once only
+            self.assertEqual(out.getvalue(), "veltos-chosen-my-tool.desktop\n")
+            # The same program again: the same launcher, now listed for PDFs.
+            self.assertEqual(openwith.choose_program(program, "image/png", data), "veltos-chosen-my-tool.desktop")
+            again = openwith.Opener(mime="application/pdf", choose=True, out=io.StringIO(), lang="en",
+                                    config_home=home, data_home=data)
+            self.assertIn("veltos-chosen-my-tool.desktop", [a["id"] for a in again.apps])
+            self.assertEqual(openwith.parse_arguments(["x", "--open-with", "--choose", "--type", "text/plain",
+                                                       "--choices", "a,b"]), ("", "text/plain", True, ["a", "b"]))
+            del engine
+            app.processEvents()
+            problems = [m for m in messages if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()]
+            self.assertEqual(problems, [])
+        finally:
+            qInstallMessageHandler(None)
 
 
 if __name__ == "__main__":

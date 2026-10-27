@@ -2,12 +2,16 @@
 offline once downloaded (product owner, 2026-10-26).
 
 - The model files (GGUF) live in ~/.local/share/veltos/ai-models.
-- The default is Google's Gemma 3 270M (instruction tuned, many languages
-  including Turkish and English) in a 185 MB quantisation, pinned to one
+- The default is Qwen3.5 2B (Alibaba's Qwen team, Apache 2.0; instruction
+  tuned, about 200 languages including Turkish and English, trained to
+  call tools) in unsloth's 1.47 GB UD-Q5_K_XL quantisation, pinned to one
   revision of unsloth's repository on Hugging Face and checked against its
-  SHA-256 after the download. Other models come from Hugging Face's public
-  API (search, then a repository's .gguf files with their sizes and LFS
-  SHA-256); gated repositories need a sign-in and are not offered.
+  SHA-256 after the download (product owner, 2026-10-27: a better default
+  of about 1.5 GB that understands Turkish and English and acts on the
+  system; Gemma 3 270M before, which could only chat). Other models come
+  from Hugging Face's public API (search, then a repository's .gguf files
+  with their sizes and LFS SHA-256); gated repositories need a sign-in and
+  are not offered.
 - veltos-llama's `llama-server` (llama.cpp, built from a pinned source by
   VeltOS) runs the chosen model on 127.0.0.1 with an OpenAI-compatible API;
   VeltOS AI starts it when the local model is first asked something and
@@ -33,14 +37,16 @@ HUB = "https://huggingface.co"
 USER_AGENT = "VeltOS-AI/1.0 (+https://veltos.ahmetfurkandemir.com)"
 CHUNK = 1 << 16
 
+# Checked on huggingface.co on 2026-10-27: repository revision, size and
+# LFS SHA-256 (the downloaded file matched it).
 DEFAULT_MODEL = {
-    "repo": "unsloth/gemma-3-270m-it-GGUF",
-    "revision": "c90975dbd40c0c7b275fefaae758c3415c906238",
-    "file": "gemma-3-270m-it-UD-IQ3_XXS.gguf",
-    "size": 184517664,
-    "sha256": "a406b0dbc761a841c522146168b4bd0589bcb739c444f45356105715d438d126",
-    "title": "Gemma 3 270M (Google)",
-    "license": "https://ai.google.dev/gemma/terms",
+    "repo": "unsloth/Qwen3.5-2B-GGUF",
+    "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+    "file": "Qwen3.5-2B-UD-Q5_K_XL.gguf",
+    "size": 1466687744,
+    "sha256": "67bff9774bc55e44af2eee3c448dc054478b45c0607858fc6df5b336b55f36f4",
+    "title": "Qwen3.5 2B (Qwen)",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
 }
 
 
@@ -210,9 +216,10 @@ class Server:
                 raise DownloadError("engine")
             self.port = free_port()
             threads = max(1, min(8, (os.cpu_count() or 2) - 1))
+            # --jinja: the model's chat template, which formats the tools.
             self.process = self.popen([self.program, "-m", str(model), "--host", "127.0.0.1",
-                                       "--port", str(self.port), "-c", "4096", "-t", str(threads),
-                                       "--no-webui"],
+                                       "--port", str(self.port), "-c", "8192", "-t", str(threads),
+                                       "--jinja", "--no-webui"],
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                                       stdin=subprocess.DEVNULL)
             self.model = str(model)

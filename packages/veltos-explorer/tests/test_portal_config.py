@@ -17,6 +17,7 @@ class PortalConfigTests(unittest.TestCase):
     def test_file_dialogs_come_from_file_explorer(self):
         self.assertEqual(self.preferred["default"], "kde")
         self.assertEqual(self.preferred["org.freedesktop.impl.portal.FileChooser"], "veltos")
+        self.assertEqual(self.preferred["org.freedesktop.impl.portal.AppChooser"], "veltos")
 
     def test_no_gtk_backend_at_sign_in(self):
         # Without these the portal started the GTK backend as a fallback

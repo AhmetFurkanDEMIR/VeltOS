@@ -8,7 +8,9 @@ buttons the size, glyphs and hover colours of the VeltOS window frames
 (tools/fluent.py). Users' own Firefox settings are not touched.
 
     usr/lib/firefox-esr/defaults/pref/veltos.js   general.config.* prefs
-    usr/lib/firefox-esr/veltos.cfg                registers the style sheet
+    usr/lib/firefox-esr/veltos.cfg                registers the style sheet and
+                                                  the "Open with" chooser
+                                                  (firefox/app-chooser.js)
     usr/share/veltos/firefox/caption-buttons.css  the style sheet
 
 VeltOS Mail was Thunderbird in Outlook's look until 2026-10-23 (its
@@ -105,7 +107,9 @@ try {{
 CAPTION_CSS = "/" + CSS_PATH.as_posix()
 # Firefox's downloads panel in the Windows 11 look (firefox/downloads.css).
 DOWNLOADS_CSS = "/usr/share/veltos/firefox/downloads.css"
-AUTOCONFIG = autoconfig("Firefox", [CAPTION_CSS, DOWNLOADS_CSS])
+# "Open with" > "Other…" opens File Explorer's window (firefox/app-chooser.js).
+APP_CHOOSER_JS = Path(__file__).resolve().parent.parent / "firefox/app-chooser.js"
+AUTOCONFIG = autoconfig("Firefox", [CAPTION_CSS, DOWNLOADS_CSS], APP_CHOOSER_JS.read_text(encoding="utf-8"))
 
 
 def build(root):

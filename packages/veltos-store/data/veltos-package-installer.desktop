@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=App Installer
+Name[tr]=Uygulama Yükleyicisi
+Comment=Install a Debian package (.deb)
+Comment[tr]=Bir Debian paketi (.deb) yükleyin
+Exec=veltos-store --install-file %f
+Icon=veltos-store
+NoDisplay=true
+MimeType=application/vnd.debian.binary-package;application/x-deb;
+Categories=System;PackageManager;
+StartupNotify=true

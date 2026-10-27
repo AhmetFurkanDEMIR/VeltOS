@@ -25,8 +25,17 @@ try:
 except ImportError:
     HAVE_QT = False
 
+from unittest import mock  # noqa: E402
+
 from veltos_graphics import gpus  # noqa: E402
 import samples  # noqa: E402
+
+KERNEL = "6.12.48+deb13-amd64"
+
+
+def app_module():
+    from veltos_graphics import app
+    return app
 
 OPEN_STACK = {"firmware-amd-graphics": "20250410-2", "firmware-intel-graphics": "20250410-2",
               "mesa-vulkan-drivers": "25.0.7-2+deb13u1", "libgl1-mesa-dri": "25.0.7-2+deb13u1"}
@@ -36,7 +45,7 @@ OPEN_STACK = {"firmware-amd-graphics": "20250410-2", "firmware-intel-graphics": 
 FAKE_PKCON = ('#!/bin/sh\n'
               'echo "$*" >> "$(dirname "$0")/calls"\n'
               'echo "Status:\tRunning"\n'
-              'case "$*" in *install*|*update*|*remove*)\n'
+              'case "$1 $2" in "-p install"|"-p update"|"-p remove")\n'
               '  printf "Proceed with changes? [N/y] "; read answer\n'
               '  [ "$answer" = y ] || exit 4\n'
               '  echo "$answer" >> "$(dirname "$0")/answers";;\n'
@@ -62,7 +71,7 @@ class WindowTests(unittest.TestCase):
         qInstallMessageHandler(None)
 
     def make(self, lspci=samples.LSPCI_NVIDIA_INTEL, installed=None, modules=("i915", "nouveau"),
-             recommend="nvidia-driver", secure_boot=False, key_enrolled=True, outdated=list):
+             recommend="nvidia-driver", secure_boot=False, key_enrolled=True, outdated=list, health=None):
         from veltos_graphics import app
         folder = Path(tempfile.mkdtemp())
         self.fake = folder / "pkcon"
@@ -71,6 +80,7 @@ class WindowTests(unittest.TestCase):
         self.calls_file = folder / "calls"
         self.installed = dict(OPEN_STACK) if installed is None else installed
         self.started = []
+        self.job_logs = []
         self.backend = app.Backend(
             lang=self.lang, detect=lambda: gpus.parse_lspci(lspci), installed=lambda: dict(self.installed),
             modules=lambda: set(modules), recommend=lambda: recommend, available=lambda package: True,
@@ -80,7 +90,11 @@ class WindowTests(unittest.TestCase):
             version=lambda driver: "550.163.01" if driver == "nvidia" else "",
             is_boot=lambda slot: slot == "00:02.0", start=self.started.append, program=str(self.fake),
             needs_refresh=lambda: False, outdated=outdated, arch="amd64", threaded=False,
+            health=lambda sb: health or {"restarted": False, "built": True, "keyMissing": False},
+            kernel=lambda: KERNEL, report=lambda: "REPORT\n", append_log=self.job_logs.append,
             nvidia_packages=lambda: ["nvidia-driver:amd64", "nvidia-kernel-dkms:amd64", "libnvidia-glcore:i386"])
+        self.backend.dkms_program = str(self.fake)
+        self.backend.open_saved = False
         self.messages.clear()
         self.engine = QQmlApplicationEngine()
         self.engine.rootContext().setContextProperty("backend", self.backend)
@@ -154,12 +168,68 @@ class WindowTests(unittest.TestCase):
         self.call("press", "01:00.0", "install")
         self.wait()
         self.assertEqual(self.calls(), ["-p install nvidia-detect:amd64",
-                                        "-p install nvidia-driver:amd64 linux-headers-amd64:amd64"])
+                                        "-p install nvidia-driver:amd64 linux-headers-amd64:amd64 "
+                                        f"linux-image-amd64:amd64 linux-headers-{KERNEL}:amd64"])
         # Interactive transactions (no -y), so polkit asks for the password.
         self.assertEqual((self.fake.parent / "answers").read_text().split(), ["y", "y"])
         nvidia = self.card("01:00.0")
         self.assertEqual(nvidia["message"], backend.texts["done_install"])
         self.assertTrue(nvidia["messageOk"])
+        # What ran, with pkcon's output, went into the driver log.
+        (log,) = self.job_logs
+        self.assertIn("-p install nvidia-detect:amd64", log)
+        self.assertIn("Percentage:", log)
+        self.assertIn(backend.texts["done_install"], log)
+        self.assertEqual(self.problems(), [])
+
+    def test_driver_not_built_for_this_kernel_is_repaired(self):
+        backend = self.make(installed=dict(OPEN_STACK, **{"nvidia-driver": "550.163.01-2"}),
+                            health={"restarted": True, "built": False, "keyMissing": False})
+        nvidia = self.card("01:00.0")
+        self.assertEqual((nvidia["state"], nvidia["reason"]), ("failed", "build"))
+        self.assertEqual(nvidia["stateText"], backend.texts["st_failed_build"])
+        self.assertEqual(self.call_text("buttonTexts", 1),
+                         backend.texts["repair_driver"] + "|" + backend.texts["details"])
+        self.call("press", "01:00.0", "repair")
+        self.wait()
+        self.assertEqual(self.calls(), [f"-p install linux-headers-{KERNEL}:amd64",
+                                        f"dkms autoinstall -k {KERNEL}"])
+        self.assertEqual(self.card("01:00.0")["message"], backend.texts["done_repair"])
+        self.assertEqual(self.problems(), [])
+
+    def test_driver_blocked_by_secure_boot(self):
+        backend = self.make(installed=dict(OPEN_STACK, **{"nvidia-driver": "550.163.01-2"}), secure_boot=True,
+                            key_enrolled=False, health={"restarted": True, "built": True, "keyMissing": True})
+        nvidia = self.card("01:00.0")
+        self.assertEqual((nvidia["state"], nvidia["reason"], nvidia["needsKey"]), ("failed", "key", True))
+        self.assertEqual(self.call_text("buttonTexts", 1), backend.texts["details"])
+        self.assertEqual(self.problems(), [])
+
+    def test_driver_log_window(self):
+        backend = self.make()
+        self.call("press", "01:00.0", "log")
+        self.assertEqual(backend.logText, "REPORT\n")
+        log_window = next(w for w in self.app.topLevelWindows() if w.title() == backend.texts["log_title"])
+        self.assertTrue(log_window.isVisible())
+        backend.copyLog()
+        self.assertEqual(QGuiApplication.clipboard().text(), "REPORT\n")
+        self.assertEqual(backend.logNote, backend.texts["log_copied"])
+        documents = tempfile.mkdtemp()
+        with mock.patch.object(app_module().QStandardPaths, "writableLocation", return_value=documents):
+            backend.saveLog()
+        (saved,) = Path(documents).iterdir()
+        self.assertEqual(saved.read_text(), "REPORT\n")
+        self.assertTrue(saved.name.startswith(backend.texts["log_file"]))
+        # Kernel messages through pkexec (here the stand-in, which fails).
+        backend.kernel_program = "false"
+        backend.kernelLog()
+        deadline = time.monotonic() + 10
+        while backend.logNote != backend.texts["log_kernel_failed"] and time.monotonic() < deadline:
+            self.app.processEvents()
+            time.sleep(0.01)
+        self.assertEqual(backend.logNote, backend.texts["log_kernel_failed"])
+        log_window.close()
+        QGuiApplication.clipboard().clear()
         self.assertEqual(self.problems(), [])
 
     def test_installed_driver_asks_for_restart_and_key(self):

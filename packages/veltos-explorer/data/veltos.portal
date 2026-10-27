@@ -1,4 +1,4 @@
 [portal]
 DBusName=org.freedesktop.impl.portal.desktop.veltos
-Interfaces=org.freedesktop.impl.portal.FileChooser;
+Interfaces=org.freedesktop.impl.portal.FileChooser;org.freedesktop.impl.portal.AppChooser;
 UseIn=KDE

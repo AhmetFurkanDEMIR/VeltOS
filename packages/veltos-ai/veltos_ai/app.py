@@ -13,6 +13,7 @@ closed panel's process ends after ten idle minutes.
 """
 
 import configparser
+import json
 import os
 import sys
 import threading
@@ -24,7 +25,7 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import config, local, providers, strings, tools
+from . import config, intents, local, providers, strings, tools
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 MAX_ROUNDS = 10            # tool rounds in one answer
@@ -37,8 +38,11 @@ and code.
 
 You can act on this computer only through the tools you are given. When the user asks for something a tool does, \
 call the tool rather than describing the steps: the panel asks the user to allow every change before it happens. \
-If no tool fits, say so and explain how to do it in VeltOS (for example Settings > Bluetooth & devices). Never claim \
-an action happened unless its tool result says ok. Do not include internal or system XML tags in your response."""
+Prefer the specific tools; use run_command only when none fits, with a short, safe command, and explain what it does. \
+Actions that need administrator rights (installing apps, updates, run_command with administrator) make VeltOS ask \
+for the administrator's password. If nothing can do it, say so and explain how to do it in VeltOS (for example \
+Settings > Bluetooth & devices). Never claim an action happened unless its tool result says ok. Do not include \
+internal or system XML tags in your response."""
 
 
 def kde_value(group, key):
@@ -521,11 +525,32 @@ class Backend(QObject):
         self._adapter.add_user(self.history, text[:8000])
         self._add("user", text)
         self._rounds = 0
+        # The local model: a short command it might get wrong becomes its
+        # action at once (intents.py); the model then words the answer.
+        command = intents.match(text, self.lang) if name == "local" and self.data.get("actions", True) else None
+        if command and tools.validate(*command) is not None:
+            self._start_command(*command)
+            return
         self._start_turn()
 
+    def _start_command(self, name, arguments):
+        """Runs a recognised command as if the model had asked for it: an
+        assistant turn with the tool call goes into the history, and the
+        panel asks "Allow" as for any action."""
+        call = {"id": "veltos_command", "name": name, "input": arguments}
+        self.history.append({"role": "assistant", "content": "", "tool_calls": [
+            {"id": call["id"], "type": "function",
+             "function": {"name": name, "arguments": json.dumps(arguments, ensure_ascii=False)}}]})
+        self._generation += 1
+        self._cancel.clear()
+        self._calls, self._results, self._stop, self._failed = [call], {}, "", None
+        self._current = {"text": "", "state": ""}
+        self._set_busy(True)
+        self._rounds = 1
+        self._handle_calls()
+        self.messagesChanged.emit()
+
     def _tools(self):
-        if self.data.get("provider") == "local":
-            return []                    # a model this small does not call tools
         if self.data.get("actions", True):
             return tools.TOOLS
         return [t for t in tools.TOOLS if t["name"] in tools.READ_ONLY]

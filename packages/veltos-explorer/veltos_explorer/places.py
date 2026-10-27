@@ -403,7 +403,10 @@ def read_desktop_entry(path):
         if "=" in line and not line.startswith("#"):
             key, value = line.split("=", 1)
             values[key.strip()] = value.strip()
-    if values.get("Type", "Application") != "Application" or values.get("NoDisplay") == "true" \
+    # Programs chosen with "Choose an app on your PC" (openwith.py) are
+    # hidden from Start but are apps here.
+    hidden = values.get("NoDisplay") == "true" and values.get("X-VeltOS-Chosen") != "true"
+    if values.get("Type", "Application") != "Application" or hidden \
             or values.get("Hidden") == "true" or "Exec" not in values:
         return None
     return values

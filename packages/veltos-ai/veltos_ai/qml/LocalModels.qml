@@ -1,5 +1,5 @@
 // The local model in VeltOS AI's settings: the recommended small model
-// (Gemma 3 270M, 185 MB, Turkish and English) with Download, the
+// (Qwen3.5 2B, 1.5 GB, Turkish and English, calls actions) with Download, the
 // downloaded models (use, delete), more models from Hugging Face (search,
 // a repository's GGUF files), and the download screen with its progress.
 import QtQuick

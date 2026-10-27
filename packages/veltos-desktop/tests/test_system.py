@@ -110,6 +110,9 @@ class AppNameTests(unittest.TestCase):
         self.assertNotIn("thunderbird.desktop", app_names.APPS)
         # VeltOS Mail answers mailto: links.
         self.assertIn(("veltos-mail.desktop", ["x-scheme-handler/mailto"]), app_names.DEFAULT_APPS)
+        # A .deb opens in VeltOS Store's App Installer window.
+        self.assertIn(("veltos-package-installer.desktop",
+                       ["application/vnd.debian.binary-package", "application/x-deb"]), app_names.DEFAULT_APPS)
 
     def test_spectacle_loses_its_shortcuts(self):
         spectacle = ("[Desktop Entry]\nName=Spectacle\nExec=/usr/bin/spectacle\nX-KDE-Shortcuts=Print,Meta+Shift+S\n"

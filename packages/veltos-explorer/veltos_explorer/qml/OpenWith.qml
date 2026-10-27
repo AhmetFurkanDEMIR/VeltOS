@@ -159,6 +159,36 @@ ApplicationWindow {
             TapHandler { onTapped: opener.showMore() }
         }
 
+        // "Choose an app on your PC", as on Windows 11: any program file.
+        Rectangle {
+            objectName: "chooseApp"
+            Layout.fillWidth: true
+            implicitHeight: 36
+            radius: 6
+            color: chooseHover.hovered ? Theme.hover : "transparent"
+            activeFocusOnTab: true
+            Accessible.role: Accessible.Link
+            Accessible.name: opener.tr("choose_app")
+            Keys.onReturnPressed: opener.browse()
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                x: 12
+                text: opener.tr("choose_app")
+                color: Theme.accent
+                font.pixelSize: Theme.fontSize
+            }
+            HoverHandler { id: chooseHover; cursorShape: Qt.PointingHandCursor }
+            TapHandler { gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: opener.browse() }
+        }
+        Text {
+            visible: opener.message !== ""
+            Layout.fillWidth: true
+            text: opener.message
+            color: Theme.subtext
+            font.pixelSize: Theme.smallFont
+            wrapMode: Text.WordWrap
+        }
+
         RowLayout {
             Layout.fillWidth: true
             Layout.topMargin: 8

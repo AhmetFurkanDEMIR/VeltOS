@@ -347,7 +347,7 @@ class BackendTests(unittest.TestCase):
         backend.send("Turn on Wi-Fi")
         self.assertEqual(backend.messages[2]["state"], "denied")
         self.assertEqual([t["name"] for t in self.service.requests[0]["body"]["tools"]],
-                         ["get_system_info", "search_files"])
+                         ["get_system_info", "search_files", "list_wifi_networks"])
         backend = self.backend("openai", 401)
         backend.send("hello")
         self.assertEqual(backend.messages[-1]["kind"], "error")

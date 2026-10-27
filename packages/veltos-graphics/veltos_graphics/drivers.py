@@ -17,16 +17,37 @@ With Secure Boot, the NVIDIA module DKMS builds is signed with
 /var/lib/dkms/mok.key; the firmware accepts it once that key is enrolled
 (mokutil --import, confirmed in the firmware's MOK manager at the next
 start).
+
+Monitors on NVIDIA's driver: Debian's 550 and Tesla 535 modules leave
+kernel modesetting off (nvidia-drm `modeset` defaults to false and Debian
+ships no option for it, checked in nvidia-kernel-dkms 550.163.01-2 on
+2026-10-27). KWin (Wayland) can only drive screens through KMS, so every
+monitor connected to the NVIDIA card disappeared once its driver replaced
+Nouveau (product owner's laptop). veltos-graphics ships
+/usr/lib/modprobe.d/veltos-nvidia.conf, which turns it on.
+
+DKMS builds the module for kernels whose headers are installed. Installing
+only linux-headers-amd64 gave the headers of the archive's newest kernel;
+on a PC still running an older kernel no module was built for it, and
+after the restart neither NVIDIA's driver (not built) nor Nouveau
+(blacklisted by the driver) drove the card. The install now also brings
+the newest kernel (linux-image-amd64) and the running kernel's headers.
 """
 
+import os
 import re
 import shutil
+import time
 import subprocess
 from pathlib import Path
 
 NVIDIA_DRIVERS = ("nvidia-driver", "nvidia-tesla-535-driver")
 NVIDIA_DEFAULT = "nvidia-driver"
 KERNEL_HEADERS = "linux-headers-amd64"
+KERNEL_IMAGE = "linux-image-amd64"
+# The packages that build NVIDIA's kernel module (their install time tells
+# whether the PC has restarted since).
+NVIDIA_MODULE_PACKAGES = ("nvidia-kernel-dkms", "nvidia-open-kernel-dkms", "nvidia-tesla-535-kernel-dkms")
 OPEN_PACKAGES = {
     "amd": ("firmware-amd-graphics", "mesa-vulkan-drivers", "libgl1-mesa-dri"),
     "intel": ("firmware-intel-graphics", "mesa-vulkan-drivers", "libgl1-mesa-dri"),
@@ -120,11 +141,59 @@ def key_enrolled(runner=run, key=MOK_KEY):
     return "is already enrolled" in out
 
 
-def plan(card, installed, modules, recommendation=""):
+def running_kernel():
+    return os.uname().release
+
+
+def running_headers(kernel=None):
+    """The package with the running kernel's headers."""
+    return f"linux-headers-{kernel or running_kernel()}"
+
+
+def module_built(kernel=None, root=Path("/lib/modules")):
+    """Whether DKMS built NVIDIA's module for the kernel (the running one):
+    Debian names it nvidia-current, nvidia-current-open or nvidia-tesla-535
+    under updates/dkms."""
+    folder = root / (kernel or running_kernel()) / "updates/dkms"
+    return any(re.match(r"nvidia-(current|current-open|tesla-\d+)\.ko", path.name)
+               for path in (folder.iterdir() if folder.is_dir() else []))
+
+
+def installed_at(packages, info=Path("/var/lib/dpkg/info")):
+    """When the newest of `packages` was installed (its dpkg file list's
+    time), 0 when none is."""
+    times = [path.stat().st_mtime for package in packages
+             for path in [*info.glob(f"{package}.list"), *info.glob(f"{package}:*.list")]]
+    return max(times, default=0)
+
+
+def boot_time(uptime=Path("/proc/uptime")):
+    try:
+        return time.time() - float(uptime.read_text().split()[0])
+    except (OSError, ValueError, IndexError):
+        return 0
+
+
+def health(secure_boot_on=None, enrolled=None):
+    """What the window needs to tell why NVIDIA's installed driver is not in
+    use: whether the PC restarted since it was installed, whether its
+    module exists for the running kernel and whether Secure Boot lacks its
+    key."""
+    since = installed_at(NVIDIA_MODULE_PACKAGES)
+    sb = secure_boot() if secure_boot_on is None else secure_boot_on
+    return {"restarted": bool(since) and boot_time() > since,
+            "built": module_built(),
+            "keyMissing": sb and not (key_enrolled() if enrolled is None else enrolled)}
+
+
+def plan(card, installed, modules, recommendation="", status=None):
     """What the window shows for one card and what its button does:
 
     state:    "proprietary" (NVIDIA's driver in use), "restart" (installed,
-              starts after a restart), "available" (NVIDIA's driver can be
+              starts after a restart), "failed" (installed, the PC restarted
+              and it did not start: `reason` "key" (Secure Boot), "build"
+              (no module for this kernel: action "repair") or "start"),
+              "available" (NVIDIA's driver can be
               installed), "missing" (AMD/Intel firmware or Mesa parts not
               installed), "ready" (open drivers complete), "unsupported",
               "virtual" or "unknown";
@@ -141,11 +210,18 @@ def plan(card, installed, modules, recommendation=""):
             result.update(state="proprietary" if active else "restart", action="update" if active else "",
                           packages=[proprietary], version=installed.get(proprietary, ""),
                           driver="nvidia" if active else in_use, openDriver=True)
+            if not active and status and status.get("restarted"):
+                if status.get("keyMissing"):
+                    result.update(state="failed", reason="key")
+                elif not status.get("built"):
+                    result.update(state="failed", reason="build", action="repair")
+                else:
+                    result.update(state="failed", reason="start")
         elif recommendation == "unsupported":
             result.update(state="unsupported")
         else:
             result.update(state="available", action="install",
-                          packages=[recommendation or NVIDIA_DEFAULT, KERNEL_HEADERS])
+                          packages=[recommendation or NVIDIA_DEFAULT, KERNEL_HEADERS, KERNEL_IMAGE])
         return result
     if kind in OPEN_PACKAGES:
         needed = OPEN_PACKAGES[kind]

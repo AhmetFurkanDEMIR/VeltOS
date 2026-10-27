@@ -14,6 +14,8 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-graphics debian/veltos-graphics/usr/bin/veltos-graphics
 	install -D -m 644 data/veltos-graphics.desktop \
 		debian/veltos-graphics/usr/share/applications/veltos-graphics.desktop
+	install -D -m 644 data/veltos-nvidia.conf \
+		debian/veltos-graphics/usr/lib/modprobe.d/veltos-nvidia.conf
 
 override_dh_auto_test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

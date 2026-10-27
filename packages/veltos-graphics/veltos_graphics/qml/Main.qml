@@ -3,7 +3,8 @@
 // whether the driver is complete and offers the one button that makes it
 // so (Install driver, Restart now, Check for updates), the progress of a
 // running installation, Secure Boot's key registration for NVIDIA's driver
-// and the card's properties in an expander.
+// and the card's properties in an expander. "Driver log" (and "Details" on
+// a failure) opens the log window.
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -32,7 +33,7 @@ ApplicationWindow {
     function severity(state) {
         if (state === "proprietary" || state === "ready" || state === "virtual")
             return "success";
-        if (state === "unsupported" || state === "unknown")
+        if (state === "unsupported" || state === "unknown" || state === "failed")
             return "warning";
         return "info";
     }
@@ -45,6 +46,11 @@ ApplicationWindow {
             return [{text: t.install_parts, action: "install", primary: true}];
         if (card.state === "restart")
             return [{text: t.restart_now, action: "restart", primary: true}];
+        if (card.state === "failed" && card.reason === "build")
+            return [{text: t.repair_driver, action: "repair", primary: true},
+                    {text: t.details, action: "log", primary: false}];
+        if (card.state === "failed")
+            return [{text: t.details, action: "log", primary: false}];
         if (card.state === "proprietary" || card.state === "ready")
             return [{text: t.update_driver, action: "update", primary: false}];
         return [];
@@ -58,10 +64,27 @@ ApplicationWindow {
             backend.restart();
         else if (action === "open")
             backend.useOpenDriver(slot);
+        else if (action === "repair")
+            backend.repairDriver(slot);
+        else if (action === "log")
+            backend.openLog();
     }
     // For tests: the button texts of card `index`, "|"-separated.
     function buttonTexts(index) {
         return buttons(backend.cards[index]).map(b => b.text).join("|");
+    }
+
+    LogWindow {
+        id: logWindow
+        transientParent: window
+    }
+    Connections {
+        target: backend
+        function onLogRequested() {
+            logWindow.show();
+            logWindow.raise();
+            logWindow.requestActivate();
+        }
     }
 
     Flickable {
@@ -101,6 +124,11 @@ ApplicationWindow {
                         font.pixelSize: Theme.bodySize + 1
                         wrapMode: Text.Wrap
                     }
+                }
+                VButton {
+                    Layout.alignment: Qt.AlignBottom
+                    text: backend.texts.driver_log
+                    onClicked: backend.openLog()
                 }
                 VButton {
                     Layout.alignment: Qt.AlignBottom
@@ -275,6 +303,11 @@ ApplicationWindow {
                                      && !(gpu.modelData.messageOk && gpu.modelData.state === "restart")
                             severity: gpu.modelData.messageOk ? "success" : "error"
                             text: gpu.modelData.message
+                            VButton {
+                                visible: !gpu.modelData.messageOk
+                                text: backend.texts.details
+                                onClicked: backend.openLog()
+                            }
                         }
 
                         // Secure Boot: register DKMS's key with the firmware.

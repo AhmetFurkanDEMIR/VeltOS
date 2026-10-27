@@ -39,6 +39,18 @@ TEXTS = {
     "st_virtual": ("This is a virtual machine's display; no driver needs to be installed.",
                    "Bu bir sanal makinenin ekranı; sürücü kurmak gerekmez."),
     "st_unknown": ("No driver is offered for this card.", "Bu kart için sürücü sunulmuyor."),
+    "st_failed_key": ("NVIDIA's driver did not start: Secure Boot does not accept its key yet. Register the "
+                      "key below, then restart.",
+                      "NVIDIA'nın sürücüsü başlamadı: Güvenli Önyükleme anahtarını henüz kabul etmiyor. "
+                      "Anahtarı aşağıda kaydedip yeniden başlatın."),
+    "st_failed_build": ("NVIDIA's driver did not start: it was not built for this version of Linux. Repair "
+                        "builds it again.",
+                        "NVIDIA'nın sürücüsü başlamadı: Linux'un bu sürümü için derlenmemiş. Onar, sürücüyü "
+                        "yeniden derler."),
+    "st_failed_start": ("NVIDIA's driver is installed but did not start. The driver log tells why; the "
+                        "open-source driver works without it.",
+                        "NVIDIA'nın sürücüsü kurulu ama başlamadı. Nedenini sürücü günlüğünde görebilirsiniz; "
+                        "açık kaynaklı sürücü onsuz çalışır."),
     # Buttons
     "install_driver": ("Install driver", "Sürücüyü yükle"),
     "install_parts": ("Install", "Yükle"),
@@ -46,12 +58,38 @@ TEXTS = {
     "restart_now": ("Restart now", "Şimdi yeniden başlat"),
     "use_open": ("Use the open-source driver", "Açık kaynaklı sürücüyü kullan"),
     "show_properties": ("Properties", "Özellikler"),
+    "repair_driver": ("Repair", "Onar"),
+    "details": ("Details", "Ayrıntılar"),
+    "driver_log": ("Driver log", "Sürücü günlüğü"),
+    # The driver log window
+    "log_title": ("Driver log", "Sürücü günlüğü"),
+    "log_intro": ("What VeltOS did with the drivers and what the system says about them. Copy or save it "
+                  "to ask for help.",
+                  "VeltOS'un sürücülerle yaptıkları ve sistemin onlar hakkında söyledikleri. Yardım istemek "
+                  "için kopyalayın veya kaydedin."),
+    "log_kernel": ("Add kernel messages", "Çekirdek iletilerini ekle"),
+    "log_copy": ("Copy", "Kopyala"),
+    "log_save": ("Save and open", "Kaydet ve aç"),
+    "log_close": ("Close", "Kapat"),
+    "log_copied": ("The log was copied.", "Günlük kopyalandı."),
+    "log_saved": ("Saved as {path}", "Kaydedildi: {path}"),
+    "log_save_failed": ("The log could not be saved.", "Günlük kaydedilemedi."),
+    "log_kernel_failed": ("The kernel messages could not be read (administrator permission is needed).",
+                          "Çekirdek iletileri okunamadı (yönetici izni gerekir)."),
+    "log_file": ("Graphics driver log", "Ekran kartı sürücü günlüğü"),
     # Progress
     "busy_refresh": ("Getting the package lists…", "Paket listeleri alınıyor…"),
     "busy_detect": ("Finding the right driver for this card…", "Bu kart için doğru sürücü bulunuyor…"),
     "busy_install": ("Installing the driver…", "Sürücü yükleniyor…"),
     "busy_update": ("Updating the driver…", "Sürücü güncelleştiriliyor…"),
     "busy_remove": ("Removing NVIDIA's driver…", "NVIDIA'nın sürücüsü kaldırılıyor…"),
+    "busy_dkms": ("Building NVIDIA's driver for this version of Linux…",
+                  "NVIDIA'nın sürücüsü Linux'un bu sürümü için derleniyor…"),
+    "done_repair": ("Done. Restart the PC to use NVIDIA's driver.",
+                    "Bitti. NVIDIA'nın sürücüsünü kullanmak için bilgisayarı yeniden başlatın."),
+    "failed_repair": ("NVIDIA's driver could not be built. {detail} The driver log shows the build's "
+                      "messages.",
+                      "NVIDIA'nın sürücüsü derlenemedi. {detail} Derleme iletileri sürücü günlüğündedir."),
     "done_current": ("The driver is up to date.", "Sürücü güncel."),
     "done_update": ("The driver was updated to its newest version.",
                     "Sürücü en yeni sürümüne güncelleştirildi."),

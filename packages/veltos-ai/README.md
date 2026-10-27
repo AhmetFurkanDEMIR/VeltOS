@@ -14,16 +14,26 @@ share one conversation.
   process per user: a second `veltos-ai` hands "toggle" (or "window") and
   its activation token to the running one (local socket `veltos-ai-UID`).
 - **Local model** (`local.py`), free and offline once downloaded, the
-  first choice in the settings: Google's Gemma 3 270M (Turkish, English
-  and more) as unsloth's UD-IQ3_XXS GGUF, 185 MB, pinned to one repository
-  revision and checked against its SHA-256; a download screen with
+  first choice in the settings: Qwen3.5 2B (Qwen, Apache 2.0; Turkish,
+  English and about 200 languages, trained to call tools) as unsloth's
+  UD-Q5_K_XL GGUF, 1.47 GB, pinned to one repository revision and checked
+  against its SHA-256 (Gemma 3 270M, 185 MB, until 2026-10-27: it could
+  only chat); a download screen with
   progress, speed and Cancel (`.part` file, renamed when complete). More
   models from Hugging Face's public API: search GGUF repositories (gated
   ones left out), a repository's `.gguf` files smallest first, each checked
   against its LFS SHA-256. Models live in `~/.local/share/veltos/ai-models`.
   veltos-llama's `llama-server` runs the chosen model on 127.0.0.1 (started
-  on the first question, stopped with VeltOS AI); the local model gets no
-  actions.
+  on the first question, stopped with VeltOS AI) with `--jinja`, so the
+  model's own chat template formats the actions, and with thinking off.
+  The local model gets every action; short Turkish and English commands
+  ("Koyu moda geç", "Wi-Fi'ı kapat", "Hesap makinesini aç", "turn off
+  Bluetooth", `intents.py`) become their action directly and the model
+  only words the answer. Measured in the builder (i7-13620H, 7 threads,
+  2026-10-27, `out/ai-test/check.py`): the model alone chose the right
+  action for 23 of 26 requests (about 1.2 s each after the first, 18 s,
+  which reads the action list); the recognised commands cover the three
+  it missed.
 - **Services** (`providers.py`, plain HTTPS with urllib: the image takes
   packages from Debian only, which has none of the services' SDKs):
   - ChatGPT: OpenAI's Responses API (`/v1/responses`, `store: false`); the

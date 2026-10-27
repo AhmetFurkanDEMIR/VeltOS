@@ -11,6 +11,7 @@ import "."
 
 ColumnLayout {
     id: page
+    objectName: "displayPage"
 
     readonly property var disp: backend.display
     property int selected: 0
@@ -90,8 +91,7 @@ ColumnLayout {
             Item {
                 id: area
                 Layout.fillWidth: true
-                // Screens stacked one above the other get a taller area.
-                Layout.preferredHeight: spanY > spanX * 0.75 ? 240 : 170
+                Layout.preferredHeight: boxes.length > 2 ? 300 : 240
                 // Boxes in the arrangement's own coordinates, starting at 0,0:
                 // a screen above or left of another has negative positions,
                 // and measuring from 0 drew such layouts outside the card
@@ -128,11 +128,17 @@ ColumnLayout {
                 }
                 readonly property real spanX: Math.max(1, ...boxes.map(b => b.x + b.w))
                 readonly property real spanY: Math.max(1, ...boxes.map(b => b.y + b.h))
-                // The scale is kept while a display is dragged (the boxes would
-                // shrink and grow under the pointer otherwise).
-                readonly property real fitFactor: Math.min((width - 24) / spanX, (height - 16) / spanY)
-                property real heldFactor: 0
-                readonly property real factor: heldFactor > 0 ? heldFactor : fitFactor
+                // One scale for every arrangement of these displays: all of
+                // them side by side fit across, all of them stacked fit down.
+                // It does not change with the positions, so a box keeps its
+                // size under the pointer and after the drop. (The scale used
+                // to follow the arrangement and was held during a drag; the
+                // drop re-created the boxes before the held scale was let go,
+                // so stacked screens ran over the card until the page was
+                // opened again, product owner 2026-10-27.)
+                readonly property real sumW: boxes.reduce((sum, b) => sum + b.w, 0) || 1
+                readonly property real sumH: boxes.reduce((sum, b) => sum + b.h, 0) || 1
+                readonly property real factor: Math.max(0.001, Math.min((width - 24) / sumW, (height - 16) / sumH))
                 readonly property real originX: (width - spanX * factor) / 2
                 readonly property real originY: (height - spanY * factor) / 2
                 Repeater {
@@ -147,8 +153,10 @@ ColumnLayout {
                         // The drag's offset, kept here: DragHandler's own
                         // translation is back at 0 when the drop is handled.
                         property point moved: Qt.point(0, 0)
-                        x: area.originX + modelData.x * area.factor + 2 + moved.x
-                        y: area.originY + modelData.y * area.factor + 2 + moved.y
+                        readonly property real baseX: area.originX + modelData.x * area.factor + 2
+                        readonly property real baseY: area.originY + modelData.y * area.factor + 2
+                        x: baseX + moved.x
+                        y: baseY + moved.y
                         z: drag.active ? 2 : 1
                         scale: drag.active ? 1.03 : 1
                         Behavior on scale { NumberAnimation { duration: 120 } }
@@ -181,19 +189,30 @@ ColumnLayout {
                             target: null
                             enabled: box.movable
                             cursorShape: Qt.ClosedHandCursor
-                            onTranslationChanged: if (active) box.moved = Qt.point(translation.x, translation.y)
+                            // The page scrolls with the mouse too: its Flickable
+                            // may not take a vertical drag over (a display moved
+                            // up or down would be dropped half-way).
+                            grabPermissions: PointerHandler.CanTakeOverFromAnything
+                            // The box stays inside the arrangement while it moves.
+                            onTranslationChanged: {
+                                if (!active)
+                                    return;
+                                const dx = Math.max(-box.baseX, Math.min(translation.x, area.width - box.width - box.baseX));
+                                const dy = Math.max(-box.baseY, Math.min(translation.y, area.height - box.height - box.baseY));
+                                box.moved = Qt.point(dx, dy);
+                            }
                             onActiveChanged: {
                                 if (active) {
                                     page.selected = box.index;
-                                    area.heldFactor = area.factor;
                                     return;
                                 }
                                 // Plain numbers: a point read from a property stays
                                 // tied to it and would read 0 after the reset below.
                                 const f = area.factor, dx = box.moved.x, dy = box.moved.y;
+                                const o = box.modelData.o, x = box.modelData.rx + dx / f, y = box.modelData.ry + dy / f;
                                 box.moved = Qt.point(0, 0);
-                                page.drop(box.modelData.o, box.modelData.rx + dx / f, box.modelData.ry + dy / f);
-                                area.heldFactor = 0;
+                                // Later: the drop re-creates the boxes, this one included.
+                                Qt.callLater(page.drop, o, x, y);
                             }
                         }
                     }

@@ -98,11 +98,12 @@ class DownloadTests(unittest.TestCase):
         d = local.DEFAULT_MODEL
         self.assertRegex(d["revision"], "^[0-9a-f]{40}$")
         self.assertRegex(d["sha256"], "^[0-9a-f]{64}$")
-        self.assertTrue(100e6 <= d["size"] <= 200e6)      # the product owner's 100-200 MB
+        # About 1.5 GB (product owner, 2026-10-27; 100-200 MB before).
+        self.assertTrue(1.3e9 <= d["size"] <= 1.6e9)
         self.assertEqual(local.resolve_url(d["repo"], d["file"], d["revision"]),
-                         "https://huggingface.co/unsloth/gemma-3-270m-it-GGUF/resolve/"
-                         "c90975dbd40c0c7b275fefaae758c3415c906238/gemma-3-270m-it-UD-IQ3_XXS.gguf")
-        self.assertEqual(local.size_text(d["size"]), "185 MB")
+                         "https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/"
+                         "f6d5376be1edb4d416d56da11e5397a961aca8ae/Qwen3.5-2B-UD-Q5_K_XL.gguf")
+        self.assertEqual(local.size_text(d["size"]), "1.5 GB")
         self.assertEqual(local.size_text(1_234_000_000), "1.2 GB")
 
 

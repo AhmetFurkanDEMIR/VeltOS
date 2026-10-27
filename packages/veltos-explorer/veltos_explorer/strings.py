@@ -193,6 +193,10 @@ TEXTS = {
     "just_once": ("Just once", "Yalnızca bir kez"),
     "more_apps": ("More apps", "Diğer uygulamalar"),
     "no_apps": ("No app on this PC opens this type of file.", "Bu bilgisayarda bu dosya türünü açan bir uygulama yok."),
+    "choose_app": ("Choose an app on your PC", "Bu bilgisayarda bir uygulama seçin"),
+    "choose_app_title": ("Choose an app", "Bir uygulama seçin"),
+    "not_a_program": ("{name} is not a program. Choose a program file or an app's launcher (.desktop).",
+                      "{name} bir program değil. Bir program dosyası ya da uygulama başlatıcısı (.desktop) seçin."),
     "app_label": ("Apps", "Uygulamalar"),
     "system_icon_stays": ("This PC, the Recycle Bin and the VeltOS Store stay on the desktop. They can't be "
                           "deleted, moved or renamed.",

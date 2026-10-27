@@ -261,6 +261,63 @@ class SettingsWindowTests(unittest.TestCase):
         shown = {"1": {"x": 0, "y": 1440}, "2": {"x": 0, "y": 0}}
         placed = self.backend.snapDisplay(1, 2600, 20, shown)
         self.assertEqual(sorted((p["id"], p["x"], p["y"]) for p in placed), [(1, 2560, 0), (2, 0, 0)])
+        # Dropped side by side, then stacked again: the boxes keep their
+        # size and stay inside after each drop (they ran over the card
+        # after a drop until the page was opened again, 2026-10-27).
+        (page,) = self.items("displayPage")
+        sizes = sorted((round(b.width()), round(b.height())) for b in boxes)
+        for arrangement in ([{"id": 1, "x": 2560, "y": 0}, {"id": 2, "x": 0, "y": 0}],
+                            [{"id": 1, "x": 0, "y": 1440}, {"id": 2, "x": 0, "y": 0}],
+                            [{"id": 1, "x": 0, "y": 0}, {"id": 2, "x": 0, "y": -1440}]):
+            page.setProperty("pending", {str(p["id"]): {"x": p["x"], "y": p["y"]} for p in arrangement})
+            self.app.processEvents()
+            self.window.grabWindow()
+            boxes = self.items("displayBox")
+            self.assertEqual(sorted((round(b.width()), round(b.height())) for b in boxes), sizes)
+            for box in boxes:
+                self.assertGreaterEqual(box.x(), 0)
+                self.assertGreaterEqual(box.y(), 0)
+                self.assertLessEqual(box.x() + box.width(), area.width() + 0.5)
+                self.assertLessEqual(box.y() + box.height(), area.height() + 0.5)
+        # A real drag with the mouse, far past the card's top: the box stays
+        # inside while it moves and every box is inside after the drop.
+        from PySide6.QtCore import QPointF, Qt
+        from PySide6.QtGui import QMouseEvent
+        page.setProperty("pending", None)
+        # The boxes of the last arrangement are deleted later: let them go.
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        self.app.processEvents()
+        self.window.grabWindow()
+
+        def mouse(kind, point, buttons):
+            # A move carries no button of its own, only the held buttons.
+            button = Qt.MouseButton.NoButton if kind == QEvent.Type.MouseMove else Qt.MouseButton.LeftButton
+            event = QMouseEvent(kind, point, self.window.mapToGlobal(point), button, buttons,
+                                Qt.KeyboardModifier.NoModifier)
+            QCoreApplication.sendEvent(self.window, event)
+            self.app.processEvents()
+
+        boxes = sorted(self.items("displayBox"), key=lambda b: b.y())
+        lower = boxes[-1]
+        start = lower.mapToScene(QPointF(lower.width() / 2, lower.height() / 2))
+        mouse(QEvent.Type.MouseButtonPress, start, Qt.MouseButton.LeftButton)
+        for step in range(1, 21):
+            point = QPointF(start.x() + step * 30, start.y() - step * 40)
+            mouse(QEvent.Type.MouseMove, point, Qt.MouseButton.LeftButton)
+            self.assertGreaterEqual(lower.y(), -0.5)
+            self.assertLessEqual(lower.x() + lower.width(), area.width() + 0.5)
+        self.assertNotEqual(round(lower.mapToScene(QPointF(0, 0)).y()), round(start.y() - lower.height() / 2))
+        mouse(QEvent.Type.MouseButtonRelease, point, Qt.MouseButton.NoButton)
+        for _ in range(3):
+            self.app.processEvents()
+        self.window.grabWindow()
+        self.assertIsNotNone(page.property("pending"))
+        self.assertEqual(sorted((round(b.width()), round(b.height())) for b in self.items("displayBox")), sizes)
+        for box in self.items("displayBox"):
+            self.assertGreaterEqual(box.x(), 0)
+            self.assertGreaterEqual(box.y(), 0)
+            self.assertLessEqual(box.x() + box.width(), area.width() + 0.5)
+            self.assertLessEqual(box.y() + box.height(), area.height() + 0.5)
         self.assertEqual(self.problems(), [])
 
     def test_display_follows_screens(self):

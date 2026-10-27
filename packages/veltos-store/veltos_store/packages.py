@@ -121,8 +121,22 @@ def count_updates(output):
     return sum(1 for line in results.splitlines() if re.search(r"\.\S+ \(.*\)\s*$", line))
 
 
+# A .deb file opened from File Explorer (the package installer window):
+# pkcon install-local, which also installs what the package needs from
+# Debian's archive. The file is not signed by an archive, so PackageKit
+# needs --allow-untrusted, and polkit asks for the administrator's password
+# for that (org.freedesktop.packagekit.package-install-untrusted). The
+# window says so before the user chooses Install.
+LOCAL_ACTIONS = {
+    "install-local": ["--allow-untrusted"],
+    "reinstall-local": ["--allow-untrusted", "--allow-reinstall"],
+    "downgrade-local": ["--allow-untrusted", "--allow-downgrade"],
+}
+
+
 class Jobs(QObject):
-    """Queue of pkcon jobs: ("install" | "remove" | "update", package)."""
+    """Queue of pkcon jobs: ("install" | "remove" | "update" | a LOCAL_ACTIONS
+    key, package name or .deb path)."""
 
     changed = Signal()
     finished = Signal(str, str, bool)   # action, package, process exit OK
@@ -136,6 +150,7 @@ class Jobs(QObject):
         self.percent = -1
         self.status = ""
         self.error = ""
+        self.output = ""        # what pkcon printed for the current or last job
         self.process = None
 
     def busy(self, package):
@@ -153,7 +168,7 @@ class Jobs(QObject):
     def add(self, action, package):
         if self.busy(package):
             return
-        if action == "install" and self.needs_refresh() and not any(a == "refresh" for a, _p in self.queue) \
+        if (action == "install" or action in LOCAL_ACTIONS) and self.needs_refresh() and not any(a == "refresh" for a, _p in self.queue) \
                 and not (self.current and self.current[0] == "refresh"):
             # Old or missing package lists: fetch them first, or the app
             # "could not be found" (an installed system keeps the image's
@@ -171,13 +186,15 @@ class Jobs(QObject):
             return ["-p", "remove", package]
         if action == "refresh":
             return ["-p", "refresh"]
+        if action in LOCAL_ACTIONS:
+            return ["-p", *LOCAL_ACTIONS[action], "install-local", package]
         return ["-p", "update"]
 
     def _next(self):
         if self.process is not None or not self.queue:
             return
         self.current = self.queue.pop(0)
-        self.percent, self.status, self.error = -1, "", ""
+        self.percent, self.status, self.error, self.output = -1, "", "", ""
         process = QProcess(self)
         environment = QProcessEnvironment.systemEnvironment()
         environment.insert("LC_ALL", "C")
@@ -198,6 +215,7 @@ class Jobs(QObject):
 
     def _read(self):
         data = bytes(self.process.readAllStandardOutput()).decode("utf-8", "replace")
+        self.output = (self.output + data)[-200000:]
         for line in data.splitlines():
             parsed = parse_progress(line)
             if not parsed:

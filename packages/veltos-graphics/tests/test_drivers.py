@@ -28,13 +28,14 @@ class PlanTests(unittest.TestCase):
     def test_nvidia_without_driver_offers_install_with_headers(self):
         plan = drivers.plan(NVIDIA, {}, {"nouveau"})
         self.assertEqual(plan["state"], "available")
+        self.assertIn("linux-image-amd64", plan["packages"])
         self.assertEqual(plan["action"], "install")
-        self.assertEqual(plan["packages"], ["nvidia-driver", "linux-headers-amd64"])
+        self.assertEqual(plan["packages"], ["nvidia-driver", "linux-headers-amd64", "linux-image-amd64"])
         self.assertEqual(plan["driver"], "nouveau")
 
     def test_nvidia_detect_recommendation_is_used(self):
         plan = drivers.plan(NVIDIA, {}, set(), "nvidia-tesla-535-driver")
-        self.assertEqual(plan["packages"], ["nvidia-tesla-535-driver", "linux-headers-amd64"])
+        self.assertEqual(plan["packages"], ["nvidia-tesla-535-driver", "linux-headers-amd64", "linux-image-amd64"])
 
     def test_nvidia_legacy_card_is_unsupported(self):
         plan = drivers.plan(NVIDIA, {}, set(), "unsupported")
@@ -65,6 +66,49 @@ class PlanTests(unittest.TestCase):
         plan = drivers.plan(AMD, OPEN_STACK, {"amdgpu"})
         self.assertEqual((plan["state"], plan["action"]), ("ready", "update"))
         self.assertEqual(plan["packages"], ["firmware-amd-graphics", "mesa-vulkan-drivers", "libgl1-mesa-dri"])
+
+    def test_installed_driver_that_did_not_start(self):
+        installed = {"nvidia-driver": "550.163.01-2"}
+        restarted = {"restarted": True, "built": True, "keyMissing": False}
+        # Not restarted yet: still "restart".
+        self.assertEqual(drivers.plan(NVIDIA, installed, {"nouveau"}, status=dict(restarted, restarted=False))["state"],
+                         "restart")
+        plan = drivers.plan(NVIDIA, installed, set(), status=dict(restarted, keyMissing=True))
+        self.assertEqual((plan["state"], plan["reason"], plan["action"]), ("failed", "key", ""))
+        plan = drivers.plan(NVIDIA, installed, set(), status=dict(restarted, built=False))
+        self.assertEqual((plan["state"], plan["reason"], plan["action"]), ("failed", "build", "repair"))
+        plan = drivers.plan(NVIDIA, installed, set(), status=restarted)
+        self.assertEqual((plan["state"], plan["reason"]), ("failed", "start"))
+        self.assertTrue(plan["openDriver"])
+        # In use: whatever the status says.
+        self.assertEqual(drivers.plan(NVIDIA, installed, {"nvidia"}, status=restarted)["state"], "proprietary")
+
+    def test_module_built_and_install_time(self):
+        modules = Path(tempfile.mkdtemp())
+        kernel = "6.12.48+deb13-amd64"
+        self.assertFalse(drivers.module_built(kernel, root=modules))
+        folder = modules / kernel / "updates/dkms"
+        folder.mkdir(parents=True)
+        (folder / "nvidia-current-drm.ko.xz").write_bytes(b"")
+        self.assertFalse(drivers.module_built(kernel, root=modules))
+        for name in ("nvidia-current.ko.xz", "nvidia-current-open.ko", "nvidia-tesla-535.ko.zst"):
+            (folder / name).write_bytes(b"")
+            self.assertTrue(drivers.module_built(kernel, root=modules))
+            (folder / name).unlink()
+        info = Path(tempfile.mkdtemp())
+        self.assertEqual(drivers.installed_at(drivers.NVIDIA_MODULE_PACKAGES, info), 0)
+        (info / "nvidia-kernel-dkms.list").write_text("x")
+        self.assertGreater(drivers.installed_at(drivers.NVIDIA_MODULE_PACKAGES, info), 0)
+        self.assertEqual(drivers.running_headers("6.12.48+deb13-amd64"), "linux-headers-6.12.48+deb13-amd64")
+
+    def test_modesetting_options(self):
+        """Debian names NVIDIA's DRM module after its package; the options must
+        name those files (an option for the upstream name would be lost)."""
+        text = (Path(__file__).resolve().parent.parent / "data/veltos-nvidia.conf").read_text()
+        options = [line.split() for line in text.splitlines() if line.startswith("options")]
+        self.assertEqual(sorted(o[1] for o in options),
+                         ["nvidia-current-drm", "nvidia-current-open-drm", "nvidia-tesla-535-drm"])
+        self.assertTrue(all("modeset=1" in o for o in options))
 
     def test_virtual_and_other_cards(self):
         self.assertEqual(drivers.plan(VIRTIO, OPEN_STACK, set())["state"], "virtual")
