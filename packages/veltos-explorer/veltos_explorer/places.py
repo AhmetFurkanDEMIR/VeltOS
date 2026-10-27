@@ -391,6 +391,11 @@ def application_dirs():
 
 
 def read_desktop_entry(path):
+    """The [Desktop Entry] values of an app, or None for one hidden from
+    menus (NoDisplay: also the KDE apps VeltOS hides behind its own). An app
+    that is hidden from Start but opens files on purpose says so with
+    X-VeltOS-OpenWith=true (VeltOS Store's App Installer for .deb files) and
+    still counts, as Windows lists App Installer for a package."""
     try:
         text = Path(path).read_text(encoding="utf-8", errors="replace")
     except OSError:
@@ -405,7 +410,8 @@ def read_desktop_entry(path):
             values[key.strip()] = value.strip()
     # Programs chosen with "Choose an app on your PC" (openwith.py) are
     # hidden from Start but are apps here.
-    hidden = values.get("NoDisplay") == "true" and values.get("X-VeltOS-Chosen") != "true"
+    hidden = values.get("NoDisplay") == "true" and "true" not in (values.get("X-VeltOS-Chosen"),
+                                                                  values.get("X-VeltOS-OpenWith"))
     if values.get("Type", "Application") != "Application" or hidden \
             or values.get("Hidden") == "true" or "Exec" not in values:
         return None

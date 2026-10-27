@@ -7,6 +7,8 @@ Comment[tr]=Bir Debian paketi (.deb) yükleyin
 Exec=veltos-store --install-file %f
 Icon=veltos-store
 NoDisplay=true
+# Listed in File Explorer's "Open with" for .deb files although not in Start.
+X-VeltOS-OpenWith=true
 MimeType=application/vnd.debian.binary-package;application/x-deb;
 Categories=System;PackageManager;
 StartupNotify=true

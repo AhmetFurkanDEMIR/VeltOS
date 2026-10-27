@@ -304,6 +304,37 @@ class BackendTests(unittest.TestCase):
         self.addCleanup(setattr, tools, "settings_helpers", old)
         return done
 
+    def test_local_command_without_the_model(self):
+        # "Wi-Fi'ı aç" with the local model: the command becomes its action
+        # at once (intents.py); when the model then cannot start, the answer
+        # is "Done." instead of an error, as the command did its work.
+        from veltos_ai import local
+        old_home = os.environ.get("XDG_DATA_HOME")
+        os.environ["XDG_DATA_HOME"] = tempfile.mkdtemp()
+        self.addCleanup(lambda: os.environ.__setitem__("XDG_DATA_HOME", old_home) if old_home
+                        else os.environ.pop("XDG_DATA_HOME", None))
+        local.models_dir().mkdir(parents=True)
+        (local.models_dir() / providers.PROVIDERS["local"]["model"]).write_bytes(b"x")
+
+        def no_engine(_model):
+            raise local.DownloadError("engine")
+        self.addCleanup(setattr, local.SERVER_INSTANCE, "base", local.SERVER_INSTANCE.base)
+        local.SERVER_INSTANCE.base = no_engine
+        # The engine is installed but fails (veltos-llama is not in the build).
+        self.addCleanup(setattr, local, "engine_available", local.engine_available)
+        local.engine_available = lambda: True
+        done = self.stub_wifi()
+        backend = self.backend("local")
+        backend.send("Wi-Fi'ı aç")
+        messages = backend.messages
+        self.assertEqual([m["kind"] for m in messages], ["user", "action"])
+        self.assertEqual((messages[1]["title"], messages[1]["state"]), ("Turn on Wi-Fi", "ask"))
+        self.assertEqual(self.service.requests, [])           # the model was not asked
+        backend.allowAction(messages[1]["id"])
+        self.assertEqual(done, [True])
+        self.assertEqual((backend.messages[-1]["kind"], backend.messages[-1]["text"]), ("assistant", "Done."))
+        self.assertFalse(backend.busy)
+
     def test_allow(self):
         for provider, first, second in (("claude", fake.claude_tool_turn(), fake.claude_text("Wi-Fi is on.")),
                                         ("openai", fake.openai_tool_turn(), fake.openai_text("Wi-Fi is on.")),

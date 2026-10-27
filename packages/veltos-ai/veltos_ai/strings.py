@@ -40,9 +40,11 @@ TEXTS = {
     "get_key": ("Get a key", "Anahtar alın"),
     # The local model (local.py, LocalModels.qml)
     "local_default_desc": ("Turkish, English and many more languages; works offline and free once downloaded. "
-                           "Google's small model: quick, short answers, may make mistakes.",
+                           "It can change settings and open apps for you, after you allow it. A small model: "
+                           "it may make mistakes.",
                            "Türkçe, İngilizce ve daha birçok dil; indirildikten sonra çevrimdışı ve ücretsiz "
-                           "çalışır. Google'ın küçük modeli: hızlı ve kısa yanıtlar verir, hata yapabilir."),
+                           "çalışır. İzin verdiğinizde ayarları değiştirebilir, uygulamaları açabilir. Küçük bir "
+                           "model: hata yapabilir."),
     "download": ("Download", "İndir"),
     "downloading": ("Downloading the model…", "Model indiriliyor…"),
     "download_progress": ("{done} of {total} · {speed}", "{done} / {total} · {speed}"),
@@ -63,10 +65,10 @@ TEXTS = {
     "search": ("Search", "Ara"),
     "back": ("Back", "Geri"),
     "start_chat": ("Start chatting", "Sohbete başla"),
-    "local_note": ("The local model runs on this PC: nothing you write leaves it. It answers questions but "
-                   "doesn't change settings.",
-                   "Yerel model bu bilgisayarda çalışır: yazdıklarınız bilgisayardan çıkmaz. Soruları yanıtlar "
-                   "ama ayarları değiştirmez."),
+    "local_note": ("The local model runs on this PC: nothing you write leaves it. It asks before it changes "
+                   "anything.",
+                   "Yerel model bu bilgisayarda çalışır: yazdıklarınız bilgisayardan çıkmaz. Bir şeyi "
+                   "değiştirmeden önce izninizi ister."),
     "local_no_engine": ("The local model engine (veltos-llama) isn't installed. Install it from VeltOS Store.",
                         "Yerel model motoru (veltos-llama) kurulu değil. VeltOS Mağaza'dan kurun."),
     "error_local": ("The local model couldn't start: {detail}", "Yerel model başlatılamadı: {detail}"),
@@ -156,6 +158,7 @@ TEXTS = {
     "error_other": ("Something went wrong: {detail}", "Bir sorun oluştu: {detail}"),
     "refused": ("The model declined to answer this request.", "Model bu isteği yanıtlamayı reddetti."),
     "stopped": ("Stopped.", "Durduruldu."),
+    "command_done": ("Done.", "Tamam, yapıldı."),
     "no_key": ("Choose a service and enter your API key to start.",
                "Başlamak için bir hizmet seçin ve API anahtarınızı girin."),
 }

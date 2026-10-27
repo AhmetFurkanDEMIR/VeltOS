@@ -450,8 +450,15 @@ class OpenWithWindowTests(unittest.TestCase):
         (apps / "editor.desktop").write_text("[Desktop Entry]\nType=Application\nName=Editor\nName[tr]=Düzenleyici\n"
                                              "Icon=text-editor\nExec=editor %f\nMimeType=text/plain;\n")
         (apps / "other.desktop").write_text("[Desktop Entry]\nType=Application\nName=Other\nExec=other %U\n")
+        # Hidden from menus but a handler for the type: listed (as Windows lists App Installer).
+        (apps / "installer.desktop").write_text("[Desktop Entry]\nType=Application\nName=App Installer\n"
+                                                "Exec=installer %f\nMimeType=application/x-deb;\nNoDisplay=true\n"
+                                                "X-VeltOS-OpenWith=true\n")
+        (apps / "gone.desktop").write_text("[Desktop Entry]\nType=Application\nName=Gone\nExec=gone %f\n"
+                                           "MimeType=text/plain;\nHidden=true\n")
         os.environ["XDG_DATA_DIRS"] = str(home)
         os.environ["XDG_DATA_HOME"] = str(home / "none")
+        self.assertEqual([a["id"] for a in places.applications_for("application/x-deb")], ["installer.desktop"])
         note = home / "note.txt"
         note.write_text("hi")
         started = []

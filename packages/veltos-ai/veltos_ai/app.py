@@ -116,6 +116,7 @@ class Backend(QObject):
         self._results = {}
         self._stop = ""
         self._failed = None
+        self._command_done = False
         self._rounds = 0
         self._models = []
         self._models_busy = False
@@ -525,6 +526,7 @@ class Backend(QObject):
         self._adapter.add_user(self.history, text[:8000])
         self._add("user", text)
         self._rounds = 0
+        self._command_done = False
         # The local model: a short command it might get wrong becomes its
         # action at once (intents.py); the model then words the answer.
         command = intents.match(text, self.lang) if name == "local" and self.data.get("actions", True) else None
@@ -609,9 +611,16 @@ class Backend(QObject):
         if self._failed is not None:
             if not current["text"]:
                 self._messages.remove(current)
-            self._add("error", self.error_text(self._failed))
+            if self._command_done:
+                # A recognised command already did its work; only the
+                # model's words are missing (it could not start): no error.
+                self._add("assistant", self.text("command_done"))
+            else:
+                self._add("error", self.error_text(self._failed))
+            self._command_done = False
             self._set_busy(False)
             return
+        self._command_done = False
         if self._stop == "refusal":
             current["text"] = self.text("refused")
             current["state"] = "refused"
@@ -688,6 +697,8 @@ class Backend(QObject):
     def _on_action_done(self, generation, index, ok, output):
         if generation != self._generation:
             return
+        if ok and self._calls[index].get("id") == "veltos_command":
+            self._command_done = True
         self._record(index, ok, output, "done" if ok else "failed")
         self._maybe_continue()
 

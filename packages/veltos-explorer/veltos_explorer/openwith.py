@@ -44,7 +44,8 @@ def all_applications(lang="en"):
                 continue
             seen.add(path.name)          # a hidden copy hides the original behind it
             entry = places.read_desktop_entry(path)
-            if entry is None:
+            # A handler hidden from Start (App Installer) only for its own types.
+            if entry is None or (entry.get("NoDisplay") == "true" and entry.get(CHOSEN_KEY) != "true"):
                 continue
             name = entry.get(f"Name[{lang}]") or entry.get("Name", path.stem)
             result.append({"id": path.name, "name": name, "icon": entry.get("Icon", ""), "path": str(path)})

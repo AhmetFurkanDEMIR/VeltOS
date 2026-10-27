@@ -23,6 +23,13 @@
     pointed-at button's windows. The task manager's own window tooltips are
     off (plasma-overrides/org.kde.plasma.taskmanager.json).
 
+    The pointer moves often (a 1000 Hz mouse reports a thousand times a
+    second) and the script runs on KWin's own thread: looking through every
+    window on each move could hold up KWin's frames, and VeltOS felt
+    stuttery (product owner, 2026-10-27). The windows are only looked at
+    while the pointer is in the band at the bottom of a screen where the
+    taskbar is (TASKBAR_BAND), or over the cards.
+
     Uses KWin's public QML API (org.kde.kwin) only.
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -232,6 +239,28 @@ Window {
         peeked = null;
     }
 
+    // The taskbar is at the bottom of each screen (VeltOS' locked taskbar);
+    // 72 px covers its 48 px at every display scale KWin reports in.
+    readonly property int taskbarBand: 72
+    property var screenRects: []
+    function refreshScreens() {
+        const list = [];
+        const screens = KWin.Workspace.screens || [];
+        for (let i = 0; i < screens.length; ++i) {
+            const g = screens[i].geometry;
+            list.push(Qt.rect(g.x, g.y, g.width, g.height));
+        }
+        screenRects = list;
+    }
+    function nearTaskbar(p) {
+        for (let i = 0; i < screenRects.length; ++i) {
+            const g = screenRects[i];
+            if (p.x >= g.x && p.x < g.x + g.width && p.y >= g.y && p.y < g.y + g.height) {
+                return p.y >= g.y + g.height - taskbarBand;
+            }
+        }
+        return true;        // a screen not known yet: look, as before
+    }
     function pointerMoved() {
         const p = KWin.Workspace.cursorPos;
         if (insideFlyout(p)) {
@@ -239,7 +268,11 @@ Window {
             switchTimer.stop();
             return;
         }
-        const hit = buttonAt(p);
+        // Away from the taskbar nothing is under the pointer: no window list.
+        if (!nearTaskbar(p) && !showTimer.running && !switchTimer.running && !shown && candidate === null) {
+            return;
+        }
+        const hit = nearTaskbar(p) ? buttonAt(p) : null;
         if (hit === null) {
             showTimer.stop();
             switchTimer.stop();
@@ -348,6 +381,12 @@ Window {
         function onCurrentDesktopChanged() {
             preview.hide(false);
         }
+        function onScreensChanged() {
+            preview.refreshScreens();
+        }
+        function onVirtualScreenGeometryChanged() {
+            preview.refreshScreens();
+        }
     }
 
     function suppressPointedButton() {
@@ -363,7 +402,10 @@ Window {
         }
     }
 
-    Component.onCompleted: KWin.Workspace.stackingOrder.forEach(remember)
+    Component.onCompleted: {
+        KWin.Workspace.stackingOrder.forEach(remember);
+        refreshScreens();
+    }
     Component.onDestruction: unpeek()
 
     // --- Flyout -----------------------------------------------------------

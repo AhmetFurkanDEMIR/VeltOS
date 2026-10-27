@@ -163,6 +163,8 @@ def read(path, runner=run, files=read_files):
     if not name or not fields.get("Version"):
         return None
     entries, icons = files(path)
+    # The app named after the package first (xterm.desktop before uxterm.desktop).
+    entries.sort(key=lambda item: (item[0] != f"{name}.desktop", item[0]))
     icon_path, icon_data = best_icon(entries, icons)
     arch = fields.get("Architecture", "")
     native = native_arch(runner)

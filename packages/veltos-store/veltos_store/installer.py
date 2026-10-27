@@ -148,6 +148,9 @@ class Installer(QObject):
         if self._page == "working":
             state = self._jobs.state(str(self.path)) or ("refreshing" if self._jobs.current
                                                           and self._jobs.current[0] == "refresh" else "")
+            # A local install has no pkcon status of its own at first (Jobs
+            # calls it "updating"): it is installing.
+            state = "installing" if state == "updating" else state
             return self.t("pkg_" + state) if state and ("pkg_" + state) in self._texts else self.t("pkg_working")
         return self._info["summary"] + ("\n\n" + self._info["description"] if self._info["description"] else "")
 
