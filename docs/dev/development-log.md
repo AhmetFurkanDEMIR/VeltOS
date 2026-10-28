@@ -37,6 +37,13 @@ The product owner's list of 2026-10-28.
 - Quick Settings lists (105): the scroll bar was drawn inside the rows'
   width; it now runs in the right margin and the rows always leave room.
   Dev VM with ten simulated networks (`out/vm/wifisim-many.sh`).
+- ISO `veltos-1.1-dev2-amd64.hybrid.iso` (build 20261028-105735):
+  2,111,680,512 bytes (under 2 GiB by 35.8 MB), SHA-256
+  eceb3383eeb7518c2d78072647689825f90aa2b7e1f117f81a365ac9ba5e0821. Boot
+  tests in QEMU passed for UEFI, BIOS and Secure Boot (the same checks as
+  1.1-dev1, none failed, no crashed processes); plasmashell after 30.8 /
+  32.3 / 34.3 s. Copied to the owner's Desktop. Not yet: an installation
+  from this ISO.
 
 ## 2026-10-27 (night) — Items 99 and 100: Wine tests, Wine or Bottles
 
