@@ -51,6 +51,14 @@ The product owner's list of 2026-10-28.
   plasma-workspace 6.3 `AppInterface::setTheme` -> `Plasma::Theme::
   setThemeName`, which writes plasmarc too). Verified with plasmarc made
   read-only: the running taskbar still switched. Settings 169 tests.
+- ISO `veltos-1.1-dev3-amd64.hybrid.iso` (build 20261028-114643, with the
+  light/dark fix): 2,111,676,416 bytes, SHA-256
+  062fbf4c2573e07bf50d32aa6ce7ba4bc42ef578b5a5add66f93e07655d0cf11. Boot
+  tests passed for UEFI, BIOS and Secure Boot (the same checks, none
+  failed); plasmashell after 31.1 / 31.8 / 30.8 s. Copied to the owner's
+  Desktop. The 1.1-dev2 build directory was deleted after the owner had
+  removed its Desktop copy, so that ISO exists no more (1.1-dev3 contains
+  all of it).
 - ISO `veltos-1.1-dev2-amd64.hybrid.iso` (build 20261028-105735):
   2,111,680,512 bytes (under 2 GiB by 35.8 MB), SHA-256
   eceb3383eeb7518c2d78072647689825f90aa2b7e1f117f81a365ac9ba5e0821. Boot
