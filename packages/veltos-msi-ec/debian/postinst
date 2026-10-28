@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# A newer pinned msi-ec: build it where Keyboard Lighting installed the old
+# one (MSI laptops only; nothing happens anywhere else).
+if [ "$1" = configure ] && [ -e /etc/modules-load.d/veltos-msi-ec.conf ] && command -v dkms >/dev/null 2>&1; then
+    /usr/libexec/veltos/msi-ec-driver upgrade >/dev/null 2>&1 || true
+fi
+
+#DEBHELPER#
+
+exit 0

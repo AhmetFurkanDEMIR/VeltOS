@@ -84,7 +84,8 @@ owner sets priorities; agents act as the engineering team.
 | `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), `release-disks` (unmounts the PC's disks before Calamares starts, so every partitioning choice is offered), `console-cache` (the installed system's console keymap cache), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format (Windows 11's Format window, `FormatWindow.qml`, also alone for File Explorer's `--format`), delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil, kernel modesetting `veltos-nvidia.conf`, Repair) or the AMD/Intel firmware and Mesa drivers through `pkcon`; the Driver log window (`diagnostics.py`); also Settings > Display > Graphics cards |
-| `packages/veltos-lighting/` | VeltOS Keyboard Lighting: a laptop keyboard's lights (sysfs LEDs; colour on multicolour LEDs, ASUS, System76) in Windows 11's Dynamic Lighting layout, a pkexec helper (`/usr/libexec/veltos/keyboard-light`, allowed for the active user), restore at sign-in; Settings > Personalization > Keyboard lighting |
+| `packages/veltos-lighting/` | VeltOS Keyboard Lighting: a laptop keyboard's lights (sysfs LEDs; colour on multicolour LEDs, ASUS, System76) in Windows 11's Dynamic Lighting layout, a pkexec helper (`/usr/libexec/veltos/keyboard-light`, allowed for the active user), restore at sign-in; MSI laptops get MSI's driver on request (`msi.py`); Settings > Personalization > Keyboard lighting |
+| `packages/veltos-msi-ec/` | MSI's msi-ec driver at a pinned commit (`upstream.json`), built with DKMS on MSI laptops when Keyboard Lighting asks: `/usr/libexec/veltos/msi-ec-firmware` (EC firmware version and what msi-ec offers, no password), `msi-ec-driver install\|remove\|upgrade` (administrator); the firmware table comes from msi-ec.c at build time, which also compiles the module against Debian's headers |
 | `packages/veltos-weather/` | VeltOS Weather: Windows 11 Weather layout (current weather, 10-day forecast, hourly chart, weather details, historical weather, favorites, °F/°C) on Open-Meteo's open data without a key (`openmeteo.py`, cache in `~/.cache/veltos-weather`); first start uses the time zone's city |
 | `packages/veltos-maps/` | VeltOS Maps: Google Maps in one VeltOS window (Windows 11 floating controls, InfoBars, offline page, the app's language) without a Maps Platform API key; optional location through GeoClue (off by default; Maps or Settings > Privacy & security > Location) and Windows 11's default location (`~/.config/veltos/location.json`) |
 | `packages/veltos-ai/` | VeltOS AI: assistant pane on the right edge like Windows 11's Copilot (layer shell, Windows + C) with ChatGPT / Claude / Gemini / Azure OpenAI ("Copilot") on the user's own key (`providers.py`, plain HTTPS); actions on the system from a fixed list, each change after "Allow" (`tools.py`, VeltOS Settings' helpers); a free local model (`local.py`: Gemma 3 270M by default, more GGUF models from Hugging Face, downloaded with a progress screen and checked) run by veltos-llama; the pane from the taskbar button and Windows + C, a normal window from Start and search (`--window`) |
@@ -1268,6 +1269,21 @@ and JavaScript with no build step, no external requests and no cookies:
   installed system. `kioclient exec FILE` from `vm exec-user` lacks the
   session's menu prefix and asks "Choose Application" too: start it with
   `systemd-run --machine=velt@.host --user`.
+- MSI laptops (2026-10-28): Debian 13's own msi-ec (6.12, loaded by DMI on
+  MSI laptops) sets only battery limits and registers no keyboard LED;
+  upstream msi-ec (veltos-msi-ec) does, has no DMI table (modules-load.d),
+  and a DKMS copy in `updates/` replaces the kernel's own module for good,
+  so the helper removes it when it cannot load. QEMU has no EC
+  (`/sys/kernel/debug/ec/ec0/io` is missing, modprobe says "No such
+  device"). Debian 13's dkms (3.2.2) makes `/var/lib/dkms/mok.key` itself
+  and signs with it. pkcon accepted `dkms:amd64` for the arch-all dkms.
+- Plasma uses a theme's `translucent/` popup SVGs only when KWin can blur:
+  real graphics cards, not QEMU's llvmpipe (blur is not loaded there). Test
+  popup frames with `qdbus6 org.kde.KWin /Effects
+  org.kde.kwin.Effects.loadEffect blur` (and `contrast`) in the VM; the
+  dark theme's white popup rim showed only then.
+- Test files whose names contain ":" (LED names) cannot be made on the
+  Windows host; tests that run there use plain names.
 - Package tests run on the Windows host write to the real home folder:
   Python's `Path.home()` reads USERPROFILE there, not HOME. Tests that
   patch HOME also patch USERPROFILE (veltos-winapps `test_bottles.py`).

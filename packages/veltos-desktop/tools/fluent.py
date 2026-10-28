@@ -477,6 +477,37 @@ def drop_scrollbar_separator(svg, name="svg"):
     return result
 
 
+DARK_RIM = "fill:#000000;opacity:0.35"
+
+
+def dark_popup_rim(svg, name="svg"):
+    """Dark mode: Fluent's see-through popup frame (translucent/, used when
+    KWin can blur, so on real graphics cards) draws a 12 % white line along
+    the outer edge of its frame pieces ("top", "topleft"; the other edges
+    and corners are <use> copies). Over the blurred dark desktop it showed
+    as a white frame around Start, search, the flyouts and tooltips
+    (product owner, 2026-10-28: no white frame in dark mode; seen in the VM
+    once blur was loaded). The line becomes a dark edge. Returns the SVG
+    and the number of lines changed."""
+    count = 0
+
+    def darken_group(group):
+        nonlocal count
+
+        def darken(element):
+            nonlocal count
+            tag = element.group(0)
+            if "class=" in tag:
+                return tag
+            count += 1
+            return re.sub(r'style="[^"]*"', f'style="{DARK_RIM}"', tag, count=1)
+        return re.sub(r'<(?:rect|path)\b[^>]*style="[^"]*fill:#ffffff;opacity:[0-9.]+[^"]*"[^>]*>', darken,
+                      group.group(0))
+    result = re.sub(r'<g\b[^>]*id="(?:top|topleft|topright|bottom|bottomleft|bottomright|left|right)"[^>]*>.*?</g>',
+                    darken_group, svg, flags=re.S)
+    return result, count
+
+
 LIGHT_POPUP = "#ffffff"
 
 
@@ -528,6 +559,7 @@ def build_desktoptheme(upstream, root, name, variant):
         (dest / rel).unlink()
     recoloured = 0
     outlines = 0
+    rims = 0
     separators = 0
     for path in sorted(dest.rglob("*.svgz")):
         text = read_svgz(path)
@@ -537,12 +569,17 @@ def build_desktoptheme(upstream, root, name, variant):
         if path.name in ("background.svgz", "tooltip.svgz"):
             text, found = drop_popup_outline(text, str(path))
             outlines += found
+            if variant == "dark":
+                text, found = dark_popup_rim(text, str(path))
+                rims += found
         if variant == "light" and path.parent.name == "dialogs" and path.name == "background.svgz":
             text = white_popup(text, str(path))
         if path.parent.name == "widgets" and path.name == "scrollbar.svgz" and "private-hint-show-separator" in text:
             text = drop_scrollbar_separator(text, str(path))
             separators += 1
         write_svgz(path, text)
+    if variant == "dark" and rims == 0:
+        raise SystemExit(f"{name}: no white rim found in the dark popup frames (Fluent changed?)")
     if outlines == 0:
         raise SystemExit(f"{name}: no popup outline found (Fluent changed?)")
     if separators == 0:

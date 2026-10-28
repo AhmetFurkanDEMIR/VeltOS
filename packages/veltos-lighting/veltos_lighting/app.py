@@ -8,6 +8,10 @@ password for the signed-in user). The choices are kept per light in
 ~/.config/veltos/lighting.json and applied again at sign-in
 (`veltos-lighting --restore`, which ends at once on a PC without keyboard
 lights): many keyboards forget their colour when the PC restarts.
+
+On an MSI laptop without a keyboard light, msi.py offers MSI's own driver
+(veltos-msi-ec), which Debian's kernel lacks (product owner, 2026-10-28:
+an MSI Katana's keyboard was not found).
 """
 
 import sys
@@ -18,7 +22,7 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import leds, strings
+from . import leds, msi, strings
 from .config import (SWATCHES, accent, dark_mode, helper_command, load_settings, restore, run, save_settings,
                      text_scale)
 
@@ -28,7 +32,8 @@ QML_DIR = Path(__file__).resolve().parent / "qml"
 class Backend(QObject):
     changed = Signal()
 
-    def __init__(self, lang=None, root=leds.LEDS, runner=run, settings=None, apply_delay=250, accent_color=None):
+    def __init__(self, lang=None, root=leds.LEDS, runner=run, settings=None, apply_delay=250, accent_color=None,
+                 msi_setup=None):
         super().__init__()
         self.lang = lang or strings.language()
         self._texts = strings.texts(self.lang)
@@ -45,6 +50,8 @@ class Backend(QObject):
         self._timer.setSingleShot(True)
         self._timer.setInterval(apply_delay)
         self._timer.timeout.connect(self.apply)
+        self._msi = msi_setup or msi.MsiSetup(self._texts, self)
+        self._msi.finished.connect(lambda ok: ok and self.refresh())
         self.refresh()
 
     # --- the theme (Theme.qml reads backend.*) --------------------------------------------
@@ -70,6 +77,10 @@ class Backend(QObject):
         return SWATCHES
 
     # --- state --------------------------------------------------------------------------
+
+    @Property(QObject, constant=True)
+    def msi(self):
+        return self._msi
 
     @Property("QVariantList", notify=changed)
     def keyboards(self):
@@ -111,6 +122,8 @@ class Backend(QObject):
         led = self._led()
         self._choice = self._initial_choice(led) if led else {}
         self.changed.emit()
+        if not self._keyboards:
+            self._msi.check()
 
     @Slot(int)
     def select(self, index):

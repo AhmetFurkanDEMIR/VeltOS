@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+# MSI's msi-ec driver source (upstream/, fetched and checked by
+# build/scripts/fetch-upstream.py), built on the user's PC with DKMS
+# (veltos_msi_ec/driver.py). The package build checks that it compiles
+# against Debian 13's kernel headers.
+
+DEST = debian/veltos-msi-ec
+SHARE = $(DEST)/usr/share/veltos-msi-ec
+VERSION = $(shell python3 -c "import json; print(json.load(open('upstream.json'))['version'])")
+
+%:
+	dh $@ --buildsystem=none
+
+override_dh_auto_build:
+	python3 tools/support-table.py upstream/msi-ec.c build-assets/support.json
+	mkdir -p build-assets/src
+	sed 's/@VERSION@/$(VERSION)/' data/dkms.conf.in > build-assets/src/dkms.conf
+
+override_dh_auto_test:
+	rm -rf build-assets/module
+	mkdir -p build-assets/module
+	cp upstream/msi-ec.c upstream/ec_memory_configuration.h upstream/Makefile upstream/Makefile.vars \
+		build-assets/module/
+	$(MAKE) -C "$$(ls -d /usr/src/linux-headers-*-amd64 | sort -V | tail -n 1)" \
+		M="$(CURDIR)/build-assets/module" modules
+	test -s build-assets/module/msi-ec.ko
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
+
+override_dh_auto_install:
+	install -d $(SHARE)/src
+	install -m 644 upstream/msi-ec.c upstream/ec_memory_configuration.h upstream/Makefile \
+		upstream/Makefile.vars upstream/LICENSE build-assets/src/dkms.conf $(SHARE)/src/
+	install -m 644 build-assets/support.json $(SHARE)/support.json
+	install -d $(DEST)/usr/lib/python3/dist-packages
+	cp -r veltos_msi_ec $(DEST)/usr/lib/python3/dist-packages/
+	find $(DEST) -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/msi-ec-driver $(DEST)/usr/libexec/veltos/msi-ec-driver
+	install -D -m 755 bin/msi-ec-firmware $(DEST)/usr/libexec/veltos/msi-ec-firmware
+	install -D -m 644 data/org.veltos.msi-ec.policy \
+		$(DEST)/usr/share/polkit-1/actions/org.veltos.msi-ec.policy

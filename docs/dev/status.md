@@ -233,6 +233,13 @@ Product owner, 2026-10-27 (after the 1.0 release; for the next version):
 100. [x] The installer lets the user choose Wine or Bottles for Windows programs; a complete Bottles setup for opening Windows programs. The owner allowed Flathub for Bottles only (2026-10-27): the installer's "Windows programs" step (packagechooserq, `windows-apps` job writes `/etc/veltos/windows-apps.conf`); with Bottles chosen the first start installs it system-wide from Flathub (retried on the next starts, five at most), the sign-in set-up makes a "VeltOS" bottle (`bottles-cli new --environment application`), and a double-click hands `.exe`/`.msi` to Bottles once that bottle exists (until then VeltOS' own window opens it and the set-up tries again); Settings > Apps > Windows programs switches between them (Bottles installed for the user there). Dev VM (live): the installer step and both choices on screen; Bottles installed from Flathub, opened a file through `gio launch`; the fallback window without a bottle. **Not tested:** a full installation with Bottles chosen (the first start's Flathub install and the bottle in an installed system): the live VM's memory-backed disk filled up while `bottles-cli new` downloaded its Windows environment
 101. [x] Every ISO stays under 2 GiB (each one is a GitHub release); a build check stops an ISO that is larger (build-iso.sh, tests/repo)
 
+Product owner, 2026-10-28:
+
+102. [x] Keyboard Lighting does not see the keyboard of an MSI Katana; it should find laptops' keyboards and set their lights. Cause: Debian 13's kernel msi-ec (6.12) registers no keyboard LED (only battery limits). New package veltos-msi-ec: MSI's own msi-ec at a pinned commit, built with DKMS on the PC when Keyboard Lighting asks (it reads the EC firmware first and offers it only where msi-ec lights that model's keyboard: 208 of 373 firmware versions, most Katana GF66/GF76/15/17 but not the newer RGB ones), Secure Boot key step, roll-back when the driver cannot load. Builder: compiles against 6.12.113+deb13 headers; installed dev VM: pkcon brought dkms 3.2.2 + headers (43 packages, 73.1 MB) through VeltOS' prompt, DKMS built, signed (own MOK key) and installed it, modprobe "No such device" (QEMU has no MSI EC), then rolled back; the MSI card on screen. **Not tested on an MSI laptop.** Other makers' keyboards without a Debian kernel driver (USB RGB keyboards, Lenovo Legion RGB, Clevo/TUXEDO) are still not covered (OpenRGB is not in Debian 13)
+103. [ ] The taskbar's colour does not change on the first start after installation (fine after the next start). **Not reproduced:** installed dev VM, first session: switching dark/light, a theme and an accent colour all reached the taskbar at once, with and without KWin's blur; asked the product owner for the exact steps
+104. [x] Dark mode: a white frame around Start, search, the clock/calendar, Quick Settings and tooltips. Cause: Fluent's see-through popup frame (used when KWin can blur, so on real graphics cards, not in the VM by default) draws a 12 % white line at its edge; VeltOS-Dark makes it a dark edge (tools/fluent.py `dark_popup_rim`). Dev VM with blur loaded: the edge pixel was 135,141,161 against a 60,62,68 popup, now 77,83,98
+105. [x] Quick Settings' Wi-Fi and Bluetooth (and Power) lists: the scroll bar lay over the rows; it now runs in the page's right margin, the rows keep its room. Dev VM, ten simulated networks: rows end at x 1881, the bar at 1892-1897
+
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
 SHA-256, website download and pictures updated) only when the owner says
@@ -380,7 +387,9 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 
 ## Next steps
 
-0. Items 90-101 are done; the owner tests the 1.1-dev1 ISO by hand.
+0. Item 103 waits for the product owner's steps (taskbar colour on the
+   first start). Items 90-102 and 104-105 are done; the owner tests the
+   1.1-dev1 ISO by hand. An MSI laptop is needed to see item 102 work.
    Still to check on real hardware or a full installation: NVIDIA
    monitors after the driver (item 90), a backlit keyboard (96), location
    by Wi-Fi (95), a full first start of a new installation (98) and one

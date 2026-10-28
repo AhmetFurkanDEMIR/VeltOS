@@ -1,0 +1,29 @@
+Source: veltos-msi-ec
+Section: kernel
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               python3,
+               linux-headers-amd64,
+               make
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-msi-ec
+Architecture: all
+Depends: python3,
+         pkexec,
+         kmod,
+         ${misc:Depends}
+Suggests: dkms,
+          linux-headers-amd64
+Description: MSI laptops' keyboard light driver (msi-ec), built with DKMS
+ The kernel's own msi-ec (Debian 13) only sets an MSI laptop's battery
+ charge limits; the driver's own project also lights the keyboard on the
+ MSI laptops it knows (Katana, GF, Modern, Prestige, Stealth and others).
+ This package carries that source at a pinned version and a helper that
+ builds it with DKMS for the running kernel when VeltOS Keyboard Lighting
+ asks for it, loads it in place of the kernel's own and removes it again.
+ .
+ DKMS and the kernel headers are not installed with this package: Keyboard
+ Lighting installs them from Debian on the MSI laptops that need them.

@@ -1,0 +1,7 @@
+veltos-msi-ec (1.1.0~dev1) trixie; urgency=medium
+
+  * New: MSI's msi-ec driver (upstream commit d7fbbd8, 2026-08-09) built
+    with DKMS for VeltOS Keyboard Lighting, which finds an MSI laptop's
+    keyboard light through it.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Wed, 28 Oct 2026 12:00:00 +0000

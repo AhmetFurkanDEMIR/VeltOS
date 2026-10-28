@@ -24,6 +24,20 @@ Personalization > Keyboard lighting opens it.
   `org.veltos.lighting.set` lets the signed-in user of the active session
   do it without a password, as Windows does. The helper accepts only a
   keyboard light of this PC and checked values.
+- **MSI laptops** (`msi.py`, 2026-10-28: an MSI Katana's keyboard was not
+  found): Debian 13's kernel lights no MSI keyboard (its msi-ec sets only
+  the battery limits). On an MSI laptop without a keyboard light the app
+  reads the EC firmware version (`/usr/libexec/veltos/msi-ec-firmware`,
+  pkexec without a password) and, when MSI's own msi-ec lights that
+  model's keyboard, offers "Install MSI driver": pkcon brings `dkms` and
+  the kernel headers from Debian (43 packages, 73.1 MB on a new
+  installation, measured 2026-10-28), then
+  `/usr/libexec/veltos/msi-ec-driver install` (veltos-msi-ec, the
+  administrator's password) builds and loads the driver. With Secure Boot
+  it asks for a one-time password to register DKMS's key (mokutil, as
+  VeltOS Graphics Cards does for NVIDIA) and restarts. Models whose
+  keyboard msi-ec does not light (newer RGB Katana, Sword, Crosshair...)
+  get a note with their firmware version instead.
 - Not covered: keyboards with their own USB controller (gaming keyboards)
   need their maker's tools (OpenRGB is not in Debian 13); laptop drivers
   that are not in Debian's kernel (TUXEDO/Clevo, Lenovo Legion RGB) show
@@ -34,4 +48,6 @@ Personalization > Keyboard lighting opens it.
 `tests/test_lighting.py`: a made-up `/sys/class/leds` with a ThinkPad
 (brightness only), ASUS, System76 and a multicolour LED; the helper's
 checks and writes, the sign-in restore, the window offscreen in English
-and Turkish. Not tried on a real backlit keyboard yet.
+and Turkish, and the MSI card (offer, the pkcon and driver steps with
+stand-ins, the Secure Boot key, the restart, an RGB Katana without
+support). Not tried on a real backlit keyboard yet (no MSI laptop either).

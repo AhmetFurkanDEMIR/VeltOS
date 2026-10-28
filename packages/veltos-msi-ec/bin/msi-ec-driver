@@ -1,0 +1,26 @@
+#!/usr/bin/python3
+"""Builds, loads or removes MSI's msi-ec driver (veltos_msi_ec.driver).
+
+    msi-ec-driver install|remove|upgrade
+
+Run as root (pkexec asks for the administrator's password, as for any
+driver). Prints the result as JSON on its last line."""
+
+import json
+import os
+import sys
+
+from veltos_msi_ec import driver
+
+COMMANDS = {"install": driver.install, "remove": driver.remove, "upgrade": driver.upgrade}
+
+if len(sys.argv) != 2 or sys.argv[1] not in COMMANDS:
+    print(__doc__.strip(), file=sys.stderr)
+    sys.exit(2)
+if os.geteuid() != 0:
+    print("msi-ec-driver: must run as root", file=sys.stderr)
+    sys.exit(2)
+result = COMMANDS[sys.argv[1]]()
+print(result.pop("log", "").rstrip())
+print(json.dumps(result))
+sys.exit(0 if result["ok"] else 1)

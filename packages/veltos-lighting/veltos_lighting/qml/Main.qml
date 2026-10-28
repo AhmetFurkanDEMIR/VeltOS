@@ -245,6 +245,120 @@ ApplicationWindow {
                 }
             }
 
+            // An MSI laptop: MSI's driver (msi-ec) lights its keyboard (msi.py).
+            Rectangle {
+                id: msiCard
+                objectName: "msiCard"
+                readonly property var msi: backend.msi
+                Layout.fillWidth: true
+                visible: !window.present && ["offer", "unsupported", "busy", "key", "restart", "failed", "checking"]
+                         .indexOf(msi.state) !== -1
+                implicitHeight: msiColumn.implicitHeight + 40
+                radius: Theme.radius
+                color: Theme.card
+                border.color: Theme.cardBorder
+                ColumnLayout {
+                    id: msiColumn
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 10
+                    Label {
+                        text: backend.texts.msi_title
+                        color: Theme.text
+                        font.pixelSize: Theme.nameSize
+                        font.weight: Font.DemiBold
+                    }
+                    Label {
+                        objectName: "msiText"
+                        Layout.fillWidth: true
+                        text: msiCard.msi.text
+                        color: Theme.text
+                        font.pixelSize: Theme.bodySize + 1
+                        wrapMode: Text.Wrap
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        visible: text !== ""
+                        text: msiCard.msi.detail
+                        color: Theme.subtext
+                        font.pixelSize: Theme.bodySize
+                        wrapMode: Text.Wrap
+                    }
+                    // Windows 11 progress bar: the percentage when pkcon gives one.
+                    Rectangle {
+                        Layout.fillWidth: true
+                        visible: msiCard.msi.state === "busy" || msiCard.msi.state === "checking"
+                        implicitHeight: 3
+                        radius: 1.5
+                        color: Theme.cardBorder
+                        clip: true
+                        Rectangle {
+                            id: runner
+                            height: parent.height
+                            radius: 1.5
+                            color: Theme.accent
+                            width: msiCard.msi.percent >= 0 ? parent.width * msiCard.msi.percent / 100 : parent.width * 0.3
+                            NumberAnimation on x {
+                                running: msiCard.visible && msiCard.msi.percent < 0
+                                         && (msiCard.msi.state === "busy" || msiCard.msi.state === "checking")
+                                loops: Animation.Infinite
+                                from: -runner.width
+                                to: msiCard.width
+                                duration: 1600
+                            }
+                        }
+                    }
+                    // Secure Boot: a one-time password for the firmware's key enrolment.
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: msiCard.msi.state === "key"
+                        spacing: 8
+                        TextField {
+                            id: keyPassword
+                            Layout.preferredWidth: 220
+                            echoMode: TextInput.Password
+                            placeholderText: backend.texts.msi_key_password
+                        }
+                        TextField {
+                            id: keyConfirm
+                            Layout.preferredWidth: 220
+                            echoMode: TextInput.Password
+                            placeholderText: backend.texts.msi_key_confirm
+                        }
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        visible: msiCard.msi.state === "key" && text !== ""
+                        text: msiCard.msi.keyMessage
+                        color: Theme.errorIcon
+                        font.pixelSize: Theme.bodySize
+                        wrapMode: Text.Wrap
+                    }
+                    RowLayout {
+                        spacing: 8
+                        VButton {
+                            objectName: "msiInstall"
+                            primary: true
+                            visible: msiCard.msi.state === "offer" || msiCard.msi.state === "failed"
+                            text: msiCard.msi.state === "failed" ? backend.texts.msi_try_again : backend.texts.msi_install
+                            onClicked: msiCard.msi.install()
+                        }
+                        VButton {
+                            primary: true
+                            visible: msiCard.msi.state === "key"
+                            text: backend.texts.msi_key_register
+                            onClicked: msiCard.msi.registerKey(keyPassword.text, keyConfirm.text)
+                        }
+                        VButton {
+                            primary: true
+                            visible: msiCard.msi.state === "restart"
+                            text: backend.texts.msi_restart_now
+                            onClicked: msiCard.msi.restart()
+                        }
+                    }
+                }
+            }
+
             // The keyboards (Windows lists the devices as cards).
             Flow {
                 Layout.fillWidth: true

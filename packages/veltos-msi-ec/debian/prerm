@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# Removing the package takes the DKMS module out too; the kernel's own
+# msi-ec comes back.
+if [ "$1" = remove ] && [ -e /etc/modules-load.d/veltos-msi-ec.conf ]; then
+    /usr/libexec/veltos/msi-ec-driver remove >/dev/null 2>&1 || true
+fi
+
+#DEBHELPER#
+
+exit 0

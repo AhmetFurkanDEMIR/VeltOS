@@ -58,6 +58,9 @@ veltos-graphics
 # Keyboard Lighting (Windows 11 Dynamic Lighting for laptop keyboards); also
 # in Settings > Personalization.
 veltos-lighting
+# MSI laptops' keyboard light: msi-ec's source, built with DKMS only when
+# Keyboard Lighting asks for it on an MSI laptop (a few hundred KB here).
+veltos-msi-ec
 veltos-store
 # Clock (Windows 11 layout): alarms, timers, stopwatch, world clock.
 veltos-clock

@@ -181,6 +181,72 @@ class WindowTests(unittest.TestCase):
         self.assertEqual(self.problems(), [])
 
 
+    def test_msi_laptop(self):
+        """No keyboard light, an MSI laptop: the MSI card offers msi-ec, runs
+        pkcon and the driver helper (stand-ins), then asks for the Secure
+        Boot key and the restart."""
+        from veltos_lighting import msi, strings
+        ran, started = [], []
+
+        class Stand(msi.MsiSetup):
+            outputs = []
+
+            def _run(self, program, arguments, done, stdin=None):
+                ran.append([program, *arguments])
+                code, output = self.outputs.pop(0)
+                done(code, output)
+        texts = strings.texts(self.lang)
+        setup = Stand(texts, kernel="6.12.113+deb13-amd64", needs_refresh=lambda: True,
+                      start=lambda command: started.append(command))
+        from veltos_lighting import app
+        backend = app.Backend(lang=self.lang, root=Path(tempfile.mkdtemp()), runner=lambda c: 0,
+                              settings=Path(tempfile.mkdtemp()) / "l.json", apply_delay=1, accent_color="#2F5EE6",
+                              msi_setup=setup)
+        self.addCleanup(lambda kept=backend: kept)
+        self.assertIs(backend.msi, setup)
+        self.messages.clear()
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", backend)
+        engine.load(QUrl.fromLocalFile(str(app.QML_DIR / "Main.qml")))
+        self.addCleanup(self.dispose, engine)
+        window = engine.rootObjects()[0]
+        katana = {"msi": True, "model": "Katana GF66 11UC", "firmware": "1582EMS1.107", "light": False,
+                  "support": {"known": True, "keyboard": True, "models": "Katana GF66 11UC / 11UD"}}
+        setup.apply_status(katana)
+        self.assertEqual(setup.state, "offer")
+        self.assertIn("Katana GF66 11UC", setup.text)
+        self.assertIn("1582EMS1.107", setup.detail)
+        window.grabWindow()
+        Stand.outputs = [(0, "Percentage:\t100\n"), (0, "installed\n"),
+                         (1, "build log\n" + json.dumps({"ok": False, "reason": "key"}))]
+        setup.install()
+        self.assertEqual(ran[0][1:], ["-m", "veltos_lighting.ptyrun", "pkcon", "-p", "refresh"])
+        self.assertEqual(ran[1][-3:], ["dkms:amd64", "linux-headers-amd64:amd64",
+                                       "linux-headers-6.12.113+deb13-amd64:amd64"])
+        self.assertEqual(ran[2], ["pkexec", msi.DRIVER_HELPER, "install"])
+        self.assertEqual(setup.state, "key")
+        window.grabWindow()
+        setup.registerKey("one", "two")
+        self.assertEqual(setup.keyMessage, texts["msi_key_mismatch"])
+        Stand.outputs = [(0, "")]
+        setup.registerKey("secret1", "secret1")
+        self.assertEqual(ran[-1], ["pkexec", "mokutil", "--import", msi.MOK_KEY])
+        self.assertEqual(setup.state, "restart")
+        setup.restart()
+        self.assertEqual(started, [msi.REBOOT])
+        window.grabWindow()
+        # A newer RGB Katana: msi-ec has no keyboard light for it, nothing to install.
+        setup.apply_status(dict(katana, model="Katana 15 HX B14WEK", firmware="1587EMS1.102",
+                                support={"known": True, "keyboard": False, "models": "Katana 15 HX B14WEK"}))
+        self.assertEqual(setup.state, "unsupported")
+        setup.install()
+        self.assertEqual(len(ran), 4)
+        setup.apply_status({"msi": False})
+        self.assertEqual(setup.state, "")
+        window.grabWindow()
+        self.assertEqual(self.problems(), [])
+
+
 class TurkishWindowTests(WindowTests):
     lang = "tr"
 

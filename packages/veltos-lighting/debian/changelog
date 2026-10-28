@@ -3,5 +3,7 @@ veltos-lighting (1.1.0~dev1) trixie; urgency=medium
   * New: VeltOS Keyboard Lighting, a laptop keyboard's lights on or off,
     brightness, colour and effect in the layout of Windows 11's Dynamic
     Lighting, with Settings > Personalization > Keyboard lighting.
+  * MSI laptops: offers MSI's msi-ec driver (veltos-msi-ec, DKMS), which
+    Debian's kernel lacks, with the Secure Boot key step.
 
  -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Tue, 27 Oct 2026 18:00:00 +0000

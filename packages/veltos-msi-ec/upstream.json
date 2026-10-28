@@ -1,0 +1,8 @@
+{
+  "name": "msi-ec",
+  "version": "0.13+git20260809.d7fbbd8",
+  "url": "https://codeload.github.com/BeardOverflow/msi-ec/tar.gz/d7fbbd88e6831e56801b860e46475cbf8ddbc7c1",
+  "sha256": "ef3396a4c870f74a3c21b6623fa6e31da1569c88d92171a7b987f8bcb3c18279",
+  "license": "GPL-2.0-or-later",
+  "homepage": "https://github.com/BeardOverflow/msi-ec"
+}

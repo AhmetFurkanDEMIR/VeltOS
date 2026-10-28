@@ -3,6 +3,41 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-28 — Items 102-105: MSI keyboard light, dark popup frames, list scroll bars
+
+The product owner's list of 2026-10-28.
+
+- MSI keyboard light (102): the kernel's msi-ec in Debian 13 (6.12.113,
+  fetched from kernel.org's linux-6.12.y) only registers battery limits;
+  its tables have the keyboard light's EC addresses but no LED. Upstream
+  msi-ec (BeardOverflow, commit d7fbbd8) registers
+  `msiacpi::kbd_backlight` for 208 of its 373 firmware versions. New
+  package veltos-msi-ec (source pinned and checksum-verified, firmware
+  table generated from msi-ec.c, DKMS helper, polkit actions) and an MSI
+  card in Keyboard Lighting (`msi.py`). Debian's kernel builds the EC
+  debug file in (`CONFIG_ACPI_EC_DEBUGFS=y`, read-only), so the firmware
+  version is read before anything is installed. Verified: the module
+  compiles in the builder against 6.12.113+deb13 headers; in an installed
+  dev VM pkcon (through ptyrun and the UAC prompt) installed dkms 3.2.2 and
+  the headers (43 packages, 73.1 MB), the helper (pkexec, prompt) ran
+  `dkms add/install`, DKMS made and used its MOK key, modprobe failed with
+  "No such device" (no MSI EC in QEMU), and the helper's roll-back
+  (added after this run) left the kernel's own module in place. Not tried
+  on an MSI laptop.
+- Taskbar colour on the first start (103): installed the 1.1-dev1 ISO in
+  the dev VM and changed dark/light, a theme and the accent in the first
+  session (with and without KWin's blur): the taskbar followed every
+  time. Not reproduced; the first-start update had nothing to upgrade
+  there. Waiting for the owner's exact steps.
+- Dark popup frames (104): only Fluent's `translucent/` dialog frame (used
+  when KWin can blur) has a 12 % white line at its edge; with blur loaded
+  in the VM it showed as a light frame around Start (edge 135,141,161).
+  `dark_popup_rim` makes it a 35 % black edge (now 77,83,98); unit test,
+  build check.
+- Quick Settings lists (105): the scroll bar was drawn inside the rows'
+  width; it now runs in the right margin and the rows always leave room.
+  Dev VM with ten simulated networks (`out/vm/wifisim-many.sh`).
+
 ## 2026-10-27 (night) — Items 99 and 100: Wine tests, Wine or Bottles
 
 The owner allowed Flathub for Bottles and running downloaded Windows

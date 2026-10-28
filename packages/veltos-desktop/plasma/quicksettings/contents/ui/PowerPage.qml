@@ -53,16 +53,22 @@ SubPage {
     Flickable {
         anchors.fill: parent
         anchors.leftMargin: Kirigami.Units.largeSpacing
-        anchors.rightMargin: Kirigami.Units.largeSpacing
+        // The scroll bar runs in the page's right margin, beside the rows
+        // and never over them (product owner, 2026-10-28: it covered the
+        // devices). The rows always leave its room: reserving it only
+        // while the bar shows makes wrapped text re-wrap and the bar come
+        // and go (AGENTS.md, ScrollView loops).
+        anchors.rightMargin: Kirigami.Units.smallSpacing / 2
         visible: power.placeholder === ""
         contentHeight: list.implicitHeight
         boundsBehavior: Flickable.StopAtBounds
         clip: true
-        PlasmaComponents3.ScrollBar.vertical: PlasmaComponents3.ScrollBar {}
+        PlasmaComponents3.ScrollBar.vertical: PlasmaComponents3.ScrollBar { id: bar }
 
         ColumnLayout {
             id: list
-            width: parent.width
+            width: parent.width - Math.max(Kirigami.Units.largeSpacing - Kirigami.Units.smallSpacing / 2,
+                                           bar.width + Kirigami.Units.smallSpacing)
             spacing: Kirigami.Units.smallSpacing * 1.5
 
             // Plugged in | On battery, a segmented control.

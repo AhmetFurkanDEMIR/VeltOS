@@ -1,0 +1,12 @@
+#!/usr/bin/python3
+"""Prints, as JSON, whether this PC is an MSI laptop, its EC firmware
+version and what msi-ec offers for it (veltos_msi_ec.driver.status).
+
+Reading the EC's debug file needs root: pkexec runs this without a password
+for the signed-in user (it only reads)."""
+
+import json
+
+from veltos_msi_ec import driver
+
+print(json.dumps(driver.status()))

@@ -1512,6 +1512,30 @@ were measured (below).
   opens the file itself (Bottles handed a file without any bottle stayed
   running without a window).
 
+### 2.54 MSI's keyboard light through msi-ec built with DKMS (2026-10-28)
+
+- Decision: veltos-msi-ec carries MSI's msi-ec (github.com/BeardOverflow/
+  msi-ec, GPL-2.0-or-later) at a pinned, checksum-verified commit; on an
+  MSI laptop without a keyboard light, Keyboard Lighting installs dkms and
+  the kernel headers from Debian and builds it for the running kernel
+  (DKMS keeps it built for later kernels). Before anything is downloaded
+  it reads the EC firmware version (the kernel's read-only EC debug file)
+  and compares it with the firmware table taken from msi-ec.c at package
+  build time.
+- Why: Debian 13's msi-ec (6.12) registers no keyboard LED, only battery
+  limits; the product owner's MSI Katana showed no keyboard light. The
+  upstream driver is the one Linux users of these laptops use.
+- Alternatives: writing the EC registers from a VeltOS helper (the
+  addresses are in msi-ec's tables, but Secure Boot's lockdown forbids
+  user-space EC writes, and VeltOS would maintain a driver of its own);
+  a module prebuilt in the image (unsigned for Secure Boot, broken by the
+  next kernel update); waiting for the kernel's msi-ec to gain the LED.
+- Trade-off: about 75 MB of downloads and, with Secure Boot, enrolling
+  DKMS's key at the next start (as for NVIDIA); RGB MSI keyboards (newer
+  Katana, Sword, Crosshair) stay uncovered, msi-ec does not drive them.
+  When the module cannot load the helper takes it out again, so the
+  kernel's own msi-ec (battery limits) comes back.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

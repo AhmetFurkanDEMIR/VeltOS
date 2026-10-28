@@ -46,7 +46,9 @@ derived from [Fluent-kde](https://github.com/vinceliuice/Fluent-kde).
   - taskbar, Start and popups: Plasma theme `VeltOS` / `VeltOS-Dark`
     (acrylic-like see-through popups when the GPU can blur, opaque
     otherwise; light popups in Settings' white, no line around popups,
-    which Fluent drew in its shadow pieces);
+    which Fluent drew in its shadow pieces; in dark mode the see-through
+    popups' 12 % white edge became a dark one, `dark_popup_rim`: it showed
+    as a white frame on real graphics cards, 2026-10-28);
   - colour schemes `VeltOS Light` (default) / `VeltOS Dark`.
 - **Windows-familiar names**: File Explorer, Terminal, Text Editor,
   Photos, Document Viewer, Archive Manager, Screenshot, Task Manager,

@@ -142,6 +142,22 @@ class FluentTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             fluent.set_menu_opacity('<path id="menu-normal"/>', 0.94, "t")
 
+    def test_dark_popup_rim_not_white(self):
+        # Fluent-round's dark translucent dialogs/background.svgz: the frame
+        # pieces and a 12 % white line at their outer edge (2026-10-28).
+        svg = ('<g id="top" transform="x"><rect id="rect4152" style="opacity:0.75;fill:currentColor" '
+               'class="ColorScheme-Background" /><rect id="rect981" style="fill:#ffffff;opacity:0.12" /></g>'
+               '<g id="topleft"><path id="rect4159" style="opacity:0.75;fill:currentColor" '
+               'class="ColorScheme-Background" /><path id="path940" d="M 19 4" style="fill:#ffffff;opacity:0.12" />'
+               '</g><g id="balloon-tip-top"><path style="fill:#ffffff;opacity:0.5" /></g>')
+        out, count = fluent.dark_popup_rim(svg, "t")
+        self.assertEqual(count, 2)
+        self.assertEqual(out.count("fill:#ffffff;opacity:0.12"), 0)
+        self.assertEqual(out.count(fluent.DARK_RIM), 2)
+        self.assertIn('class="ColorScheme-Background"', out)              # the frame itself stays
+        self.assertIn('<g id="balloon-tip-top"><path style="fill:#ffffff;opacity:0.5" />', out)
+        self.assertEqual(fluent.dark_popup_rim('<g id="top"><rect style="fill:#000000" /></g>', "t")[1], 0)
+
     def test_menu_band_as_opaque_as_the_menu(self):
         # Fluent's menu shadow pieces (as in Fluent-round.svg and its dark
         # variant): a 75 % band of the menu colour, the gradient shadow, a

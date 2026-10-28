@@ -3,9 +3,12 @@ Debian 13's kernel 6.12 on 2026-10-27:
 
 - Every laptop driver that lights its keyboard registers an LED named
   "<driver>::kbd_backlight" (thinkpad_acpi "tpacpi::kbd_backlight",
-  dell-laptop, ideapad-laptop, hp-wmi, msi-ec, asus-wmi, system76_acpi,
-  apple, ...): `brightness` from 0 to `max_brightness`. UPower offers the
-  first one to every user (org.freedesktop.UPower.KbdBacklight).
+  dell-laptop, ideapad-laptop, hp-wmi, asus-wmi, system76_acpi, apple,
+  ...): `brightness` from 0 to `max_brightness`. UPower offers the first
+  one to every user (org.freedesktop.UPower.KbdBacklight). MSI laptops:
+  the kernel's own msi-ec registers none (6.12 offers only battery
+  limits); MSI's own msi-ec does ("msiacpi::kbd_backlight"), built with
+  DKMS by veltos-msi-ec when the user asks (msi.py, 2026-10-28).
 - Colours depend on the driver:
   * the kernel's multicolor LED class (leds-class-multicolor):
     `multi_index` ("red green blue") and `multi_intensity` ("255 0 128");

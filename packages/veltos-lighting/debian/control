@@ -27,7 +27,8 @@ Depends: ${python3:Depends},
          qt6-svg-plugins,
          pkexec,
          ${misc:Depends}
-Recommends: veltos-fluent-icons
+Recommends: veltos-fluent-icons,
+            veltos-msi-ec
 Description: VeltOS Keyboard Lighting: a laptop keyboard's lights
  Turns a laptop keyboard's lights on or off and sets their brightness, in
  the layout of Windows 11's Dynamic Lighting. Keyboards that light up in
