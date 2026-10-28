@@ -47,6 +47,12 @@ awk -v name="$2" '
     END { if (!done) { if (!theme) print "[Theme]"; print "name=" name } }
 ' "$f" > "$f.veltos" && cat "$f.veltos" > "$f"
 rm -f "$f.veltos"
+# And the running plasmashell is told at once (its script interface sets
+# Plasma::Theme's name, which also writes plasmarc): on the product owner's
+# first start after installation the taskbar stayed in the old mode until
+# the next start, while plasmarc already held the new theme (2026-10-28).
+gdbus call --session --dest org.kde.plasmashell --object-path /PlasmaShell \
+    --method org.kde.PlasmaShell.evaluateScript "\"theme = '$2'\"" >/dev/null 2>&1
 # The Terminal follows the theme (veltos-desktop).
 [ -x /usr/libexec/veltos/terminal-theme ] && /usr/libexec/veltos/terminal-theme "$3"
 true

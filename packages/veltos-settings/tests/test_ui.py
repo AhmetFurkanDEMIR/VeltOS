@@ -552,6 +552,10 @@ class SettingsWindowTests(unittest.TestCase):
                 fake = bin_dir / "plasma-apply-lookandfeel"
                 fake.write_text("#!/bin/sh\nexit 0\n")
                 fake.chmod(0o755)
+                calls = Path(home, "gdbus-calls")
+                gdbus = bin_dir / "gdbus"
+                gdbus.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" > "{calls}"\n')
+                gdbus.chmod(0o755)
                 Path(home, ".config").mkdir()
                 plasmarc = Path(home, ".config/plasmarc")
                 if before is not None:
@@ -561,6 +565,9 @@ class SettingsWindowTests(unittest.TestCase):
                 subprocess.run(["sh", "-c", APPLY_THEME, "sh", "org.veltos.dark", "VeltOS-Dark", "dark"],
                                env=env, check=True)
                 self.assertEqual(plasmarc.read_text(), after, before)
+                # The running taskbar is told as well, not only through the file.
+                self.assertEqual(calls.read_text().splitlines()[-2:],
+                                 ["org.kde.PlasmaShell.evaluateScript", "\"theme = 'VeltOS-Dark'\""])
 
     def test_system_pages_read_the_system(self):
         for page, sub in (("network", "wifi"), ("devices", "bluetooth"), ("system", "sound"),

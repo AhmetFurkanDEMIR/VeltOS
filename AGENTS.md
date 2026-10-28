@@ -1282,6 +1282,14 @@ and JavaScript with no build step, no external requests and no cookies:
   popup frames with `qdbus6 org.kde.KWin /Effects
   org.kde.kwin.Effects.loadEffect blur` (and `contrast`) in the VM; the
   dark theme's white popup rim showed only then.
+- Which Plasma theme the running plasmashell uses:
+  `qdbus6 org.kde.plasmashell /PlasmaShell
+  org.kde.PlasmaShell.evaluateScript 'print(theme)'`; `theme = 'NAME'`
+  sets it (and writes plasmarc). The taskbar's colours come from the
+  colour scheme, so a taskbar pixel does not tell the Plasma theme.
+  Settings' light/dark command sets it this way after writing plasmarc
+  (2026-10-28). `plasma-apply-lookandfeel` alone changes only kdedefaults,
+  which the running shell does not follow.
 - Test files whose names contain ":" (LED names) cannot be made on the
   Windows host; tests that run there use plain names.
 - Package tests run on the Windows host write to the real home folder:

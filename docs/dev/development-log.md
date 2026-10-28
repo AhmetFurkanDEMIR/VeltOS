@@ -37,6 +37,20 @@ The product owner's list of 2026-10-28.
 - Quick Settings lists (105): the scroll bar was drawn inside the rows'
   width; it now runs in the right margin and the rows always leave room.
   Dev VM with ten simulated networks (`out/vm/wifisim-many.sh`).
+- Taskbar on the first start (103), after the owner said it was the
+  light/dark switch: plasmashell's own answer
+  (`qdbus6 org.kde.plasmashell /PlasmaShell
+  org.kde.PlasmaShell.evaluateScript 'print(theme)'`) showed that from
+  the first-start state (no ~/.config/plasmarc, fresh plasmashell) the
+  file written in place, a file renamed over it and Settings' whole
+  command all reached the running shell; `plasma-apply-lookandfeel`
+  alone does not (it writes only kdedefaults). Pixel checks of only
+  plasmarc misled at first: the taskbar takes its colours from the
+  colour scheme. Not reproduced; Settings' command now also sets the
+  theme through plasmashell's script interface (`theme = '...'`,
+  plasma-workspace 6.3 `AppInterface::setTheme` -> `Plasma::Theme::
+  setThemeName`, which writes plasmarc too). Verified with plasmarc made
+  read-only: the running taskbar still switched. Settings 169 tests.
 - ISO `veltos-1.1-dev2-amd64.hybrid.iso` (build 20261028-105735):
   2,111,680,512 bytes (under 2 GiB by 35.8 MB), SHA-256
   eceb3383eeb7518c2d78072647689825f90aa2b7e1f117f81a365ac9ba5e0821. Boot

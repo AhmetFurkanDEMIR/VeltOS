@@ -236,7 +236,7 @@ Product owner, 2026-10-27 (after the 1.0 release; for the next version):
 Product owner, 2026-10-28:
 
 102. [x] Keyboard Lighting does not see the keyboard of an MSI Katana; it should find laptops' keyboards and set their lights. Cause: Debian 13's kernel msi-ec (6.12) registers no keyboard LED (only battery limits). New package veltos-msi-ec: MSI's own msi-ec at a pinned commit, built with DKMS on the PC when Keyboard Lighting asks (it reads the EC firmware first and offers it only where msi-ec lights that model's keyboard: 208 of 373 firmware versions, most Katana GF66/GF76/15/17 but not the newer RGB ones), Secure Boot key step, roll-back when the driver cannot load. Builder: compiles against 6.12.113+deb13 headers; installed dev VM: pkcon brought dkms 3.2.2 + headers (43 packages, 73.1 MB) through VeltOS' prompt, DKMS built, signed (own MOK key) and installed it, modprobe "No such device" (QEMU has no MSI EC), then rolled back; the MSI card on screen. **Not tested on an MSI laptop.** Other makers' keyboards without a Debian kernel driver (USB RGB keyboards, Lenovo Legion RGB, Clevo/TUXEDO) are still not covered (OpenRGB is not in Debian 13)
-103. [ ] The taskbar's colour does not change on the first start after installation (fine after the next start). **Not reproduced:** installed dev VM, first session: switching dark/light, a theme and an accent colour all reached the taskbar at once, with and without KWin's blur; asked the product owner for the exact steps
+103. [x] The taskbar's colour does not change on the first start after installation when light/dark mode is switched (product owner: "Dark/light mode"; fine after the next start, so plasmarc held the new theme and only the running taskbar missed it). **Not reproduced** in the dev VM (installed and live, with and without KWin's blur, every switch reached the taskbar; plasmashell asked for its theme over D-Bus each time). Settings' light/dark command (also used by VeltOS AI) now tells the running plasmashell the Plasma theme through its script interface as well, so the switch no longer depends on plasmashell noticing the file: with plasmarc made read-only the taskbar still switched. To confirm on the owner's laptop
 104. [x] Dark mode: a white frame around Start, search, the clock/calendar, Quick Settings and tooltips. Cause: Fluent's see-through popup frame (used when KWin can blur, so on real graphics cards, not in the VM by default) draws a 12 % white line at its edge; VeltOS-Dark makes it a dark edge (tools/fluent.py `dark_popup_rim`). Dev VM with blur loaded: the edge pixel was 135,141,161 against a 60,62,68 popup, now 77,83,98
 105. [x] Quick Settings' Wi-Fi and Bluetooth (and Power) lists: the scroll bar lay over the rows; it now runs in the page's right margin, the rows keep its room. Dev VM, ten simulated networks: rows end at x 1881, the bar at 1892-1897
 
@@ -387,9 +387,9 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 
 ## Next steps
 
-0. Item 103 waits for the product owner's steps (taskbar colour on the
-   first start). Items 90-102 and 104-105 are done; the owner tests the
-   1.1-dev1 ISO by hand. An MSI laptop is needed to see item 102 work.
+0. Items 90-105 are done; the owner tests the ISO by hand. Still to see
+   on real hardware: item 102 (an MSI laptop) and item 103 (the taskbar on
+   a first start after installation on the owner's laptop).
    Still to check on real hardware or a full installation: NVIDIA
    monitors after the driver (item 90), a backlit keyboard (96), location
    by Wi-Fi (95), a full first start of a new installation (98) and one
