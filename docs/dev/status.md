@@ -410,7 +410,9 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
    hardware: NVIDIA monitors after the driver (90), location by Wi-Fi
    (95), a backlit keyboard (96, 102 on an MSI laptop), the taskbar on a
    first start after installation on the owner's laptop (103), an
-   enterprise (802.1X) Wi-Fi network with the new key window (106).
+   enterprise (802.1X) Wi-Fi network with the new key window (106), the
+   mobile hotspot over a real Wi-Fi card that carries the internet (108),
+   a first start of an installed system without a network (112).
 1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
    built (F1, F2, F7); the remaining release steps are F3-F6 (website),
    F8 (contributors) and F9 (publishing the ISO on a GitHub release and the
