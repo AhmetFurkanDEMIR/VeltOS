@@ -256,6 +256,34 @@ Product owner, 2026-10-31 (evening):
 112. [x] First start without a cable or Wi-Fi: the update wrote its done file at once ("no internet") and the PC never got its first updates or the chosen Bottles. Now the first-start window says "Let's connect you to a network" (Connect to Wi-Fi opens VeltOS Settings at Wi-Fi and steps aside, coming back when the PC is online or Settings closes without a network; Continue without internet), and the update waits for a network in the background, over later starts too, then installs the updates (and Bottles). Unit and offscreen window tests; live VM (the update program run by hand with `nmcli networking off`, the window started directly because it never shows in a live system): "offline" and the window's two buttons, Connect to Wi-Fi opened Settings at Wi-Fi, `nmcli networking on` let the update go on and the window came back with "You're ready to go" (`first-start-*.png`); a real first start of an installed system without a network not yet seen
 113. [x] Bottles only when chosen: the first start installs it only when the installer chose it and no user chose Wine in Settings since; chosen in Settings without internet, the sign-in set-up installs it for the user as soon as the PC is online (before: Settings' install failed and nothing tried again); never when not chosen. Unit tests (`test_bottles.py`, `test_firststart.py`)
 
+Product owner, 2026-11-01 (tested ISO 1.1-dev6 on the laptop):
+
+114. [ ] First start: no full-screen "getting everything ready" screen; the update and upgrade run in the background at the first internet connection after the installation (once only); a modern animated Welcome window instead
+115. [ ] VeltOS AI: the settings button does not react
+116. [ ] VeltOS AI does things nobody asked for (after "switch to light mode": night light off, brightness up); only the asked action or information, stable, tested
+117. [ ] VeltOS AI: long command output looks bad in the conversation
+118. [ ] VeltOS AI: nicer typing/answer animation, soft scrolling down
+119. [ ] VeltOS AI as a normal window, maximised or full screen: the narrow upright column looks bad; a proper wide layout
+120. [ ] Monitors still not seen with NVIDIA or Intel graphics; after making the monitor screen 1 and unplugging its HDMI cable the laptop's taskbar does not come back
+121. [ ] Graphics Cards: the driver install hangs on the loading screen; install the driver without Secure Boot, ask to restart afterwards, the driver in use after the restart
+122. [ ] File Explorer: double-clicking .exe/.msi shows "Open with" instead of starting the Windows installation (only Firefox works)
+123. [ ] Programs installed in Bottles are missing from Settings' Windows programs list; list and uninstall them, show whether Wine or Bottles installed each
+124. [ ] The .deb App Installer hangs on its loading screen
+125. [ ] APT's lock: package jobs (driver, .deb, apt update) block each other or leave the lock; one after another without hanging, as on Windows
+126. [ ] Resizing Start (larger/smaller) crashes the system
+127. [ ] Password prompts (sign-in and in the system): after 3 wrong passwords wait 30 s, after 3 more 1 min, then 2 min after every further 3; a right password resets the count
+128. [ ] "I forgot my password" with a recovery USB stick (optional, made in the installer; a long strong code in a file on the stick; sign-in screen button only when set up; a note when not), and a password hint as in Windows 11
+129. [ ] "Safely remove hardware": a modern Windows 11 style USB stick icon instead of the hard disk
+130. [ ] Website: VeltOS AI shown with conversations (PC information, dark mode on, Wi-Fi on), Turkish on the Turkish page, English on the English page
+131. [ ] Website: the "A minute with VeltOS" animation has artefacts; fix it or use a slideshow of pictures
+132. [ ] Website: the "Installs in a few minutes" picture is squashed; a better full-scale picture
+133. [ ] File Explorer's right-click menu has a frame; remove it as on the desktop
+134. [ ] VeltOS AI: after one password, no new password prompt for 10 minutes where possible
+135. [ ] A plugged-in monitor gets the same wallpaper as the main screen
+136. [ ] Taskbar, tray flyouts (Wi-Fi, Bluetooth), calendar, removable devices: modern Windows 11 look in light and dark, no grey light mode, no extra frames
+137. [ ] Installer: the VeltOS website link at the bottom left needs one click, not two
+138. [ ] Mobile hotspot on the owner's laptop (one Wi-Fi card, network "RememberNoRussian", band 5 GHz): "Mobile hotspot couldn't be turned on"
+
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
 SHA-256, website download and pictures updated) only when the owner says
