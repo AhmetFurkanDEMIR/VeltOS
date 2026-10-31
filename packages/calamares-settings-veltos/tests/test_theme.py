@@ -254,6 +254,30 @@ Item {{
         self.assertEqual(item.property("defaultAccent"), "#2F5EE6")
         self.assertEqual((item.property("onYellow"), item.property("onBlue")), ("dark", "light"))
 
+    def test_turkish_and_english_first_in_the_language_list(self):
+        # Item 38: the installer listed Arabic first and Türkçe in the middle.
+        order = QUrl.fromLocalFile(str(BRANDING / "LanguageOrder.js")).toString()
+        item = self.create(f'''
+import QtQuick
+import "{order}" as LanguageOrder
+Item {{
+    readonly property var rows: [
+        {{ index: 0, label: "العربية", englishLabel: "Arabic" }},
+        {{ index: 1, label: "Deutsch", englishLabel: "German" }},
+        {{ index: 2, label: "English", englishLabel: "English" }},
+        {{ index: 3, label: "English (United Kingdom)", englishLabel: "English (United Kingdom)" }},
+        {{ index: 4, label: "Türkçe (Türkiye)", englishLabel: "Turkish (Türkiye)" }}
+    ]
+    readonly property var ordered: LanguageOrder.order(rows)
+    property string labels: JSON.stringify(ordered.map(row => row.englishLabel))
+    property int germanAt: LanguageOrder.position(ordered, 1)
+    property int missing: LanguageOrder.position(ordered, 9)
+}}''')
+        self.assertEqual(json.loads(item.property("labels")),
+                         ["Turkish (Türkiye)", "English", "Arabic", "German", "English (United Kingdom)"])
+        self.assertEqual(item.property("germanAt"), 3)
+        self.assertEqual(item.property("missing"), -1)
+
     def test_progress_ring_loads_and_turns(self):
         item = self.create(f'''
 import QtQuick

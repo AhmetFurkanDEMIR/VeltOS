@@ -15,10 +15,12 @@
 import io.calamares.core 1.0
 import io.calamares.ui 1.0
 
+import QtQml
 import QtQuick
 import QtQuick.Layouts
 
 import "VeltTheme.js" as Theme
+import "LanguageOrder.js" as LanguageOrder
 
 VeltPage {
     id: page
@@ -31,24 +33,58 @@ VeltPage {
     subtitle: t("Choose your language. VeltOS uses it for the installation and on your PC; you can change it later in Settings.",
                 "Dilinizi seçin. VeltOS bu dili kurulumda ve bilgisayarınızda kullanır; daha sonra Ayarlar'dan değiştirebilirsiniz.")
 
+    // Calamares' languages with Türkçe and English first (item 38,
+    // LanguageOrder.js); the list shows these rows, Calamares keeps its own
+    // row numbers (`index`).
+    property var languageRows: []
+
+    function readLanguages() {
+        const rows = [];
+        for (let i = 0; i < languageSource.count; ++i) {
+            const row = languageSource.objectAt(i);
+            if (row)
+                rows.push({ index: row.row, label: row.label, englishLabel: row.englishLabel });
+        }
+        languageRows = LanguageOrder.order(rows);
+    }
+
+    function showLanguage() {
+        languages.show(LanguageOrder.position(languageRows, config.localeIndex));
+    }
+
+    Instantiator {
+        id: languageSource
+        model: config.languagesModel
+        delegate: QtObject {
+            readonly property int row: index
+            readonly property string label: model.label
+            readonly property string englishLabel: model.englishLabel
+        }
+        onObjectAdded: page.readLanguages()
+        onObjectRemoved: page.readLanguages()
+    }
+
     onActivated: {
-        languages.show(config.localeIndex);
+        showLanguage();
         languages.focusList();
     }
 
-    Component.onCompleted: languages.show(config.localeIndex)
+    Component.onCompleted: {
+        readLanguages();
+        showLanguage();
+    }
 
     VeltList {
         id: languages
         Layout.fillWidth: true
         Layout.fillHeight: true
-        model: config.languagesModel
+        model: page.languageRows
         roleName: "label"
         detailRole: "englishLabel"
-        currentIndex: config.localeIndex
-        onChosen: (index) => {
-            config.localeIndex = index;
-            languages.show(index);
+        currentIndex: LanguageOrder.position(page.languageRows, config.localeIndex)
+        onChosen: (position) => {
+            config.localeIndex = page.languageRows[position].index;
+            languages.show(position);
         }
     }
 
