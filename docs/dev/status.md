@@ -392,14 +392,14 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 
 ## Next steps
 
-0. Items 90-107 are done; the owner tests the ISO by hand. Still to see
-   on real hardware: item 102 (an MSI laptop) and item 103 (the taskbar on
-   a first start after installation on the owner's laptop).
-   Still to check on real hardware or a full installation: NVIDIA
-   monitors after the driver (item 90), a backlit keyboard (96), location
-   by Wi-Fi (95), a full first start of a new installation (98) and one
-   with Bottles chosen (100: Flathub install, the VeltOS bottle, a
-   double-click opening in Bottles).
+0. Items 90-107 are done; the owner tests the ISO by hand. Seen on
+   2026-10-31 in a Turkish installation in QEMU: the first start (98),
+   Bottles chosen in the installer (100), VeltOS AI with the real model
+   (94), a .deb with the password prompt (92). Still to see on real
+   hardware: NVIDIA monitors after the driver (90), location by Wi-Fi
+   (95), a backlit keyboard (96, 102 on an MSI laptop), the taskbar on a
+   first start after installation on the owner's laptop (103), an
+   enterprise (802.1X) Wi-Fi network with the new key window (106).
 1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
    built (F1, F2, F7); the remaining release steps are F3-F6 (website),
    F8 (contributors) and F9 (publishing the ISO on a GitHub release and the
