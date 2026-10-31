@@ -81,10 +81,12 @@ verify hook checks both); only debuggers lose Wine's symbols, and
   `~/.config/veltos/windows-apps.conf` wins). Bottles is not in Debian 13;
   when chosen it comes from Flathub (the owner's exception, architecture
   2.53). At sign-in `veltos-run --bottles-setup` (autostart) makes the
-  "VeltOS" bottle once; afterwards a double-click hands the file to
-  Bottles with `gio launch` (`kioclient exec ENTRY FILE` opened "Choose
-  Application" for the entry). Until the bottle exists VeltOS' own window
-  opens the file. With Wine chosen the choose page never appears.
+  "VeltOS" bottle once; afterwards a double-click runs the program straight
+  in that bottle (`bottles-cli run -b VeltOS -e`, the file through the
+  document portal with flatpak's `--file-forwarding`; handing it to
+  Bottles' window asked "Select Bottle" every time, 2026-10-31). Until the
+  bottle exists VeltOS' own window opens the file. With Wine chosen the
+  choose page never appears.
 - Installed Windows programs are listed and uninstalled in VeltOS
   Settings > Apps > Windows programs (`programs.py`, laid out like
   Windows 11's Installed apps); there is no separate manager window.

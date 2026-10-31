@@ -14,10 +14,11 @@ product owner the same day, as an exception to Debian-only sources).
   (Bottles' "Application" environment) once Bottles is there: Bottles
   downloads its own Wine (Soda) and DXVK for it, about 1.5 GB (seen in the
   dev VM, 2026-10-27).
-- veltos-run hands a Windows program to Bottles through Bottles' own
-  desktop entry (flatpak --file-forwarding: the file reaches the sandbox
-  through the document portal; Bottles has no access to the home folder),
-  so Bottles' "Run executable" asks which bottle, the VeltOS one first.
+- veltos-run runs a Windows program straight in the VeltOS bottle
+  (`bottles-cli run -b VeltOS -e FILE` with flatpak's --file-forwarding:
+  the file reaches the sandbox through the document portal; Bottles has no
+  access to the home folder). Handing the file to Bottles' window instead
+  asked "Select Bottle" for every program (installed dev VM, 2026-10-31).
 
 Flatpak's sandbox does not make Windows programs safe: Bottles runs them
 with Wine like VeltOS does.
@@ -114,12 +115,14 @@ def setup_command():
 
 
 def open_command(path, user_data=None):
-    """Hands a Windows program to Bottles, as a double-click on it in a
-    Bottles-only system would."""
-    desktop = desktop_file(user_data)
-    # gio launch starts a desktop entry with files ("kioclient exec ENTRY
-    # FILE" opened the entry itself in "Choose Application", VM 2026-10-27).
-    return ["gio", "launch", str(desktop), str(path)] if desktop else []
+    """Runs a Windows program in the VeltOS bottle, without Bottles'
+    "Select Bottle" question; [] when Bottles is not installed."""
+    if not desktop_file(user_data):
+        return []
+    # "@@ FILE @@": flatpak hands the file in through the document portal
+    # (/run/user/UID/doc/...), so it may be anywhere in the home folder.
+    return ["flatpak", "run", "--file-forwarding", "--command=bottles-cli", APP_ID,
+            "run", "-b", BOTTLE, "-e", "@@", str(path), "@@"]
 
 
 def setup(runner=subprocess.run, wait=time.sleep, deadline=None, first_update_done=Path("/var/lib/veltos/first-update-done"),

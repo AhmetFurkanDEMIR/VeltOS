@@ -48,7 +48,11 @@ class BottlesTests(unittest.TestCase):
         user_desktop.parent.mkdir(parents=True)
         user_desktop.write_text("[Desktop Entry]\n")
         self.assertTrue(bottles.installed())
-        self.assertEqual(bottles.open_command("/x/setup.exe"), ["gio", "launch", str(user_desktop), "/x/setup.exe"])
+        # Straight into the VeltOS bottle, the file through the document
+        # portal (Bottles' window asked "Select Bottle" every time).
+        self.assertEqual(bottles.open_command("/x/setup.exe"),
+                         ["flatpak", "run", "--file-forwarding", "--command=bottles-cli", bottles.APP_ID,
+                          "run", "-b", "VeltOS", "-e", "@@", "/x/setup.exe", "@@"])
         # No bottle yet: not ready, VeltOS opens the file itself.
         self.assertFalse(bottles.ready())
         bottles.bottle_dir().mkdir(parents=True)

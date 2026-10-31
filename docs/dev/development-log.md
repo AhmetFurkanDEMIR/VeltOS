@@ -52,6 +52,29 @@ that had not been done.
   cursors from the SVGs at 24-96 px (rsvg-convert, xcursorgen; +0.8 MB
   package). QMP screenshots have no pointer; `spectacle -b -n -f -p`
   includes it.
+- ISO `veltos-1.1-dev4-amd64.hybrid.iso` (build 20261031-092932, items
+  106-107): 2,112,444,416 bytes (under 2 GiB by 35.0 MB), SHA-256
+  e49ad6b3d4ea410df2345105199b016b569f245487be62e4bc37ff14c8f1dc6a. Boot
+  tests in QEMU: UEFI 19, BIOS 18, Secure Boot 20 checks, none failed, no
+  crashed processes; plasmashell after 30.9 / 33.1 / 30.8 s. Copied to the
+  owner's Desktop; the 1.1-dev3 build directory was deleted (its Desktop
+  copy stays).
+- Installer (item 38, found while installing 1.1-dev4 in Turkish): the
+  welcome page listed Calamares' languages alphabetically, Arabic first and
+  Türkçe in the middle; `LanguageOrder.js` puts Türkçe, then English, then
+  the rest. Seen in the live VM with the rebuilt package (not in 1.1-dev4).
+  Calamares' own partition legend ("Unpartitioned space or unknown
+  partition table") and the keyboard layouts' names stay English in the
+  Turkish installer (Calamares' and xkeyboard-config's texts).
+- Installation of 1.1-dev4 in Turkish with Bottles chosen (dev VM, network
+  on): installed in about 12 minutes; the first start ran apt-get update
+  (nothing to upgrade), installed Bottles from Flathub and showed the
+  "getting everything ready" window after signing in, which closed by
+  itself; the sign-in set-up made the VeltOS bottle; a double-click on
+  putty.exe opened Bottles' "Select Bottle" question, so veltos-run now
+  runs programs straight in the bottle (`bottles-cli run -b VeltOS -e`
+  with `--file-forwarding`): PuTTY opened without the question
+  (`tests/results/2026-10-31-install-first-start-bottles/`).
 - Tests: veltos-settings 198+ (pointer, network agent and key window in
   English and Turkish), veltos-explorer (removal, run rules, drives'
   trash, portal questions), veltos-fluent-icons (cursor configs); the
