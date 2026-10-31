@@ -146,7 +146,8 @@ class SettingsWindowTests(unittest.TestCase):
         fake = types.SimpleNamespace(
             preference=lambda: state["runner"], installed=lambda: state["installed"],
             set_preference=lambda runner: state.__setitem__("runner", runner) or True,
-            install_commands=lambda scope: [["true"], ["true"]])
+            install_commands=lambda scope: [["true"], ["true"]],
+            install_for_user=lambda: state.__setitem__("installed", True) or True)
         package = types.ModuleType("veltos_winapps")
         package.bottles = fake
         saved = sys.modules.get("veltos_winapps")
@@ -424,6 +425,35 @@ class SettingsWindowTests(unittest.TestCase):
         self.app.processEvents()
         self.window.setProperty("query", "nothing matches this")
         self.app.processEvents()
+        self.assertEqual(self.problems(), [])
+
+    def test_lock_screen_picture(self):
+        # The lock screen had no picture of its own to choose (2026-10-31).
+        from PySide6.QtGui import QColor, QImage
+        picture = Path(tempfile.mkdtemp()) / "lake.png"
+        image = QImage(32, 18, QImage.Format.Format_RGB32)
+        image.fill(QColor("#2FA8F0"))
+        image.save(str(picture))
+        self.show("personalization", "lockscreen")
+        self.backend.setLockWallpaper(str(picture))
+        self.app.processEvents()
+        self.assertEqual(self.backend.personal["lockWallpaper"], str(picture))
+        self.assertIn(["kwriteconfig6", "--file", "kscreenlockerrc", "--group", "Greeter", "--group", "Wallpaper",
+                       "--group", "org.kde.image", "--group", "General",
+                       "--key", "Image", "file://" + str(picture)], self.system.commands)
+        self.assertEqual(self.problems(), [])
+
+    def test_follows_light_and_dark_changed_elsewhere(self):
+        # VeltOS AI's "switch to light mode" left Settings dark (2026-10-31).
+        kdeglobals = Path(os.environ["XDG_CONFIG_HOME"]) / "kdeglobals"
+        old = kdeglobals.read_bytes() if kdeglobals.exists() else None
+        self.addCleanup(lambda: kdeglobals.write_bytes(old) if old is not None else kdeglobals.unlink(missing_ok=True))
+        dark = self.backend.darkMode
+        kdeglobals.write_text("[KDE]\nLookAndFeelPackage=org.veltos.%s\n" % ("light" if dark else "dark"),
+                              encoding="utf-8")
+        self.backend._reload_look()
+        self.app.processEvents()
+        self.assertEqual(self.backend.darkMode, not dark)
         self.assertEqual(self.problems(), [])
 
     def test_mouse_pointer_style_and_size(self):

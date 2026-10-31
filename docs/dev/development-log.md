@@ -3,6 +3,78 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-31 — Items 108-113: hotspot over one card, lock screen picture, AI conversation, offline first start
+
+The product owner's evening list: the mobile hotspot works in Windows 11
+but not in VeltOS; a lock screen picture; Settings stays dark after VeltOS
+AI switches to light mode; VeltOS AI forgets the conversation, does not
+scroll properly and is too wide maximised; then: what happens at the first
+start without a cable or Wi-Fi, and Bottles only when it was chosen.
+
+- Hotspot (108): `hotspot.py` reported "same-adapter" whenever the only
+  Wi-Fi card carried the internet. `shared_channels()` reads iw's "valid
+  interface combinations" (Intel AX200: managed and AP in separate groups,
+  2 channels; this kernel's mac80211_hwsim: one group of 2048, 1 channel),
+  `same_card()` the card's channel from `iw dev X link`; `start()` asks the
+  new pkexec helper `hotspot-interface add wlan0` (an `__ap` interface
+  `veltos-ap` with the next free MAC, as create_ap does), sets it to not
+  autoconnect, writes the profile with band and channel, and removes the
+  interface again on stop or failure. Dev VM (`out/vm/samecard.sh`, copy in
+  `tests/results/2026-10-31-hotspot-lock-ai/`): three hwsim radios,
+  "Upstream" by hostapd + dnsmasq + a web server in namespace "upstream",
+  Ethernet disconnected; Settings showed "Upstream (Wi-Fi)" as the shared
+  connection (before: the "only Wi-Fi adapter" message); On: `iw dev`
+  listed `veltos-ap` (AP) and wlan0 (managed) both on channel 6, wlan0
+  stayed on Upstream, the phone namespace joined, got 10.42.0.65 by DHCP,
+  pinged 192.168.77.1 (ttl 63) and fetched UPSTREAM-OK; Settings listed
+  "veltos-phone". With `sudo_on_live.rules` moved away the switch worked
+  without a password prompt. Off removed `veltos-ap`. Not seen: a real card.
+- Lock screen (109): `Personalization.lock_wallpaper()/set_lock_wallpaper()`
+  (kscreenlockerrc `[Greeter][Wallpaper][org.kde.image][General]`, as
+  VeltOS Photos' "Set as lock screen" already wrote), a preview with the
+  lock screen's clock format, the shared `WallpaperTiles.qml` (the
+  background page uses it too; tiles show dark variants in dark mode).
+  VM: VeltOS-Ember chosen, `loginctl lock-sessions` showed it.
+- Settings and light/dark (110): a QFileSystemWatcher on kdeglobals (as
+  VeltOS AI has); VM: VeltOS AI's `set_theme` (`out/vm/ai-dark.py`) turned
+  the open Settings window dark and light again at once.
+- VeltOS AI (111): `conversation.py` keeps the conversation (messages and
+  the service's history) between starts; `ChatModel` replaces the
+  JavaScript array model (rows inserted, updated and removed in place);
+  ChatView is a Flickable + Column (exact height) that follows the end only
+  while the user is there, with a "newest message" button; `Theme.chatWidth`
+  (760 px at 100 %) centres the conversation and the message box; the local
+  model's history is cut by size (`providers.trimmed`, 8,000 characters,
+  old tool results shortened to 400) instead of 24 messages. Tests found
+  that `follow = atEnd` in `onContentYChanged` read the binding before it
+  was updated (follow stayed true): compute it from contentY there. VM with
+  Qwen3.5 2B: the model remembered the name and the cat, the restarted
+  process restored the conversation and the model used it, scrolling up
+  during an answer kept the view (screenshots `ai-*.png`). The model also
+  took "Write a short history..." for a file action; "Don't allow" made it
+  answer in the chat (small model behaviour, not changed).
+- First start offline (112): `firstupdate.main` writes "offline" and waits
+  for a network (`nm-online` in a loop) instead of finishing; the done file
+  follows only a run with a network, so a later start continues. The window
+  (`FirstStart.qml`) shows "Let's connect you to a network" with Connect to
+  Wi-Fi (`veltos-settings wifi`, the window hides and returns when the PC
+  is online or Settings closes) and Continue without internet. Unit and
+  offscreen tests; live VM: `/usr/libexec/veltos/first-update` by hand with
+  networking off wrote "offline" after its 60 s wait, the window (started
+  directly: its launcher never shows it in a live system) showed the
+  connect screen, Connect to Wi-Fi opened Settings, `nmcli networking on`
+  let the update run (apt update, nothing to upgrade, done) and the window
+  came back with "You're ready to go".
+- Bottles (113): `wants_bottles` also reads users' Settings choice
+  (`/home/*/.config/veltos/windows-apps.conf`: Wine there stops the first
+  start's install); `bottles.setup()` installs the user's copy once online
+  when the first start will not (Settings' choice, perhaps offline); Settings
+  starts the set-up after a failed install too.
+- Tests: veltos-settings 206+ (hotspot same card, lock picture, look
+  watcher), veltos-ai 56+ (kept conversation, transcript, stopped answer,
+  chat model, wide window), veltos-store and veltos-winapps (offline first
+  start, Bottles choice).
+
 ## 2026-10-31 — Items 106-107: no KDE windows with the "W" icon, the pointer follows the theme
 
 The product owner sent the list of 2026-10-27 again (items 90-101, all

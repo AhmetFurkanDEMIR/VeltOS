@@ -1,3 +1,16 @@
+veltos-settings (1.1.0~dev3) trixie; urgency=medium
+
+  * Mobile hotspot over the only Wi-Fi card: a second interface (veltos-ap,
+    pkexec helper hotspot-interface) on cards that can be on a network and
+    host one, on the channel of the card's own connection.
+  * Personalization > Lock screen: the lock screen's own picture (wallpapers,
+    the desktop's picture, Browse photos) with a preview.
+  * Settings follows light/dark and the accent changed elsewhere (VeltOS AI,
+    Quick Settings) at once.
+  * Bottles chosen while offline: installed later by the sign-in set-up.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 31 Oct 2026 18:00:00 +0000
+
 veltos-settings (1.1.0~dev2) trixie; urgency=medium
 
   * Accessibility > Mouse pointer: Windows 11's pointer styles (colour mode,

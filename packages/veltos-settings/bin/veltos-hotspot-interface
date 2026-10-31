@@ -1,0 +1,90 @@
+#!/usr/bin/python3
+"""The mobile hotspot's second interface on a Wi-Fi card that is connected
+to a network (veltos_settings/hotspot.py), as Windows 11 shares a Wi-Fi
+connection over the same adapter.
+
+    hotspot-interface add DEVICE    an access point interface on DEVICE's card
+    hotspot-interface remove        remove it again
+
+Run through pkexec (org.veltos.hotspot.interface: the user of the active
+session, no password). It adds or removes one interface of a fixed name and
+does nothing else; NetworkManager then runs the hotspot on it.
+"""
+
+import os
+import re
+import subprocess
+import sys
+
+NAME = "veltos-ap"
+SYS_NET = "/sys/class/net"
+IW = "/usr/sbin/iw"
+IP = "/usr/sbin/ip"
+
+
+def run(command):
+    try:
+        return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                              timeout=20).returncode
+    except (OSError, subprocess.SubprocessError):
+        return 1
+
+
+def mac_of(device):
+    try:
+        with open(os.path.join(SYS_NET, device, "address"), encoding="ascii") as handle:
+            return handle.read().strip().lower()
+    except OSError:
+        return ""
+
+
+def new_mac(parent):
+    """The card's address with the next free last byte, as create_ap does:
+    two interfaces of one card with one address confuse the network."""
+    base = mac_of(parent)
+    if not re.fullmatch(r"([0-9a-f]{2}:){5}[0-9a-f]{2}", base):
+        return ""
+    used = {mac_of(device) for device in os.listdir(SYS_NET)}
+    last = int(base[-2:], 16)
+    for step in range(1, 256):
+        mac = base[:-2] + "%02x" % ((last + step) % 256)
+        if mac not in used:
+            return mac
+    return ""
+
+
+def add(parent):
+    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,15}", parent) or parent == NAME:
+        return 2
+    phy_link = os.path.join(SYS_NET, parent, "phy80211")
+    if not os.path.exists(phy_link):
+        return 2
+    if os.path.exists(os.path.join(SYS_NET, NAME)):
+        return 0
+    phy = os.path.basename(os.path.realpath(phy_link))
+    if run([IW, "phy", phy, "interface", "add", NAME, "type", "__ap"]) != 0:
+        return 1
+    mac = new_mac(parent)
+    if mac and run([IP, "link", "set", "dev", NAME, "address", mac]) != 0:
+        remove()
+        return 1
+    return 0
+
+
+def remove():
+    if not os.path.exists(os.path.join(SYS_NET, NAME)):
+        return 0
+    return 0 if run([IW, "dev", NAME, "del"]) == 0 else 1
+
+
+def main(args):
+    if len(args) == 2 and args[0] == "add":
+        return add(args[1])
+    if args == ["remove"]:
+        return remove()
+    print("usage: hotspot-interface add DEVICE | remove", file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

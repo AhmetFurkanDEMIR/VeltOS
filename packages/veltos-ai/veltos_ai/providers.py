@@ -155,6 +155,11 @@ class Adapter:
     def add_user(self, history, text):
         raise NotImplementedError
 
+    def add_assistant(self, history, text):
+        """The assistant's words without the service's own turn: an answer
+        the user stopped, or the conversation told again to another service."""
+        history.append({"role": "assistant", "content": text})
+
     def request(self, history, system, tools):
         raise NotImplementedError
 
@@ -372,7 +377,16 @@ class Gemini(Adapter):
         return {"x-goog-api-key": self.key}
 
     def add_user(self, history, text):
+        # A question whose answer failed is still the last turn; the new
+        # words join it, as Gemini wants the two sides to take turns.
+        last = history[-1] if history else None
+        if last and last.get("role") == "user" and all("text" in part for part in last.get("parts") or [{}]):
+            last["parts"].append({"text": text})
+            return
         history.append({"role": "user", "parts": [{"text": text}]})
+
+    def add_assistant(self, history, text):
+        history.append({"role": "model", "parts": [{"text": text}]})
 
     def request(self, history, system, tools):
         body = {"systemInstruction": {"parts": [{"text": system}]}, "contents": history}
@@ -484,7 +498,7 @@ class Local(Adapter):
         body = {"model": self.model, "stream": True, "temperature": 0.2, "max_tokens": 1024,
                 "chat_template_kwargs": {"enable_thinking": False},
                 "messages": [{"role": "system", "content": (system or "") + self.LOCAL_NOTE}]
-                + trimmed(history, 24)}
+                + trimmed(history)}
         if tools:
             body["tools"] = [{"type": "function", "function": {"name": t["name"], "description": t["description"],
                                                                "parameters": t["parameters"]}} for t in tools]
@@ -533,13 +547,47 @@ class Local(Adapter):
             history.append({"role": "tool", "tool_call_id": call["id"], "content": output})
 
 
-def trimmed(history, count):
-    """The last `count` messages, starting at a user message: a tool result
-    without the assistant turn that asked for it is refused."""
-    recent = history[-count:]
-    while recent and recent[0].get("role") != "user":
-        recent = recent[1:]
-    return recent or history[-1:]
+# The local model's share of its 8192-token context (local.py) for the
+# conversation: the actions' descriptions and the instructions take about
+# 3,500 tokens and the answer up to 1,024; Turkish text is about three
+# characters a token.
+HISTORY_CHARS = 8000
+OLD_RESULT_CHARS = 400
+
+
+def trimmed(history, budget=HISTORY_CHARS):
+    """The newest messages that fit in `budget` characters, starting at a
+    user message (a tool result without the assistant turn that asked for
+    it is refused). The current exchange, from the last user message on,
+    is always sent; older action results are shortened first, so the
+    conversation's own words reach further back. A fixed 24 messages were
+    mostly action results after a few actions, and the model lost the
+    thread (product owner, 2026-10-31)."""
+    last = max((i for i, m in enumerate(history) if m.get("role") == "user"), default=0)
+    current = history[last:]
+    used = sum(size(m) for m in current)
+    earlier = []
+    for message in reversed(history[:last]):
+        message = shortened(message)
+        used += size(message)
+        if used > budget:
+            break
+        earlier.append(message)
+    earlier.reverse()
+    while earlier and earlier[0].get("role") != "user":
+        earlier = earlier[1:]
+    return earlier + current
+
+
+def size(message):
+    return len(json.dumps(message, ensure_ascii=False))
+
+
+def shortened(message):
+    content = message.get("content")
+    if message.get("role") == "tool" and isinstance(content, str) and len(content) > OLD_RESULT_CHARS:
+        return dict(message, content=content[:OLD_RESULT_CHARS] + " …")
+    return message
 
 
 ADAPTERS = {"local": Local, "openai": OpenAI, "copilot": Copilot, "claude": Claude, "gemini": Gemini}

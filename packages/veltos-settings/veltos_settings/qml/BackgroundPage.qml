@@ -13,7 +13,7 @@ ColumnLayout {
     readonly property string previewSource: {
         for (const w of personal.wallpapers) {
             if (w.path === currentPath)
-                return "file://" + w.preview;
+                return "file://" + (Theme.dark ? w.previewDark : w.preview);
         }
         return currentPath !== "" ? "file://" + currentPath : "";
     }
@@ -71,42 +71,12 @@ ColumnLayout {
         description: backend.text("choose_photo")
         wrapControl: true
 
-        Flow {
+        WallpaperTiles {
             Layout.fillWidth: true
-            spacing: 8
-            Repeater {
-                model: page.personal.wallpapers
-                delegate: Rectangle {
-                    id: tile
-                    required property var modelData
-                    readonly property bool chosen: modelData.path === page.currentPath
-                    width: 112
-                    height: 72
-                    radius: 6
-                    color: "transparent"
-                    border.width: chosen || activeFocus ? 3 : 0
-                    border.color: Theme.accent
-                    activeFocusOnTab: true
-                    Accessible.role: Accessible.RadioButton
-                    Accessible.name: modelData.name
-                    Accessible.checked: chosen
-                    Keys.onSpacePressed: backend.setWallpaper(modelData.path)
-                    Keys.onReturnPressed: backend.setWallpaper(modelData.path)
-
-                    Image {
-                        anchors.fill: parent
-                        anchors.margins: tile.chosen ? 4 : 0
-                        source: "file://" + tile.modelData.preview
-                        sourceSize.width: 224
-                        sourceSize.height: 144
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        opacity: hover.hovered ? 0.85 : 1
-                    }
-                    HoverHandler { id: hover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: backend.setWallpaper(tile.modelData.path) }
-                }
-            }
+            wallpapers: page.personal.wallpapers || []
+            currentPath: page.currentPath
+            extraPaths: [page.personal.wallpaper || ""]
+            onChosen: path => backend.setWallpaper(path)
         }
     }
 

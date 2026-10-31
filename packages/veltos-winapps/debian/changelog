@@ -1,3 +1,10 @@
+veltos-winapps (1.1.0~dev3) trixie; urgency=medium
+
+  * Bottles chosen in Settings without internet: the sign-in set-up installs
+    it for the user as soon as the PC is online; never when not chosen.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 31 Oct 2026 19:00:00 +0000
+
 veltos-winapps (1.1.0~dev2) trixie; urgency=medium
 
   * The new program's entry starts through GLib, not kioclient.

@@ -79,11 +79,24 @@ class UpdateTests(unittest.TestCase):
         self.assertIn("done", self.done.read_text())
         self.assertIn("pmstatus:vlc:100", self.log.read_text())
 
-    def test_offline_and_failure_still_finish(self):
-        self.assertEqual(self.run_main(FakeApt(), online=False), 0)
-        self.assertEqual(json.loads(self.status.read_text())["state"], "offline")
-        self.assertTrue(self.done.exists())
-        self.done.unlink()
+    def test_offline_waits_for_a_network(self):
+        # No cable and no Wi-Fi: the done file was written at once and a PC
+        # first started offline never got its updates (2026-10-31). Now the
+        # window asks to connect and the update waits for a network.
+        answers = iter([False, False, True])
+        apt = FakeApt()
+        homes = self.status.parent.parent / "home"
+        homes.mkdir()
+        code = firstupdate.main(self.status, self.done, self.log, apt.run, apt.popen, lambda runner: next(answers),
+                                homes=homes)
+        self.assertEqual(code, 0)
+        states = [s for s, _p in self.seen]
+        self.assertEqual(states[:3], ["network", "offline", "lists"])
+        self.assertEqual(apt.calls[-1][-2:], ["-y", "full-upgrade"])
+        self.assertIn("done", self.done.read_text())
+        self.assertIn("waiting for a network", self.log.read_text())
+
+    def test_failure_still_finishes(self):
         self.assertEqual(self.run_main(FakeApt(upgrade_code=100)), 1)
         self.assertEqual(json.loads(self.status.read_text())["state"], "failed")
         self.assertTrue(self.done.exists())         # only once, as asked: VeltOS Update tries again
@@ -91,43 +104,62 @@ class UpdateTests(unittest.TestCase):
     def test_bottles_when_chosen(self):
         folder = self.status.parent.parent
         conf, attempts, desktop = folder / "windows-apps.conf", folder / "attempts", folder / "bottles.desktop"
+        homes = folder / "home"
+        (homes / "ayse").mkdir(parents=True)
         conf.write_text("[Windows programs]\nrunner=bottles\n")
         apt = FakeApt()
         flatpak = []
+        broken = {"flathub": True}
 
         def run(command, **kwargs):
             if command[0] == "flatpak":
                 flatpak.append(command)
-                code = 0 if len(flatpak) > 2 else (0 if command[1] == "remote-add" else 1)
+                code = 1 if command[1] == "install" and broken["flathub"] else 0
                 if command[1] == "install" and code == 0:
                     desktop.write_text("[Desktop Entry]\n")
                 return subprocess.CompletedProcess(command, code, "", "")
             return apt.run(command, **kwargs)
-        # Offline: no done file, the next start tries again.
-        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: False, conf, attempts, desktop)
-        self.assertFalse(self.done.exists())
-        self.assertEqual(attempts.read_text().strip(), "1")
-        # Online, Flathub fails: still waiting.
-        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: True, conf, attempts, desktop)
+
+        def main(online=True):
+            firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: online, conf, attempts,
+                             desktop, homes)
+        # Offline first: the status says Bottles waits too (the window's text).
+        answers = iter([False, True])
+        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: next(answers), conf, attempts,
+                         desktop, homes)
+        self.assertTrue(json.loads(self.status.read_text()).get("state") in ("done",))
+        # Flathub failed: the done file waits for the next start.
         self.assertIn(("bottles", 0), self.seen)
         self.assertEqual(flatpak[1][:3], ["flatpak", "install", "--system"])
         self.assertFalse(self.done.exists())
+        self.assertEqual(attempts.read_text().strip(), "1")
         # Then it works: done.
-        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: True, conf, attempts, desktop)
+        broken["flathub"] = False
+        main()
         self.assertTrue(desktop.exists())
         self.assertTrue(self.done.exists())
-        # Wine chosen: no Flatpak at all.
+        # Wine chosen in the installer: no Flatpak at all.
         flatpak.clear()
         self.done.unlink()
-        conf.write_text("[Windows programs]\nrunner=wine\n")
-        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: True, conf, attempts, desktop)
-        self.assertEqual(flatpak, [])
-        # Five failed starts: given up, the done file is written.
-        conf.write_text("[Windows programs]\nrunner=bottles\n")
         desktop.unlink()
-        attempts.write_text("5\n")
+        conf.write_text("[Windows programs]\nrunner=wine\n")
+        main()
+        self.assertEqual(flatpak, [])
+        # Bottles in the installer, Wine chosen in Settings since: not installed.
+        conf.write_text("[Windows programs]\nrunner=bottles\n")
+        user_conf = homes / "ayse" / firstupdate.USER_CONF
+        user_conf.parent.mkdir(parents=True)
+        user_conf.write_text("[Windows programs]\nrunner=wine\n")
         self.done.unlink()
-        firstupdate.main(self.status, self.done, self.log, run, apt.popen, lambda r: False, conf, attempts, desktop)
+        main()
+        self.assertEqual(flatpak, [])
+        self.assertTrue(self.done.exists())
+        user_conf.unlink()
+        # Five failed starts: given up, the done file is written.
+        broken["flathub"] = True
+        attempts.write_text("4\n")
+        self.done.unlink()
+        main()
         self.assertTrue(self.done.exists())
 
     def test_progress_lines(self):
@@ -188,6 +220,50 @@ class WindowTests(unittest.TestCase):
             firststart.CLOSE_AFTER_READY = old
         self.assertEqual(finished, [True])
         self.assertTrue(shown.exists())
+        problems = [m for m in MESSAGES if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()
+                    or "undefined" in m.lower()]
+        self.assertEqual(problems, [])
+        engine.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        APP.processEvents()
+
+
+    def test_window_without_a_network(self):
+        from PySide6.QtCore import QCoreApplication, QEvent, QObject, QUrl
+        from PySide6.QtQml import QQmlApplicationEngine
+        from veltos_store import firststart
+        folder = Path(tempfile.mkdtemp())
+        status, done, shown = folder / "status.json", folder / "done", folder / "shown"
+        firstupdate.write_status("offline", 0, status, bottles=True)
+        backend = firststart.FirstStart(lang=self.lang, status=status, done=done, interval=20, shown=shown)
+        MESSAGES.clear()
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", backend)
+        engine.load(QUrl.fromLocalFile(str(firststart.QML_DIR / "FirstStart.qml")))
+        self.assertTrue(engine.rootObjects(), MESSAGES)
+        window = engine.rootObjects()[0]
+        window.grabWindow()
+        self.assertTrue(backend.offline)
+        self.assertTrue(backend.bottles)
+        self.assertFalse(backend.ready)              # it waits; nothing closes by itself
+        self.assertFalse(backend.canHide)
+        buttons = window.findChild(QObject, "offlineButtons")
+        self.assertTrue(buttons.property("visible"))
+        # Back from Settings (no copy running) while still offline: shown again.
+        shown_again, hidden = [], []
+        backend.showWindow.connect(lambda: shown_again.append(True))
+        backend.hideWindow.connect(lambda: hidden.append(True))
+        backend._away, backend._settings_pid = True, 2 ** 22 + 7
+        backend.poll()
+        self.assertEqual(shown_again, [True])
+        # Connected while Settings was open: shown again for the update.
+        backend._away, backend._settings_pid = True, os.getpid()
+        backend.poll()
+        self.assertEqual(shown_again, [True])        # Settings "still open", still offline
+        firstupdate.write_status("lists", 0, status)
+        backend.poll()
+        self.assertEqual(shown_again, [True, True])
+        self.assertFalse(buttons.property("visible"))
         problems = [m for m in MESSAGES if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()
                     or "undefined" in m.lower()]
         self.assertEqual(problems, [])

@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import time
+import urllib.parse
 from pathlib import Path
 
 try:
@@ -799,6 +800,24 @@ class Personalization:
     def set_wallpaper(self, path):
         return self.run(["plasma-apply-wallpaperimage", str(path)])[0] == 0
 
+    def lock_wallpaper(self):
+        """The lock screen's picture: the user's choice, else VeltOS' default
+        (kscreenlockerrc in /etc/xdg); "" if neither names one."""
+        for path in (config_home() / "kscreenlockerrc", Path("/etc/xdg/kscreenlockerrc")):
+            value = lock_image(path)
+            if value:
+                return value
+        return ""
+
+    def set_lock_wallpaper(self, path):
+        # The greeter reads this at every lock (a new process each time);
+        # PreviewImage is what KDE's own page showed. A wallpaper package is a
+        # folder, named with a trailing "/" as in VeltOS' default.
+        url = "file://" + str(path).rstrip("/") + ("/" if Path(path).is_dir() else "")
+        group = ["--group", "Greeter", "--group", "Wallpaper", "--group", "org.kde.image", "--group", "General"]
+        return all(self.run(["kwriteconfig6", "--file", "kscreenlockerrc", *group, "--key", key, url])[0] == 0
+                   for key in ("Image", "PreviewImage"))
+
     def accent(self):
         """The chosen accent colour as #RRGGBB ("" for the theme's own)."""
         try:
@@ -856,7 +875,24 @@ class Personalization:
         return pick_file(start, title, [{"name": PICTURES_FILTER[0], "patterns": PICTURES_FILTER[1]}])
 
 
-PICTURES_FILTER = ("Pictures", ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.avif", "*.jxl", "*.bmp", "*.gif"])
+def lock_image(path):
+    """Image= of the lock screen's picture in a kscreenlockerrc ("" if none)."""
+    try:
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+    group = re.search(r"^\[Greeter\]\[Wallpaper\]\[org\.kde\.image\]\[General\]\s*$(.*?)(?=^\[|\Z)",
+                      text, re.M | re.S)
+    match = re.search(r"^Image=(.+)$", group.group(1), re.M) if group else None
+    if not match:
+        return ""
+    value = match.group(1).strip()
+    if value.startswith("file://"):
+        value = urllib.parse.unquote(value[len("file://"):])
+    return value.rstrip("/")
+
+
+PICTURES_FILTER = ("Pictures",["*.png", "*.jpg", "*.jpeg", "*.webp", "*.avif", "*.jxl", "*.bmp", "*.gif"])
 # KGlobalSettings::notifyChange(PaletteChanged = 0, 0) on the session bus.
 PALETTE_CHANGED = ["dbus-send", "--session", "--type=signal", "/KGlobalSettings",
                    "org.kde.KGlobalSettings.notifyChange", "int32:0", "int32:0"]

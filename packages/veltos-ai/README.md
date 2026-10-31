@@ -6,6 +6,20 @@ and closes it again; Start, search and Settings open it as a normal window
 (`veltos-ai --window`, `AppWindow.qml`). Both show `Assistant.qml` and
 share one conversation.
 
+- **The conversation** stays until "New chat" (`conversation.py`,
+  2026-10-31): the panel's messages and what the service was told are
+  kept in `~/.local/share/veltos-ai/conversation.json` (mode 600) and
+  come back after the idle process ended. Another service chosen in the
+  settings is told the conversation's words so far (they were dropped
+  before); an answer the user stopped stays in the history. The local
+  model gets as much of the conversation as fits its context (8,000
+  characters, older action results shortened first) instead of the last
+  24 messages. The messages are a list model changed in place
+  (`ChatModel`): the view follows the newest words while it is at the
+  end, stays where the user scrolled to read, and a round button leads
+  back down. In a wide or maximised window the conversation and the
+  message box are a centred column of reading width (`Theme.chatWidth`).
+
 - **The pane** is a layer-shell surface (`org.kde.layershell`, package
   qml6-module-org-kde-layershell): anchored to the top, bottom and right,
   above windows, with an exclusive zone of its width, so maximised windows
@@ -80,10 +94,15 @@ checks, titles in both languages, running them (http/https only, folders
 inside the home folder, Settings' helpers through a stand-in), finding
 apps and files; settings saved with mode 600; the backend's conversation
 with "Allow", "Don't allow", Stop, actions turned off, errors, refusals,
-the live theme. `tests/test_ui.py`: the pane offscreen in English and
+the live theme, the conversation kept between starts, another service
+hearing it, a stopped answer in the history, the chat model's row
+signals. `tests/test_ui.py`: the pane offscreen in English and
 Turkish (settings without a key, a conversation with an action, a narrow
 pane, the local model's settings with the download screen and Hugging
-Face results, the window); any QML warning fails. `tests/test_local.py`:
+Face results, the window, a 1800 px window with a long answer: the
+centred column, following the answer, scrolling up and back); any QML
+warning fails. `tests/test_actions.py` also checks the local model's
+history budget. `tests/test_local.py`:
 downloads (progress, wrong size or SHA-256 keep nothing, cancel), the
 model folder and file names, the pinned default, Hugging Face's search and
 file lists, the server's start on the loopback, the local adapter's stream.

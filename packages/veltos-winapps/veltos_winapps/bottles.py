@@ -6,10 +6,14 @@ product owner the same day, as an exception to Debian-only sources).
 - The choice: `runner=wine|bottles` in ~/.config/veltos/windows-apps.conf
   (Settings) or /etc/veltos/windows-apps.conf (the installer). No file: the
   runner asks when Bottles is installed, as before.
-- Bottles is Flathub's com.usebottles.bottles (not in Debian 13). The first
-  start installs it system-wide when the installer's choice was Bottles
-  (veltos-store's firstupdate.py, `install_commands("--system")`);
+- Bottles is Flathub's com.usebottles.bottles (not in Debian 13), and only
+  when it was chosen (product owner, 2026-10-31: "download and install it
+  when it was chosen in Settings or in the installer, otherwise don't").
+  The first start installs it system-wide when the installer's choice was
+  Bottles (veltos-store's firstupdate.py, `install_commands("--system")`);
   Settings installs it for the user (`--user`, no administrator rights).
+  When that happened without internet, the sign-in set-up installs it for
+  the user as soon as the PC is online.
 - At sign-in `veltos-run --bottles-setup` prepares a bottle named "VeltOS"
   (Bottles' "Application" environment) once Bottles is there: Bottles
   downloads its own Wine (Soda) and DXVK for it, about 1.5 GB (seen in the
@@ -36,7 +40,7 @@ FLATHUB = "https://dl.flathub.org/repo/flathub.flatpakrepo"
 BOTTLE = "VeltOS"
 SYSTEM_CONF = Path("/etc/veltos/windows-apps.conf")
 DESKTOPS = [Path("/var/lib/flatpak/exports/share/applications") / f"{APP_ID}.desktop"]
-SETUP_WAIT = 2 * 3600          # sign-in: wait this long for the first start to install Bottles
+SETUP_WAIT = 2 * 3600          # sign-in: wait this long for the first start or a network
 
 
 def config_home():
@@ -125,20 +129,51 @@ def open_command(path, user_data=None):
             "run", "-b", BOTTLE, "-e", "@@", str(path), "@@"]
 
 
+def online(runner=subprocess.run, timeout=20):
+    """Whether NetworkManager says the PC is online (waits up to timeout s)."""
+    try:
+        return runner(["nm-online", "-q", "-t", str(timeout)], timeout=timeout + 10).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def install_for_user(runner=subprocess.run, log=None):
+    """Bottles from Flathub for this user; True when it is there."""
+    for command in install_commands("--user"):
+        try:
+            result = runner(command, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=3 * 3600)
+        except (OSError, subprocess.SubprocessError) as error:
+            if log:
+                log.write(f"{command[0]}: {error}\n")
+            return False
+        if log:
+            log.write(" ".join(command) + "\n" + (result.stdout or "")[-2000:] + (result.stderr or "")[-2000:])
+        if result.returncode != 0:
+            return False
+    return installed()
+
+
 def setup(runner=subprocess.run, wait=time.sleep, deadline=None, first_update_done=Path("/var/lib/veltos/first-update-done"),
-          log=None):
-    """At sign-in: when the choice is Bottles, waits for Bottles (the first
-    start installs it) and makes the VeltOS bottle once. True when there is
-    nothing (more) to do."""
+          log=None, connected=None):
+    """At sign-in (and after Settings' install): when the choice is Bottles,
+    waits for Bottles and makes the VeltOS bottle once. The first start
+    installs Bottles when the installer chose it; otherwise (chosen in
+    Settings, perhaps without internet then) this user's copy is installed
+    as soon as the PC is online. True when there is nothing (more) to do."""
     if preference() != "bottles" or bottle_dir().is_dir():
         return True
     if not shutil.which("flatpak"):
         return False
+    connected = connected or (lambda: online(runner))
     end = deadline if deadline is not None else time.monotonic() + SETUP_WAIT
     while not installed():
-        # The first start may still be installing Bottles; after it, give up.
-        if first_update_done.exists() and not installed():
-            return False
+        if preference() != "bottles":
+            return True          # Wine chosen again meanwhile: nothing to install
+        first_start_installs = read_runner(SYSTEM_CONF) == "bottles" and not first_update_done.exists()
+        if not first_start_installs and connected():
+            if not install_for_user(runner, log):
+                return False
+            break
         if time.monotonic() > end:
             return False
         wait(30)

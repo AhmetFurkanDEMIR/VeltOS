@@ -85,7 +85,7 @@ Item {
                 objectName: "newChat"
                 icon: "document-new"
                 tip: backend.text("new_chat")
-                enabledState: backend.messages.length > 0
+                enabledState: backend.chat.count > 0
                 onClicked: backend.newChat()
             }
             IconButton {
@@ -123,6 +123,8 @@ Item {
             objectName: "composer"
             visible: !assistant.showSettings
             Layout.fillWidth: true
+            Layout.maximumWidth: Theme.chatWidth - 28
+            Layout.alignment: Qt.AlignHCenter
             Layout.leftMargin: 14
             Layout.rightMargin: 14
             Layout.topMargin: 6
@@ -153,6 +155,14 @@ Item {
                 contentHeight: input.contentHeight
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
+                // The line being written stays in view once the box is at
+                // its tallest.
+                function ensureVisible(r) {
+                    if (contentY >= r.y)
+                        contentY = r.y;
+                    else if (contentY + height <= r.y + r.height)
+                        contentY = r.y + r.height - height;
+                }
                 TextEdit {
                     id: input
                     objectName: "input"
@@ -171,6 +181,7 @@ Item {
                     }
                     Keys.onEnterPressed: composer.submit()
                     onTextChanged: if (length > 4000) remove(4000, length)
+                    onCursorRectangleChanged: inputScroll.ensureVisible(cursorRectangle)
                     Text {
                         anchors.fill: parent
                         visible: input.text === "" && !input.preeditText
@@ -217,6 +228,8 @@ Item {
         RowLayout {
             visible: !assistant.showSettings
             Layout.fillWidth: true
+            Layout.maximumWidth: Theme.chatWidth - 36
+            Layout.alignment: Qt.AlignHCenter
             Layout.leftMargin: 18
             Layout.rightMargin: 18
             Layout.topMargin: 4

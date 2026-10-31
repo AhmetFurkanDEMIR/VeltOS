@@ -16,6 +16,17 @@ PC's preferred one while the hotspot runs (`nmcli device modify` with a
 lower route metric, runtime only); stopping the hotspot gives the device
 its own settings back (`nmcli device reapply`).
 
+Over the same Wi-Fi card: most laptops reach the internet through their
+only Wi-Fi card, and Windows 11 shares that connection over the same
+adapter. Many cards can be connected to a network and host one at the same
+time (iw's "valid interface combinations": a station and an access point,
+often on one channel). Then a privileged helper adds a second interface on
+the card (`/usr/libexec/veltos/hotspot-interface`, pkexec, no password for
+the active session's user), the hotspot runs there on the channel of the
+card's own connection, and stopping it removes the interface again. Before
+2026-10-31 VeltOS said such a PC could not share its connection
+(product owner: "it works in Windows 11").
+
 The network key never goes on a command line: the profile is written
 through NetworkManager's D-Bus API (`write_profile`), and Settings hands
 the key to the command-line helper on standard input.
@@ -37,6 +48,7 @@ import secrets
 import socket
 import string
 import sys
+import time
 import uuid as uuid_module
 from pathlib import Path
 
@@ -49,6 +61,9 @@ PROFILE_ID = "VeltOS Hotspot"
 # Namespace of the per-user profile UUIDs (uuid5 of "veltos-hotspot:USER").
 UUID_NAMESPACE = uuid_module.UUID("5b3fe04f-7cff-4a8f-a8f0-2fa8f00e1846")
 IW = "/usr/sbin/iw"
+# The hotspot's own interface on a card that stays connected (the helper's NAME).
+VIRTUAL = "veltos-ap"
+INTERFACE_HELPER = "/usr/libexec/veltos/hotspot-interface"
 BANDS = ("", "bg", "a")          # Any available, 2.4 GHz, 5 GHz (NetworkManager's names)
 # Connection types whose default route can be shared (nmcli's type names).
 SOURCE_TYPES = {"802-3-ethernet": "ethernet", "802-11-wireless": "wifi", "gsm": "cellular",
@@ -96,12 +111,14 @@ def default_password():
     return "".join(secrets.choice(PASSWORD_CHARS) for _ in range(8))
 
 
-def profile_settings(user, ssid, password, band, device):
+def profile_settings(user, ssid, password, band, device, channel=0):
     """The whole hotspot profile as plain Python values (write_profile
     turns them into D-Bus types)."""
     wireless = {"ssid": ssid.encode("utf-8"), "mode": "ap"}
     if band:
         wireless["band"] = band
+        if channel:
+            wireless["channel"] = channel
     return {
         "connection": {"id": PROFILE_ID, "uuid": profile_uuid(user), "type": "802-11-wireless",
                        "autoconnect": False, "permissions": [f"user:{user}:"],
@@ -115,7 +132,39 @@ def profile_settings(user, ssid, password, band, device):
 
 
 VARIANT_TYPES = {"ssid": "ay", "autoconnect": "b", "permissions": "as", "proto": "as",
-                 "pairwise": "as", "group": "as"}
+                 "pairwise": "as", "group": "as", "channel": "u"}
+
+
+def shared_channels(phy_info):
+    """How many channels a card may use while it is connected to a network
+    and hosts one (the best of iw's "valid interface combinations" with a
+    station and an access point); 0 if it cannot do both at once."""
+    block = re.search(r"valid interface combinations:\n(.*?)(?=\n\t\S|\Z)", phy_info, re.S)
+    best = 0
+    for entry in re.split(r"^\s*\* ", block.group(1), flags=re.M) if block else []:
+        groups = [([name.strip() for name in names.split(",")], int(limit))
+                  for names, limit in re.findall(r"#\{\s*([^}]*)\}\s*<=\s*(\d+)", entry)]
+        total = re.search(r"total <= (\d+)", entry)
+        channels = re.search(r"#channels <= (\d+)", entry)
+        if not total or int(total.group(1)) < 2:
+            continue
+        if not any("managed" in names for names, _ in groups) or not any("AP" in names for names, _ in groups):
+            continue
+        if any("managed" in names and "AP" in names and limit < 2 for names, limit in groups):
+            continue
+        best = max(best, int(channels.group(1)) if channels else 1)
+    return best
+
+
+def channel_of(frequency):
+    """(band, channel) of a frequency in MHz: ("bg", 6) for 2437."""
+    if frequency == 2484:
+        return "bg", 14
+    if 2412 <= frequency < 2484:
+        return "bg", (frequency - 2407) // 5
+    if 5000 < frequency < 5925:
+        return "a", (frequency - 5000) // 5
+    return "", 0
 
 
 def write_profile(settings):
@@ -213,10 +262,13 @@ def parse_ptr_reply(reply, ident):
 
 
 class Hotspot:
-    def __init__(self, runner=run, writer=write_profile, resolver=reverse_name, user=None, config=None):
+    def __init__(self, runner=run, writer=write_profile, resolver=reverse_name, user=None, config=None,
+                 sleep=time.sleep, helper=INTERFACE_HELPER):
         self.run = runner
         self.write = writer
         self.resolve = resolver
+        self.sleep = sleep
+        self.helper = helper
         self.user = user or user_name()
         self.uuid = profile_uuid(self.user)
         self.config_file = Path(config) if config else config_path()
@@ -258,21 +310,46 @@ class Hotspot:
                            "5ghz": caps.get("5GHZ", False) and self.may_send_5ghz(device)})
         return result
 
+    def phy_info(self, device):
+        """`iw phy ... info` of a Wi-Fi device's card ("" without iw)."""
+        code, out = self.run([IW, "dev", device, "info"])
+        match = re.search(r"^\s*wiphy (\d+)", out, re.M) if code == 0 else None
+        if not match:
+            return ""
+        code, out = self.run([IW, "phy", "phy" + match.group(1), "info"])
+        return out if code == 0 else ""
+
     def may_send_5ghz(self, device):
         """Whether the card may start a network on 5 GHz where it is: the
         regulatory domain marks channels "no IR" (no initiating radiation)
         until a country is known, and an access point then fails to start
         (NetworkManager: supplicant-timeout; dev VM, 2026-10-26). Without iw
         NetworkManager's word is all there is."""
-        code, out = self.run([IW, "dev", device, "info"])
-        match = re.search(r"^\s*wiphy (\d+)", out, re.M) if code == 0 else None
-        if not match:
-            return True
-        code, out = self.run([IW, "phy", "phy" + match.group(1), "info"])
-        if code != 0:
+        out = self.phy_info(device)
+        if not out:
             return True
         channels = re.findall(r"^\s*\* 5\d{3}(?:\.\d+)? MHz \[\d+\](.*)$", out, re.M)
         return any(not re.search(r"no IR|disabled|radar", flags) for flags in channels)
+
+    def link_frequency(self, device):
+        """The frequency (MHz) of the network the device is connected to; 0
+        if unknown."""
+        code, out = self.run([IW, "dev", device, "link"])
+        match = re.search(r"^\s*freq: (\d+)", out, re.M) if code == 0 else None
+        return int(match.group(1)) if match else 0
+
+    def same_card(self, device):
+        """How the hotspot can run beside the device's own connection:
+        {"channels": N, "band": "bg"|"a", "channel": C} or None."""
+        if not os.path.exists(self.helper):
+            return None
+        channels = shared_channels(self.phy_info(device))
+        if not channels:
+            return None
+        band, channel = channel_of(self.link_frequency(device))
+        if not channel:
+            return None
+        return {"channels": channels, "band": band, "channel": channel}
 
     def active_connections(self):
         code, out = self.run(["nmcli", "-t", "-f", "NAME,UUID,TYPE,DEVICE", "connection", "show", "--active"])
@@ -355,18 +432,31 @@ class Hotspot:
                             "device": connection["device"], "metric": routes[connection["device"]]})
         sources.sort(key=lambda s: (s["metric"], s["name"].lower()))
 
-        # The card that hosts the hotspot cannot stay connected to a Wi-Fi
-        # network at the same time (NetworkManager uses the card itself, no
-        # second virtual interface): it must leave another connection to share.
-        capable = [d for d in devices if d["ap"]]
+        # A card that hosts the hotspot on its own interface leaves its Wi-Fi
+        # network, so another card or connection is preferred; a card that
+        # can do both at once shares its own connection (same_card).
+        capable = [d for d in devices if d["ap"] and d["device"] != VIRTUAL]
+        parent, shared = "", None
         if hotspot_device:
             device = next((d for d in devices if d["device"] == hotspot_device), None)
+            if hotspot_device == VIRTUAL:
+                parent = config.get("parent", "")
+                shared = self.same_card(parent) if parent else None
         else:
             free = [d for d in capable if any(s["device"] != d["device"] for s in sources)]
             device = (next((d for d in free if d["device"] == saved["device"]), None)
                       or next((d for d in free if d["state"] != "connected"), None)
                       or (free[0] if free else None))
-        if device:
+            if device is None and sources:
+                for card in capable:
+                    if card["state"] == "connected" and any(s["device"] == card["device"] for s in sources):
+                        shared = self.same_card(card["device"])
+                        if shared:
+                            parent = card["device"]
+                            device = {"device": VIRTUAL, "state": "disconnected", "connection": "", "ap": True,
+                                      "5ghz": card["5ghz"]}
+                            break
+        if device and device["device"] != VIRTUAL:
             sources = [s for s in sources if s["device"] != device["device"]]
         if not devices:
             reason = "no-wifi"
@@ -381,11 +471,16 @@ class Hotspot:
             reason = ""
 
         bands = ["", "bg"] + (["a"] if device and device["5ghz"] else [])
+        if shared and shared["channels"] < 2:
+            # One channel for both: the hotspot is on the connection's band.
+            bands = ["", shared["band"]]
         chosen = config.get("source", "")
         current = sources[0]["uuid"] if sources else ""
         state = {
             "available": bool(capable), "reason": reason, "active": mine is not None,
             "device": device["device"] if device else "",
+            # The card whose own connection the hotspot shares beside it.
+            "parent": parent, "shared": shared,
             # A 5 GHz choice the card cannot use here starts on any band.
             "ssid": saved["ssid"], "password": saved["password"],
             "band": saved["band"] if saved["band"] in bands else "",
@@ -404,7 +499,14 @@ class Hotspot:
     # --- changes --------------------------------------------------------------------
 
     def _write(self, state, ssid, password, band):
-        return self.write(profile_settings(self.user, ssid, password, band, state["device"]))
+        channel = 0
+        shared = state.get("shared")
+        if shared and shared["channels"] < 2:
+            # The card serves both on one channel: its connection's.
+            band, channel = shared["band"], shared["channel"]
+        elif shared and not band:
+            band = "bg"      # 5 GHz hotspots are often not allowed beside a connection
+        return self.write(profile_settings(self.user, ssid, password, band, state["device"], channel))
 
     def start(self):
         state = self.status()
@@ -413,11 +515,15 @@ class Hotspot:
         if state["reason"]:
             return dict(state, error=state["reason"])
         self.run(["nmcli", "radio", "wifi", "on"])
+        if state.get("parent") and not self.add_interface(state["parent"]):
+            return dict(state, error="start-failed")
         if not self._write(state, state["ssid"], state["password"], state["band"]):
+            self.remove_interface()
             return dict(state, error="save-failed")
         code, _ = self.run(["nmcli", "--wait", "60", "connection", "up", "uuid", self.uuid,
                             "ifname", state["device"]], timeout=75)
         if code != 0:
+            self.remove_interface()
             return dict(self.status(), error="start-failed")
         self.prefer_source(self.load_config().get("source", ""))
         return self.status()
@@ -425,7 +531,32 @@ class Hotspot:
     def stop(self):
         self.run(["nmcli", "connection", "down", "uuid", self.uuid], timeout=30)
         self.restore_source()
+        self.remove_interface()
         return self.status()
+
+    def add_interface(self, parent):
+        """The hotspot's interface on the parent's card, once NetworkManager
+        knows it (it would otherwise join a known network on it first)."""
+        if self.run(["pkexec", self.helper, "add", parent], timeout=60)[0] != 0:
+            return False
+        for _ in range(20):
+            code, out = self.run(["nmcli", "-t", "-f", "DEVICE", "device", "status"])
+            if code == 0 and VIRTUAL in out.split():
+                self.run(["nmcli", "device", "set", VIRTUAL, "autoconnect", "no"])
+                config = self.load_config()
+                config["parent"] = parent
+                self.save_config(config)
+                return True
+            self.sleep(0.5)
+        self.remove_interface()
+        return False
+
+    def remove_interface(self):
+        config = self.load_config()
+        if not config.pop("parent", "") and self.run(["ip", "-o", "link", "show", "dev", VIRTUAL])[0] != 0:
+            return
+        self.run(["pkexec", self.helper, "remove"], timeout=60)
+        self.save_config(config)
 
     def configure(self, ssid, password, band):
         """Save the network name, key and band; a running hotspot starts

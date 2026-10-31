@@ -1,6 +1,8 @@
 // The conversation: the greeting with suggestions while it is empty, then
 // the user's messages (right, accent), the answers (left, Markdown, copy),
-// the actions VeltOS AI asks to run (Allow / Don't allow) and errors.
+// the actions VeltOS AI asks to run (Allow / Don't allow) and errors. In a
+// wide window the conversation is a column of reading width in the middle
+// (Theme.chatWidth): maximised, its lines ran across the whole screen.
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -14,11 +16,10 @@ Item {
     // --- greeting -----------------------------------------------------------------------------------
     ColumnLayout {
         objectName: "greeting"
-        visible: backend.messages.length === 0
-        anchors.left: parent.left
-        anchors.right: parent.right
+        visible: backend.chat.count === 0
+        width: Math.min(parent.width - 40, Theme.greetingWidth)
+        anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        anchors.margins: 20
         spacing: 14
 
         Kirigami.Icon {
@@ -76,36 +77,109 @@ Item {
     }
 
     // --- messages -----------------------------------------------------------------------------------
-    ListView {
+    // A Column of every message, not a ListView: rows made lazily guessed
+    // the content height, so "go to the end" fell short while an answer
+    // grew; and the rows change in place (backend.chat, a list model).
+    Flickable {
         id: list
-        objectName: "messages"
+        objectName: "messageView"
         anchors.fill: parent
-        visible: backend.messages.length > 0
+        visible: backend.chat.count > 0
         clip: true
-        spacing: 12
-        topMargin: 12
-        bottomMargin: 12
+        contentWidth: width
+        contentHeight: column.height + 24
         boundsBehavior: Flickable.StopAtBounds
-        model: backend.messages
         ScrollBar.vertical: ScrollBar {}
-        onCountChanged: Qt.callLater(positionViewAtEnd)
-        onContentHeightChanged: if (atYEnd || backend.busy) Qt.callLater(positionViewAtEnd)
 
-        delegate: Item {
-            id: row
-            required property var modelData
-            required property int index
-            width: ListView.view.width
-            height: loader.item ? loader.item.implicitHeight : 0
-            Loader {
-                id: loader
-                width: parent.width
-                sourceComponent: row.modelData.kind === "user" ? userBubble
-                               : row.modelData.kind === "assistant" ? answer
-                               : row.modelData.kind === "action" ? action : problem
-                property var message: row.modelData
+        // The view follows the newest words while it is at the end. A user
+        // who scrolls up to read stays there (the answer kept pulling the
+        // view down) until they come back down or send a message.
+        property bool follow: true
+        property bool movingItself: false
+        readonly property real endY: Math.max(0, contentHeight - height)
+        readonly property bool atEnd: contentY >= endY - 32
+        function toEnd() {
+            movingItself = true;
+            contentY = endY;
+            movingItself = false;
+            follow = true;
+        }
+        // (atEnd may not have followed contentY yet when this runs)
+        onContentYChanged: if (!movingItself) follow = contentY >= endY - 32
+        onContentHeightChanged: if (follow) Qt.callLater(toEnd)
+        onHeightChanged: if (follow) Qt.callLater(toEnd)
+
+        Connections {
+            target: backend
+            function onSent() {
+                list.follow = true;
+                Qt.callLater(list.toEnd);
             }
         }
+
+        Column {
+            id: column
+            y: 12
+            x: Math.max(0, Math.round((list.width - width) / 2))
+            width: Math.min(list.width, Theme.chatWidth)
+            spacing: 12
+            Repeater {
+                objectName: "messages"
+                model: backend.chat
+                delegate: Item {
+                    id: row
+                    required property int mid
+                    required property string kind
+                    required property string body
+                    required property string status
+                    required property string title
+                    width: column.width
+                    height: loader.item ? loader.item.implicitHeight : 0
+                    Loader {
+                        id: loader
+                        width: parent.width
+                        sourceComponent: row.kind === "user" ? userBubble
+                                       : row.kind === "assistant" ? answer
+                                       : row.kind === "action" ? action : problem
+                        property var message: ({ id: row.mid, kind: row.kind, text: row.body,
+                                                 state: row.status, title: row.title })
+                    }
+                }
+            }
+        }
+    }
+
+    // Back to the newest message, when the view is scrolled up.
+    Rectangle {
+        objectName: "toLatest"
+        visible: list.visible && !list.atEnd
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 10
+        width: 36
+        height: 36
+        radius: 18
+        color: toLatestHover.hovered ? Theme.cardHover : Theme.card
+        border.width: 1
+        border.color: Theme.cardBorder
+        Accessible.role: Accessible.Button
+        Accessible.name: backend.text("to_latest")
+        Kirigami.Icon {
+            anchors.centerIn: parent
+            width: 16
+            height: 16
+            isMask: true
+            color: Theme.text
+            source: "go-down-symbolic"
+        }
+        HoverHandler { id: toLatestHover; cursorShape: Qt.PointingHandCursor }
+        TapHandler {
+            gesturePolicy: TapHandler.ReleaseWithinBounds
+            onTapped: list.toEnd()
+        }
+        ToolTip.visible: toLatestHover.hovered
+        ToolTip.delay: 500
+        ToolTip.text: Accessible.name
     }
 
     Component {

@@ -14,7 +14,7 @@ import traceback
 from pathlib import Path
 from types import SimpleNamespace
 
-from PySide6.QtCore import Property, QLocale, QObject, Qt, QTimer, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QFileSystemWatcher, QLocale, QObject, Qt, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
@@ -268,6 +268,14 @@ class Backend(QObject):
         # taskbar once kept its old colours (product owner, 2026-10-23).
         self._appearance_lock = threading.Lock()
         self._pointer_lock = threading.Lock()
+        # Light/dark and the accent changed elsewhere (VeltOS AI's "switch to
+        # light mode", Quick Settings): Settings follows at once, as VeltOS
+        # AI does; it kept its old colours until it was opened again
+        # (product owner, 2026-10-31).
+        self._look_watcher = QFileSystemWatcher(self)
+        self._kdeglobals = str(devices.config_home() / "kdeglobals")
+        self._watch_look()
+        self._look_watcher.fileChanged.connect(lambda _path: QTimer.singleShot(300, self._reload_look))
         self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
                          "loaded": False, "scanning": False, "connecting": "", "failed": ""}
         self._default_location = {"set": False, "label": ""}
@@ -399,20 +407,16 @@ class Backend(QObject):
 
         def work():
             import subprocess
-            for command in bottles.install_commands("--user"):
-                try:
-                    result = subprocess.run(command, stdin=subprocess.DEVNULL, capture_output=True, timeout=3 * 3600)
-                except (OSError, subprocess.SubprocessError):
-                    return False
-                if result.returncode != 0:
-                    return False
-            # The VeltOS bottle comes with the next sign-in's set-up, or now.
+            ok = bottles.install_for_user()
+            # The set-up makes the VeltOS bottle now; after a failed install
+            # (no internet) it installs Bottles as soon as the PC is online
+            # (and the next sign-in tries again).
             try:
                 subprocess.Popen(["veltos-run", "--bottles-setup"], start_new_session=True,
                                  stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except OSError:
                 pass            # the next sign-in prepares the bottle
-            return True
+            return ok
 
         def done(ok):
             self._bottles_installing, self._bottles_failed = False, not ok
@@ -478,6 +482,21 @@ class Backend(QObject):
         self._about = self._storage = self._windows_apps = None
         self._dark = sysinfo.dark_mode()
         self.changed.emit()
+
+    def _watch_look(self):
+        # An editor that replaces the file (kwriteconfig6) drops the watch.
+        if os.path.exists(self._kdeglobals) and self._kdeglobals not in self._look_watcher.files():
+            self._look_watcher.addPath(self._kdeglobals)
+
+    def _reload_look(self):
+        self._watch_look()
+        dark = sysinfo.dark_mode()
+        if dark != self._dark:
+            self._dark = dark
+            self.changed.emit()
+        accent = self.system.personal.accent()
+        if self._personal.get("loaded") and accent != self._personal.get("accent", ""):
+            self._update("_personal", self.personalChanged, {"accent": accent})
 
     # --- actions --------------------------------------------------------------
 
@@ -894,6 +913,7 @@ class Backend(QObject):
         personal = self.system.personal
         self.jobs.submit(lambda: {"wallpapers": personal.wallpapers(),
                                   "wallpaper": personal.current_wallpaper(),
+                                  "lockWallpaper": personal.lock_wallpaper(),
                                   "accent": personal.accent()},
                          self._merge("_personal", self.personalChanged))
 
@@ -904,13 +924,25 @@ class Backend(QObject):
 
     @Slot()
     def browseWallpaper(self):
+        self._browse_picture(self.setWallpaper)
+
+    @Slot(str)
+    def setLockWallpaper(self, path):
+        self._update("_personal", self.personalChanged, {"lockWallpaper": path})
+        self.jobs.submit(lambda: self.system.personal.set_lock_wallpaper(path))
+
+    @Slot()
+    def browseLockWallpaper(self):
+        self._browse_picture(self.setLockWallpaper)
+
+    def _browse_picture(self, apply):
         pictures = Path.home() / "Pictures"
         start = pictures if pictures.is_dir() else Path.home()
         title = strings.text(self.lang, "browse_photos")
 
         def done(path):
             if path:
-                self.setWallpaper(path)
+                apply(path)
         self.jobs.submit(lambda: self.system.personal.pick_image(start, title), done)
 
     @Slot(str)

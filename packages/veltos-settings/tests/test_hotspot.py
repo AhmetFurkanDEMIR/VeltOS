@@ -157,6 +157,79 @@ class HotspotTests(unittest.TestCase):
         self.assertTrue(h.start()["active"])
         self.assertEqual(self.runner.up_on, "wlp3s0")
 
+    def same_card(self, **kwargs):
+        helper = Path(tempfile.mkdtemp()) / "hotspot-interface"
+        helper.write_text("", encoding="utf-8")
+        self.helper = str(helper)
+        self.runner = HotspotRunner(ethernet=False, wifi_client=True, **kwargs)
+        self.config = Path(tempfile.mkdtemp()) / "veltos" / "hotspot.json"
+        return hotspot.Hotspot(self.runner, writer=self.runner.write, resolver=self.runner.resolve, user="ayse",
+                               config=self.config, sleep=lambda _seconds: None, helper=self.helper)
+
+    def test_the_only_wifi_card_shares_its_own_connection_when_it_can(self):
+        # Windows 11 shares a Wi-Fi connection over the same adapter; VeltOS
+        # said this PC could not (product owner, 2026-10-31).
+        h = self.same_card(concurrent=1)
+        state = h.status()
+        self.assertEqual(state["reason"], "")
+        self.assertEqual((state["device"], state["parent"]), (hotspot.VIRTUAL, "wlp2s0"))
+        self.assertEqual(state["disconnects"], "")              # the PC stays on its network
+        self.assertEqual([s["name"] for s in state["sources"]], ["Home Net"])
+        self.assertEqual(state["bands"], ["", "bg"])             # one channel: the network's band
+        state = h.start()
+        self.assertEqual(state["error"], "")
+        self.assertTrue(state["active"])
+        self.assertIn(["pkexec", self.helper, "add", "wlp2s0"], self.runner.commands)
+        self.assertIn(["nmcli", "device", "set", hotspot.VIRTUAL, "autoconnect", "no"], self.runner.commands)
+        settings = self.runner.written[-1]
+        self.assertEqual(settings["connection"]["interface-name"], hotspot.VIRTUAL)
+        self.assertEqual((settings["802-11-wireless"]["band"], settings["802-11-wireless"]["channel"]), ("bg", 6))
+        self.assertEqual(self.runner.up_on, hotspot.VIRTUAL)
+        self.assertEqual([s["name"] for s in state["sources"]], ["Home Net"])
+        # New network info restarts it on the same channel.
+        h.configure("Kitchen", "password1", "")
+        self.assertEqual(self.runner.written[-1]["802-11-wireless"]["channel"], 6)
+        state = h.stop()
+        self.assertIn(["pkexec", self.helper, "remove"], self.runner.commands)
+        self.assertFalse(self.runner.virtual)
+        self.assertFalse(state["active"])
+        self.assertEqual(state["device"], hotspot.VIRTUAL)       # it can start again
+
+    def test_a_card_with_two_channels_hosts_on_2_4_ghz_and_a_failed_start_cleans_up(self):
+        h = self.same_card(concurrent=2, link_freq=5180)
+        self.assertEqual(h.status()["bands"], ["", "bg", "a"])
+        self.runner.fail_up = True
+        self.assertEqual(h.start()["error"], "start-failed")
+        self.assertFalse(self.runner.virtual)                    # the interface went again
+        wireless = self.runner.written[-1]["802-11-wireless"]
+        self.assertEqual(wireless["band"], "bg")
+        self.assertNotIn("channel", wireless)
+
+    def test_cards_that_cannot_do_both_still_say_so(self):
+        self.assertEqual(self.same_card().status()["reason"], "same-adapter")
+        h = self.same_card(concurrent=1)
+        h.helper = "/nonexistent/hotspot-interface"              # an older installation
+        self.assertEqual(h.status()["reason"], "same-adapter")
+
+    def test_interface_combinations_of_real_cards(self):
+        # iw 6.9's "valid interface combinations" of an Intel AX200, of
+        # mac80211_hwsim (dev VM) and of cards that cannot share.
+        intel = ("\tvalid interface combinations:\n\t\t * #{ managed } <= 1, #{ AP, P2P-client, P2P-GO } <= 1, "
+                 "#{ P2P-device } <= 1,\n\t\t   total <= 3, #channels <= 2\n\tHT Capability overrides:\n")
+        hwsim = ("\tvalid interface combinations:\n\t\t * #{ managed } <= 2048, #{ AP, mesh point } <= 2048, "
+                 "#{ P2P-client, P2P-GO } <= 2048, #{ P2P-device } <= 1,\n\t\t   total <= 2048, #channels <= 1, "
+                 "STA/AP BI must match, radar detect widths: { 20 MHz (no HT), 20 MHz }\n\n\tDevice supports TX status socket option.\n")
+        p2p = ("\tvalid interface combinations:\n\t\t * #{ managed } <= 1, #{ P2P-device } <= 1, "
+               "#{ P2P-client, P2P-GO } <= 1,\n\t\t   total <= 3, #channels <= 2\n")
+        shared_group = "\tvalid interface combinations:\n\t\t * #{ managed, AP } <= 1,\n\t\t   total <= 1, #channels <= 1\n"
+        self.assertEqual(hotspot.shared_channels(intel), 2)
+        self.assertEqual(hotspot.shared_channels(hwsim), 1)
+        self.assertEqual(hotspot.shared_channels(p2p), 0)
+        self.assertEqual(hotspot.shared_channels(shared_group), 0)
+        self.assertEqual(hotspot.shared_channels(""), 0)
+        self.assertEqual([hotspot.channel_of(f) for f in (2412, 2437, 2484, 5180, 5745, 0)],
+                         [("bg", 1), ("bg", 6), ("bg", 14), ("a", 36), ("a", 149), ("", 0)])
+
     def test_choosing_the_shared_connection_prefers_its_route_until_the_hotspot_stops(self):
         h = self.make(wifi_client=True, second_card=True)
         state = h.status()

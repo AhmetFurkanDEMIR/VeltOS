@@ -57,12 +57,21 @@ network (`nm-online`), runs `apt-get update` and `apt-get -y full-upgrade`
 (`--force-confold`, a 10 min dpkg lock wait), writes its progress to
 `/run/veltos/first-update.json` (APT::Status-Fd: download 0-50 %,
 installation 50-100 %) and `/var/lib/veltos/first-update-done` at the end
-(also offline or after a failure: VeltOS Update brings the updates later).
+(also after a failure: VeltOS Update brings the updates later). Without a
+cable or Wi-Fi (2026-10-31) it writes "offline" and waits for a network,
+over later starts too: the done file follows only a run with a network.
 Systems that update veltos-store from 1.0 are marked done (postinst).
-When the installer's choice for Windows programs was Bottles, the same
-service then installs Bottles from Flathub (`flatpak install --system`,
-state "bottles"); without internet or after a failure the done file waits
+When the installer's choice for Windows programs was Bottles and no user
+chose Wine in Settings since (`/home/*/.config/veltos/windows-apps.conf`),
+the same service then installs Bottles from Flathub (`flatpak install
+--system`, state "bottles"); after a failed install the done file waits
 and the next start tries again, five starts at most.
+
+Offline, the window says "Let's connect you to a network" (Windows 11's
+words) with "Connect to Wi-Fi" (VeltOS Settings at Wi-Fi; the window steps
+aside and comes back when the PC is online, or when Settings is closed
+without a network) and "Continue without internet" (the update still
+waits for a network in the background).
 
 At sign-in `veltos-store --first-start` (autostart; decides without Qt)
 shows the Windows 11 style full-screen "Hi. We're getting everything ready

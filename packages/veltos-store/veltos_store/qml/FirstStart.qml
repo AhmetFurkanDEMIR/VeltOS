@@ -2,6 +2,8 @@
 // its out-of-box screens: full screen, dark navy with soft colour that
 // drifts slowly, "Hi." and the big line, the moving dots while the update
 // runs, then a check mark and "You're ready to go" before it closes.
+// Without a network: "Let's connect you to a network" with Connect to
+// Wi-Fi (VeltOS Settings) and Continue without internet.
 // `backend` is firststart.FirstStart. Animations only move and fade
 // (transform/opacity) and stop with the window.
 import QtQuick
@@ -16,6 +18,7 @@ Window {
     title: backend.texts.fs_title
 
     readonly property bool ready: backend.ready
+    readonly property bool offline: backend.offline
     readonly property bool animate: window.visible
     readonly property real s: Math.max(0.75, Math.min(width / 1920, height / 1080)) * backend.textScale
 
@@ -83,7 +86,8 @@ Window {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            text: window.ready ? backend.texts.fs_ready : backend.texts.fs_title
+            text: window.ready ? backend.texts.fs_ready
+                  : window.offline ? backend.texts.fs_offline_title : backend.texts.fs_title
             color: "#FFFFFF"
             font.pixelSize: 46 * window.s
             font.weight: Font.Normal
@@ -99,7 +103,10 @@ Window {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            text: window.ready ? backend.texts["fs_" + backend.state + "_sub"] : backend.texts.fs_sub
+            text: window.ready ? backend.texts["fs_" + backend.state + "_sub"]
+                  : window.offline ? (backend.bottles ? backend.texts.fs_offline_bottles_sub
+                                                      : backend.texts.fs_offline_sub)
+                  : backend.texts.fs_sub
             color: "#C9D3F2"
             font.pixelSize: 20 * window.s
         }
@@ -110,7 +117,7 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
             width: 64 * window.s
             height: width
-            visible: !window.ready
+            visible: !window.ready && !window.offline
             Repeater {
                 model: 5
                 delegate: Item {
@@ -167,9 +174,66 @@ Window {
             objectName: "detail"
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: window.ready ? "" : backend.detail
+            text: window.ready || window.offline ? "" : backend.detail
+            visible: text !== ""
             color: "#9FB0E0"
             font.pixelSize: 17 * window.s
+        }
+
+        // No network: connect (VeltOS Settings at Wi-Fi) or go on without.
+        Row {
+            objectName: "offlineButtons"
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: window.offline
+            spacing: 14 * window.s
+            Repeater {
+                model: [{ key: "fs_connect", primary: true }, { key: "fs_skip", primary: false }]
+                delegate: Rectangle {
+                    id: choice
+                    required property var modelData
+                    width: label.implicitWidth + 48 * window.s
+                    height: 46 * window.s
+                    radius: height / 2
+                    color: modelData.primary ? (hover.hovered ? "#E6ECFF" : "#FFFFFF")
+                                             : (hover.hovered ? "#26FFFFFF" : "transparent")
+                    border.width: modelData.primary ? 0 : 1
+                    border.color: "#99FFFFFF"
+                    Accessible.role: Accessible.Button
+                    Accessible.name: label.text
+                    Text {
+                        id: label
+                        anchors.centerIn: parent
+                        text: backend.texts[choice.modelData.key]
+                        color: choice.modelData.primary ? "#0E1846" : "#FFFFFF"
+                        font.pixelSize: 17 * window.s
+                        font.weight: Font.DemiBold
+                    }
+                    HoverHandler { id: hover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        gesturePolicy: TapHandler.ReleaseWithinBounds
+                        onTapped: choice.modelData.primary ? backend.connectNetwork() : backend.close()
+                    }
+                }
+            }
+        }
+        Text {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.Wrap
+            visible: window.offline
+            text: backend.texts.fs_skip_note
+            color: "#9FB0E0"
+            font.pixelSize: 15 * window.s
+        }
+    }
+
+    Connections {
+        target: backend
+        function onHideWindow() { window.hide(); }
+        function onShowWindow() {
+            window.showFullScreen();
+            window.raise();
+            window.requestActivate();
         }
     }
 

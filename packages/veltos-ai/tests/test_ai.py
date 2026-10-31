@@ -408,6 +408,93 @@ class BackendTests(unittest.TestCase):
         backend.send("x")
         self.assertEqual(backend.messages[-1]["text"], strings.text("en", "refused"))
 
+    def test_conversation_kept_between_starts(self):
+        # A closed pane's process ends after ten idle minutes; the next start
+        # knew nothing of the conversation (product owner, 2026-10-31).
+        from veltos_ai import app, conversation
+        kept = Path(tempfile.mkdtemp()) / "veltos-ai" / "conversation.json"
+        backend = self.backend("claude", fake.claude_text("Hi Ayşe."))
+        backend._conversation_file = kept
+        backend.send("My name is Ayşe.")
+        backend.save_conversation()
+        self.assertEqual(stat.S_IMODE(kept.stat().st_mode), 0o600)
+        service = fake.FakeService(fake.claude_text("Your name is Ayşe."))
+        again = app.Backend(lang="en", opener=service, settings_file=self.file, threaded=False,
+                            conversation_file=kept)
+        self.assertEqual([m["text"] for m in again.messages], ["My name is Ayşe.", "Hi Ayşe."])
+        self.assertEqual(again.chat.count, 2)
+        again.send("What is my name?")
+        sent = service.requests[0]["body"]["messages"]
+        self.assertEqual([m["role"] for m in sent], ["user", "assistant", "user"])
+        self.assertEqual(sent[0]["content"], "My name is Ayşe.")
+        again.newChat()
+        self.assertFalse(kept.exists())
+        # An action still waiting when the panel ended was not run.
+        kept.write_text(json.dumps({"messages": [
+            {"id": 1, "kind": "user", "text": "Turn on Wi-Fi"},
+            {"id": 2, "kind": "action", "title": "Turn on Wi-Fi", "state": "ask"},
+            {"id": 3, "kind": "assistant", "text": "Turn", "state": "streaming"},
+            {"id": "x", "kind": "user"}], "history": [], "provider": "claude"}), encoding="utf-8")
+        state = conversation.load(kept)
+        self.assertEqual([(m["id"], m["state"]) for m in state["messages"]], [(1, ""), (2, "denied"), (3, "stopped")])
+        kept.write_text("not json", encoding="utf-8")
+        self.assertEqual(conversation.load(kept), {"messages": [], "history": [], "provider": ""})
+
+    def test_another_service_hears_the_conversation(self):
+        # A conversation kept from another service (chosen in VeltOS Settings
+        # while the panel was closed): the history was emptied and the new
+        # service knew nothing of what the panel still showed.
+        from veltos_ai import app, conversation
+        kept = Path(tempfile.mkdtemp()) / "conversation.json"
+        conversation.save(kept, [{"id": 1, "kind": "user", "text": "My name is Ayşe."},
+                                 {"id": 2, "kind": "assistant", "text": "Hi Ayşe.", "state": ""},
+                                 {"id": 3, "kind": "action", "title": "Turn on Wi-Fi", "state": "done"}],
+                          [{"role": "user", "content": "My name is Ayşe."}], "claude")
+        self.backend("gemini")
+        service = fake.FakeService(fake.gemini_text("Ayşe."))
+        backend = app.Backend(lang="en", opener=service, settings_file=self.file, threaded=False,
+                              conversation_file=kept)
+        backend.send("What is my name?")
+        contents = service.requests[0]["body"]["contents"]
+        self.assertEqual(contents, [{"role": "user", "parts": [{"text": "My name is Ayşe."}]},
+                                    {"role": "model", "parts": [{"text": "Hi Ayşe."}]},
+                                    {"role": "user", "parts": [{"text": "What is my name?"}]}])
+
+    def test_stopped_answer_stays_in_the_history(self):
+        backend = self.backend("claude")
+        backend._adapter = providers.adapter("claude", {"key": "k"})
+        backend._current = backend._add("assistant", "", state="streaming")
+        backend._set_busy(True)
+        backend._on_event(backend._generation, "text", "The first part")
+        backend._cancel.set()
+        backend._on_event(backend._generation, "finished", None)
+        self.assertEqual(backend.messages[-1]["state"], "stopped")
+        self.assertEqual(backend.history[-1], {"role": "assistant", "content": "The first part"})
+
+    def test_chat_rows_change_in_place(self):
+        # The view's list was made again for every streamed piece and jumped.
+        from veltos_ai import app
+        model = app.ChatModel()
+        events = []
+        model.rowsInserted.connect(lambda _parent, first, _last: events.append(("insert", first)))
+        model.rowsRemoved.connect(lambda _parent, first, _last: events.append(("remove", first)))
+        model.dataChanged.connect(lambda first, _last, _roles=None: events.append(("change", first.row())))
+        model.modelReset.connect(lambda: events.append(("reset",)))
+        messages = [{"id": 1, "kind": "user", "text": "hi"}, {"id": 2, "kind": "assistant", "state": "streaming"}]
+        model.sync(messages)
+        messages[1]["text"] = "Hel"
+        model.sync(messages)
+        model.sync(messages)                 # nothing changed: no signal
+        messages.pop(1)
+        model.sync(messages)
+        self.assertEqual(events, [("insert", 0), ("insert", 1), ("change", 1), ("remove", 1)])
+        self.assertEqual(model.count, 1)
+        model.sync([{"id": 5, "kind": "user", "text": "b"}, {"id": 1, "kind": "user", "text": "hi"}])
+        self.assertEqual(events[-1], ("insert", 0))
+        model.sync([{"id": 1, "kind": "user", "text": "hi"}, {"id": 5, "kind": "user", "text": "b"}])
+        self.assertEqual(events[-1], ("reset",))           # never happens: shown anew
+        self.assertEqual([r["mid"] for r in model.rows], [1, 5])
+
     def test_follows_the_theme(self):
         # The pane can switch the theme itself; its colours follow at once.
         home = Path(tempfile.mkdtemp())

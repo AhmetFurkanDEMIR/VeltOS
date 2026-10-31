@@ -72,8 +72,10 @@ TEXTS = {
     "windows_runner_bottles_option": ("Bottles (from Flathub)", "Bottles (Flathub'dan)"),
     "bottles_installing": ("Installing Bottles from Flathub… This needs the internet and may take a while.",
                            "Bottles Flathub'dan yükleniyor… İnternet gerekir ve biraz sürebilir."),
-    "bottles_failed": ("Bottles couldn't be installed. Check the internet connection and choose Bottles again.",
-                       "Bottles yüklenemedi. İnternet bağlantısını denetleyip Bottles'ı yeniden seçin."),
+    "bottles_failed": ("Bottles couldn't be installed now. VeltOS installs it as soon as this PC is connected to "
+                       "the internet; until then VeltOS opens Windows programs itself.",
+                       "Bottles şu anda yüklenemedi. Bu bilgisayar internete bağlanır bağlanmaz VeltOS onu yükler; "
+                       "o zamana kadar Windows programlarını VeltOS açar."),
     "bottles_missing": ("Bottles isn't installed yet: until it is, VeltOS opens Windows programs itself.",
                         "Bottles henüz yüklü değil: yüklenene kadar Windows programlarını VeltOS açar."),
     "windows_apps_intro": ("Programs you installed by opening a Windows .exe or .msi file. "
@@ -478,9 +480,10 @@ TEXTS = {
                              "Masaüstünü göstermek için görev çubuğunun en uç köşesini seçin"),
     "auto_lock": ("Lock automatically", "Otomatik olarak kilitle"),
     "lock_on_resume": ("Ask for my password when my PC wakes up", "Bilgisayarım uyandığında parolamı sor"),
-    "lock_picture": ("Lock screen picture", "Kilit ekranı resmi"),
-    "lock_picture_desc": ("The lock screen shows your desktop background",
-                          "Kilit ekranı masaüstü arka planınızı gösterir"),
+    "personalize_lock": ("Personalize your lock screen", "Kilit ekranınızı kişiselleştirin"),
+    # Qt date format of the lock screen preview, as the lock screen writes it.
+    "lock_date_format": ("dddd, MMMM d", "d MMMM dddd"),
+    "lock_section": ("Locking", "Kilitleme"),
     # Default apps
     "default_apps_desc": ("Choose the apps that open files and links",
                           "Dosyaları ve bağlantıları açan uygulamaları seçin"),

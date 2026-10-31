@@ -71,6 +71,28 @@ class LocalToolTests(unittest.TestCase):
                 {"role": "tool", "content": "x"}, {"role": "user", "content": "b"}]
         self.assertEqual(providers.trimmed(long, 2), [{"role": "user", "content": "b"}])
 
+    def test_history_fits_the_local_model(self):
+        # A fixed 24 messages were mostly action results after a few actions
+        # and the model lost the thread (2026-10-31): the conversation is cut
+        # by size, old action results shortened first.
+        result = {"role": "tool", "tool_call_id": "c0", "content": "x" * 3000}
+        call = {"role": "assistant", "content": "", "tool_calls": [{"id": "c0", "type": "function"}]}
+        history = [{"role": "user", "content": "first"}, call, result, {"role": "assistant", "content": "done"}]
+        for n in range(40):
+            history += [{"role": "user", "content": f"question {n}"}, {"role": "assistant", "content": "answer " * 20}]
+        history.append({"role": "user", "content": "now"})
+        sent = providers.trimmed(history)
+        self.assertEqual(sent[-1], {"role": "user", "content": "now"})
+        self.assertEqual(sent[0]["role"], "user")
+        self.assertGreater(len(sent), 24)
+        self.assertLessEqual(sum(providers.size(m) for m in sent), providers.HISTORY_CHARS)
+        short = providers.trimmed([{"role": "user", "content": "a"}, call, result, {"role": "user", "content": "b"}])
+        self.assertEqual(short[2]["content"], "x" * providers.OLD_RESULT_CHARS + " …")
+        self.assertEqual(len(result["content"]), 3000)              # the history itself is not changed
+        # The current exchange (the last user message on) is sent whole.
+        current = providers.trimmed([{"role": "user", "content": "q"}, call, result])
+        self.assertEqual(current[-1]["content"], "x" * 3000)
+
     def test_default_model(self):
         self.assertEqual(providers.PROVIDERS["local"]["model"], local.DEFAULT_MODEL["file"])
 

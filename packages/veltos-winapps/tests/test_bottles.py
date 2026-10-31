@@ -67,10 +67,14 @@ class BottlesTests(unittest.TestCase):
         # Not chosen: nothing to do.
         self.assertTrue(bottles.setup(runner=lambda *a, **k: ran.append(a)))
         bottles.set_preference("bottles")
+        self.system.write_text("[Windows programs]\nrunner=bottles\n")
         with mock.patch.object(bottles.shutil, "which", return_value="/usr/bin/flatpak"):
-            # Bottles not there and the first start is over: give up quietly.
+            # Bottles not there, the first start is over and no network: give
+            # up for now (the next sign-in tries again).
             done.write_text("done")
-            self.assertFalse(bottles.setup(runner=lambda *a, **k: ran.append(a), first_update_done=done))
+            self.assertFalse(bottles.setup(runner=lambda *a, **k: ran.append(a), first_update_done=done,
+                                           deadline=0, connected=lambda: False))
+            self.assertEqual(ran, [])
             done.unlink()
             # The first start installs it while the set-up waits.
             desktop = bottles.DESKTOPS[0]
@@ -91,6 +95,38 @@ class BottlesTests(unittest.TestCase):
             self.assertIn("--environment", ran[-1])
             # Once made, it is not made again.
             self.assertTrue(bottles.setup(runner=lambda *a, **k: self.fail("ran again")))
+
+    def test_chosen_in_settings_without_internet(self):
+        # Bottles chosen in Settings while offline: Settings' install failed
+        # and nothing installed it later (2026-10-31). The set-up installs
+        # this user's copy once the PC is online; not chosen: never.
+        done = self.home / "first-update-done"
+        done.write_text("done")
+        ran, network = [], [False, False, True]
+
+        def runner(command, **kwargs):
+            ran.append(command)
+            if command[:2] == ["flatpak", "install"]:
+                user = self.home / f".local/share/flatpak/exports/share/applications/{bottles.APP_ID}.desktop"
+                user.parent.mkdir(parents=True)
+                user.write_text("[Desktop Entry]\n")
+            if "new" in command:
+                bottles.bottle_dir().mkdir(parents=True)
+            return subprocess.CompletedProcess(command, 0, "", "")
+        with mock.patch.object(bottles.shutil, "which", return_value="/usr/bin/flatpak"):
+            self.assertTrue(bottles.setup(runner=runner, first_update_done=done))      # Wine: nothing
+            self.assertEqual(ran, [])
+            bottles.set_preference("bottles")
+            waits = []
+            self.assertTrue(bottles.setup(runner=runner, wait=waits.append, first_update_done=done,
+                                          connected=lambda: network.pop(0)))
+        self.assertEqual(waits, [30, 30])                  # offline twice, then online
+        self.assertEqual([c[:3] for c in ran[:2]], [["flatpak", "remote-add", "--user"],
+                                                    ["flatpak", "install", "--user"]])
+        self.assertEqual(ran[-1], bottles.setup_command())
+        # Wine chosen again while it waited: nothing installed.
+        bottles.set_preference("wine")
+        self.assertTrue(bottles.setup(runner=lambda *a, **k: self.fail("installed")))
 
 
 if __name__ == "__main__":

@@ -83,8 +83,20 @@ TEXTS = {
     "fs_bottles": ("Installing Bottles for Windows programs…", "Windows programları için Bottles yükleniyor…"),
     "fs_ready": ("You're ready to go", "Başlayabiliriz"),
     "fs_done_sub": ("VeltOS is up to date.", "VeltOS güncel."),
-    "fs_offline_sub": ("There was no internet connection. VeltOS Update brings the updates later.",
-                       "İnternet bağlantısı yoktu. Güncelleştirmeler daha sonra VeltOS Güncelleme ile gelir."),
+    # No cable and no Wi-Fi at the first start (Windows 11's "Let's connect you to a network")
+    "fs_offline_title": ("Let's connect you to a network", "Sizi bir ağa bağlayalım"),
+    "fs_offline_sub": ("VeltOS needs the internet to install the newest updates. Plug in a network cable or "
+                       "connect to Wi-Fi.",
+                       "VeltOS'un en yeni güncelleştirmeleri yükleyebilmesi için internet gerekiyor. Bir ağ "
+                       "kablosu takın veya Wi-Fi'a bağlanın."),
+    "fs_offline_bottles_sub": ("VeltOS needs the internet to install the newest updates and Bottles for Windows "
+                               "programs. Plug in a network cable or connect to Wi-Fi.",
+                               "VeltOS'un en yeni güncelleştirmeleri ve Windows programları için Bottles'ı "
+                               "yükleyebilmesi için internet gerekiyor. Bir ağ kablosu takın veya Wi-Fi'a bağlanın."),
+    "fs_connect": ("Connect to Wi-Fi", "Wi-Fi'a bağlan"),
+    "fs_skip": ("Continue without internet", "İnternet olmadan devam et"),
+    "fs_skip_note": ("The updates install by themselves as soon as this PC is connected.",
+                     "Bu bilgisayar bağlanır bağlanmaz güncelleştirmeler kendiliğinden yüklenir."),
     "fs_failed_sub": ("Some updates couldn't be installed. VeltOS Update will try again.",
                       "Bazı güncelleştirmeler yüklenemedi. VeltOS Güncelleme yeniden deneyecek."),
     "fs_hide": ("Continue in the background", "Arka planda devam et"),

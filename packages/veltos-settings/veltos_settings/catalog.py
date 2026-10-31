@@ -111,8 +111,8 @@ PAGES = [
          "keywords": "theme themes wallpaper colour look tema temalar duvar kağıdı görünüm"},
         {"id": "lockscreen", "icon": "system-lock-screen-symbolic", "page": "lockscreen",
          "title": ("Lock screen", "Kilit ekranı"),
-         "desc": ("When to lock, password on wake", "Ne zaman kilitleneceği, uyanınca parola"),
-         "keywords": "lock password screensaver kilit parola"},
+         "desc": ("Picture, when to lock, password on wake", "Resim, ne zaman kilitleneceği, uyanınca parola"),
+         "keywords": "lock password screensaver picture wallpaper background kilit parola resim duvar kağıdı arka plan"},
         # Windows 11 has Dynamic Lighting here; VeltOS Keyboard Lighting
         # (veltos-lighting) is that for laptop keyboards (2026-10-27).
         {"id": "keyboardlighting", "icon": "input-keyboard-symbolic", "action": "lighting",

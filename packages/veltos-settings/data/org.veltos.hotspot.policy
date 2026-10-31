@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!-- veltos-settings: the user of the active session turns on the mobile
+     hotspot over the Wi-Fi adapter that is connected to a network, without
+     a password, as on Windows. The helper only adds or removes the
+     hotspot's own interface (veltos-ap) on a Wi-Fi card. -->
+<policyconfig>
+  <vendor>VeltOS</vendor>
+  <action id="org.veltos.hotspot.interface">
+    <description>Share a Wi-Fi connection with a mobile hotspot</description>
+    <description xml:lang="tr">Wi-Fi bağlantısını mobil erişim noktasıyla paylaş</description>
+    <message>Authentication is required to share the Wi-Fi connection</message>
+    <message xml:lang="tr">Wi-Fi bağlantısını paylaşmak için kimlik doğrulaması gerekiyor</message>
+    <icon_name>network-wireless-hotspot</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/veltos/hotspot-interface</annotate>
+  </action>
+</policyconfig>

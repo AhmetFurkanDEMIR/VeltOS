@@ -30,6 +30,10 @@ QtObject {
     readonly property color brandB: "#8A4FFF"
 
     readonly property int radius: 8
+    // The conversation's reading width in a wide window (and the message
+    // box's); the pane is narrower and uses its own width.
+    readonly property int chatWidth: Math.round(760 * Math.min(1.25, textScale))
+    readonly property int greetingWidth: Math.round(520 * Math.min(1.25, textScale))
     readonly property int bubbleRadius: 14
     readonly property int titleSize: Math.round(22 * textScale)
     readonly property int headingSize: Math.round(16 * textScale)

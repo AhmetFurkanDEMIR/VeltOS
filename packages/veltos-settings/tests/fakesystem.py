@@ -124,13 +124,19 @@ class HotspotRunner:
     """NetworkManager, iw and ip for the mobile hotspot, in the formats of
     nmcli 1.52, iw 6.9 and iproute2 6.15 (Debian 13), as seen in the dev VM
     with a mac80211_hwsim radio (2026-10-26). `wifi_client` puts the Wi-Fi
-    card on a network as well; `ethernet=False` leaves only Wi-Fi."""
+    card on a network as well; `ethernet=False` leaves only Wi-Fi.
+    `concurrent` is how many channels the card may use while it is on a
+    network and hosts one (0: it cannot), `link_freq` its network's
+    frequency; the helper adds and removes the virtual interface."""
 
-    def __init__(self, ethernet=True, wifi_client=False, ap=True, second_card=False):
+    def __init__(self, ethernet=True, wifi_client=False, ap=True, second_card=False, concurrent=0, link_freq=2437):
         self.ethernet = ethernet
         self.wifi_client = wifi_client
         self.ap = ap
         self.second_card = second_card
+        self.concurrent = concurrent
+        self.link_freq = link_freq
+        self.virtual = False         # the helper's veltos-ap interface exists
         self.profile = None          # {"ssid", "password", "band", "device"}
         self.up_on = ""              # device the hotspot runs on
         self.fail_up = False
@@ -146,7 +152,8 @@ class HotspotRunner:
                         "password": settings["802-11-wireless-security"]["psk"],
                         "band": settings["802-11-wireless"].get("band", ""),
                         "device": settings["connection"]["interface-name"],
-                        "uuid": settings["connection"]["uuid"]}
+                        "uuid": settings["connection"]["uuid"],
+                        "channel": settings["802-11-wireless"].get("channel", 0)}
         return True
 
     def resolve(self, ip, server):
@@ -168,6 +175,9 @@ class HotspotRunner:
             if self.second_card:
                 lines.append("wlp3s0:wifi:connected:VeltOS Hotspot" if self.up_on == "wlp3s0"
                              else "wlp3s0:wifi:disconnected:")
+            if self.virtual:
+                lines.append("veltos-ap:wifi:connected:VeltOS Hotspot" if self.up_on == "veltos-ap"
+                             else "veltos-ap:wifi:disconnected:")
             lines += ["lo:loopback:connected (externally):lo", "p2p-dev-wlp2s0:wifi-p2p:disconnected:"]
             return 0, "\n".join(lines) + "\n"
         if c[:4] == ["nmcli", "-t", "-f", "WIFI-PROPERTIES"]:
@@ -198,9 +208,22 @@ class HotspotRunner:
                 return 10, ""
             p = self.profile
             return 0, f"{p['ssid'].replace(':', chr(92) + ':')}\n{p['band']}\n{p['password']}\n{p['device']}\n"
+        if c[:5] == ["nmcli", "-t", "-f", "DEVICE", "device"]:
+            return 0, "enp1s0\nwlp2s0\n" + ("veltos-ap\n" if self.virtual else "") + "lo\n"
+        if c[0] == "pkexec" and c[1].endswith("hotspot-interface"):
+            self.virtual = c[2] == "add"
+            return 0, ""
+        if c[:5] == ["ip", "-o", "link", "show", "dev"]:
+            return (0, f"9: {c[5]}: <BROADCAST,MULTICAST> mtu 1500\n") if self.virtual else (1, "")
+        if c[0].endswith("iw") and c[1] == "dev" and c[3:] == ["link"]:
+            if not self.wifi_client or c[2] != "wlp2s0":
+                return 0, "Not connected.\n"
+            return 0, f"Connected to 02:00:00:00:01:00 (on {c[2]})\n\tSSID: Home Net\n\tfreq: {self.link_freq}\n"
         if c[:4] == ["nmcli", "--wait", "60", "connection"] and c[4] == "up":
             if self.fail_up or not self.profile:
                 return 4, ""
+            if c[-1] == "veltos-ap" and not self.virtual:
+                return 10, ""
             self.up_on = c[-1]
             return 0, ""
         if c[:3] == ["nmcli", "connection", "down"]:
@@ -218,10 +241,14 @@ class HotspotRunner:
             return 0, f"Interface {c[2]}\n\tifindex 3\n\twiphy {1 if c[2] == 'wlp3s0' else 0}\n\ttype managed\n"
         if c[0].endswith("iw") and c[1] == "phy" and c[3:] == ["info"]:
             flag = " (no IR)" if self.no_ir_5ghz else ""
+            combos = ("\tvalid interface combinations:\n\t\t * #{ managed } <= 1, #{ AP, P2P-client, P2P-GO } <= 1, "
+                      f"#{{ P2P-device }} <= 1,\n\t\t   total <= 3, #channels <= {self.concurrent}\n"
+                      if self.concurrent else "")
             return 0, ("Wiphy " + c[2] + "\n\tBand 1:\n\t\tFrequencies:\n\t\t\t* 2412.0 MHz [1] (20.0 dBm)\n"
                        "\t\t\t* 2484.0 MHz [14] (20.0 dBm) (no IR)\n\tBand 2:\n\t\tFrequencies:\n"
                        f"\t\t\t* 5180.0 MHz [36] (20.0 dBm){flag}\n"
-                       "\t\t\t* 5260.0 MHz [52] (20.0 dBm) (no IR, radar detection)\n")
+                       "\t\t\t* 5260.0 MHz [52] (20.0 dBm) (no IR, radar detection)\n" + combos
+                       + "\tHT Capability overrides:\n\t\t * MCS: ff ff ff ff ff ff ff ff ff ff\n")
         if c[0].endswith("iw") and c[3:] == ["station", "dump"]:
             return 0, "".join(f"Station {mac} (on {c[2]})\n\tinactive time:\t12 ms\n" for mac, _, _ in self.stations)
         if c[:5] == ["ip", "-4", "-o", "addr", "show"]:

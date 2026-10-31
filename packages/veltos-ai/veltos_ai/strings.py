@@ -16,6 +16,7 @@ TEXTS = {
     "send": ("Send", "Gönder"),
     "stop": ("Stop responding", "Yanıtlamayı durdur"),
     "copy": ("Copy", "Kopyala"),
+    "to_latest": ("Go to the newest message", "En yeni iletiye git"),
     "copied": ("Copied", "Kopyalandı"),
     "thinking": ("Working on it…", "Üzerinde çalışıyorum…"),
     "suggest_dark": ("Switch to dark mode", "Koyu moda geç"),

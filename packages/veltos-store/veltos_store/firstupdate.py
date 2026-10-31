@@ -3,21 +3,28 @@ owner, 2026-10-27: "after the first start run apt-get update and upgrade in
 the background, with a Windows 11 style 'getting everything ready' window;
 only on the first start").
 
-veltos-first-update.service runs this as root once (it creates DONE at the
-end, also when there was no internet: VeltOS Update brings the updates
-later) and never in the live system. It waits for the network itself
-(nm-online) instead of ordering the service after network-online.target,
-so the sign-in screen is not held up. Progress goes to STATUS as JSON for
-the window (firststart.py):
+veltos-first-update.service runs this as root until it has run once with
+a network (it creates DONE at the end) and never in the live system. It
+waits for the network itself (nm-online) instead of ordering the service
+after network-online.target, so the sign-in screen is not held up. Progress
+goes to STATUS as JSON for the window (firststart.py):
 
-    {"state": "network" | "lists" | "download" | "install" | "bottles" | "done" | "offline" | "failed",
-     "percent": 0-100, "packages": N}
+    {"state": "network" | "offline" | "lists" | "download" | "install" | "bottles" | "done" | "failed",
+     "percent": 0-100, "packages": N, "bottles": true|false}
+
+Without a cable or Wi-Fi ("offline", product owner 2026-10-31: "how will
+the installations happen then?") the window asks to connect to a network
+or to go on without one, and the update keeps waiting for a network in the
+background, over later starts too: the done file is written only after a
+run with a network. It was written at once before, and a PC first started
+offline never got its updates or Bottles.
 
 When the installer's choice for Windows programs was Bottles
-(/etc/veltos/windows-apps.conf, runner=bottles), Bottles is installed from
-Flathub after the updates (state "bottles"; the same commands as
-veltos-winapps' bottles.py). Without internet or after a failure the done
-file waits, so the next start tries again, up to BOTTLES_ATTEMPTS times.
+(/etc/veltos/windows-apps.conf, runner=bottles) and no user changed it to
+Wine in Settings since, Bottles is installed from Flathub after the updates
+(state "bottles"; the same commands as veltos-winapps' bottles.py). After a
+failed installation the done file waits, so the next start tries again, up
+to BOTTLES_ATTEMPTS times.
 
 apt's own progress comes from APT::Status-Fd ("dlstatus:" and "pmstatus:"
 lines); the download is the first half of the bar, the installation the
@@ -36,6 +43,8 @@ STATUS = Path("/run/veltos/first-update.json")
 DONE = Path("/var/lib/veltos/first-update-done")
 LOG = Path("/var/log/veltos-first-update.log")
 WINDOWS_CONF = Path("/etc/veltos/windows-apps.conf")
+HOMES = Path("/home")
+USER_CONF = ".config/veltos/windows-apps.conf"      # Settings' choice, per user
 BOTTLES_ATTEMPTS_FILE = Path("/var/lib/veltos/bottles-attempts")
 BOTTLES_ATTEMPTS = 5
 BOTTLES_DESKTOP = Path("/var/lib/flatpak/exports/share/applications/com.usebottles.bottles.desktop")
@@ -84,7 +93,7 @@ def overall(phase, percent):
     return percent / 2 if phase == "download" else 50 + percent / 2
 
 
-def online(runner=subprocess.run, timeout=120):
+def online(runner=subprocess.run, timeout=60):
     """Waits until NetworkManager says the PC is online (or gives up)."""
     try:
         return runner(["nm-online", "-q", "-t", str(timeout)], timeout=timeout + 10).returncode == 0
@@ -118,12 +127,29 @@ def upgradable(runner=subprocess.run):
     return len(re.findall(r"^Inst ", out, re.M))
 
 
-def wants_bottles(conf=WINDOWS_CONF):
+def runner_of(path):
+    """"wine", "bottles" or "" of a windows-apps.conf."""
     try:
-        text = Path(conf).read_text(encoding="utf-8")
+        text = Path(path).read_text(encoding="utf-8")
     except OSError:
+        return ""
+    for line in text.splitlines():
+        key, _, value = line.replace(" ", "").partition("=")
+        if key == "runner" and value in ("wine", "bottles"):
+            return value
+    return ""
+
+
+def wants_bottles(conf=WINDOWS_CONF, homes=HOMES):
+    """The installer chose Bottles and no user chose Wine in Settings since."""
+    if runner_of(conf) != "bottles":
         return False
-    return any(line.strip().replace(" ", "") == "runner=bottles" for line in text.splitlines())
+    try:
+        users = [runner_of(home / USER_CONF) for home in Path(homes).iterdir()]
+    except OSError:
+        users = []
+    users = [r for r in users if r]
+    return not users or "bottles" in users
 
 
 def install_bottles(runner=subprocess.run, log=None):
@@ -142,9 +168,9 @@ def install_bottles(runner=subprocess.run, log=None):
     return True
 
 
-def bottles_pending(attempts_file=BOTTLES_ATTEMPTS_FILE, conf=WINDOWS_CONF, desktop=BOTTLES_DESKTOP):
+def bottles_pending(attempts_file=BOTTLES_ATTEMPTS_FILE, conf=WINDOWS_CONF, desktop=BOTTLES_DESKTOP, homes=HOMES):
     """Bottles chosen, not installed and not given up yet: the done file waits."""
-    if not wants_bottles(conf) or Path(desktop).exists():
+    if not wants_bottles(conf, homes) or Path(desktop).exists():
         return False
     try:
         attempts = int(Path(attempts_file).read_text().strip() or 0)
@@ -166,19 +192,19 @@ def count_attempt(attempts_file=BOTTLES_ATTEMPTS_FILE):
 
 
 def main(status=STATUS, done=DONE, log_path=LOG, runner=subprocess.run, popen=subprocess.Popen, wait=online,
-         conf=WINDOWS_CONF, attempts_file=BOTTLES_ATTEMPTS_FILE, bottles_desktop=BOTTLES_DESKTOP):
+         conf=WINDOWS_CONF, attempts_file=BOTTLES_ATTEMPTS_FILE, bottles_desktop=BOTTLES_DESKTOP, homes=HOMES):
     try:
         log = open(log_path, "a", encoding="utf-8")
     except OSError:
         log = None
 
     def finish(state, code):
-        if state == "done" and wants_bottles(conf) and not Path(bottles_desktop).exists():
+        if state == "done" and wants_bottles(conf, homes) and not Path(bottles_desktop).exists():
             write_status("bottles", 0, status)
             if not install_bottles(runner, log):
                 count_attempt(attempts_file)
         write_status(state, 100 if state == "done" else 0, status)
-        if bottles_pending(attempts_file, conf, bottles_desktop):
+        if bottles_pending(attempts_file, conf, bottles_desktop, homes):
             if log:
                 log.write("== Bottles not installed yet: the next start tries again\n")
         else:
@@ -194,9 +220,14 @@ def main(status=STATUS, done=DONE, log_path=LOG, runner=subprocess.run, popen=su
 
     write_status("network", 0, status)
     if not wait(runner):
-        if wants_bottles(conf):
-            count_attempt(attempts_file)
-        return finish("offline", 0)
+        # No cable and no Wi-Fi: the window offers to connect; the update
+        # waits for a network (this start or a later one: no done file).
+        write_status("offline", 0, status, bottles=wants_bottles(conf, homes))
+        if log:
+            log.write("== offline: waiting for a network\n")
+            log.flush()
+        while not wait(runner):
+            pass
     write_status("lists", 0, status)
     if run_apt(["update"], lambda line: None, popen, log) != 0:
         return finish("failed", 1)

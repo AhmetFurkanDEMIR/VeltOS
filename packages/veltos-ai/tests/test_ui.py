@@ -129,6 +129,36 @@ class PaneTests(unittest.TestCase):
         self.settle()
         self.assertEqual(self.problems(), [])
 
+    def test_wide_window_and_following_the_answer(self):
+        # Maximised, the answers ran across the whole screen, and the view
+        # jumped while an answer came (product owner, 2026-10-31).
+        from PySide6.QtCore import QMetaObject
+        long_text = "\n\n".join(f"Paragraph {n} of a long answer." for n in range(60))
+        self.load("claude", fake.claude_text(long_text), qml="AppWindow.qml")
+        self.window.setProperty("width", 1800)
+        self.window.setProperty("height", 700)
+        self.backend.send("Write a lot")
+        self.settle()
+        view = self.find("messageView")
+        column = self.find("messages").property("parent")
+        width = column.property("width")
+        self.assertLess(width, 1000)
+        self.assertAlmostEqual(column.property("x"), (view.property("width") - width) / 2, delta=1)
+        composer = self.find("composer")
+        self.assertLess(composer.property("width"), 1000)
+        self.assertGreater(view.property("contentY"), 0)
+        self.assertTrue(view.property("atEnd"))
+        self.assertFalse(self.find("toLatest").property("visible"))
+        # Scrolled up to read: the view stays, the button leads back down.
+        view.setProperty("contentY", 0)
+        self.settle()
+        self.assertFalse(view.property("follow"))
+        self.assertTrue(self.find("toLatest").property("visible"))
+        QMetaObject.invokeMethod(view, "toEnd")
+        self.settle()
+        self.assertTrue(view.property("atEnd"))
+        self.assertEqual(self.problems(), [])
+
     def test_local_model_settings_and_download_screen(self):
         self.load()
         self.assertTrue(self.find("localModels").property("visible"))      # local is the first choice

@@ -80,8 +80,10 @@ verify hook checks both); only debuggers lose Wine's symbols, and
   records the choice (`/etc/veltos/windows-apps.conf`, the user's
   `~/.config/veltos/windows-apps.conf` wins). Bottles is not in Debian 13;
   when chosen it comes from Flathub (the owner's exception, architecture
-  2.53). At sign-in `veltos-run --bottles-setup` (autostart) makes the
-  "VeltOS" bottle once; afterwards a double-click runs the program straight
+  2.53), and only then (the owner, 2026-10-31). At sign-in `veltos-run
+  --bottles-setup` (autostart; Settings starts it too) installs this user's
+  Bottles once the PC is online when the first start will not (chosen in
+  Settings, perhaps offline then) and makes the "VeltOS" bottle once; afterwards a double-click runs the program straight
   in that bottle (`bottles-cli run -b VeltOS -e`, the file through the
   document portal with flatpak's `--file-forwarding`; handing it to
   Bottles' window asked "Select Bottle" every time, 2026-10-31). Until the

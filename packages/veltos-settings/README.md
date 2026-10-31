@@ -97,7 +97,14 @@ open VeltOS Settings.
     shared mode with a user-owned profile (no administrator password):
     the switch, the shared connection, Edit (name, password, band; 5 GHz
     only where the card may start a network there), devices connected
-    (`iw`, `ip neigh`, names from the hotspot's dnsmasq). Also
+    (`iw`, `ip neigh`, names from the hotspot's dnsmasq). A PC whose only
+    Wi-Fi card carries its internet shares that connection over the same
+    card, as Windows 11 does (2026-10-31), when the card can be on a
+    network and host one at once (iw's interface combinations): the
+    pkexec helper `/usr/libexec/veltos/hotspot-interface` (polkit
+    `org.veltos.hotspot.interface`, no password for the active session)
+    adds a second interface `veltos-ap`, the hotspot runs there on the
+    channel of the card's own connection, and stopping removes it. Also
     `/usr/libexec/veltos/hotspot status|start|stop|configure|source` with
     JSON output for Quick Settings (key on standard input);
   - **Apps > VeltOS AI** (`assistant.py`, 2026-10-26): the service, API
@@ -111,7 +118,11 @@ open VeltOS Settings.
   - **Bluetooth & devices**: Bluetooth, Mouse and Touchpad (KWin's input
     devices over D-Bus, saved in kcminputrc), Typing (keyboard layouts,
     kxkbrc);
-  - **Personalization > Lock screen** (kscreenlockerrc);
+  - **Personalization > Lock screen**: the lock screen's own picture
+    (VeltOS' wallpapers, the desktop's picture or a photo from Browse,
+    with a preview of the lock screen; kscreenlockerrc's
+    `[Greeter][Wallpaper][org.kde.image][General]`, 2026-10-31), when to
+    lock and the password on wake;
   - **Apps**: Default apps (browser, email, music, video, photos, PDF,
     text; ~/.config/mimeapps.list, hidden helper entries such as Okular's
     PDF entry shown under the app's name), Startup (autostart entries,

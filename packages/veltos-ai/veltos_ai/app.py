@@ -9,7 +9,8 @@ The conversation goes to the service chosen in the panel's settings
 (providers.py) with the user's own key; actions on the computer
 (tools.py) wait for the user's "Allow". One panel per user: a second
 start hands "toggle" to the running one (a local socket) and ends. A
-closed panel's process ends after ten idle minutes.
+closed panel's process ends after ten idle minutes; the conversation is
+kept until "New chat" (conversation.py).
 """
 
 import configparser
@@ -19,13 +20,14 @@ import sys
 import threading
 from pathlib import Path
 
-from PySide6.QtCore import Property, QFileSystemWatcher, QMetaObject, QObject, QTimer, QUrl, Signal, Slot
+from PySide6.QtCore import (Property, QAbstractListModel, QByteArray, QFileSystemWatcher, QMetaObject, QModelIndex,
+                            QObject, Qt, QTimer, QUrl, Signal, Slot)
 from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import config, intents, local, providers, strings, tools
+from . import config, conversation, intents, local, providers, strings, tools
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 MAX_ROUNDS = 10            # tool rounds in one answer
@@ -75,8 +77,77 @@ def socket_name():
     return f"veltos-ai-{os.getuid()}"
 
 
+class ChatModel(QAbstractListModel):
+    """The conversation's rows for ChatView, changed in place: rows are
+    added, removed and updated one at a time. The list was a JavaScript
+    array made again for every streamed piece (every 60 ms): the view made
+    every message again, lost its place and jumped, and text could not be
+    selected while an answer came (product owner, 2026-10-31)."""
+
+    countChanged = Signal()
+    ROLES = ("mid", "kind", "body", "status", "title")
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.rows = []
+        self._roles = {Qt.ItemDataRole.UserRole + i: name.encode() for i, name in enumerate(self.ROLES)}
+
+    def roleNames(self):
+        return {k: QByteArray(v) for k, v in self._roles.items()}
+
+    def rowCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self.rows)
+
+    def data(self, index, role):
+        if not index.isValid() or not 0 <= index.row() < len(self.rows):
+            return None
+        name = self._roles.get(role)
+        return self.rows[index.row()].get(name.decode()) if name else None
+
+    @Property(int, notify=countChanged)
+    def count(self):
+        return len(self.rows)
+
+    @staticmethod
+    def row(message):
+        return {"mid": message["id"], "kind": message["kind"], "body": message.get("text") or "",
+                "status": message.get("state") or "", "title": message.get("title") or ""}
+
+    def sync(self, messages):
+        new = [self.row(m) for m in messages]
+        ids = [r["mid"] for r in new]
+        wanted = set(ids)
+        before = len(self.rows)
+        kept = [r["mid"] for r in self.rows if r["mid"] in wanted]
+        remaining = iter(ids)
+        if not all(mid in remaining for mid in kept):
+            # Messages are only added and removed; anything else is shown anew.
+            self.beginResetModel()
+            self.rows = new
+            self.endResetModel()
+        else:
+            for i in range(len(self.rows) - 1, -1, -1):
+                if self.rows[i]["mid"] not in wanted:
+                    self.beginRemoveRows(QModelIndex(), i, i)
+                    del self.rows[i]
+                    self.endRemoveRows()
+            for position, row in enumerate(new):
+                if position < len(self.rows) and self.rows[position]["mid"] == row["mid"]:
+                    if self.rows[position] != row:
+                        self.rows[position] = row
+                        index = self.index(position)
+                        self.dataChanged.emit(index, index)
+                else:
+                    self.beginInsertRows(QModelIndex(), position, position)
+                    self.rows.insert(position, row)
+                    self.endInsertRows()
+        if len(self.rows) != before:
+            self.countChanged.emit()
+
+
 class Backend(QObject):
     messagesChanged = Signal()
+    sent = Signal()                  # the user sent a message: the chat goes to its end
     settingsChanged = Signal()
     busyChanged = Signal()
     modelsChanged = Signal()
@@ -95,7 +166,7 @@ class Backend(QObject):
     _openUrl = Signal(str)
 
     def __init__(self, lang=None, opener=None, settings_file=None, threaded=True, starter=None, runner=None,
-                 parent=None):
+                 conversation_file=None, parent=None):
         super().__init__(parent)
         self.lang = lang or strings.language()
         self._opener = opener
@@ -145,6 +216,40 @@ class Backend(QObject):
         self._kdeglobals = str(Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "kdeglobals")
         self._watch()
         self._watcher.fileChanged.connect(lambda _path: QTimer.singleShot(300, self._reload_look))
+        self._chat = ChatModel(self)
+        self.messagesChanged.connect(lambda: self._chat.sync(self._messages))
+        # The conversation is kept between starts (conversation.py), written
+        # when no answer is on its way.
+        self._conversation_file = conversation_file
+        self._save_timer = QTimer(self)
+        self._save_timer.setInterval(400)
+        self._save_timer.setSingleShot(True)
+        self._save_timer.timeout.connect(self.save_conversation)
+        self.messagesChanged.connect(self._save_timer.start)
+        self.busyChanged.connect(self._save_timer.start)
+        self._restore_conversation()
+
+    def _restore_conversation(self):
+        if not self._conversation_file:
+            return
+        state = conversation.load(self._conversation_file)
+        self._messages = state["messages"]
+        self.history = state["history"]
+        self.history_provider = state["provider"]
+        self._next_id = max((m["id"] for m in self._messages), default=0) + 1
+        self.messagesChanged.emit()
+
+    @Slot()
+    def save_conversation(self):
+        if not self._conversation_file or self._busy:
+            return
+        try:
+            if self._messages:
+                conversation.save(self._conversation_file, self._messages, self.history, self.history_provider)
+            else:
+                conversation.clear(self._conversation_file)
+        except OSError:
+            pass
 
     # --- look and texts -----------------------------------------------------------------------------
 
@@ -472,6 +577,10 @@ class Backend(QObject):
     def messages(self):
         return [dict(m) for m in self._messages]
 
+    @Property(QObject, constant=True)
+    def chat(self):
+        return self._chat
+
     @Property(bool, notify=busyChanged)
     def busy(self):
         return self._busy
@@ -516,6 +625,7 @@ class Backend(QObject):
         self._results = {}
         self.messagesChanged.emit()
         self._set_busy(False)
+        self.save_conversation()
 
     @Slot(str)
     def send(self, text):
@@ -526,12 +636,18 @@ class Backend(QObject):
             self._add("error", self.text("no_key"))
             return
         name = self.data["provider"]
-        if self.history_provider and self.history_provider != name:
-            self.history = []
-        self.history_provider = name
         self._adapter = providers.adapter(name, self.data["services"][name])
-        self._adapter.add_user(self.history, text[:8000])
         self._add("user", text)
+        self.sent.emit()
+        if self.history_provider != name:
+            # Another service than the one the conversation was with (or a
+            # conversation without one): it is told the conversation's words
+            # so far. The history was emptied before, and the model knew
+            # nothing of what the panel still showed.
+            self.history = self._transcript(self._adapter)
+        else:
+            self._adapter.add_user(self.history, text[:8000])
+        self.history_provider = name
         self._rounds = 0
         self._command_done = False
         # The local model: a short command it might get wrong becomes its
@@ -541,6 +657,30 @@ class Backend(QObject):
             self._start_command(*command)
             return
         self._start_turn()
+
+    def _transcript(self, adapter):
+        """The conversation's words (the user's messages and the answers)
+        in the service's format; actions' results are not told again. Turns
+        of one side in a row are joined (an answer that failed): some
+        services refuse two user turns in a row."""
+        turns = []
+        for message in self._messages:
+            role = {"user": "user", "assistant": "assistant"}.get(message["kind"])
+            text = message.get("text") or ""
+            if role is None or not text or message.get("state") in ("refused", "streaming"):
+                continue
+            if message.get("state") == "stopped" and text == self.text("stopped"):
+                continue
+            if turns and turns[-1][0] == role:
+                turns[-1][1] += "\n\n" + text
+            else:
+                turns.append([role, text])
+        while turns and turns[0][0] != "user":
+            turns.pop(0)
+        history = []
+        for role, text in turns:
+            (adapter.add_user if role == "user" else adapter.add_assistant)(history, text[:8000])
+        return history
 
     def _start_command(self, name, arguments):
         """Runs a recognised command as if the model had asked for it: an
@@ -614,7 +754,10 @@ class Backend(QObject):
         current["state"] = ""
         if self._cancel.is_set():
             current["state"] = "stopped"
-            if not current["text"]:
+            if current["text"]:
+                # The model is told what it had said when the user stopped it.
+                self._adapter.add_assistant(self.history, current["text"])
+            else:
                 current["text"] = self.text("stopped")
             self._set_busy(False)
             self.messagesChanged.emit()
@@ -806,7 +949,7 @@ def main(argv=None):
     app.setDesktopFileName("veltos-ai")
     app.setWindowIcon(QIcon.fromTheme("veltos-ai"))
     app.setQuitOnLastWindowClosed(False)
-    backend = Backend()
+    backend = Backend(conversation_file=conversation.path())
     server = QLocalServer()
     QLocalServer.removeServer(socket_name())
     server.listen(socket_name())
@@ -817,6 +960,7 @@ def main(argv=None):
             connection.readyRead.connect(lambda c=connection: take_request(backend, c.readAll()))
     server.newConnection.connect(on_connection)
     app.aboutToQuit.connect(local.SERVER_INSTANCE.stop)
+    app.aboutToQuit.connect(backend.save_conversation)
     # The pane (Main.qml, the taskbar button and Windows + C) and the window
     # (AppWindow.qml, Start and search) share one conversation; each is
     # made the first time it is asked for.

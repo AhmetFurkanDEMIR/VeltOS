@@ -1,3 +1,15 @@
+veltos-ai (1.1.0~dev3) trixie; urgency=medium
+
+  * The conversation is kept until "New chat" (conversation.py); a kept
+    conversation from another service is told to the new one; a stopped
+    answer stays in the history.
+  * The local model gets as much of the conversation as fits its context.
+  * The chat is a list model changed in place: the view follows the answer
+    while at the end, stays where the user scrolled, a button leads back.
+  * Wide and maximised windows: a centred column of reading width.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 31 Oct 2026 18:00:00 +0000
+
 veltos-ai (1.1.0~dev2) trixie; urgency=medium
 
   * Opening an app through GLib (gio launch), not kioclient.

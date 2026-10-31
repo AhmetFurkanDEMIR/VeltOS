@@ -16,6 +16,10 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-settings-redirect debian/veltos-settings/usr/libexec/veltos/settings-redirect
 	# Mobile hotspot for Quick Settings (veltos_settings/hotspot.py).
 	install -D -m 755 bin/veltos-hotspot debian/veltos-settings/usr/libexec/veltos/hotspot
+	# Its second interface on a Wi-Fi card that is connected (pkexec, no password).
+	install -D -m 755 bin/veltos-hotspot-interface debian/veltos-settings/usr/libexec/veltos/hotspot-interface
+	install -D -m 644 data/org.veltos.hotspot.policy \
+		debian/veltos-settings/usr/share/polkit-1/actions/org.veltos.hotspot.policy
 	# The mouse pointer follows light/dark mode (veltos_settings/pointer.py).
 	install -D -m 755 bin/veltos-pointer-style debian/veltos-settings/usr/libexec/veltos/pointer-style
 	# Plugging in a screen opens Windows 11's Project flyout instead of

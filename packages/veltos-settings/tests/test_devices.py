@@ -426,6 +426,33 @@ class PersonalizationTests(unittest.TestCase):
         self.assertEqual(personal.current_wallpaper(), "/usr/share/wallpapers/Next")
         self.assertEqual(personal.accent(), "#0078D4")
 
+    def test_lock_wallpaper(self):
+        system = FakeSystem()
+        personal = devices.Personalization(system)
+        config = self.tmp / "config"
+        # The user's choice wins over VeltOS' default; other groups do not count.
+        (config / "kscreenlockerrc").write_text(
+            "[Daemon]\nTimeout=5\n\n[Greeter][Wallpaper][org.kde.image][General]\n"
+            "Image=file:///home/velt/Pictures/My%20Lake.jpg\n"
+            "PreviewImage=file:///home/velt/Pictures/My%20Lake.jpg\n\n[Other]\nImage=nothing\n",
+            encoding="utf-8")
+        self.assertEqual(personal.lock_wallpaper(), "/home/velt/Pictures/My Lake.jpg")
+        self.assertEqual(devices.lock_image(self.tmp / "missing"), "")
+        default = self.tmp / "default-rc"
+        default.write_text("[Greeter][Wallpaper][org.kde.image][General]\n"
+                           "Image=/usr/share/wallpapers/VeltOS-Bloom/\n", encoding="utf-8")
+        self.assertEqual(devices.lock_image(default), "/usr/share/wallpapers/VeltOS-Bloom")
+
+        walls = self.tmp / "wallpapers"
+        self.assertTrue(personal.set_lock_wallpaper(str(walls / "Ocean")))
+        group = ["kwriteconfig6", "--file", "kscreenlockerrc", "--group", "Greeter", "--group", "Wallpaper",
+                 "--group", "org.kde.image", "--group", "General"]
+        url = "file://" + str(walls / "Ocean") + "/"    # a wallpaper package is a folder
+        self.assertEqual(system.commands, [group + ["--key", "Image", url], group + ["--key", "PreviewImage", url]])
+        system.commands.clear()
+        personal.set_lock_wallpaper("/home/velt/Pictures/lake.jpg")
+        self.assertEqual(system.commands[0][-1], "file:///home/velt/Pictures/lake.jpg")
+
     def test_actions(self):
         system = FakeSystem()
         personal = devices.Personalization(system)
