@@ -30,6 +30,19 @@ ANSWERS = [
 ]
 
 
+def child_environment(environ=None):
+    """pkcon's environment: its messages in English, whatever the session's
+    language. In a Turkish session pkcon asked "Değişikliklerle devam
+    edilsin mi?", which the answers above did not know, so every install
+    was answered "no" and nothing was installed (installed dev VM,
+    2026-10-31); its "Fatal error:" lines are read in English too. The
+    password prompt is VeltOS' own window and keeps the session's language."""
+    env = dict(os.environ if environ is None else environ)
+    env.pop("LANGUAGE", None)
+    env["LC_ALL"] = "C.UTF-8"
+    return env
+
+
 def answer_for(tail):
     """The answer to the question at the end of `tail`, or None."""
     for pattern, answer in ANSWERS:
@@ -43,7 +56,7 @@ def run(command, out=None):
     pid, fd = pty.fork()
     if pid == 0:
         try:
-            os.execvp(command[0], command)
+            os.execvpe(command[0], command, child_environment())
         finally:
             os._exit(127)
     tail = b""

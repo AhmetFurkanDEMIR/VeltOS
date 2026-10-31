@@ -75,6 +75,17 @@ that had not been done.
   runs programs straight in the bottle (`bottles-cli run -b VeltOS -e`
   with `--file-forwarding`): PuTTY opened without the question
   (`tests/results/2026-10-31-install-first-start-bottles/`).
+- VeltOS AI with the real Qwen3.5 2B in the installed Turkish VM (item 94,
+  `tests/results/2026-10-31-veltos-ai-real-model/`): the model answered a
+  memory question through the right action; "sl paketini kur" failed
+  because pkcon asked "Proceed with changes?" in Turkish and VeltOS'
+  ptyrun answered no (so no install from VeltOS Store, Graphics Cards,
+  Keyboard Lighting or AI worked in Turkish sessions; English VM tests had
+  hidden it). ptyrun now starts pkcon with `LC_ALL=C.UTF-8` and no
+  `LANGUAGE`; then the install asked in VeltOS' password window and
+  worked, and so did a remove. After a recognised command the model had
+  asked for another action ("install slack"); its follow-up turn now has
+  no tools. The local model's service name is translated.
 - Tests: veltos-settings 198+ (pointer, network agent and key window in
   English and Turkish), veltos-explorer (removal, run rules, drives'
   trash, portal questions), veltos-fluent-icons (cursor configs); the

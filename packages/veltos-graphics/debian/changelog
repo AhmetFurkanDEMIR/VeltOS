@@ -1,3 +1,10 @@
+veltos-graphics (1.1.0~dev2) trixie; urgency=medium
+
+  * pkcon runs with English messages: in Turkish sessions its question
+    "Proceed with changes?" was answered no and nothing was installed.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 31 Oct 2026 12:00:00 +0000
+
 veltos-graphics (1.1.0~dev1) trixie; urgency=medium
 
   * NVIDIA's monitors under Wayland: nvidia-drm modeset on for Debian's module names.

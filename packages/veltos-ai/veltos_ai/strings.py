@@ -39,6 +39,7 @@ TEXTS = {
     "deployment": ("Deployment name", "Dağıtım adı"),
     "get_key": ("Get a key", "Anahtar alın"),
     # The local model (local.py, LocalModels.qml)
+    "local_title": ("Local model (free, offline)", "Yerel model (ücretsiz, çevrimdışı)"),
     "local_default_desc": ("Turkish, English and many more languages; works offline and free once downloaded. "
                            "It can change settings and open apps for you, after you allow it. A small model: "
                            "it may make mistakes.",

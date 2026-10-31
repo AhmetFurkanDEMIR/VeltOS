@@ -193,11 +193,18 @@ class Backend(QObject):
         for name in providers.ORDER:
             entry = self.data["services"][name]
             key = entry.get("key", "")
-            result.append({"id": name, "title": providers.PROVIDERS[name]["title"],
+            result.append({"id": name, "title": self.service_title(name),
                            "keyUrl": providers.PROVIDERS[name]["keys"], "hasKey": bool(key),
                            "keyHint": ("…" + key[-4:]) if len(key) > 8 else "",
                            "model": entry.get("model", ""), "endpoint": entry.get("endpoint", "")})
         return result
+
+    def service_title(self, name):
+        """The service's name; the local model's in the session's language
+        (it showed "Local model (free, offline)" in Turkish, 2026-10-31)."""
+        if name == "local":
+            return strings.text(self.lang, "local_title")
+        return providers.PROVIDERS[name]["title"]
 
     @Property(str, notify=settingsChanged)
     def provider(self):
@@ -209,7 +216,7 @@ class Backend(QObject):
         if name not in providers.PROVIDERS:
             return ""
         model = self.data["services"][name].get("model", "")
-        return providers.PROVIDERS[name]["title"].split(" (")[0] + (f" · {model}" if model else "")
+        return self.service_title(name).split(" (")[0] + (f" · {model}" if model else "")
 
     @Property(bool, notify=settingsChanged)
     def ready(self):
@@ -564,7 +571,11 @@ class Backend(QObject):
         self._calls, self._results, self._stop, self._failed = [], {}, "", None
         self._current = self._add("assistant", "", state="streaming")
         self._set_busy(True)
-        adapter, history, tool_list = self._adapter, list(self.history), self._tools()
+        # After a recognised command the model only words the answer: given
+        # the tools again, the local model went on to "install slack" after
+        # "install sl" had worked (installed dev VM, 2026-10-31).
+        tool_list = [] if self._command_done else self._tools()
+        adapter, history = self._adapter, list(self.history)
         cancel = self._cancel
 
         def work():

@@ -1315,3 +1315,9 @@ and JavaScript with no build step, no external requests and no cookies:
   KWin draws a size the theme lacks at its largest one. QMP screenshots
   show no pointer (hardware cursor plane); `spectacle -b -n -f -p -o FILE`
   in the user's session includes it.
+- pkcon speaks the session's language (PackageKit has a Turkish
+  translation): its "Proceed with changes?" came in Turkish and VeltOS'
+  `ptyrun.py` answered no, so nothing was installed in Turkish sessions
+  until 2026-10-31. ptyrun runs pkcon with `LC_ALL=C.UTF-8`; test package
+  installs in a Turkish session too. Typing into a Turkish-Q VM with `vm do
+  type:` turns "i" into "ı": type "'" for "i".

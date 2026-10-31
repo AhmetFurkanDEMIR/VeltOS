@@ -289,6 +289,15 @@ class BackendTests(unittest.TestCase):
         return app.Backend(lang="en", opener=self.service, settings_file=self.file, threaded=False,
                            starter=lambda command: self.ran.append(command))
 
+    def test_local_model_named_in_the_session_language(self):
+        # The service list showed "Local model (free, offline)" in Turkish (2026-10-31).
+        backend = self.backend("local")
+        backend.lang = "tr"
+        titles = {s["id"]: s["title"] for s in backend.services}
+        self.assertEqual(titles["local"], "Yerel model (ücretsiz, çevrimdışı)")
+        self.assertEqual(titles["claude"], "Claude (Anthropic)")
+        self.assertTrue(backend.providerTitle.startswith("Yerel model"))
+
     def stub_wifi(self):
         old = tools.settings_helpers
         done = []
@@ -334,6 +343,16 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(done, [True])
         self.assertEqual((backend.messages[-1]["kind"], backend.messages[-1]["text"]), ("assistant", "Done."))
         self.assertFalse(backend.busy)
+
+    def test_no_tools_after_a_recognised_command(self):
+        # After "install sl" had worked, the local model went on to ask for
+        # "install slack" (2026-10-31): its follow-up only words the answer.
+        backend = self.backend("openai", fake.openai_text("Hello."), fake.openai_text("Done."))
+        backend.send("Hello")
+        self.assertIn("tools", self.service.requests[0]["body"])
+        backend._command_done = True
+        backend._start_turn()
+        self.assertNotIn("tools", self.service.requests[1]["body"])
 
     def test_allow(self):
         for provider, first, second in (("claude", fake.claude_tool_turn(), fake.claude_text("Wi-Fi is on.")),

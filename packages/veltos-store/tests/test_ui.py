@@ -234,6 +234,29 @@ class JobTests(unittest.TestCase):
             self.assertIn(b"answers=y,n", out.read())
         self.assertIsNone(ptyrun.answer_for(b"Percentage:\t40\n"))
 
+    def test_pkcon_speaks_english_in_a_turkish_session(self):
+        # A Turkish pkcon asked "Değişikliklerle devam edilsin mi?", which
+        # ptyrun did not know: every install was answered "no" (2026-10-31).
+        from veltos_store import ptyrun
+        env = ptyrun.child_environment({"LANG": "tr_TR.UTF-8", "LANGUAGE": "tr@veltos:tr", "HOME": "/home/u"})
+        self.assertEqual(env["LC_ALL"], "C.UTF-8")
+        self.assertNotIn("LANGUAGE", env)
+        self.assertEqual(env["HOME"], "/home/u")
+        tmp = Path(tempfile.mkdtemp())
+        fake = tmp / "pkcon"
+        fake.write_text("#!/bin/sh\necho \"lc=$LC_ALL language=${LANGUAGE:-none}\"\n")
+        fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
+        old = dict(os.environ)
+        os.environ["LANGUAGE"] = "tr"
+        try:
+            with tempfile.TemporaryFile() as out:
+                self.assertEqual(ptyrun.run([str(fake)], out), 0)
+                out.seek(0)
+                self.assertIn(b"lc=C.UTF-8 language=none", out.read())
+        finally:
+            os.environ.clear()
+            os.environ.update(old)
+
     def test_missing_pkcon(self):
         jobs = packages.Jobs(program="/nonexistent/pkcon")
         done = []
