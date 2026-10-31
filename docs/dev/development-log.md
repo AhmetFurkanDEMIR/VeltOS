@@ -74,6 +74,13 @@ start without a cable or Wi-Fi, and Bottles only when it was chosen.
   watcher), veltos-ai 56+ (kept conversation, transcript, stopped answer,
   chat model, wide window), veltos-store and veltos-winapps (offline first
   start, Bottles choice).
+- ISO `veltos-1.1-dev6-amd64.hybrid.iso` (2,112,452,608 bytes, 33 MiB under
+  2 GiB; SHA-256 778f4737676e04b05414b7da0a151efa220030e544fa1c899cd195965d7f05a1):
+  the new files are in its squashfs (`conversation.py`, `hotspot-interface`,
+  the polkit action, `WallpaperTiles.qml`); boot tests UEFI, BIOS and Secure
+  Boot passed without a FAIL (`out/test-results/20261031-191113-uefi`,
+  `-191319-bios`, `-191529-secureboot`). Copied to the owner's Desktop as
+  `VeltOS-1.1-dev6-20261031-184503.iso` for manual tests; not released.
 
 ## 2026-10-31 — Items 106-107: no KDE windows with the "W" icon, the pointer follows the theme
 
