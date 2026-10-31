@@ -227,20 +227,22 @@ class OperationTests(unittest.TestCase):
         self.ops = ops.Operations(start=lambda command, cwd=None: self.started.append(command))
         self.dir = Path(tempfile.mkdtemp())
 
-    def test_kio_commands(self):
+    def test_commands_without_kio(self):
+        # kioclient's windows had the Wayland "W" icon (2026-10-31).
         self.ops.trash(["/home/u/a.txt"])
         self.ops.delete(["/home/u/b.txt"])
         self.ops.move(["/home/u/c.txt"], "/home/u/Documents")
         self.ops.copy(["/home/u/d.txt"], "/home/u/Documents")
         self.assertEqual(self.started, [
-            ["kioclient", "--interactive", "move", "/home/u/a.txt", "trash:/"],
-            ["kioclient", "--interactive", "remove", "/home/u/b.txt"],
+            ["veltos-explorer", "--recycle", "/home/u/a.txt"],
+            ["veltos-explorer", "--remove", "/home/u/b.txt"],
             ["veltos-explorer", "--transfer", "move", "/home/u/Documents", "/home/u/c.txt"],
             ["veltos-explorer", "--transfer", "copy", "/home/u/Documents", "/home/u/d.txt"]])
 
-    def test_documents_through_the_portal_programs_through_kio(self):
+    def test_documents_through_the_portal_programs_in_veltos(self):
         # Documents go to the portal with an activation token, so an open
-        # app comes to the front; KIO starts launchers and programs.
+        # app comes to the front; Windows programs go to veltos-run,
+        # launchers and Linux programs to File Explorer's --run.
         opened = []
         operations = ops.Operations(start=self.started.append, open_document=opened.append)
         document = self.dir / "Letter.txt"
@@ -254,9 +256,15 @@ class OperationTests(unittest.TestCase):
         for path in (document, script, executable_text, self.dir / "Setup.EXE", self.dir / "app.desktop"):
             operations.open(path)
         self.assertEqual(opened, [str(document), str(executable_text)])
-        self.assertEqual(self.started, [["kioclient", "exec", str(script)],
-                                        ["kioclient", "exec", str(self.dir / "Setup.EXE")],
-                                        ["kioclient", "exec", str(self.dir / "app.desktop")]])
+        self.assertEqual(self.started, [["veltos-explorer", "--run", str(script)],
+                                        ["veltos-run", str(self.dir / "Setup.EXE")],
+                                        ["veltos-explorer", "--run", str(self.dir / "app.desktop")]])
+
+    def test_items_cut_in_the_recycle_bin_go_to_the_copy_window(self):
+        trashed = "/home/u/.local/share/Trash/files/a.txt"
+        self.ops.move([trashed], "/home/u/Documents")
+        self.assertEqual(self.started, [["veltos-explorer", "--transfer", "move", "/home/u/Documents",
+                                         trashed]])
 
     def test_copy_into_the_same_folder_goes_to_the_copy_window(self):
         # The copy window names it "a - Copy.txt" (test_transfer).

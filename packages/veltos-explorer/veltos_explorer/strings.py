@@ -149,6 +149,32 @@ TEXTS = {
     "transfer_into_itself": ("The destination folder is inside the source folder",
                              "Hedef klasör, kaynak klasörün içinde"),
     "delete_items": ("Delete Multiple Items", "Birden Çok Öğeyi Sil"),
+    # The Recycle Bin, deleting and programs without KIO's windows (removal.py,
+    # runprogram.py), in Windows 11's wording.
+    "recycle_failed_one": ("\"{name}\" can't be moved to the Recycle Bin. Do you want to permanently delete it?",
+                           "\"{name}\" Geri Dönüşüm Kutusu'na taşınamıyor. Kalıcı olarak silmek istiyor musunuz?"),
+    "recycle_failed": ("These {count} items can't be moved to the Recycle Bin. "
+                       "Do you want to permanently delete them?",
+                       "Bu {count} öğe Geri Dönüşüm Kutusu'na taşınamıyor. Kalıcı olarak silmek istiyor musunuz?"),
+    "remove_failed_heading": ("Couldn't delete", "Silinemedi"),
+    "remove_failed_one": ("\"{name}\" couldn't be deleted: {reason}.", "\"{name}\" silinemedi: {reason}."),
+    "remove_failed": ("{count} items couldn't be deleted. \"{name}\": {reason}.",
+                      "{count} öğe silinemedi. \"{name}\": {reason}."),
+    "security_warning": ("Open File - Security Warning", "Dosya Aç - Güvenlik Uyarısı"),
+    "security_question": ("The publisher could not be verified. Are you sure you want to run this software?\n\n"
+                          "Name: {name}\nFolder: {folder}",
+                          "Yayımcı doğrulanamadı. Bu yazılımı çalıştırmak istediğinizden emin misiniz?\n\n"
+                          "Ad: {name}\nKlasör: {folder}"),
+    "run": ("Run", "Çalıştır"),
+    # Programs' requests through the desktop portal (portal.py, --question)
+    "allow": ("Allow", "İzin ver"),
+    "dont_allow": ("Don't allow", "İzin verme"),
+    "access_heading": ("{app} needs your permission", "{app} izninizi istiyor"),
+    "share_info_heading": ("Share your information", "Bilgilerinizi paylaşın"),
+    "share_info_text": ("{app} wants your name and account picture: {name} ({user}).",
+                        "{app} adınızı ve hesap resminizi istiyor: {name} ({user})."),
+    "share_info_program": ("A program", "Bir program"),
+    "share": ("Share", "Paylaş"),
     "yes": ("Yes", "Evet"),
     "no": ("No", "Hayır"),
     "ok": ("OK", "Tamam"),

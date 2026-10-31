@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+"""The VeltOS network agent: NetworkManager's questions for a network's key in
+VeltOS' window (veltos_settings/nmagent.py, started with the session)."""
+import sys
+
+from veltos_settings.nmagent import main
+
+sys.exit(main())

@@ -482,7 +482,9 @@ def execute(name, arguments, lang="en", starter=start, runner=run, command_runne
         found = find_app(a["name"], lang)
         if not found:
             return answer(False, error=f"No installed app is called {a['name']!r}.")
-        starter(["kioclient", "exec", str(found[0])])
+        # GLib starts the entry; kioclient reported problems in KDE windows
+        # with the Wayland "W" icon (2026-10-31).
+        starter(["gio", "launch", str(found[0])])
         return answer(True, opened=found[1])
     if name == "open_settings":
         starter(["veltos-settings", a["page"]])

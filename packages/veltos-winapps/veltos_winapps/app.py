@@ -346,7 +346,9 @@ class Runner(QObject):
     @Slot(int)
     def openApp(self, index):
         entry = self._new_apps[index]
-        QProcess.startDetached("kioclient", ["exec", entry["path"]])
+        # GLib starts the new Start menu entry (kioclient reported problems
+        # in KDE windows with the Wayland "W" icon, 2026-10-31).
+        QProcess.startDetached("gio", ["launch", entry["path"]])
         QGuiApplication.instance().quit()
 
     @Slot()

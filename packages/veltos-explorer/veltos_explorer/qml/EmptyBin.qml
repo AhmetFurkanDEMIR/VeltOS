@@ -3,7 +3,10 @@
     veltos-desktop) and "Delete File" (the desktop's Shift+Delete):
     Windows 11's question in a small window of its own; Yes empties the bin
     or deletes the items (`backend` is app.EmptyBinBackend). File Explorer
-    asks the same inside its window (WinDialog.qml).
+    asks the same inside its window (WinDialog.qml). The same window asks
+    File Explorer's other questions (app.QuestionBackend: an item the
+    Recycle Bin cannot take, "Open File - Security Warning") and reports
+    what could not be deleted (one OK button).
 
     SPDX-License-Identifier: GPL-3.0-or-later
 */
@@ -111,14 +114,15 @@ ApplicationWindow {
                     id: yesButton
                     objectName: "yesButton"
                     primary: true
-                    label: backend.text("yes")
+                    label: backend.yesLabel
                     focus: true
                     onClicked: window.answer(true)
                     Component.onCompleted: forceActiveFocus()
                 }
                 DialogButton {
                     objectName: "noButton"
-                    label: backend.text("no")
+                    visible: backend.noLabel !== ""
+                    label: backend.noLabel
                     onClicked: window.answer(false)
                 }
             }

@@ -1,3 +1,9 @@
+veltos-fluent-icons (2026.07.27~veltos3) trixie; urgency=medium
+
+  * Cursor themes drawn from upstream's SVGs at 24-96 px.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 31 Oct 2026 12:00:00 +0000
+
 veltos-fluent-icons (2026.07.27~veltos2) trixie; urgency=medium
 
   * Keyboard Lighting icon.

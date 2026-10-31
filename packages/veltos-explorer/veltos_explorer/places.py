@@ -5,6 +5,7 @@ so tests can replace them."""
 import json
 import os
 import re
+import shutil
 import shlex
 import subprocess
 import time
@@ -299,47 +300,92 @@ def trash_dir():
     return data_home() / "Trash"
 
 
-def trash_items(trash=None):
-    """Items in the Recycle Bin with their original location and deletion
-    date (freedesktop.org trash: files/ and info/*.trashinfo)."""
-    trash = Path(trash or trash_dir())
-    items = []
+def mounted_drives(mounts="/proc/self/mounts"):
+    """Mount points of real drives (not the system's own root)."""
+    found = []
     try:
-        names = os.listdir(trash / "files")
+        lines = Path(mounts).read_text(encoding="utf-8", errors="replace").splitlines()
     except OSError:
-        return items
-    for name in names:
-        info = trash / "info" / (name + ".trashinfo")
-        original, deleted = "", ""
+        return found
+    for line in lines:
+        parts = line.split()
+        if len(parts) < 2 or not parts[0].startswith("/dev/"):
+            continue
+        # /proc/mounts writes spaces, tabs and backslashes as octal escapes.
+        point = parts[1].replace("\\040", " ").replace("\\011", "\t").replace("\\134", "\\")
+        if point != "/" and point not in found:
+            found.append(point)
+    return found
+
+
+def trash_dirs(trash=None, mounts="/proc/self/mounts"):
+    """[(folder, top)]: the Recycle Bin's folders, the home one (top None)
+    and each mounted drive's own (.Trash-UID or .Trash/UID at its top),
+    where `gio trash` puts items from that drive (freedesktop.org trash)."""
+    if trash:
+        return [(Path(trash), None)]
+    dirs = [(trash_dir(), None)]
+    uid = os.getuid() if hasattr(os, "getuid") else 0
+    for top in mounted_drives(mounts):
+        for folder in (Path(top) / f".Trash-{uid}", Path(top) / ".Trash" / str(uid)):
+            if (folder / "files").is_dir() and folder not in [d for d, _t in dirs]:
+                dirs.append((folder, Path(top)))
+    return dirs
+
+
+def read_trash_info(info, top=None):
+    """(original path, deletion date) from a .trashinfo file; a drive's
+    trash keeps paths relative to the drive's top."""
+    original, deleted = "", ""
+    try:
+        text = info.read_text(encoding="utf-8", errors="replace")
+        match = re.search(r"^Path=(.*)$", text, re.M)
+        original = urllib.parse.unquote(match.group(1)) if match else ""
+        match = re.search(r"^DeletionDate=(.*)$", text, re.M)
+        deleted = match.group(1).strip() if match else ""
+    except OSError:
+        pass
+    if original and not original.startswith("/"):
+        original = str(Path(top or "/") / original)
+    return original, deleted
+
+
+def trash_items(trash=None, mounts="/proc/self/mounts"):
+    """Items in the Recycle Bin with their original location and deletion
+    date (freedesktop.org trash: files/ and info/*.trashinfo), from the
+    home folder's trash and the mounted drives' own."""
+    items = []
+    for folder, top in trash_dirs(trash, mounts):
         try:
-            text = info.read_text(encoding="utf-8", errors="replace")
-            match = re.search(r"^Path=(.*)$", text, re.M)
-            original = urllib.parse.unquote(match.group(1)) if match else ""
-            match = re.search(r"^DeletionDate=(.*)$", text, re.M)
-            deleted = match.group(1).strip() if match else ""
+            names = os.listdir(folder / "files")
         except OSError:
-            pass
-        items.append({"name": name, "path": str(trash / "files" / name), "original": original,
-                      "deleted": deleted})
+            continue
+        for name in names:
+            original, deleted = read_trash_info(folder / "info" / (name + ".trashinfo"), top)
+            items.append({"name": name, "path": str(folder / "files" / name), "original": original,
+                          "deleted": deleted})
     return items
 
 
 def restore(item_path, trash=None):
     """Move a Recycle Bin item back where it was. Returns "" or a reason:
     "exists" (something is there now), "unknown" (no original location)."""
-    trash = Path(trash or trash_dir())
-    name = Path(item_path).name
-    info = trash / "info" / (name + ".trashinfo")
-    original = next((i["original"] for i in trash_items(trash) if i["name"] == name), "")
+    item_path = Path(item_path)
+    folder = Path(trash) if trash else item_path.parent.parent
+    name = item_path.name
+    info = folder / "info" / (name + ".trashinfo")
+    top = next((t for f, t in trash_dirs() if f == folder), None) if not trash else None
+    original, _deleted = read_trash_info(info, top)
     if not original:
         return "unknown"
     target = Path(original)
-    if not target.is_absolute():
-        target = Path("/") / target
     if target.exists() or target.is_symlink():
         return "exists"
     target.parent.mkdir(parents=True, exist_ok=True)
-    os.rename(item_path, target)
+    try:
+        os.rename(item_path, target)
+    except OSError:
+        shutil.move(str(item_path), str(target))
     info.unlink(missing_ok=True)
     return ""
 

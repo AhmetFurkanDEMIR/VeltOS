@@ -16,6 +16,8 @@ override_dh_auto_install:
 	install -D -m 755 bin/veltos-settings-redirect debian/veltos-settings/usr/libexec/veltos/settings-redirect
 	# Mobile hotspot for Quick Settings (veltos_settings/hotspot.py).
 	install -D -m 755 bin/veltos-hotspot debian/veltos-settings/usr/libexec/veltos/hotspot
+	# The mouse pointer follows light/dark mode (veltos_settings/pointer.py).
+	install -D -m 755 bin/veltos-pointer-style debian/veltos-settings/usr/libexec/veltos/pointer-style
 	# Plugging in a screen opens Windows 11's Project flyout instead of
 	# KDE's chooser (veltos_settings/kscreen_osd.py takes KScreen's bus name).
 	install -D -m 755 bin/veltos-kscreen-osd debian/veltos-settings/usr/libexec/veltos/kscreen-osd
@@ -27,6 +29,13 @@ override_dh_auto_install:
 	install -D -m 644 data/veltos-bt-agent.desktop debian/veltos-settings/etc/xdg/autostart/veltos-bt-agent.desktop
 	install -D -m 644 data/veltos-bluetooth-pair.desktop \
 		debian/veltos-settings/usr/share/applications/veltos-bluetooth-pair.desktop
+	# Wi-Fi keys in VeltOS' window instead of KDE's (veltos_settings/nmagent.py;
+	# veltos-desktop turns off Plasma's own agent, kded's networkmanagement).
+	install -D -m 755 bin/veltos-network-agent debian/veltos-settings/usr/libexec/veltos/network-agent
+	install -D -m 644 data/veltos-network-agent.desktop \
+		debian/veltos-settings/etc/xdg/autostart/veltos-network-agent.desktop
+	install -D -m 644 data/veltos-wifi-key.desktop \
+		debian/veltos-settings/usr/share/applications/veltos-wifi-key.desktop
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/systemsettings
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kcmshell6
 	ln -s ../libexec/veltos/settings-redirect debian/veltos-settings/usr/bin/kinfocenter

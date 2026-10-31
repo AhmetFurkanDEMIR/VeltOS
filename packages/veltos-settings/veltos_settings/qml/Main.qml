@@ -74,7 +74,8 @@ ApplicationWindow {
         "lockscreen": lockScreenComponent, "defaultapps": defaultAppsComponent,
         "startup": startupComponent, "yourinfo": yourInfoComponent, "signin": signInComponent,
         "otherusers": otherUsersComponent, "region": regionComponent,
-        "accessibility": accessibilityComponent, "searching": searchingComponent,
+        "accessibility": accessibilityComponent, "pointer": pointerComponent,
+        "searching": searchingComponent,
         "themes": themesComponent, "taskbar": taskbarComponent, "location": locationComponent,
         "hotspot": hotspotComponent, "veltosai": assistantComponent
     })
@@ -424,6 +425,12 @@ ApplicationWindow {
     Component {
         id: accessibilityComponent
         AccessibilityPage {
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: pointerComponent
+        MousePointerPage {
             onItemActivated: item => window.activate(item)
         }
     }

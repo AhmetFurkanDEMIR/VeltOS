@@ -56,7 +56,13 @@ AIBUTTON_ID = "org.veltos.aibutton"
 UI_FONT = "Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 UI_FONT_SMALL = "Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 ICON_THEMES = {"dark": "Fluent-dark", "light": "Fluent"}
-CURSOR_THEME = "Fluent-cursors"  # white Windows-style pointer, both themes
+# The pointer follows the colour mode (product owner, 2026-10-31): a dark
+# pointer with a white edge on the light desktop, a white one with a dark
+# edge on the dark desktop (veltos-fluent-icons). VeltOS Settings switches it
+# with the mode unless the user chose a pointer style of their own
+# (Accessibility > Mouse pointer, veltos_settings/pointer.py).
+CURSOR_THEMES = {"light": "Fluent-cursors", "dark": "Fluent-dark-cursors"}
+CURSOR_THEME = CURSOR_THEMES["light"]   # the default (light) desktop
 
 # Kvantum's "kvantum-dark" style key selects the Dark variant of the
 # configured Kvantum theme (VeltOS -> VeltOSDark), so switching the global
@@ -71,6 +77,7 @@ LOOK_AND_FEEL = {
         "widget_style": "kvantum-dark",
         "plasma_theme": "VeltOS-Dark",
         "decoration": "VeltOS-Dark",
+        "cursor": CURSOR_THEMES["dark"],
     },
     "org.veltos.light": {
         "name": "VeltOS Light",
@@ -81,6 +88,7 @@ LOOK_AND_FEEL = {
         "widget_style": "kvantum",
         "plasma_theme": "VeltOS",
         "decoration": "VeltOS",
+        "cursor": CURSOR_THEMES["light"],
     },
 }
 DEFAULT_LOOK_AND_FEEL = "org.veltos.light"
@@ -299,7 +307,7 @@ def lnf_defaults(spec):
         "\n[plasmarc][Theme]\n"
         f"name={spec['plasma_theme']}\n"
         "\n[kcminputrc][Mouse]\n"
-        f"cursorTheme={CURSOR_THEME}\n"
+        f"cursorTheme={spec['cursor']}\n"
         "\n[kwinrc][WindowSwitcher]\n"
         "LayoutName=org.kde.breeze.desktop\n"
         "\n[kwinrc][org.kde.kdecoration2]\n"
@@ -535,6 +543,16 @@ def build_static_config(root):
             "[Wallet]\n"
             "Enabled=false\n"
             "First Use=false\n"),
+        # Plasma's network agent (kded's networkmanagement module) asked for
+        # Wi-Fi keys in KDE's "Wi-Fi password dialog" and reported "No
+        # secrets were provided" in KDE notifications; the VeltOS network
+        # agent (veltos-settings, nmagent.py) asks in VeltOS' window instead
+        # (product owner, 2026-10-31). Plasma's applet does not need the
+        # module; NetworkManager's connectivity check (its captive-portal
+        # notice) is off in Debian anyway.
+        "etc/xdg/kded6rc": (
+            "[Module-networkmanagement]\n"
+            "autoload=false\n"),
         # Vendor defaults; /etc/sddm.conf.d/ and /etc/sddm.conf override them.
         # SDDM's default input method is its on-screen keyboard, which
         # covered the sign-in screen while typing the password.

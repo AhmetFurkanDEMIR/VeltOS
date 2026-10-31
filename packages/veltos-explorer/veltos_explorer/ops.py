@@ -1,10 +1,11 @@
 """File operations of VeltOS File Explorer.
 
-Copying, moving, deleting and opening go through KDE's file engine (KIO)
-with `kioclient`: it shows progress in the notification area, asks what to
-do when a file already exists, and moves to the Recycle Bin (trash:/) the
-freedesktop.org way. VeltOS does not reimplement any of that. Renaming and
-creating new items are single local calls done here.
+Copying and moving run in Windows 11's copy window (`--transfer`), moving to
+the Recycle Bin and deleting in File Explorer's own helper (`--recycle`,
+`--remove`, removal.py), programs start without KDE's tools: `kioclient`
+showed its questions and errors in KDE windows with the Wayland "W" icon
+(product owner, 2026-10-31). Renaming and creating new items are single
+local calls done here.
 """
 
 import os
@@ -17,26 +18,15 @@ from pathlib import Path
 from . import files, places
 
 
-def trash_url(path, trash=None):
-    """KIO's address of an item in the home Recycle Bin (trash:/0-NAME), or
-    the path itself for anything else."""
-    files_dir = Path(trash or places.trash_dir()) / "files"
-    try:
-        relative = Path(path).relative_to(files_dir)
-    except ValueError:
-        return str(path)
-    return "trash:/0-" + str(relative)
-
-
 def detached(command, cwd=None):
     """Start a program that outlives File Explorer, without output."""
     subprocess.Popen(command, cwd=cwd, start_new_session=True, stdin=subprocess.DEVNULL,
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-# Started with KIO (`kioclient exec`): launchers and Windows programs. The
-# desktop portal opens documents only; it does not run programs.
+# Programs, not documents: the desktop portal opens documents only.
 LAUNCHERS = (".desktop", ".exe", ".msi", ".bat", ".cmd", ".com")
+WINDOWS_PROGRAMS = (".exe", ".msi", ".bat", ".cmd", ".com")
 
 
 def is_program(path):
@@ -82,27 +72,25 @@ class Operations:
             self.start(["veltos-explorer", "--transfer", "copy", destination, *map(str, sources)])
 
     def move(self, sources, destination):
+        """Move into a folder in the copy window; items cut in the Recycle
+        Bin take their .trashinfo with them (transfer.py)."""
         destination = str(destination)
         sources = [s for s in sources if str(Path(s).parent) != destination
                    and not destination.startswith(s.rstrip("/") + "/") and s != destination]
-        # Items cut in the Recycle Bin leave it through KIO's trash, which
-        # also drops their .trashinfo (a plain move left it behind).
-        trashed = [trash_url(s) for s in sources if trash_url(s) != s]
-        local = [s for s in sources if trash_url(s) == s]
-        if trashed:
-            self.start(["kioclient", "--interactive", "move", *trashed, destination + "/"])
-        if local:
-            self.start(["veltos-explorer", "--transfer", "move", destination, *local])
+        if sources:
+            self.start(["veltos-explorer", "--transfer", "move", destination, *sources])
 
     def trash(self, sources):
-        """Move to the Recycle Bin (can be restored)."""
+        """Move to the Recycle Bin (can be restored); what cannot go there
+        is offered for deleting for good (Windows 11's question)."""
         if sources:
-            self.start(["kioclient", "--interactive", "move", *sources, "trash:/"])
+            self.start(["veltos-explorer", "--recycle", *map(str, sources)])
 
     def delete(self, sources):
-        """Delete for good (the caller asks first)."""
+        """Delete for good (the caller asks first); problems are reported in
+        File Explorer's own window."""
         if sources:
-            self.start(["kioclient", "--interactive", "remove", *sources])
+            self.start(["veltos-explorer", "--remove", *map(str, sources)])
 
     def empty_trash(self):
         # ktrash6 empties the trash; `kioclient remove trash:/` returned 0
@@ -112,11 +100,17 @@ class Operations:
 
     def open(self, path):
         """Open with the default app (folders are handled by the caller):
-        programs through KIO, documents through the portal."""
-        if is_program(path):
-            self.start(["kioclient", "exec", str(path)])
+        Windows programs with VeltOS' Windows program runner, launchers and
+        Linux programs after Windows 11's security question when they come
+        from an untrusted place (`--run`, runprogram.py), documents through
+        the portal."""
+        path = str(path)
+        if path.lower().endswith(WINDOWS_PROGRAMS):
+            self.start(["veltos-run", path])
+        elif is_program(path):
+            self.start(["veltos-explorer", "--run", path])
         else:
-            self.open_document(str(path))
+            self.open_document(path)
 
     @staticmethod
     def create_shortcut(path, desktop):

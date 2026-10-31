@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+"""The mouse pointer follows the colour mode: follow light|dark
+(veltos_settings/pointer.py; run by the light/dark command)."""
+import sys
+
+from veltos_settings.pointer import main
+
+sys.exit(main())

@@ -46,7 +46,10 @@ ColumnLayout {
     property bool expanded: true
 
     spacing: 4
-    Component.onCompleted: backend.refreshPersonal()
+    Component.onCompleted: {
+        backend.refreshPersonal();
+        backend.refreshPrefs();
+    }
 
     // One part of the theme: icon, name and value; opens its page.
     component Part: RowLayout {
@@ -174,8 +177,9 @@ ColumnLayout {
             Part {
                 icon: "input-mouse-symbolic"
                 title: backend.text("theme_cursor")
-                value: backend.text("veltos_default")
-                onClicked: page.openSubPage("devices", "mouse")
+                value: backend.text({ white: "pointer_white", black: "pointer_black",
+                                      custom: "pointer_custom" }[backend.prefs.pointerStyle] || "pointer_theme")
+                onClicked: page.openSubPage("accessibility", "pointer")
             }
         }
     }

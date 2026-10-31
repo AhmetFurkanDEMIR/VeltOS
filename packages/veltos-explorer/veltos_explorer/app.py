@@ -3,6 +3,7 @@
     veltos-explorer [FOLDER|URL ...]     (no argument: Home)
 """
 
+import json
 import os
 import sys
 import urllib.parse
@@ -898,6 +899,14 @@ def main(argv=None):
         return empty_recycle_bin(argv)
     if "--delete-permanently" in argv[1:]:
         return delete_permanently(argv)
+    if "--recycle" in argv[1:]:
+        return recycle(argv)
+    if "--remove" in argv[1:]:
+        return remove_items(argv)
+    if "--run" in argv[1:]:
+        return run_program(argv)
+    if "--question" in argv[1:]:
+        return question(argv)
     if "--transfer" in argv[1:]:
         from . import transferwindow
         return transferwindow.run(argv, prepare_application, EmptyBinBackend)
@@ -956,6 +965,15 @@ class EmptyBinBackend(QObject):
     def text(self, key):
         return strings.text(self.lang, key)
 
+    # The buttons: Yes / No here, other questions name them (QuestionBackend).
+    @Property(str, constant=True)
+    def yesLabel(self):
+        return strings.text(self.lang, "yes")
+
+    @Property(str, constant=True)
+    def noLabel(self):
+        return strings.text(self.lang, "no")
+
     @Property(bool, constant=True)
     def darkMode(self):
         return Backend.read_dark_mode()
@@ -1009,6 +1027,155 @@ def delete_permanently(argv):
     code = app.exec()
     del engine
     return code
+
+
+class QuestionBackend(EmptyBinBackend):
+    """EmptyBin.qml for File Explorer's other questions and reports (the
+    Recycle Bin that cannot take an item, deleting that failed, the
+    security question before a program from elsewhere runs): its own
+    heading, text and button labels; no second button for a report."""
+
+    def __init__(self, heading, question, yes, no="", lang=None, parent=None):
+        super().__init__(lang=lang, parent=parent)
+        self._heading, self._question, self._yes, self._no = heading, question, yes, no
+        self.answered_yes = False
+
+    @Property(str, constant=True)
+    def heading(self):
+        return self._heading
+
+    @Property(str, constant=True)
+    def question(self):
+        return self._question
+
+    @Property(str, constant=True)
+    def yesLabel(self):
+        return self._yes
+
+    @Property(str, constant=True)
+    def noLabel(self):
+        return self._no
+
+    @Slot()
+    def confirm(self):
+        self.answered_yes = True
+
+
+def ask(app, backend):
+    """Show EmptyBin.qml for `backend`; True when its first button was chosen."""
+    # The title bar shows the heading alone (Qt adds the program's display
+    # name to a different title: "Couldn't delete — Delete File").
+    app.setApplicationDisplayName(backend.heading)
+    engine = QQmlApplicationEngine()
+    engine.rootContext().setContextProperty("backend", backend)
+    engine.load(QUrl.fromLocalFile(str(QML_DIR / "EmptyBin.qml")))
+    if not engine.rootObjects():
+        return False
+    app.exec()
+    del engine
+    return getattr(backend, "answered_yes", False)
+
+
+def report_problems(app, lang, problems):
+    """Deleting failed for some items: Windows 11's notice with OK."""
+    name = os.path.basename(problems[0][0].rstrip("/")) or problems[0][0]
+    if len(problems) == 1:
+        text = strings.text(lang, "remove_failed_one", name=name, reason=problems[0][1])
+    else:
+        text = strings.text(lang, "remove_failed", count=len(problems), name=name, reason=problems[0][1])
+    ask(app, QuestionBackend(strings.text(lang, "remove_failed_heading"), text, strings.text(lang, "ok"), lang=lang))
+
+
+def recycle(argv):
+    """`veltos-explorer --recycle PATH...`: move to the Recycle Bin; what
+    cannot go there (a read-only drive, one without a trash folder) is
+    offered for deleting for good, as Windows 11 asks."""
+    from . import removal
+    paths = [a for a in argv[1:] if a != "--recycle" and os.path.lexists(a)]
+    failed = removal.trash(paths)
+    if not failed:
+        return 0
+    app = prepare_application([argv[0]], "veltos-explorer", "delete_file")
+    lang = strings.language()
+    if len(failed) == 1:
+        heading = strings.text(lang, "delete_file")
+        question = strings.text(lang, "recycle_failed_one", name=os.path.basename(failed[0].rstrip("/")))
+    else:
+        heading = strings.text(lang, "delete_items")
+        question = strings.text(lang, "recycle_failed", count=len(failed))
+    if not ask(app, QuestionBackend(heading, question, strings.text(lang, "yes"), strings.text(lang, "no"),
+                                    lang=lang)):
+        return 0
+    problems = removal.remove(failed)
+    if problems:
+        report_problems(app, lang, problems)
+    return 0
+
+
+def remove_items(argv):
+    """`veltos-explorer --remove PATH...`: delete for good (the question was
+    asked already); problems in File Explorer's own window."""
+    from . import removal
+    paths = [a for a in argv[1:] if a != "--remove" and os.path.lexists(a)]
+    problems = removal.remove(paths)
+    if problems:
+        app = prepare_application([argv[0]], "veltos-explorer", "remove_failed_heading")
+        report_problems(app, strings.language(), problems)
+    return 0
+
+
+def run_program(argv):
+    """`veltos-explorer --run PATH`: a launcher or Linux program; one from
+    an untrusted place asks Windows 11's "Open File - Security Warning"
+    first (runprogram.py)."""
+    from . import runprogram
+    index = argv.index("--run")
+    path = argv[index + 1] if len(argv) > index + 1 else ""
+    if not os.path.isfile(path):
+        return 1
+    if not runprogram.trusted(path):
+        app = prepare_application([argv[0]], "veltos-explorer", "security_warning")
+        lang = strings.language()
+        question = strings.text(lang, "security_question", name=runprogram.display_name(path, lang),
+                                folder=os.path.dirname(os.path.abspath(path)))
+        if not ask(app, QuestionBackend(strings.text(lang, "security_warning"), question,
+                                        strings.text(lang, "run"), strings.text(lang, "cancel"), lang=lang)):
+            return 0
+    return 0 if runprogram.start(path) else 1
+
+
+def portal_question(request, lang):
+    """The question window's backend for a portal request (portal.py):
+    a permission ("access") or the user's name and picture ("account")."""
+    app_label = request.get("app") or strings.text(lang, "share_info_program")
+    if request.get("kind") == "account":
+        user = request.get("user") or {}
+        text = strings.text(lang, "share_info_text", app=app_label, name=user.get("name", ""),
+                            user=user.get("id", ""))
+        if request.get("reason"):
+            text += "\n\n" + request["reason"]
+        return QuestionBackend(strings.text(lang, "share_info_heading"), text, strings.text(lang, "share"),
+                               strings.text(lang, "cancel"), lang=lang)
+    heading = request.get("heading") or strings.text(lang, "access_heading", app=app_label)
+    return QuestionBackend(heading, request.get("text") or "",
+                           request.get("yes") or strings.text(lang, "allow"),
+                           request.get("no") or strings.text(lang, "dont_allow"), lang=lang)
+
+
+def question(argv):
+    """`veltos-explorer --question` (JSON on standard input): a program's
+    request through the desktop portal in VeltOS' window instead of KDE's
+    (portal.py); prints "yes" when allowed."""
+    try:
+        request = json.loads(sys.stdin.read() or "{}")
+    except ValueError:
+        request = {}
+    if not isinstance(request, dict):
+        request = {}
+    app = prepare_application([argv[0]], "veltos-explorer", "app_title")
+    if ask(app, portal_question(request, strings.language())):
+        print("yes", flush=True)
+    return 0
 
 
 def icon_theme():

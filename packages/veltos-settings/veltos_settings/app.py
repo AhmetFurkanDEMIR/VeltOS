@@ -19,7 +19,8 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import accounts, apps, assistant, catalog, devices, hotspot, inputs, prefs, strings, sysinfo, taskbar
+from . import (accounts, apps, assistant, catalog, devices, hotspot, inputs, pointer, prefs, strings,
+               sysinfo, taskbar)
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 LOOK_AND_FEEL = {False: "org.veltos.light", True: "org.veltos.dark"}
@@ -55,6 +56,9 @@ gdbus call --session --dest org.kde.plasmashell --object-path /PlasmaShell \
     --method org.kde.PlasmaShell.evaluateScript "\"theme = '$2'\"" >/dev/null 2>&1
 # The Terminal follows the theme (veltos-desktop).
 [ -x /usr/libexec/veltos/terminal-theme ] && /usr/libexec/veltos/terminal-theme "$3"
+# So does the mouse pointer, unless the user chose a style of its own
+# (Accessibility > Mouse pointer, pointer.py).
+[ -x /usr/libexec/veltos/pointer-style ] && /usr/libexec/veltos/pointer-style follow "$3"
 true
 '''
 
@@ -263,6 +267,7 @@ class Backend(QObject):
         # one change's colour scheme could undo the other's accent, and the
         # taskbar once kept its old colours (product owner, 2026-10-23).
         self._appearance_lock = threading.Lock()
+        self._pointer_lock = threading.Lock()
         self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
                          "loaded": False, "scanning": False, "connecting": "", "failed": ""}
         self._default_location = {"set": False, "label": ""}
@@ -524,7 +529,9 @@ class Backend(QObject):
     @Slot(str)
     def openWindowsApp(self, shortcut):
         if shortcut:
-            self._start(["kioclient", "exec", shortcut])
+            # GLib starts the Start menu shortcut; kioclient reported problems
+            # in KDE windows with the Wayland "W" icon (2026-10-31).
+            self._start(["gio", "launch", shortcut])
 
     @Slot(str, result=bool)
     def renamePc(self, name):
@@ -1034,6 +1041,7 @@ class Backend(QObject):
             state = tools.state()
             state["formatOptions"] = [{"value": name, "label": format_label(name)}
                                       for name in tools.available_formats()]
+            state.update(pointer.state())
             return state
         self.jobs.submit(work, self._merge("_prefs", self.prefsChanged))
 
@@ -1104,6 +1112,34 @@ class Backend(QObject):
     def setTextSize(self, percent):
         self._update("_prefs", self.prefsChanged, {"textSize": percent})
         self.jobs.submit(lambda: self.system.prefs.set_text_size(percent))
+
+    # Accessibility > Mouse pointer (pointer.py): Windows 11's pointer style
+    # and size; the "theme" style follows light/dark mode.
+    def _pointer(self, work):
+        def serial():
+            with self._pointer_lock:
+                return work()
+        self.jobs.submit(serial)
+
+    @Slot(str, str)
+    def setPointerStyle(self, style, colour):
+        if style not in pointer.STYLES:
+            return
+        values = {"pointerStyle": style}
+        if style == "custom" and re.fullmatch(r"#[0-9A-Fa-f]{6}", colour or ""):
+            values["pointerColour"] = colour.upper()
+        self._update("_prefs", self.prefsChanged, values)
+        step = self._prefs.get("pointerSize") or 1
+        size = pointer.SIZES[max(1, min(len(pointer.SIZES), int(step))) - 1]
+        dark = self._dark
+        self._pointer(lambda: pointer.set_choice(style, colour, size, dark))
+
+    @Slot(int)
+    def setPointerSize(self, step):
+        step = max(1, min(len(pointer.SIZES), int(step)))
+        self._update("_prefs", self.prefsChanged, {"pointerSize": step})
+        dark = self._dark
+        self._pointer(lambda: pointer.apply(pointer.load(), pointer.SIZES[step - 1], dark))
 
     @Slot(str)
     def setLanguage(self, code):
@@ -1267,6 +1303,11 @@ def main(argv=None):
         QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
         from . import btpair
         return btpair.main(app, argv)
+    if "--wifi-key" in argv:
+        # A network's key (asked by the VeltOS network agent).
+        QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
+        from . import wifikey
+        return wifikey.main(app, argv)
     try:  # Windows 11 scroll bars (veltos-desktop's org.veltos.controls)
         from veltos_controls import use as use_veltos_controls
         use_veltos_controls()

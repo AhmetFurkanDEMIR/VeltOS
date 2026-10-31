@@ -24,9 +24,10 @@ import time
 from pathlib import Path
 
 try:
-    from . import files
+    from . import files, removal
 except ImportError:  # pragma: no cover - run from the source tree
     import files
+    import removal
 
 CHUNK = 1 << 20
 REPLACE, SKIP = "replace", "skip"
@@ -187,6 +188,7 @@ class Transfer:
                 try:
                     os.rename(source, target)
                     self.done_items += 1
+                    removal.forget_trash_info(source)
                 except OSError as error:
                     self.errors.append((source, error.strerror or str(error)))
                 self._progress()
@@ -299,6 +301,7 @@ class Transfer:
                     shutil.rmtree(top)
                 else:
                     os.remove(top)
+                removal.forget_trash_info(top)
             except OSError as error:
                 self.errors.append((top, error.strerror or str(error)))
 

@@ -21,6 +21,7 @@ Package: veltos-explorer
 Architecture: all
 Depends: ${python3:Depends},
          kde-cli-tools,
+         libglib2.0-bin,
          python3-gi,
          python3-pyside6.qtdbus,
          python3-pyside6.qtqml,
@@ -46,6 +47,7 @@ Description: VeltOS File Explorer, a Windows 11 style file manager
  navigation pane with Home, pinned folders, This PC and the Recycle Bin,
  Details, Tiles and icon views, and a status bar.
  .
- Copying, moving and deleting use KDE's file engine (KIO): progress in the
- notification area, questions when a file already exists, the
- freedesktop.org trash. Folders open in File Explorer by default.
+ Copying and moving run in Windows 11's copy window (progress, "Replace or
+ Skip Files"), the Recycle Bin is the freedesktop.org trash (GLib's gio),
+ and every question is asked in a VeltOS window. Folders open in File
+ Explorer by default.

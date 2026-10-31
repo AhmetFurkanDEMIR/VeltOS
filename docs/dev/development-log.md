@@ -3,6 +3,61 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-10-31 — Items 106-107: no KDE windows with the "W" icon, the pointer follows the theme
+
+The product owner sent the list of 2026-10-27 again (items 90-101, all
+recorded as done on 2026-10-27/28 by the other session) with two items
+that had not been done.
+
+- Which windows (106): a KWin script in the live VM printed every new
+  window's app id (`out/vm/winlog.js`, `workspace.windowAdded`). The "W"
+  (Wayland's generic icon) windows were `kioclient`'s ("Warning — KIO
+  Client" for a launcher from Downloads, and KIO's errors); kded showed
+  plasma-nm's "Wi-Fi password dialog" after a wrong key (simulated access
+  point, `out/vm/wifisim.sh`) and a "No secrets were provided"
+  notification; the desktop portal's Account/Access dialogs had the KDE
+  logo.
+- File Explorer: `--recycle` (GLib's `gio trash`; what cannot be recycled
+  gets Windows 11's "permanently delete?"), `--remove` (Python; a
+  "Couldn't delete" window with the reason), `--run` (KDE's trust rule;
+  "Open File - Security Warning" for launchers and programs from
+  elsewhere, then `gio launch`), Windows programs straight to `veltos-run`;
+  items moved out of the bin drop their `.trashinfo`; the bin also lists
+  drives' own `.Trash-UID` folders. Photos, Settings, VeltOS AI and the
+  Windows program runner use `gio` instead of kioclient. The crash
+  notice keeps `kioclient exec` (KIO puts the restarted app in a scope of
+  its own, which survives the notice's service; only system launchers).
+- Wi-Fi: the VeltOS network agent (`veltos_settings/nmagent.py`, GLib,
+  autostart) answers NetworkManager's `GetSecrets` with Windows 11's
+  "Connect to a network" window (`--wifi-key`): WPA/WPA3 personal, WEP,
+  enterprise user name and password; `/etc/xdg/kded6rc` turns Plasma's
+  agent off (`autoload=false`; the applet only listens to its signals, so
+  nothing loads it on demand). NetworkManager's connectivity check is off
+  in Debian, so plasma-nm's captive-portal notice never fired anyway.
+- Portal: File Explorer's backend also serves Access and Account; their
+  questions use the same window (`--question`). Screen sharing keeps KDE's
+  chooser.
+- Pointer (107): upstream's `Fluent-cursors` is the dark pointer (#333333
+  body, white edge; read from its Xcursor files) and VeltOS used it in
+  both modes. The dark global theme now names `Fluent-dark-cursors`, and
+  the light/dark command runs `pointer-style follow` (Settings' "Colour
+  mode" style). Accessibility > Mouse pointer: White, Black, Custom
+  (recommended colours; the white pointer's body recoloured into
+  `~/.icons/VeltOS-pointer-RRGGBB-SIZE`) and the size. Found in the VM:
+  `plasma-apply-cursortheme` lists user themes only from `~/.icons` (one
+  in `~/.local/share/icons` was "not found"), ignores `--size` when the
+  theme does not change (VeltOS writes `cursorSize` and sends
+  KGlobalSettings CursorChanged, which KWin follows), and KWin drew 96 px
+  at the theme's largest size, 48: veltos-fluent-icons now draws the
+  cursors from the SVGs at 24-96 px (rsvg-convert, xcursorgen; +0.8 MB
+  package). QMP screenshots have no pointer; `spectacle -b -n -f -p`
+  includes it.
+- Tests: veltos-settings 198+ (pointer, network agent and key window in
+  English and Turkish), veltos-explorer (removal, run rules, drives'
+  trash, portal questions), veltos-fluent-icons (cursor configs); the
+  package builds pass. Not tried: a real enterprise (802.1X) network, WEP,
+  an untrusted Linux program, a USB stick's trash folder.
+
 ## 2026-10-28 — Items 102-105: MSI keyboard light, dark popup frames, list scroll bars
 
 The product owner's list of 2026-10-28.

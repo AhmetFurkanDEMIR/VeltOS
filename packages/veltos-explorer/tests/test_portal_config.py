@@ -18,6 +18,13 @@ class PortalConfigTests(unittest.TestCase):
         self.assertEqual(self.preferred["default"], "kde")
         self.assertEqual(self.preferred["org.freedesktop.impl.portal.FileChooser"], "veltos")
         self.assertEqual(self.preferred["org.freedesktop.impl.portal.AppChooser"], "veltos")
+        # Permissions and the user's information: VeltOS' question window
+        # instead of KDE's dialogs (2026-10-31).
+        self.assertEqual(self.preferred["org.freedesktop.impl.portal.Access"], "veltos")
+        self.assertEqual(self.preferred["org.freedesktop.impl.portal.Account"], "veltos")
+        portal = (CONF.parent / "veltos.portal").read_text(encoding="utf-8")
+        for name in ("FileChooser", "AppChooser", "Access", "Account"):
+            self.assertIn(f"org.freedesktop.impl.portal.{name};", portal)
 
     def test_no_gtk_backend_at_sign_in(self):
         # Without these the portal started the GTK backend as a fallback

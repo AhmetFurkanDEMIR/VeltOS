@@ -414,7 +414,7 @@ class SettingsWindowTests(unittest.TestCase):
                           ("devices", "keyboard"), ("personalization", "lockscreen"),
                           ("apps", "defaultapps"), ("apps", "startup"), ("accounts", "yourinfo"),
                           ("accounts", "signin"), ("accounts", "otherusers"), ("time", "region"),
-                          ("accessibility", "accessibility"), ("privacy", "searching"),
+                          ("accessibility", "accessibility"), ("accessibility", "pointer"), ("privacy", "searching"),
                           ("privacy", "location"),
                           ("personalization", "themes"), ("personalization", "taskbar")):
             self.show(page, sub)
@@ -424,6 +424,32 @@ class SettingsWindowTests(unittest.TestCase):
         self.app.processEvents()
         self.window.setProperty("query", "nothing matches this")
         self.app.processEvents()
+        self.assertEqual(self.problems(), [])
+
+    def test_mouse_pointer_style_and_size(self):
+        # Accessibility > Mouse pointer (product owner, 2026-10-31: the
+        # pointer's colour follows the theme; Windows 11's styles too).
+        from veltos_settings import pointer
+        calls = []
+        real_set, real_apply = pointer.set_choice, pointer.apply
+        pointer.set_choice = lambda *args: calls.append(("choice",) + args) or True
+        pointer.apply = lambda *args: calls.append(("apply",) + args) or True
+        self.addCleanup(setattr, pointer, "set_choice", real_set)
+        self.addCleanup(setattr, pointer, "apply", real_apply)
+        self.show("accessibility", "pointer")
+        prefs = self.backend.prefs
+        self.assertEqual(prefs["pointerStyle"], "theme")
+        self.assertEqual(prefs["pointerSizes"], len(pointer.SIZES))
+        self.backend.setPointerStyle("custom", "#ff8c00")
+        self.app.processEvents()
+        self.assertEqual(self.backend.prefs["pointerColour"], "#FF8C00")
+        self.backend.setPointerSize(4)
+        self.app.processEvents()
+        self.assertEqual(calls[0][:4], ("choice", "custom", "#ff8c00", 24))
+        self.assertEqual(calls[1][2], 48)
+        self.backend.setPointerStyle("rainbow", "")
+        self.assertEqual(len(calls), 2)
+        self.show("personalization", "themes")
         self.assertEqual(self.problems(), [])
 
     def test_items_open_pages_and_actions(self):

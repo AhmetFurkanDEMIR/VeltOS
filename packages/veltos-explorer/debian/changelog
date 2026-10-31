@@ -1,3 +1,11 @@
+veltos-explorer (1.1.0~dev2) trixie; urgency=medium
+
+  * No KDE windows with the Wayland "W" icon: the Recycle Bin through GLib,
+    deleting in Python, Windows 11's questions and "Open File - Security
+    Warning" (--recycle, --remove, --run); drives' own trash folders.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 31 Oct 2026 12:00:00 +0000
+
 veltos-explorer (1.1.0~dev1) trixie; urgency=medium
 
   * Open with: "Choose an app on your PC", a --choose mode, the portal's AppChooser.

@@ -438,9 +438,10 @@ class Tab(QObject):
         if location not in SPECIAL and not query and os.path.isdir(location):
             self.watcher.addPath(location)
         elif location == TRASH:
-            files_dir = places.trash_dir() / "files"
-            if files_dir.is_dir():
-                self.watcher.addPath(str(files_dir))
+            # The home folder's trash and each drive's own (places.trash_dirs).
+            for folder, _top in places.trash_dirs():
+                if (folder / "files").is_dir():
+                    self.watcher.addPath(str(folder / "files"))
         self._view = self.backend.view_for(location)
         self.model.set_cut(self.backend.cut_paths_in(location))
         self._select_after = previous if previous and Path(previous).parent == Path(location) else ""

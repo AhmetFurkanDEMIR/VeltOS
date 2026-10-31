@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Connect to a network
+Name[tr]=Ağa bağlan
+Comment=Wi-Fi network key
+Comment[tr]=Wi-Fi ağ anahtarı
+Icon=network-wireless
+Exec=veltos-settings network
+NoDisplay=true

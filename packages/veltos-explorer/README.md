@@ -65,6 +65,13 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
 - `veltos-explorer --compress PATH...`: the desktop's "Compress to ZIP
   file", the same `.zip` Explorer makes (a free name next to the items,
   VeltOS Archive's progress window).
+- `veltos-explorer --question` (JSON on standard input): a program's
+  request through the desktop portal for a permission (Access: "Allow
+  Bottles to use the camera?") or the user's name and picture (Account),
+  in the same Windows 11 question window instead of KDE's portal dialogs
+  (`portal.py` serves both interfaces; `kde-portals.conf`). Screen
+  sharing keeps KDE's chooser: the stream comes from KWin through KDE's
+  backend.
 - `veltos-explorer --empty-recycle-bin` (`app.empty_recycle_bin`,
   `qml/EmptyBin.qml`): Windows 11's "permanently delete all items?"
   question in a small window of its own, then the bin is emptied; the
@@ -99,9 +106,22 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
 - **Recycle Bin** menus as on Windows 11 (product owner, 2026-10-22): an
   item's menu has Restore, Cut, Delete and Properties; the empty space's
   View, Sort, Refresh, Empty Recycle Bin and Restore all items. Items cut
-  in the Recycle Bin leave it through KIO's trash (`trash:/0-NAME`,
-  `ops.trash_url`), which also drops their `.trashinfo` (a plain move
-  left it behind).
+  in the Recycle Bin leave it in the copy window, which also drops their
+  `.trashinfo` (`removal.forget_trash_info`; a plain move left it behind).
+  The bin lists the home folder's trash and each mounted drive's own
+  (`.Trash-UID`, `places.trash_dirs`), where GLib puts items from that
+  drive.
+- **No KDE windows** (product owner, 2026-10-31): `kioclient` asked and
+  reported in KDE's own windows with the Wayland "W" icon ("Warning — KIO
+  Client"). File Explorer now moves items to the Recycle Bin with GLib's
+  `gio trash` (`veltos-explorer --recycle`; what cannot go there gets
+  Windows 11's "permanently delete?" question), deletes in Python
+  (`--remove`; problems in a "Couldn't delete" window), and starts
+  launchers and Linux programs itself (`--run`, `runprogram.py`): one from
+  an untrusted place (KDE's rule: not in an applications or autostart
+  folder and not executable) first asks Windows 11's "Open File - Security
+  Warning"; Windows programs go to `veltos-run`. The questions use
+  `EmptyBin.qml` (`app.QuestionBackend`).
 - **The desktop's system icons**: This PC, the Recycle Bin and the VeltOS
   Store on the desktop (`places.DESKTOP_SYSTEM_ICONS`) cannot be deleted,
   cut or renamed from File Explorer (a message says so) and their menu

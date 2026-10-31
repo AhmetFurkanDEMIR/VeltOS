@@ -1,3 +1,10 @@
+veltos-desktop (1.1.0~dev2) trixie; urgency=medium
+
+  * The dark global theme has the white pointer, the light one the dark pointer.
+  * Plasma's network agent (kded networkmanagement) off: VeltOS' asks for Wi-Fi keys.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 31 Oct 2026 12:00:00 +0000
+
 veltos-desktop (1.1.0~dev1) trixie; urgency=medium
 
   * Firefox's "Open with" > "Other…" opens File Explorer's window.

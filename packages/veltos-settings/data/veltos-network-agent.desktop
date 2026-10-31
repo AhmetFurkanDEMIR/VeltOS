@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=VeltOS network agent
+Name[tr]=VeltOS ağ aracısı
+Comment=Asks for Wi-Fi keys in VeltOS' window
+Comment[tr]=Wi-Fi anahtarlarını VeltOS penceresinde sorar
+Exec=/usr/libexec/veltos/network-agent
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=1

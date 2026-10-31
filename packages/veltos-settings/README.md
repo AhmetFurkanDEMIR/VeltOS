@@ -169,6 +169,23 @@ open VeltOS Settings.
   also gives the redirect its mode 0755 back.
 - Text boxes (search, `VTextField`) are in the Tab order and show the
   text (I-beam) pointer, like Windows' (product owner, 2026-10-22).
+- **Accessibility > Mouse pointer** (`pointer.py`, `qml/MousePointerPage.qml`,
+  product owner 2026-10-31): Windows 11's pointer style tiles and size
+  slider. "Colour mode" (the default) gives the dark pointer with a white
+  edge in light mode and the white one with a dark edge in dark mode; the
+  light/dark command (`app.APPLY_THEME`, also VeltOS AI's) runs
+  `/usr/libexec/veltos/pointer-style follow light|dark`. White and Black
+  stay; Custom recolours the white pointer's body (Xcursor files read and
+  written in Python) into a theme of the user's own in `~/.icons`
+  (`plasma-apply-cursortheme` finds user themes only there). Sizes 24-96
+  px (veltos-fluent-icons draws them).
+- **The VeltOS network agent** (`nmagent.py`, `/usr/libexec/veltos/network-agent`,
+  autostart): NetworkManager's requests for a Wi-Fi key (WPA/WPA3
+  personal, WEP) or an enterprise network's user name and password open
+  Windows 11's "Connect to a network" window (`wifikey.py`,
+  `qml/WifiKey.qml`; after a wrong key: "The network security key isn't
+  correct"), instead of KDE's "Wi-Fi password dialog"; veltos-desktop
+  turns Plasma's agent (kded `networkmanagement`) off.
 - English and Turkish. Search folds case, Turkish letters and punctuation
   ("hoparlor" finds "Hoparlör", "wifi" finds "Wi-Fi") and knows Windows
   words ("control panel", "notepad" style keywords).
@@ -195,6 +212,9 @@ open VeltOS Settings.
 | `veltos_settings/kscreen_osd.py` | Owns KScreen's `org.kde.kscreen.osdService` (drop-in for `plasma-kscreen-osd.service`): a new screen opens the Project flyout instead of KDE's chooser |
 | `veltos_settings/btagent.py` | The VeltOS Bluetooth agent (BlueZ `Agent1`, default agent, autostart `veltos-bt-agent`) |
 | `veltos_settings/btpair.py`, `qml/BluetoothPair.qml` | Windows 11's "Add a device" window for the agent's questions (`--bt-pair KIND NAME VALUE`) |
+| `veltos_settings/nmagent.py` | The VeltOS network agent (NetworkManager `SecretAgent`, autostart `veltos-network-agent`) |
+| `veltos_settings/wifikey.py`, `qml/WifiKey.qml` | Windows 11's "Connect to a network" window for the agent (`--wifi-key psk\|wep\|eap NAME [retry]`) |
+| `veltos_settings/pointer.py`, `qml/MousePointerPage.qml` | Accessibility > Mouse pointer: style, custom colour, size; follows light/dark mode |
 | `veltos_settings/qml/` | Window (`Main.qml`), pages and components, `Theme` singleton (colours) |
 | `bin/veltos-settings`, `data/veltos-settings.desktop` | Launcher ("Settings" / "Ayarlar") |
 

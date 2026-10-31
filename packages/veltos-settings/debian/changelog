@@ -1,3 +1,12 @@
+veltos-settings (1.1.0~dev2) trixie; urgency=medium
+
+  * Accessibility > Mouse pointer: Windows 11's pointer styles (colour mode,
+    white, black, custom colour) and size; the pointer follows light/dark mode.
+  * The VeltOS network agent: Wi-Fi keys in a Windows 11 window, not KDE's dialog.
+  * Windows programs open through GLib (gio launch), not kioclient.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 31 Oct 2026 12:00:00 +0000
+
 veltos-settings (1.1.0~dev1) trixie; urgency=medium
 
   * Display: one scale for every arrangement; a dragged display stays inside.

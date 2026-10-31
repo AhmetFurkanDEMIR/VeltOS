@@ -202,7 +202,9 @@ class ExplorerWindowTests(unittest.TestCase):
         self.assertEqual(self.backend.rename(str(new_folder), "Trip " + self.lang), "")
         tab.items.selectPath(str(self.home / "Documents" / "report.txt"))
         self.call("runAction", "delete", None)
-        self.assertEqual(self.started[-1][-1], "trash:/")
+        # The Recycle Bin through File Explorer's own helper, not kioclient.
+        self.assertEqual(self.started[-1], ["veltos-explorer", "--recycle",
+                                            str(self.home / "Documents" / "report.txt")])
         self.call("itemMenu", None, 10, 10)        # null: at the window
         self.call("backgroundMenu", None, 10, 10)
         tab.search("rep")

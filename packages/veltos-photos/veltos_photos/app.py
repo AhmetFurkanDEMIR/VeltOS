@@ -616,8 +616,9 @@ class Backend(QObject):
 
     @Slot(str, result=bool)
     def deleteFile(self, path):
-        ok = run(["kioclient", "move", QUrl.fromLocalFile(path).toString(), "trash:/"]) \
-            or run(["gio", "trash", path])
+        # The Recycle Bin through GLib (the freedesktop.org trash KIO uses
+        # too); kioclient showed its errors in KDE windows (2026-10-31).
+        ok = run(["gio", "trash", "--", path])
         if ok:
             favorites = [f for f in self.favorites if f != path]
             self._save("favorites", favorites)

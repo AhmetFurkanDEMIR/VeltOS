@@ -14,6 +14,13 @@ request opens `veltos-explorer --open-with --choose` (Windows 11's "Select
 an app to open this file", openwith.py) and answers with the app chosen;
 the portal then opens the file with it.
 
+And the Access and Account backends: a program's request for a permission
+("Allow Bottles to use the camera?") and for the user's name and picture
+are asked in VeltOS' Windows 11 question window (`--question`, app.py)
+instead of KDE's portal dialogs with the KDE logo (product owner,
+2026-10-31). Screen sharing keeps KDE's chooser: it makes the screen's
+stream through KWin.
+
     veltos-explorer --portal      (D-Bus activation of
                                    org.freedesktop.impl.portal.desktop.veltos)
 
@@ -32,6 +39,8 @@ BUS_NAME = "org.freedesktop.impl.portal.desktop.veltos"
 OBJECT_PATH = "/org/freedesktop/portal/desktop"
 IFACE = "org.freedesktop.impl.portal.FileChooser"
 APP_IFACE = "org.freedesktop.impl.portal.AppChooser"
+ACCESS_IFACE = "org.freedesktop.impl.portal.Access"
+ACCOUNT_IFACE = "org.freedesktop.impl.portal.Account"
 REQUEST_IFACE = "org.freedesktop.impl.portal.Request"
 VERSION = 4
 # Portal response codes.
@@ -84,6 +93,30 @@ NODE_XML = f"""
     <method name="UpdateChoices">
       <arg type="o" name="handle" direction="in"/>
       <arg type="as" name="choices" direction="in"/>
+    </method>
+  </interface>
+  <interface name="{ACCESS_IFACE}">
+    <method name="AccessDialog">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="title" direction="in"/>
+      <arg type="s" name="subtitle" direction="in"/>
+      <arg type="s" name="body" direction="in"/>
+      <arg type="a{{sv}}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{{sv}}" name="results" direction="out"/>
+    </method>
+  </interface>
+  <interface name="{ACCOUNT_IFACE}">
+    <property name="version" type="u" access="read"/>
+    <method name="GetUserInformation">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="window" direction="in"/>
+      <arg type="a{{sv}}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{{sv}}" name="results" direction="out"/>
     </method>
   </interface>
 </node>
@@ -226,6 +259,75 @@ def session_environment(runner=subprocess.run, environ=None):
     return env
 
 
+def question_command():
+    return [sys.executable, "-m", "veltos_explorer", "--question"]
+
+
+def app_name(app_id, data_dirs=None, lang=None):
+    """A program's name for a portal request (its desktop file's Name in
+    the session's language), else its id; "" for programs not in a sandbox."""
+    if not app_id:
+        return ""
+    if data_dirs is None:
+        home = os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")
+        system = (os.environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share").split(":")
+        data_dirs = [home, *system, "/var/lib/flatpak/exports/share"]
+    if lang is None:
+        lang = (os.environ.get("LANGUAGE") or os.environ.get("LANG") or "en").split(":")[0][:2]
+    for folder in data_dirs:
+        path = os.path.join(folder, "applications", app_id + ".desktop")
+        try:
+            with open(path, encoding="utf-8") as handle:
+                lines = handle.read().splitlines()
+        except OSError:
+            continue
+        names = {}
+        for line in lines:
+            if line.startswith("[") and line.strip() != "[Desktop Entry]":
+                break                          # Desktop actions have names too
+            key, sep, value = line.partition("=")
+            if sep and key.strip().startswith("Name"):
+                names.setdefault(key.strip(), value.strip())
+        return names.get(f"Name[{lang}]") or names.get("Name") or app_id
+    return app_id
+
+
+def access_question(app_id, _parent_window, title, subtitle, body, options):
+    """The question window's request for an Access dialog: the program's
+    own title and text, its button labels when it gives them."""
+    text = "\n\n".join(part for part in (str(subtitle), str(body)) if part)
+    return {"kind": "access", "heading": str(title) or app_name(app_id), "text": text,
+            "app": app_name(app_id), "yes": str(options.get("grant_label") or ""),
+            "no": str(options.get("deny_label") or "")}
+
+
+def account_question(app_id, options):
+    return {"kind": "account", "app": app_name(app_id), "reason": str(options.get("reason") or ""),
+            "user": user_information()}
+
+
+def user_information():
+    """The user's id, full name and picture (AccountsService's ~/.face)."""
+    try:
+        import pwd
+        entry = pwd.getpwuid(os.getuid())
+        user, full = entry.pw_name, entry.pw_gecos.split(",")[0]
+    except (ImportError, KeyError, AttributeError):
+        user, full = os.environ.get("USER", ""), ""
+    picture = os.path.expanduser("~/.face")
+    return {"id": user, "name": full or user,
+            "image": ("file://" + picture) if os.path.isfile(picture) else ""}
+
+
+def question_results(iface, answer):
+    """(response, results) for the question window's answer ("yes" or not)."""
+    if answer != "yes":
+        return CANCELLED, {}
+    if iface == ACCOUNT_IFACE:
+        return SUCCESS, user_information()
+    return SUCCESS, {}
+
+
 # A second, identical request from the same window within this time joins
 # the first dialog instead of opening another (LibreOffice's Qt file
 # picker asks twice for one Ctrl+O: two dialogs appeared, VM 2026-10-21).
@@ -266,12 +368,16 @@ class Service:
 
     def get_property(self, _connection, _sender, _path, iface, name):
         if name == "version":
+            if iface == ACCOUNT_IFACE:
+                return self.GLib.Variant("u", 1)
             return self.GLib.Variant("u", APP_VERSION if iface == APP_IFACE else VERSION)
         return None
 
     def handle_call(self, connection, sender, path, iface, method, parameters, invocation):
         if iface == APP_IFACE:
             return self.handle_app_call(method, parameters, invocation)
+        if iface in (ACCESS_IFACE, ACCOUNT_IFACE):
+            return self.handle_question(iface, parameters, invocation)
         self.last_activity = time.monotonic()
         handle, _app_id, parent_window, title, options = parameters.unpack()
         request = to_request(method, title, options)
@@ -382,6 +488,45 @@ class Service:
             if process.poll() is None:
                 process.terminate()
         invocation.return_value(None)
+
+    # --- Access and Account: VeltOS' question window --------------------------------------
+
+    def handle_question(self, iface, parameters, invocation):
+        self.last_activity = time.monotonic()
+        args = parameters.unpack()
+        handle = args[0]
+        if iface == ACCESS_IFACE:
+            request = access_question(*args[1:])
+        else:
+            request = account_question(args[1], args[3])
+        try:
+            process = subprocess.Popen(question_command(), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                       stderr=subprocess.DEVNULL, text=True, env=session_environment())
+            process.stdin.write(json.dumps(request))
+            process.stdin.close()
+        except OSError:
+            invocation.return_value(self.GLib.Variant("(ua{sv})", (OTHER, {})))
+            return
+        registration = self.connection.register_object(
+            handle, self.request_node.interfaces[0],
+            lambda *a: self.close_chooser(handle, *a), None, None)
+        self.choosers[handle] = (process, invocation, registration)
+        self.GLib.child_watch_add(self.GLib.PRIORITY_DEFAULT, process.pid,
+                                  lambda _pid, _status: self.question_finished(handle, iface))
+
+    def question_finished(self, handle, iface):
+        item = self.choosers.pop(handle, None)
+        if item is None:
+            return
+        process, invocation, registration = item
+        answer = (process.stdout.read() or "").strip()
+        process.wait()
+        code, results = question_results(iface, answer)
+        variants = {key: self.GLib.Variant("s", value) for key, value in results.items()}
+        invocation.return_value(self.GLib.Variant("(ua{sv})", (code, variants)))
+        if registration:
+            self.connection.unregister_object(registration)
+        self.last_activity = time.monotonic()
 
     def idle_check(self):
         if not self.dialogs and not self.choosers and time.monotonic() - self.last_activity > IDLE_SECONDS:

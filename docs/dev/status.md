@@ -1,7 +1,7 @@
 # VeltOS Status
 
-Last updated: 2026-10-27 (VeltOS 1.0, items 78-89 and release steps F1,
-F2, F7). Every "Implemented" item names the evidence that shows it working.
+Last updated: 2026-10-31 (items 106-107: no KDE windows with the "W"
+icon, the pointer follows the theme; VeltOS 1.0 released 2026-10-27). Every "Implemented" item names the evidence that shows it working.
 "Untested" means nobody has observed it working yet. Most observations are
 from QEMU/KVM virtual machines (no 3D acceleration) and VirtualBox VMs; the
 product owner installed VeltOS on their own laptop (NVIDIA RTX 4070 Max-Q)
@@ -240,6 +240,11 @@ Product owner, 2026-10-28:
 104. [x] Dark mode: a white frame around Start, search, the clock/calendar, Quick Settings and tooltips. Cause: Fluent's see-through popup frame (used when KWin can blur, so on real graphics cards, not in the VM by default) draws a 12 % white line at its edge; VeltOS-Dark makes it a dark edge (tools/fluent.py `dark_popup_rim`). Dev VM with blur loaded: the edge pixel was 135,141,161 against a 60,62,68 popup, now 77,83,98
 105. [x] Quick Settings' Wi-Fi and Bluetooth (and Power) lists: the scroll bar lay over the rows; it now runs in the page's right margin, the rows keep its room. Dev VM, ten simulated networks: rows end at x 1881, the bar at 1892-1897
 
+Product owner, 2026-10-31 (the list of 2026-10-27 again, items 90-101 above, with two items that were not done):
+
+106. [x] Old system windows: every Debian/KDE window that opened with the Wayland "W" icon replaced by VeltOS' Windows 11 windows. Found in the live VM with a KWin script logging every new window: `kioclient` (File Explorer's Recycle Bin, delete and program start; "Warning — KIO Client", W icon), kded's Wi-Fi password dialog and "No secrets were provided" notification (plasma-nm, KDE logo), the portal's Access and Account dialogs (KDE logo). Now: File Explorer's own `--recycle` (GLib's `gio trash`, drives' own trash folders shown in the bin), `--remove` and `--run` with Windows 11's questions ("Open File - Security Warning", "permanently delete?", "Couldn't delete"); Photos, Settings, VeltOS AI and the Windows program runner without kioclient; the VeltOS network agent (`nmagent.py`) with "Connect to a network" ("The network security key isn't correct"), kded's networkmanagement module off; Access and Account in File Explorer's portal backend. Dev VM: each window seen, a wrong then right Wi-Fi key connected (simulated access point), the launcher ran after Run, the portal got "granted". Still KDE's: the screen-sharing chooser (KDE's backend makes the stream through KWin) and the crash notice's restart through `kioclient exec` (system launchers only, no question)
+107. [x] The pointer's colour follows the theme, in Windows 11's way: dark pointer with a white edge in light mode, white with a dark edge in dark mode (before: the dark one in both, hard to see on dark windows), switched with light/dark mode (Settings, VeltOS AI); Settings > Accessibility > Mouse pointer with Windows 11's style tiles (Colour mode, White, Black, Custom with recommended colours) and a size slider (24-96 px, drawn from Fluent's SVGs). Dev VM: dark mode turned the pointer white, Custom orange applied at once (spectacle with the pointer), size 48/96 applied
+
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
 SHA-256, website download and pictures updated) only when the owner says
@@ -387,7 +392,7 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 
 ## Next steps
 
-0. Items 90-105 are done; the owner tests the ISO by hand. Still to see
+0. Items 90-107 are done; the owner tests the ISO by hand. Still to see
    on real hardware: item 102 (an MSI laptop) and item 103 (the taskbar on
    a first start after installation on the owner's laptop).
    Still to check on real hardware or a full installation: NVIDIA

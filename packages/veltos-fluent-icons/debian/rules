@@ -25,9 +25,12 @@ override_dh_auto_install:
 	# Fall back to Breeze (not only hicolor) for icons Fluent lacks.
 	sed -i 's/^Inherits=.*/Inherits=breeze-dark,hicolor/' $(ICONS)/Fluent-dark/index.theme
 	sed -i 's/^Inherits=.*/Inherits=breeze,hicolor/' $(ICONS)/Fluent/index.theme $(ICONS)/Fluent-light/index.theme
-	# Fluent cursors (Windows 11 style), prebuilt by upstream.
-	cp -a upstream/cursors/dist $(ICONS)/Fluent-cursors
-	cp -a upstream/cursors/dist-dark $(ICONS)/Fluent-dark-cursors
+	# Fluent cursors (Windows 11 style) drawn from upstream's SVGs at
+	# 24-96 px (tools/cursors.py; upstream's prebuilt themes stop at 48):
+	# "Fluent-cursors" is the dark pointer with a white edge (light mode),
+	# "Fluent-dark-cursors" the white pointer with a dark edge (dark mode).
+	python3 tools/cursors.py upstream/cursors/src $(ICONS)/Fluent-cursors svg 		upstream/cursors/dist/index.theme
+	python3 tools/cursors.py upstream/cursors/src $(ICONS)/Fluent-dark-cursors svg-white 		upstream/cursors/dist-dark/index.theme
 	# Target of the x-cursor-theme alternative (see the postinst).
 	printf '[Icon Theme]\nInherits=Fluent-cursors\n' > $(ICONS)/Fluent-cursors/cursor.theme
 	# Branding: the "start here"/distributor icons show the VeltOS logo, and
@@ -151,6 +154,9 @@ execute_after_dh_auto_install:
 	test -z "$$(find -L $(ICONS) -path '*/apps/*' -name 'firefox-esr.svg')"
 	test -f $(ICONS)/Fluent-cursors/index.theme
 	test -e $(ICONS)/Fluent-cursors/cursors/default
+	test -e $(ICONS)/Fluent-dark-cursors/cursors/left_ptr
+	python3 tests/xcursor_sizes.py $(ICONS)/Fluent-cursors/cursors/default 24 30 36 48 60 72 96
+	python3 tests/xcursor_sizes.py $(ICONS)/Fluent-dark-cursors/cursors/wait 24 30 36 48 60 72 96
 	grep -qx 'Inherits=Fluent-cursors' $(ICONS)/Fluent-cursors/cursor.theme
 	for f in $$(find -L $(ICONS)/Fluent-dark -name 'start-here.svg'); do cmp -s $$f branding/veltos-logo.svg || exit 1; done
 	test -z "$$(find -L $(ICONS) -name 'wine.svg')"

@@ -88,6 +88,15 @@ checksum in `upstream.json`, rebuild, and look at the result in the VM.
   priority 110 over Debian's Adwaita at 90; `Fluent-cursors/cursor.theme`),
   so programs that do not read the desktop's cursor setting (some X11
   programs, programs started as root) show the same pointer.
+- **Cursor themes drawn from upstream's SVGs** (`tools/cursors.py`,
+  2026-10-31): `Fluent-cursors` is the dark pointer with a white edge
+  (the light desktop's), `Fluent-dark-cursors` the white pointer with a
+  dark edge (the dark desktop's). Upstream ships them prebuilt at 24-48
+  px; KWin draws a larger size at the largest one a theme has, so VeltOS
+  draws every cursor again with rsvg-convert at 24, 30, 36, 48, 60, 72
+  and 96 px (the 32-unit drawings at 4/3 of the size, as upstream's
+  build.sh does with Inkscape) and packs them with xcursorgen, for
+  VeltOS Settings' pointer size slider.
 
 - **Symbolic icons in dark mode** (2026-10-26): VeltOS' own line icons
   (`branding/*-symbolic.svg`) use KDE's `current-color-scheme` style

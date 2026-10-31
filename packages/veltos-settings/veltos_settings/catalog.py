@@ -20,8 +20,8 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
                  "wifi", "background", "colours", "datetime", "notifications", "power",
                  "nightlight", "multitasking", "mouse", "touchpad", "keyboard", "lockscreen",
                  "defaultapps", "startup", "yourinfo", "signin", "otherusers", "region",
-                 "accessibility", "searching", "themes", "taskbar", "location", "hotspot",
-                 "veltosai")
+                 "accessibility", "pointer", "searching", "themes", "taskbar", "location",
+                 "hotspot", "veltosai")
 # Actions the backend knows (app.Backend.runAction).
 ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website", "graphics", "lighting")
 
@@ -193,6 +193,10 @@ PAGES = [
          "title": ("Visual effects", "Görsel efektler"),
          "desc": ("Animation effects", "Animasyon efektleri"),
          "keywords": "animation motion animasyon hareket"},
+        {"id": "pointer", "icon": "input-mouse-symbolic", "page": "pointer",
+         "title": ("Mouse pointer", "Fare işaretçisi"),
+         "desc": ("Pointer colour and size", "İşaretçi rengi ve boyutu"),
+         "keywords": "mouse pointer cursor colour color size white black fare işaretçi imleç renk boyut beyaz siyah"},
     ]},
     {"id": "privacy", "icon": "preferences-system-privacy-symbolic", "title": ("Privacy & security", "Gizlilik ve güvenlik"), "items": [
         {"id": "location", "icon": "preferences-system-privacy-symbolic", "page": "location",
@@ -237,7 +241,7 @@ KCM_PAGES = {
     "kcm_fonts": "accessibility", "kcm_baloofile": "searching", "kcm_storage": "storage",
     # KDE's look modules: Windows keeps all of it under Personalization.
     "kcm_style": "colours", "kcm_icons": "colours", "kcm_desktoptheme": "themes",
-    "kcm_kwindecoration": "colours", "kcm_cursortheme": "mouse", "kcm_splashscreen": "colours",
+    "kcm_kwindecoration": "colours", "kcm_cursortheme": "pointer", "kcm_splashscreen": "colours",
     "kcm_sddm": "lockscreen", "kcm_kwin_effects": "accessibility", "kcm_animations": "accessibility",
     "kcm_kwinoptions": "multitasking", "kcm_kwintabbox": "multitasking", "kcm_activities": "multitasking",
     "kcm_keys": "keyboard", "kcm_kded": "startup", "kcm_smserver": "power",

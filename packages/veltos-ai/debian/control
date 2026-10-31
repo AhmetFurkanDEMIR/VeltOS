@@ -19,6 +19,7 @@ Rules-Requires-Root: no
 Package: veltos-ai
 Architecture: all
 Depends: ${python3:Depends},
+         libglib2.0-bin,
          python3-pyside6.qtnetwork,
          python3-pyside6.qtqml,
          python3-pyside6.qtquick,
