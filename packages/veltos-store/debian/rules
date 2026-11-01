@@ -21,11 +21,17 @@ override_dh_auto_install:
 	install -D -m 755 bin/first-update debian/veltos-store/usr/libexec/veltos/first-update
 	install -D -m 644 data/veltos-first-start.desktop \
 		debian/veltos-store/etc/xdg/autostart/veltos-first-start.desktop
+	install -D -m 644 data/veltos-welcome.desktop \
+		debian/veltos-store/usr/share/applications/veltos-welcome.desktop
+	# Package installs that never stop to ask (confold, waiting for the lock).
+	install -D -m 644 data/50veltos-packages debian/veltos-store/etc/apt/apt.conf.d/50veltos-packages
 
 # Enabled for the first start of an installed system; never started while
 # the package is installed (the image build, updates).
 override_dh_installsystemd:
 	dh_installsystemd --name=veltos-first-update --no-start
+	# Finishes installations dpkg left half done (only when it did).
+	dh_installsystemd --name=veltos-package-repair --no-start
 
 override_dh_auto_test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

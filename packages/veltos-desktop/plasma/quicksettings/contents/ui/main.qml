@@ -420,6 +420,11 @@ PlasmoidItem {
             property bool active: false
             property bool available: true
             property bool hasMore: false
+            // Windows 11's tiles: white with a hairline edge in light mode, a
+            // faint white in dark mode, the accent when on; grey boxes looked
+            // switched off (product owner, 2026-11-01).
+            readonly property bool darkTheme: Kirigami.ColorUtils.brightnessForColor(
+                Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
             signal toggled()
             signal more()
 
@@ -433,10 +438,13 @@ PlasmoidItem {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2.6
                 radius: Kirigami.Units.cornerRadius + 2
-                color: tile.active ? Kirigami.Theme.highlightColor
-                                   : Qt.alpha(Kirigami.Theme.textColor, mainArea.containsMouse ? 0.12 : 0.07)
+                color: tile.active ? (mainArea.containsMouse ? Qt.lighter(Kirigami.Theme.highlightColor, 1.08)
+                                                             : Kirigami.Theme.highlightColor)
+                     : tile.darkTheme ? Qt.rgba(1, 1, 1, mainArea.containsMouse ? 0.12 : 0.07)
+                     : (mainArea.containsMouse ? "#F6F8FC" : "#FFFFFF")
                 border.width: tile.active ? 0 : 1
-                border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
+                border.color: tile.darkTheme ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.09)
+                Behavior on color { ColorAnimation { duration: Kirigami.Units.shortDuration } }
                 Accessible.role: Accessible.CheckBox
                 Accessible.name: tile.label
                 Accessible.checked: tile.active
@@ -639,12 +647,20 @@ PlasmoidItem {
             }
         }
 
-        // Footer: battery on the left, Settings on the right.
+        // Footer: battery on the left, Settings on the right, under a
+        // hairline instead of on a grey band.
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
-            color: Qt.alpha(Kirigami.Theme.textColor, 0.04)
+            color: "transparent"
             radius: Kirigami.Units.cornerRadius
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                height: 1
+                color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
+            }
 
             RowLayout {
                 anchors.fill: parent

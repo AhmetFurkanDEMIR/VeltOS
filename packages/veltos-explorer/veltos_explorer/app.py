@@ -15,7 +15,7 @@ from PySide6.QtGui import QGuiApplication, QIcon, QRegion
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import files, models, ops, places, strings, thumbnails
+from . import files, models, ops, places, strings, themewatch, thumbnails
 from .models import HOME, SPECIAL, THIS_PC, TRASH, Jobs, MimeTypes, Tab
 
 try:  # blank Word / Excel / PowerPoint documents (veltos-office)
@@ -95,6 +95,7 @@ class Backend(QObject):
             else:
                 self._tabs.append(Tab(self, path, self))
         self._dark = self.read_dark_mode()
+        self._accent = self.read_accent_color()
         self._text_scale = self.read_text_scale()
         # kdeglobals is replaced (not edited) when it changes: watch its folder.
         self.config_watcher = QFileSystemWatcher(self)
@@ -159,7 +160,13 @@ class Backend(QObject):
         if self.picker is not None:
             self.picker.chosen([path])
             return
-        if not self.appsFor(path):
+        # Windows programs go to VeltOS' Windows program runner and programs
+        # to the security question (ops.open) whatever the app list says:
+        # the runner's entry is hidden from Start, so the list had nothing
+        # and .exe/.msi files opened "Select an app" (product owner,
+        # 2026-11-01: only Firefox started an installation).
+        windows_or_program = str(path).lower().endswith(ops.WINDOWS_PROGRAMS) or ops.is_program(path)
+        if not windows_or_program and not self.appsFor(path):
             self.chooseApp(path)
             return
         self.ops.open(path)
@@ -485,7 +492,7 @@ class Backend(QObject):
 
     @Property(str, notify=settingsChanged)
     def accentColor(self):
-        return self.read_accent_color()
+        return self._accent
 
     @Property(float, notify=settingsChanged)
     def textScale(self):
@@ -494,11 +501,11 @@ class Backend(QObject):
         return self._text_scale
 
     def _config_changed(self, _path=""):
-        """Follow a switch between light and dark mode, or a new text size,
-        while open."""
-        dark, scale = self.read_dark_mode(), self.read_text_scale()
-        if dark != self._dark or scale != self._text_scale:
-            self._dark, self._text_scale = dark, scale
+        """Follow a switch between light and dark mode, a new accent colour
+        or a new text size, while open."""
+        dark, accent, scale = self.read_dark_mode(), self.read_accent_color(), self.read_text_scale()
+        if (dark, accent, scale) != (self._dark, self._accent, self._text_scale):
+            self._dark, self._accent, self._text_scale = dark, accent, scale
             self.settingsChanged.emit()
 
     @staticmethod
@@ -934,8 +941,12 @@ class EmptyBinBackend(QObject):
     asks Windows 11's "Delete File" question for them (the desktop's
     Shift+Delete) and Yes deletes them for good."""
 
+    lookChanged = Signal()
+
     def __init__(self, lang=None, operations=None, paths=None, parent=None):
         super().__init__(parent)
+        self._look = themewatch.ThemeWatch(lambda: (Backend.read_dark_mode(), Backend.read_accent_color()), self)
+        self._look.changed.connect(self.lookChanged)
         self.lang = lang or strings.language()
         self.operations = operations or ops.Operations()
         self.paths = list(paths or [])
@@ -974,13 +985,15 @@ class EmptyBinBackend(QObject):
     def noLabel(self):
         return strings.text(self.lang, "no")
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return Backend.read_dark_mode()
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accentColor(self):
-        return Backend.read_accent_color()
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):

@@ -13,6 +13,17 @@ process, which checks the password through polkit's setuid helper
 (polkit-agent-helper-1) and tells polkit the result; the agent then
 answers the call. Only GLib and GDBus are used here (python3-gi); the
 window is Qt (PySide6) in the other process.
+
+VeltOS AI asks once (product owner, 2026-11-01: "once it asked for the
+password, not again for ten minutes"): after the user gave the password
+for a request of VeltOS AI, the agent keeps it in memory for ten minutes
+and answers VeltOS AI's next requests itself through polkit's helper, but
+only for actions polkit would keep an answer for anyway (implicit
+authorization auth_admin_keep or auth_self_keep: installing and removing
+apps, updates). Actions that ask every time (pkexec's commands, user
+accounts) still ask. Other programs' requests never use it. The password
+is in this process's memory only, dropped after ten minutes or a wrong
+answer; polkit itself keeps such answers for five minutes per process.
 """
 
 import json
@@ -20,8 +31,10 @@ import os
 import signal
 import subprocess
 import sys
+import threading
+import time
 
-from . import users
+from . import helper, users
 
 AUTHORITY = "org.freedesktop.PolicyKit1"
 AUTHORITY_PATH = "/org/freedesktop/PolicyKit1/Authority"
@@ -101,6 +114,54 @@ def dialog_command():
     return [sys.executable, "-m", "veltos_auth.dialog"]
 
 
+REMEMBER_SECONDS = 10 * 60
+# polkit's implicit authorizations that keep an answer (PolkitImplicitAuthorization).
+KEEP = (3, 4)          # authentication-required-retained, administrator-authentication-required-retained
+
+
+def from_veltos_ai(pid, proc="/proc"):
+    """Whether the process or one of its parents is VeltOS AI."""
+    seen = 0
+    while pid and pid > 1 and seen < 32:
+        try:
+            with open(f"{proc}/{pid}/cmdline", "rb") as handle:
+                command = handle.read()
+            if b"/usr/bin/veltos-ai" in command or b"veltos_ai" in command:
+                return True
+        except OSError:
+            return False
+        try:
+            with open(f"{proc}/{pid}/stat", encoding="utf-8", errors="replace") as handle:
+                pid = int(handle.read().rsplit(")", 1)[1].split()[1])
+        except (OSError, ValueError, IndexError):
+            return False
+        seen += 1
+    return False
+
+
+def answer_with(password, user, cookie, command=None):
+    """Runs polkit's helper with a remembered password; True when right."""
+    try:
+        process = subprocess.Popen((command or [helper.helper_path()]) + [user], stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    except OSError:
+        return False
+    try:
+        process.stdin.write(cookie + "\n")
+        process.stdin.flush()
+        for line in process.stdout:
+            parsed = helper.parse_line(line)
+            if parsed and parsed[0] == "prompt":
+                process.stdin.write(password + "\n")
+                process.stdin.flush()
+            elif parsed and parsed[0] in ("success", "failure"):
+                break
+        return process.wait(timeout=30) == 0
+    except (OSError, subprocess.SubprocessError):
+        process.kill()
+        return False
+
+
 class Agent:
     """The D-Bus object polkit talks to; one prompt process per cookie."""
 
@@ -110,6 +171,9 @@ class Agent:
         self.Gio, self.GLib = gio, glib
         self.lang = lang
         self.pending = {}          # cookie -> (process, invocation)
+        self.remembered = None     # (user, password, monotonic time) for VeltOS AI
+        self.implicit = None       # action id -> implicit authorization when active
+        self.automatic = {}        # cookie -> invocation, answered with the remembered password
         node = gio.DBusNodeInfo.new_for_xml(AGENT_XML)
         self.registration = connection.register_object(AGENT_PATH, node.interfaces[0], self.handle_call, None, None)
 
@@ -139,12 +203,54 @@ class Agent:
             self.cancel(cookie)
             invocation.return_value(None)
 
+    def keeps_answer(self, action_id):
+        """Whether polkit keeps an answer for the action (its implicit
+        authorization for active sessions ends in "-retained")."""
+        if self.implicit is None:
+            self.implicit = {}
+            try:
+                result = self.connection.call_sync(
+                    AUTHORITY, AUTHORITY_PATH, AUTHORITY_IFACE, "EnumerateActions", self.GLib.Variant("(s)", ("",)),
+                    None, self.Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
+                self.implicit = {entry[0]: entry[8] for entry in result}
+            except Exception:
+                pass
+        return self.implicit.get(action_id) in KEEP
+
+    def remembered_for(self, details, action_id):
+        """The remembered (user, password) when this request may use it."""
+        if not self.remembered or time.monotonic() - self.remembered[2] > REMEMBER_SECONDS:
+            self.remembered = None
+            return None
+        try:
+            pid = int(dict(details).get("polkit.subject-pid", "0"))
+        except ValueError:
+            return None
+        if not from_veltos_ai(pid) or not self.keeps_answer(action_id):
+            return None
+        return self.remembered[:2]
+
     def begin(self, arguments, invocation):
         action_id, message, icon_name, details, cookie, identities = arguments
         request = prompt_request(action_id, message, icon_name, details, cookie, identities, self.lang)
         if not request["users"]:
             invocation.return_dbus_error(ERROR_FAILED, "No account can answer this request")
             return
+        known = self.remembered_for(details, action_id)
+        if known and any(u.get("name") == known[0] for u in request["users"]):
+            self.automatic[cookie] = invocation
+
+            def work():
+                ok = answer_with(known[1], known[0], cookie)
+                self.GLib.idle_add(self.automatic_done, cookie, ok, arguments)
+            threading.Thread(target=work, daemon=True).start()
+            return
+        try:
+            pid = int(dict(details).get("polkit.subject-pid", "0"))
+        except ValueError:
+            pid = 0
+        if from_veltos_ai(pid) and self.keeps_answer(action_id):
+            request["remember"] = True
         try:
             process = subprocess.Popen(dialog_command(), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                        stderr=subprocess.DEVNULL, text=True)
@@ -157,6 +263,18 @@ class Agent:
         self.GLib.child_watch_add(self.GLib.PRIORITY_DEFAULT, process.pid,
                                   lambda _pid, _status: self.finished(cookie))
 
+    def automatic_done(self, cookie, ok, arguments):
+        invocation = self.automatic.pop(cookie, None)
+        if invocation is None:          # cancelled meanwhile
+            return False
+        if ok:
+            invocation.return_value(None)
+            return False
+        # The password changed, or polkit refused: ask as usual.
+        self.remembered = None
+        self.begin(arguments, invocation)
+        return False
+
     def finished(self, cookie):
         process, invocation = self.pending.pop(cookie, (None, None))
         if process is None:
@@ -164,6 +282,10 @@ class Agent:
         result = (process.stdout.read() or "").strip().splitlines()
         process.wait()
         verdict = result[-1] if result else "FAILURE"
+        for line in result[:-1]:
+            if line.startswith("REMEMBER ") and verdict == "SUCCESS":
+                _word, user, password = line.split(" ", 2)
+                self.remembered = (user, password, time.monotonic())
         if verdict == "SUCCESS":
             invocation.return_value(None)
         elif verdict == "CANCELLED":
@@ -174,6 +296,10 @@ class Agent:
     def cancel(self, cookie):
         """polkit withdrew the request (the program gave up): the prompt
         goes away and the call is answered as cancelled."""
+        automatic = self.automatic.pop(cookie, None)
+        if automatic is not None:
+            automatic.return_dbus_error(ERROR_CANCELLED, "Authentication cancelled")
+            return
         process, invocation = self.pending.pop(cookie, (None, None))
         if process is None:
             return

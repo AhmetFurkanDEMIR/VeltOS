@@ -30,7 +30,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Property, QDateTime, QLocale, QObject, Qt, QUrl, Signal, Slot
 
-from . import ops, places, strings
+from . import ops, places, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 
@@ -199,10 +199,14 @@ class Properties(QObject):
     changed = Signal()
     finished = Signal()
     message = Signal(str)
+    lookChanged = Signal()
     _counted = Signal(object, bool)
 
     def __init__(self, arguments, lang=None, start=ops.detached, threaded=True, parent=None):
         super().__init__(parent)
+        from .app import Backend
+        self._look = themewatch.ThemeWatch(lambda: (Backend.read_dark_mode(), Backend.read_accent_color()), self)
+        self._look.changed.connect(self.lookChanged)
         self.lang = lang or strings.language()
         self.start = start
         self.paths = [resolve(a) for a in arguments if str(a)]
@@ -358,20 +362,20 @@ class Properties(QObject):
     def tr(self, key):
         return self.text(key)
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        from .app import Backend
-        return Backend.read_dark_mode()
+        return self._look.dark
 
     @Property(float, constant=True)
     def textScale(self):
         from .app import Backend
         return Backend.read_text_scale()
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accentColor(self):
-        from .app import Backend
-        return Backend.read_accent_color()
+        return self._look.accent
 
     @Property("QVariantMap", notify=changed)
     def info(self):

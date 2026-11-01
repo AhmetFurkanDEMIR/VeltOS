@@ -24,7 +24,7 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import conditions, openmeteo, strings
+from . import conditions, openmeteo, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 ICON_DIR = QML_DIR / "icons"
@@ -116,11 +116,15 @@ class Backend(QObject):
     historyChanged = Signal()
     favoritesChanged = Signal()
     statusChanged = Signal()
+    lookChanged = Signal()
     _loaded = Signal(str, object, int)
 
     def __init__(self, lang=None, start_page="forecast", opener=None, cache=None, settings_file=None,
                  zone=None, threaded=True, parent=None):
         super().__init__(parent)
+        self._look = themewatch.ThemeWatch(
+            lambda: (kde_value("KDE", "LookAndFeelPackage").endswith(".dark"), accent_colour()), self)
+        self._look.changed.connect(self.lookChanged)
         self.lang = lang or strings.language()
         self._page = start_page if start_page in PAGES else "forecast"
         self._opener = opener
@@ -269,13 +273,15 @@ class Backend(QObject):
     def text(self, key):
         return strings.text(self.lang, key)
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return accent_colour()
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):

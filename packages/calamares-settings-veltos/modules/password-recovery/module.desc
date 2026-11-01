@@ -1,0 +1,6 @@
+# VeltOS installer job: the password hint and the password reset USB ("If you forget your password")
+---
+type:       "job"
+name:       "password-recovery"
+interface:  "python"
+script:     "main.py"

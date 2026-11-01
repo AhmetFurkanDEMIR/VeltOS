@@ -23,6 +23,17 @@ override_dh_auto_install:
 	install -d debian/veltos-auth/usr/lib/systemd/user/plasma-core.target.wants
 	ln -s ../veltos-auth-agent.service \
 		debian/veltos-auth/usr/lib/systemd/user/plasma-core.target.wants/veltos-auth-agent.service
+	# Password reset USB (veltos_auth/recovery.py): the command, the
+	# sign-in screen's socket-activated service (enabled by
+	# dh_installsystemd), Settings' polkit action and the hashes' folder.
+	install -D -m 755 bin/veltos-password-recovery debian/veltos-auth/usr/libexec/veltos/password-recovery
+	install -D -m 644 data/veltos-password-recovery.socket \
+		debian/veltos-auth/usr/lib/systemd/system/veltos-password-recovery.socket
+	install -D -m 644 data/veltos-password-recovery@.service \
+		debian/veltos-auth/usr/lib/systemd/system/veltos-password-recovery@.service
+	install -D -m 644 data/org.veltos.password-recovery.policy \
+		debian/veltos-auth/usr/share/polkit-1/actions/org.veltos.password-recovery.policy
+	install -d -m 755 debian/veltos-auth/var/lib/veltos/recovery
 
 override_dh_auto_test:
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

@@ -686,7 +686,8 @@ def build_static_config(root):
     libexec.mkdir(parents=True, exist_ok=True)
     for helper in ("context-menus", "desktop-new", "display-scale", "greeter-compositor",
                    "needs-software-rendering", "sddm-virtualbox-env", "session-defaults", "session-fixups",
-                   "numlock-state", "power-mode", "start-categories", "terminal-theme", "touchpad-defaults",
+                   "numlock-state", "power-mode", "same-wallpaper", "start-categories", "terminal-theme",
+                   "touchpad-defaults",
                    "trash-icon", "update-app-names", "update-plasma-overrides", "veltos-desktop-guard"):
         shutil.copy(SRC / "system" / helper, libexec / helper)
         (libexec / helper).chmod(0o755)

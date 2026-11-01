@@ -93,11 +93,17 @@ FocusScope {
                                      - (plasmoidItem.compactRepresentationItem
                                         ? plasmoidItem.compactRepresentationItem.height : Kirigami.Units.gridUnit * 3)
                                      - Kirigami.Units.gridUnit * 4
-    Layout.minimumWidth: Kirigami.Units.gridUnit * 40
-    Layout.minimumHeight: Math.min(Kirigami.Units.gridUnit * 36, fitHeight)
-    Layout.preferredWidth: Kirigami.Units.gridUnit * 46
-    Layout.preferredHeight: Math.min(Kirigami.Units.gridUnit * 47, fitHeight)
-    Layout.maximumHeight: fitHeight
+    // One size, as Windows 11's Start: Plasma let the popup be dragged
+    // larger and smaller, and resizing it brought the system down (product
+    // owner, 2026-11-01). Equal minimum and maximum sizes leave no handles.
+    readonly property int startWidth: Kirigami.Units.gridUnit * 46
+    readonly property int startHeight: Math.min(Kirigami.Units.gridUnit * 47, fitHeight)
+    Layout.minimumWidth: startWidth
+    Layout.preferredWidth: startWidth
+    Layout.maximumWidth: startWidth
+    Layout.minimumHeight: startHeight
+    Layout.preferredHeight: startHeight
+    Layout.maximumHeight: startHeight
 
     Kicker.RunnerModel {
         id: runnerModel

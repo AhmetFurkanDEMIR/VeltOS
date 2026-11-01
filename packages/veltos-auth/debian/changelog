@@ -1,3 +1,21 @@
+veltos-auth (1.1.0~dev1) trixie; urgency=medium
+
+  * Three wrong passwords wait 30 seconds, three more a minute, then two
+    minutes after every three; the right password resets the count (shared
+    by the session's prompts).
+  * VeltOS AI's requests: after one right password the agent answers its
+    next requests for actions polkit keeps answers for, for ten minutes.
+  * The prompt follows light/dark and the accent while open (themewatch.py).
+  * Password reset USB (recovery.py, /usr/libexec/veltos/password-recovery):
+    a 256-bit key on the drive, only its scrypt hash on the PC
+    (/var/lib/veltos/recovery, root-only); create/remove for root (the
+    installer's job, Settings through pkexec), and a socket-activated
+    service on 127.0.0.1:47824 that answers only the sign-in screen's
+    sddm user: the account's hint, whether it has a drive, and a new
+    password once an inserted drive's key matches.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 11:00:00 +0000
+
 veltos-auth (1.0.0) trixie; urgency=medium
 
   * VeltOS 1.0: the first public release.

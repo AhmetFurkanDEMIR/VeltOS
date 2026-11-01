@@ -38,7 +38,7 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import strings
+from . import strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 MAPS_URL = "https://www.google.com/maps"
@@ -225,11 +225,14 @@ class Backend(QObject):
     defaultChanged = Signal()
     noteChanged = Signal()
     raiseRequested = Signal()
+    lookChanged = Signal()
     locationLookupFinished = Signal(int, float, float, str, bool)
 
     def __init__(self, lang=None, runner=subprocess.run, start_url=MAPS_URL,
                  location_provider=current_location, set_default=False, settings_dir=None, parent=None):
         super().__init__(parent)
+        self._look = themewatch.ThemeWatch(self.read_look, self)
+        self._look.changed.connect(self.lookChanged)
         self.lang = lang or strings.language()
         self._hl = "tr" if self.lang == "tr" else "en"
         self._runner = runner
@@ -264,15 +267,22 @@ class Backend(QObject):
     def appTitle(self):
         return strings.text(self.lang, "app_title")
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return settings_value("kdeglobals", "KDE", "LookAndFeelPackage").endswith(".dark")
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
+        return self._look.accent
+
+    @staticmethod
+    def read_look():
         parts = [part for part in settings_value("kdeglobals", "General", "AccentColor").split(",")
                  if part.strip().isdigit()]
-        return "#%02x%02x%02x" % tuple(int(part) for part in parts[:3]) if len(parts) >= 3 else ""
+        accent = "#%02x%02x%02x" % tuple(int(part) for part in parts[:3]) if len(parts) >= 3 else ""
+        return settings_value("kdeglobals", "KDE", "LookAndFeelPackage").endswith(".dark"), accent
 
     @Property(float, constant=True)
     def textScale(self):

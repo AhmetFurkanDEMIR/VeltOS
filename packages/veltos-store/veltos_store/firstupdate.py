@@ -13,11 +13,12 @@ goes to STATUS as JSON for the window (firststart.py):
      "percent": 0-100, "packages": N, "bottles": true|false}
 
 Without a cable or Wi-Fi ("offline", product owner 2026-10-31: "how will
-the installations happen then?") the window asks to connect to a network
-or to go on without one, and the update keeps waiting for a network in the
-background, over later starts too: the done file is written only after a
-run with a network. It was written at once before, and a PC first started
-offline never got its updates or Bottles.
+the installations happen then?") the update keeps waiting for a network in
+the background, over later starts too: the done file is written only after
+a run with a network. It was written at once before, and a PC first started
+offline never got its updates or Bottles. Since 2026-11-01 nothing covers
+the screen meanwhile: the first sign-in shows the Welcome window
+(firststart.py), whose last line tells the update's state.
 
 When the installer's choice for Windows programs was Bottles
 (/etc/veltos/windows-apps.conf, runner=bottles) and no user changed it to
@@ -53,7 +54,6 @@ BOTTLES_COMMANDS = [
      "https://dl.flathub.org/repo/flathub.flatpakrepo"],
     ["flatpak", "install", "--system", "-y", "--noninteractive", "flathub", "com.usebottles.bottles"],
 ]
-SHOW_AFTER_DONE = 30 * 60        # a sign-in this soon after the update still says "ready"
 APT_OPTIONS = ["-o", "APT::Status-Fd=1", "-o", "DPkg::Lock::Timeout=600", "-o", "Dpkg::Options::=--force-confdef",
                "-o", "Dpkg::Options::=--force-confold"]
 ENVIRONMENT = {"DEBIAN_FRONTEND": "noninteractive", "LC_ALL": "C", "PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
@@ -266,17 +266,12 @@ def live(cmdline=Path("/proc/cmdline")):
 
 
 def should_show(done=DONE, status=STATUS, shown=None, cmdline=Path("/proc/cmdline"),
-                now=None):
+                enabled=Path("/etc/systemd/system/multi-user.target.wants/veltos-first-update.service")):
+    """The Welcome window: once per user on an installed system (one whose
+    first-start update is enabled, running or done), never in the live one."""
     if live(cmdline) or (shown or marker()).exists():
         return False
-    if done.exists():
-        try:
-            return (now or time.time()) - done.stat().st_mtime < SHOW_AFTER_DONE
-        except OSError:
-            return False
-    # Not done: the service runs (or is about to); without its status file
-    # it may not be installed at all, then there is nothing to show.
-    return status.exists() or Path("/etc/systemd/system/multi-user.target.wants/veltos-first-update.service").exists()
+    return done.exists() or status.exists() or enabled.exists()
 
 
 if __name__ == "__main__":

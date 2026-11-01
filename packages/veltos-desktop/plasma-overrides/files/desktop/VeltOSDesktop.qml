@@ -265,7 +265,12 @@ Item {
     // Word, PowerPoint and Excel documents need veltos-office.
     property bool officeNew: false
     readonly property string officeCheck: "test -x /usr/libexec/veltos-office/blank-document && echo office"
-    Component.onCompleted: shell.connectSource(officeCheck)
+    Component.onCompleted: {
+        shell.connectSource(officeCheck);
+        // A new screen's desktop: the main screen's picture, as on Windows
+        // (product owner, 2026-11-01).
+        shell.connectSource("/usr/libexec/veltos/same-wallpaper");
+    }
 
 
     Plasma5Support.DataSource {

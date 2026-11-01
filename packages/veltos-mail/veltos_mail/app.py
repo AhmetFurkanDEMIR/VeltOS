@@ -34,7 +34,7 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import accounts, mime, outgoing, store, strings, sync
+from . import accounts, mime, outgoing, store, strings, sync, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 FOLDER_ICONS = {"inbox": "inbox", "drafts": "drafts", "sent": "sent", "trash": "delete", "junk": "junk",
@@ -155,6 +155,7 @@ class Backend(QObject):
     composeChanged = Signal()
     composeStarted = Signal()
     statusChanged = Signal()
+    lookChanged = Signal()
     addAccountState = Signal(str, str)   # state ("checking", "error", "done"), detail key
     message = Signal(str)
 
@@ -170,7 +171,9 @@ class Backend(QObject):
         self.engine = engine or sync.Engine(self.store, self.account_store, self.secrets)
         self.view_dir = Path(view_dir or tempfile.mkdtemp(prefix="veltos-mail-view-"))
         self.model = MessageModel(self)
-        self._dark = dark_mode()
+        # The open message is drawn again in the new colours.
+        self._look = themewatch.ThemeWatch(lambda: (dark_mode(), ""), self)
+        self._look.changed.connect(self._on_look)
         self._account = ""
         self._folder = ""
         self._tab = "focused"
@@ -209,9 +212,14 @@ class Backend(QObject):
     def textWith(self, key, value):
         return strings.text(self.lang, key).replace("{value}", value)
 
-    @Property(bool, constant=True)
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
+
+    def _on_look(self):
+        self.lookChanged.emit()
+        if self._reading.get("raw") and not self._reading.get("loading"):
+            self._show_body(Path(self._reading["raw"]))
 
     @Property(float, constant=True)
     def textScale(self):
@@ -626,8 +634,10 @@ class Backend(QObject):
             return
         message = mime.parse_bytes(raw)
         allow = (account_id, folder, uid) in self._show_pictures
-        target = self.view_dir / f"{abs(hash((account_id, folder, uid, allow)))}"
-        index, blocked = mime.write_view(message, target, dark=self._dark, allow_remote=allow)
+        # A new page per look: the reading pane reloads only for a new address.
+        dark = self._look.dark
+        target = self.view_dir / f"{abs(hash((account_id, folder, uid, allow, dark)))}"
+        index, blocked = mime.write_view(message, target, dark=dark, allow_remote=allow)
         cc = ", ".join(mime.display_name(n, a) for n, a in mime.addresses(message.get("Cc")))
         to = ", ".join(mime.display_name(n, a) for n, a in mime.addresses(message.get("To")))
         self._reading.update({"loading": False, "page": QUrl.fromLocalFile(str(index)).toString(),

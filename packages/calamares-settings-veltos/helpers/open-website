@@ -1,34 +1,120 @@
 #!/usr/bin/python3
-"""Open the VeltOS website for the installer's side bar.
+"""The installer's helper on 127.0.0.1, run as the signed-in user.
 
-Calamares runs as root, and a web browser must not run as root; Qt's own
-"open link" would start one as root. install-veltos starts this helper as
-the signed-in user before the installer and ends it afterwards; the side
-bar's link asks it, on 127.0.0.1 only, to open the page in the user's
-browser (product owner, 2026-10-23: the installer's link should be
-clickable).
+/website: open the VeltOS website for the installer's side bar. Calamares
+runs as root, and a web browser must not run as root; Qt's own "open link"
+would start one as root. install-veltos starts this helper as the
+signed-in user before the installer and ends it afterwards; the side bar's
+link asks it to open the page in the user's browser (product owner,
+2026-10-23: the installer's link should be clickable). It opens only
+VeltOS' own website, whatever is asked, and at most once in two seconds.
 
-It opens only VeltOS' own website, whatever is asked, and at most once in
-two seconds, so another local program can do no more with it than open
-that page.
+/drives?exclude=DISK,...: the USB drives a password reset key can go on,
+for "If you forget your password" (recovery.qml, product owner 2026-11-01),
+as veltos-auth's password-recovery lists them (the drive VeltOS runs from
+and the given disks left out). It only reads lsblk's list; the drive is
+written later by the installer's password-recovery job.
+
+/choices (POST, JSON {"hint", "device", "exclude"}): what that page chose.
+Calamares 3.3.14's QML cannot write its global storage (Global.insert is
+not callable from QML, 2026-11-01), so the page posts its choices here and
+the helper keeps them in the user's runtime folder
+($XDG_RUNTIME_DIR/veltos-installer.json, mode 600), where the installer's
+password-recovery job (root; PKEXEC_UID names the user) reads them. The
+job checks the drive again; nothing is written to a drive here.
+
+So another local program can do no more with this helper than open that
+page, read the list of USB drives or change those choices before the
+installation.
 """
 import http.server
+import json
 import os
+import re
 import subprocess
 import sys
 import time
+from urllib.parse import parse_qs, urlparse
 
 URL = "https://veltos.ahmetfurkandemir.com/"
 PORT = int(os.environ.get("VELTOS_WEBSITE_PORT", "47823"))      # test hook
 OPEN = os.environ.get("VELTOS_XDG_OPEN", "xdg-open")            # test hook
+RECOVERY = os.environ.get("VELTOS_RECOVERY", "/usr/libexec/veltos/password-recovery")   # test hook
 QUIET_SECONDS = 2.0
+DISK_RE = re.compile(r"/dev/[A-Za-z0-9]+")
+
+
+def choices_file():
+    runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
+    return os.path.join(runtime, "veltos-installer.json")
+
+
+def clean_choices(data):
+    """Only the known fields, in their shapes."""
+    if not isinstance(data, dict):
+        return None
+    hint = re.sub(r"[\r\n]", " ", str(data.get("hint", ""))).strip()[:200]
+    device = str(data.get("device", ""))
+    exclude = [d for d in str(data.get("exclude", "")).split(",") if DISK_RE.fullmatch(d)]
+    return {"hint": hint, "device": device if DISK_RE.fullmatch(device) else "", "exclude": ",".join(exclude)}
+
+
+def save_choices(data):
+    path = choices_file()
+    fd = os.open(path + ".new", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        json.dump(data, handle)
+    os.replace(path + ".new", path)
+
+
+def usb_drives(exclude):
+    disks = [d for d in exclude if DISK_RE.fullmatch(d)]
+    try:
+        out = subprocess.run([RECOVERY, "drives", *disks], capture_output=True, text=True, timeout=30).stdout
+        drives = json.loads(out)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return []
+    return drives if isinstance(drives, list) else []
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
     last = 0.0
 
+    def do_POST(self):
+        if urlparse(self.path).path != "/choices":
+            self.send_response(404)
+            self.end_headers()
+            return
+        length = min(int(self.headers.get("Content-Length") or 0), 4096)
+        try:
+            data = clean_choices(json.loads(self.rfile.read(length) or b"{}"))
+        except ValueError:
+            data = None
+        if data is None:
+            self.send_response(400)
+            self.end_headers()
+            return
+        try:
+            save_choices(data)
+        except OSError:
+            self.send_response(500)
+            self.end_headers()
+            return
+        self.send_response(204)
+        self.end_headers()
+
     def do_GET(self):
-        if self.path != "/website":
+        url = urlparse(self.path)
+        if url.path == "/drives":
+            exclude = ",".join(parse_qs(url.query).get("exclude", [""])).split(",")
+            body = json.dumps(usb_drives(exclude)).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if url.path != "/website":
             self.send_response(404)
             self.end_headers()
             return

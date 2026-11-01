@@ -1,9 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Getting everything ready
-Name[tr]=Her şey hazırlanıyor
-Comment=The first start's update screen (shows only after a new installation)
+Name=Welcome to VeltOS
+Name[tr]=VeltOS'a hoş geldiniz
+Comment=The first start's Welcome window (once per user, after a new installation)
 Exec=veltos-store --first-start
+Icon=start-here
 NoDisplay=true
 OnlyShowIn=KDE;
 X-KDE-autostart-phase=2

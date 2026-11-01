@@ -1,0 +1,20 @@
+# VeltOS: finish package installations that a power cut, a crash or a
+# killed installer interrupted. dpkg then refuses every further install
+# ("dpkg was interrupted, you must manually run 'dpkg --configure -a'") and
+# VeltOS Store, Graphics Cards and the App Installer could do nothing
+# (product owner, 2026-11-01). Runs only when dpkg left work behind; the
+# sign-in screen does not wait for it.
+[Unit]
+Description=VeltOS: finish interrupted package installations
+ConditionDirectoryNotEmpty=/var/lib/dpkg/updates
+Before=packagekit.service veltos-first-update.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+Environment=DEBIAN_FRONTEND=noninteractive
+ExecStart=/usr/bin/dpkg --configure -a --force-confdef --force-confold
+TimeoutStartSec=30min
+
+[Install]
+WantedBy=multi-user.target

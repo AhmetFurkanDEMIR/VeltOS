@@ -9,12 +9,14 @@ Rectangle {
     property string icon
     property string tip
     property bool enabledState: true
+    // Shown pressed (a page it opens is open).
+    property bool active: false
     signal clicked()
     implicitWidth: 34
     implicitHeight: 34
     radius: 5
     opacity: enabledState ? 1 : 0.4
-    color: hover.hovered && enabledState ? Theme.hover : "transparent"
+    color: active ? Theme.activeFill : hover.hovered && enabledState ? Theme.hover : "transparent"
     Accessible.role: Accessible.Button
     Accessible.name: tip
     Kirigami.Icon {

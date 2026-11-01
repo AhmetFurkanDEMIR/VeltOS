@@ -25,17 +25,19 @@ except ImportError:  # pragma: no cover - Python < 3.9
     ZoneInfo = None
 
 
-def run(command, timeout=20, input=None):
+def run(command, timeout=20, input=None, merge=False):
     """Run a command; return (exit code, stdout). Never raises for missing
     tools or timeouts: Settings must keep working on any machine. `input`
-    goes to its standard input (data that must not show in `ps`)."""
+    goes to its standard input (data that must not show in `ps`); `merge`
+    adds its error output (nmcli's reason for a failure)."""
+    errors = subprocess.STDOUT if merge else subprocess.PIPE
     try:
         if input is None:
-            result = subprocess.run(command, capture_output=True, text=True, timeout=timeout,
-                                    stdin=subprocess.DEVNULL)
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=errors, text=True,
+                                    timeout=timeout, stdin=subprocess.DEVNULL)
         else:
-            result = subprocess.run(command, capture_output=True, text=True, timeout=timeout,
-                                    input=input)
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=errors, text=True,
+                                    timeout=timeout, input=input)
         return result.returncode, result.stdout
     except (OSError, subprocess.TimeoutExpired):
         return 127, ""

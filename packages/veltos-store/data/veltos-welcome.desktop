@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome to VeltOS
+Name[tr]=VeltOS'a hoş geldiniz
+Comment=The first start's Welcome window
+Exec=veltos-store --first-start
+Icon=start-here
+NoDisplay=true

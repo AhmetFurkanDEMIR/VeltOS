@@ -1,0 +1,20 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "Window Management",
+        "Description": "Brings the taskbar back when a screen is unplugged and it is not on any screen",
+        "Description[tr]": "Bir ekran çıkarıldığında görev çubuğu hiçbir ekranda değilse onu geri getirir",
+        "EnabledByDefault": true,
+        "Id": "veltosscreenwatch",
+        "License": "GPL-3.0-or-later",
+        "Name": "Taskbar after screen changes",
+        "Name[tr]": "Ekran değişikliklerinden sonra görev çubuğu"
+    },
+    "X-Plasma-API": "declarativescript",
+    "X-Plasma-MainScript": "ui/main.qml"
+}

@@ -168,8 +168,9 @@ class WindowTests(unittest.TestCase):
         self.call("press", "01:00.0", "install")
         self.wait()
         self.assertEqual(self.calls(), ["-p install nvidia-detect:amd64",
-                                        "-p install nvidia-driver:amd64 linux-headers-amd64:amd64 "
-                                        f"linux-image-amd64:amd64 linux-headers-{KERNEL}:amd64"])
+                                        "-p install nvidia-driver:amd64 libnvidia-egl-gbm1:amd64 "
+                                        "linux-headers-amd64:amd64 linux-image-amd64:amd64 "
+                                        f"linux-headers-{KERNEL}:amd64"])
         # Interactive transactions (no -y), so polkit asks for the password.
         self.assertEqual((self.fake.parent / "answers").read_text().split(), ["y", "y"])
         nvidia = self.card("01:00.0")
@@ -259,8 +260,13 @@ class WindowTests(unittest.TestCase):
         self.assertEqual(values[backend.texts["p_package"]], "nvidia-driver 550.163.01-2")
         self.call("press", "01:00.0", "update")
         self.wait()
-        self.assertEqual(self.calls(), ["-p refresh", "-p update nvidia-driver:amd64"])
+        # An install from before 2026-11-01 gets NVIDIA's GBM library first
+        # (monitors on the NVIDIA card under Wayland), then a restart.
+        self.assertEqual(self.calls(), ["-p refresh", "-p install libnvidia-egl-gbm1:amd64",
+                                        "-p update nvidia-driver:amd64"])
         self.assertEqual(self.card("01:00.0")["message"], backend.texts["done_update"])
+        self.assertTrue(backend.askRestart)
+        backend.restartLater()
         self.calls_file.unlink()
         self.call("press", "01:00.0", "open")
         self.wait()

@@ -427,6 +427,35 @@ class SettingsWindowTests(unittest.TestCase):
         self.app.processEvents()
         self.assertEqual(self.problems(), [])
 
+    def test_password_reset_usb_and_hint(self):
+        # Product owner, 2026-11-01: a password reset USB made in Settings
+        # too (the installer offers it first), and a hint with the password.
+        import tempfile
+        from test_resetusb import Runner
+        from veltos_settings import resetusb
+        command = Path(tempfile.mkdtemp()) / "password-recovery"
+        command.write_bytes(b"")
+        runner = Runner()
+        self.backend.system.resetusb = resetusb.ResetUsb(runner, command=str(command), user="velt", uid=1000)
+        self.show("accounts", "signin")
+        state = self.backend.resetUsb
+        self.assertTrue(state["available"])
+        self.assertFalse(state["configured"])
+        self.assertEqual(state["hint"], "first cat")
+        self.assertEqual([d["path"] for d in state["drives"]], ["/dev/sdb1"])
+        self.backend.createResetUsb("/dev/sdb1")
+        self.app.processEvents()
+        self.assertTrue(self.backend.resetUsb["created"])
+        self.assertTrue(any(c[:1] == ["pkexec"] and c[2:5] == ["create", "velt", "/dev/sdb1"] for c in runner.commands))
+        runner.configured = True
+        self.backend.refreshResetUsb()
+        self.assertTrue(self.backend.resetUsb["configured"])
+        results = []
+        self.backend.accountResult.connect(lambda op, error: results.append((op, error)))
+        self.backend.changePasswordWithHint("old", "new", "other", "tea")
+        self.assertEqual(results, [("password", "passwords_differ")])
+        self.assertEqual(self.problems(), [])
+
     def test_lock_screen_picture(self):
         # The lock screen had no picture of its own to choose (2026-10-31).
         from PySide6.QtGui import QColor, QImage

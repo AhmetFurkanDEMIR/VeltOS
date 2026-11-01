@@ -26,7 +26,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Property, QMimeDatabase, QObject, QProcess, QUrl, Signal, Slot
 
-from . import ops, places, strings
+from . import ops, places, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 
@@ -166,6 +166,7 @@ class Opener(QObject):
 
     changed = Signal()
     done = Signal()
+    lookChanged = Signal()
 
     def __init__(self, path="", lang=None, start=ops.detached, config_home=None, parent=None, mime="",
                  choose=False, choices=(), out=None, data_home=None, picker=None):
@@ -180,7 +181,9 @@ class Opener(QObject):
         self.answered = False
         self._picker = picker or [sys.executable, "-m", "veltos_explorer", "--pick"]
         self._message = ""
-        self._dark = read_dark_mode()
+        from .app import Backend
+        self._look = themewatch.ThemeWatch(lambda: (read_dark_mode(), Backend.read_accent_color()), self)
+        self._look.changed.connect(self.lookChanged)
         database = QMimeDatabase()
         if mime:
             self.mime = mime
@@ -211,14 +214,15 @@ class Opener(QObject):
     def tr(self, key):
         return self.text(key)
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accentColor(self):
-        from .app import Backend
-        return Backend.read_accent_color()
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):

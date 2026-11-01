@@ -93,6 +93,18 @@ class ExplorerWindowTests(unittest.TestCase):
         return [m for m in self.messages if "qml" in m.lower() or "error" in m.lower()
                 or "undefined" in m.lower() or "warning" in m.lower()]
 
+    def test_windows_programs_open_without_choosing_an_app(self):
+        # A double-clicked .exe or .msi opened "Select an app" (the runner's
+        # entry is hidden from Start) instead of the installation (product
+        # owner, 2026-11-01).
+        setup = self.home / "Downloads" / "Setup.exe"
+        setup.write_bytes(b"MZ" + bytes(200))
+        package = self.home / "Downloads" / "tool.msi"
+        package.write_bytes(bytes(64))
+        self.backend.open_file(str(setup))
+        self.backend.open_file(str(package))
+        self.assertEqual(self.started, [["veltos-run", str(setup)], ["veltos-run", str(package)]])
+
     def test_home_this_pc_and_folders(self):
         tab = self.backend.current
         self.assertEqual(tab.kind, "home")

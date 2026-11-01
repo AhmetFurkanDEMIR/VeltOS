@@ -1,3 +1,10 @@
+veltos-fluent-icons (2026.07.27~veltos4) trixie; urgency=medium
+
+  * veltos-usb-drive: Windows 11's USB flash drive (Safely Remove Hardware's
+    notification).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 13:00:00 +0000
+
 veltos-fluent-icons (2026.07.27~veltos3) trixie; urgency=medium
 
   * Cursor themes drawn from upstream's SVGs at 24-96 px.

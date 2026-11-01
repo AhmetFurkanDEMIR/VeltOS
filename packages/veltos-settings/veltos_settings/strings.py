@@ -69,6 +69,8 @@ TEXTS = {
                                     "Bottles .exe ve .msi dosyalarını açar ve hangi şişenin kullanılacağını sorar "
                                     "(önce VeltOS'unki)."),
     "windows_runner_wine": ("VeltOS (Wine)", "VeltOS (Wine)"),
+    "installed_with_wine": ("Wine (VeltOS)", "Wine (VeltOS)"),
+    "installed_with_bottles": ("Bottles: {name}", "Bottles: {name}"),
     "windows_runner_bottles_option": ("Bottles (from Flathub)", "Bottles (Flathub'dan)"),
     "bottles_installing": ("Installing Bottles from Flathub… This needs the internet and may take a while.",
                            "Bottles Flathub'dan yükleniyor… İnternet gerekir ve biraz sürebilir."),
@@ -239,10 +241,20 @@ TEXTS = {
                             "Connect to Ethernet, Wi-Fi or mobile broadband first.",
                             "Bu bilgisayar internete bağlı olmadığı için mobil etkin nokta kurulamıyor. "
                             "Önce Ethernet, Wi-Fi veya mobil geniş banda bağlanın."),
-    "hotspot_start-failed": ("Mobile hotspot couldn't be turned on. If the band is 5 GHz, try 2.4 GHz or "
-                             "Any available.",
-                             "Mobil etkin nokta açılamadı. Bant 5 GHz ise 2,4 GHz'i veya Kullanılabilir "
-                             "herhangi biri seçeneğini deneyin."),
+    "hotspot_start-failed": ("Mobile hotspot couldn't be turned on, on any band this Wi-Fi adapter allows. "
+                             "Turn Wi-Fi off and on, then try again.",
+                             "Mobil etkin nokta, bu Wi-Fi bağdaştırıcısının izin verdiği hiçbir bantta açılamadı. "
+                             "Wi-Fi'ı kapatıp açın ve yeniden deneyin."),
+    "hotspot_channel": ("This PC's only Wi-Fi adapter can share its connection only on the channel of the network "
+                        "it's connected to, and it isn't allowed to start a network on that channel (a radar or "
+                        "restricted 5 GHz channel). Connect to your router's 2.4 GHz network, or use a network cable.",
+                        "Bu bilgisayarın tek Wi-Fi bağdaştırıcısı bağlantısını yalnızca bağlı olduğu ağın kanalında "
+                        "paylaşabiliyor ve o kanalda ağ başlatmasına izin verilmiyor (radar ya da kısıtlı bir 5 GHz "
+                        "kanalı). Modeminizin 2,4 GHz ağına bağlanın ya da ağ kablosu kullanın."),
+    "hotspot_fallback": ("This Wi-Fi adapter can't host a 5 GHz network here right now, so mobile hotspot uses "
+                         "2.4 GHz.",
+                         "Bu Wi-Fi bağdaştırıcısı şu anda burada 5 GHz ağ açamıyor; mobil etkin nokta 2,4 GHz "
+                         "kullanıyor."),
     "hotspot_save-failed": ("The network info couldn't be saved.", "Ağ bilgileri kaydedilemedi."),
     "hotspot_invalid-name": ("Enter a name of 1 to 32 characters, without spaces at the start or end.",
                              "Başında ve sonunda boşluk olmayan, 1-32 karakterlik bir ad girin."),
@@ -503,6 +515,28 @@ TEXTS = {
     "save": ("Save", "Kaydet"),
     "saved": ("Saved", "Kaydedildi"),
     "sign_in_options": ("Sign-in options", "Oturum açma seçenekleri"),
+    "password_hint": ("Password hint (optional)", "Parola ipucu (isteğe bağlı)"),
+    "password_hint_note": ("Shown on the sign-in screen after a wrong password; anyone at the PC can read it.",
+                           "Yanlış parola girildiğinde oturum açma ekranında görünür; bilgisayarın başındaki "
+                           "herkes okuyabilir."),
+    "reset_usb": ("Password reset USB", "Parola sıfırlama USB'si"),
+    "reset_usb_on": ("Set up. With this USB drive you can set a new password on the sign-in screen; keep it safe.",
+                     "Ayarlandı. Bu USB bellekle oturum açma ekranında yeni bir parola belirleyebilirsiniz; "
+                     "güvenli bir yerde saklayın."),
+    "reset_usb_off": ("Not set up: a forgotten password can't be reset.",
+                      "Ayarlanmadı: unutulan bir parola sıfırlanamaz."),
+    "reset_usb_create": ("Create", "Oluştur"),
+    "reset_usb_again": ("Create a new one", "Yenisini oluştur"),
+    "reset_usb_remove": ("Remove", "Kaldır"),
+    "reset_usb_choose": ("Insert a USB flash drive and choose it. VeltOS writes a long key to it; nothing on it is "
+                         "erased. A new drive replaces the old one.",
+                         "Bir USB bellek takın ve seçin. VeltOS belleğe uzun bir anahtar yazar; bellekteki hiçbir "
+                         "şey silinmez. Yeni bir bellek eskisinin yerini alır."),
+    "reset_usb_none": ("No USB flash drive found.", "USB bellek bulunamadı."),
+    "reset_usb_refresh": ("Refresh", "Yenile"),
+    "reset_usb_made": ("The password reset USB is ready.", "Parola sıfırlama USB'si hazır."),
+    "reset_usb_error": ("The password reset USB couldn't be created.", "Parola sıfırlama USB'si oluşturulamadı."),
+    "reset_usb_not-allowed": ("Administrator permission was not given.", "Yönetici izni verilmedi."),
     "password": ("Password", "Parola"),
     "password_desc": ("Sign in with your account's password", "Hesabınızın parolasıyla oturum açın"),
     "change_password": ("Change your password", "Parolanızı değiştirin"),

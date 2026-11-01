@@ -12,6 +12,8 @@ import "."
 Item {
     id: chat
     signal suggestion(string text)
+    // The conversation's reading width (the window's wide layout sets it).
+    property int columnWidth: Theme.chatWidth
 
     // --- greeting -----------------------------------------------------------------------------------
     ColumnLayout {
@@ -96,24 +98,46 @@ Item {
         // view down) until they come back down or send a message.
         property bool follow: true
         property bool movingItself: false
+        // Glide down softly instead of jumping (product owner, 2026-11-01).
+        property bool glide: true
         readonly property real endY: Math.max(0, contentHeight - height)
         readonly property bool atEnd: contentY >= endY - 32
         function toEnd() {
+            scroller.stop();
             movingItself = true;
             contentY = endY;
             movingItself = false;
             follow = true;
         }
+        function glideToEnd() {
+            if (!glide || !visible)
+                return toEnd();
+            follow = true;
+            if (Math.abs(contentY - endY) < 1)
+                return;
+            scroller.stop();
+            scroller.from = contentY;
+            scroller.to = endY;
+            scroller.start();
+        }
+        NumberAnimation {
+            id: scroller
+            target: list
+            property: "contentY"
+            duration: 280
+            easing.type: Easing.OutCubic
+        }
         // (atEnd may not have followed contentY yet when this runs)
-        onContentYChanged: if (!movingItself) follow = contentY >= endY - 32
-        onContentHeightChanged: if (follow) Qt.callLater(toEnd)
+        onContentYChanged: if (!movingItself && !scroller.running) follow = contentY >= endY - 32
+        onContentHeightChanged: if (follow) Qt.callLater(glideToEnd)
         onHeightChanged: if (follow) Qt.callLater(toEnd)
+        onMovementStarted: scroller.stop()
 
         Connections {
             target: backend
             function onSent() {
                 list.follow = true;
-                Qt.callLater(list.toEnd);
+                Qt.callLater(list.glideToEnd);
             }
         }
 
@@ -121,7 +145,7 @@ Item {
             id: column
             y: 12
             x: Math.max(0, Math.round((list.width - width) / 2))
-            width: Math.min(list.width, Theme.chatWidth)
+            width: Math.min(list.width, chat.columnWidth)
             spacing: 12
             Repeater {
                 objectName: "messages"
@@ -133,6 +157,7 @@ Item {
                     required property string body
                     required property string status
                     required property string title
+                    required property string detail
                     width: column.width
                     height: loader.item ? loader.item.implicitHeight : 0
                     Loader {
@@ -142,7 +167,7 @@ Item {
                                        : row.kind === "assistant" ? answer
                                        : row.kind === "action" ? action : problem
                         property var message: ({ id: row.mid, kind: row.kind, text: row.body,
-                                                 state: row.status, title: row.title })
+                                                 state: row.status, title: row.title, detail: row.detail })
                     }
                 }
             }
@@ -219,8 +244,22 @@ Item {
     Component {
         id: answer
         Item {
+            id: answerItem
             readonly property var message: parent && parent.message ? parent.message : ({})
             implicitHeight: card.height + copyRow.height
+            // The words appear smoothly as they come, a few letters a frame
+            // (more when far behind), instead of a block every 60 ms.
+            readonly property string full: message.text || ""
+            property int shown: 0
+            Component.onCompleted: if (message.state !== "streaming") shown = full.length
+            onFullChanged: if (shown > full.length) shown = full.length
+            Timer {
+                interval: 16
+                repeat: true
+                running: answerItem.shown < answerItem.full.length
+                onTriggered: answerItem.shown = Math.min(answerItem.full.length,
+                    answerItem.shown + Math.max(2, Math.ceil((answerItem.full.length - answerItem.shown) / 10)))
+            }
             Rectangle {
                 id: card
                 anchors.left: parent.left
@@ -237,25 +276,52 @@ Item {
                     y: 12
                     width: card.width - 28
                     spacing: 6
+                    // Three dots that rise in turn while the answer is coming.
                     Row {
-                        spacing: 8
+                        objectName: "typing"
+                        spacing: 5
+                        height: 18
                         visible: message.state === "streaming" && message.text === ""
-                        BusyIndicator { width: 18; height: 18; running: parent.visible }
-                        Text {
-                            text: backend.text("thinking")
-                            color: Theme.subtext
-                            font.pixelSize: Theme.bodySize
-                            anchors.verticalCenter: parent.verticalCenter
+                        Accessible.name: backend.text("thinking")
+                        Repeater {
+                            model: 3
+                            delegate: Rectangle {
+                                id: dot
+                                required property int index
+                                width: 7
+                                height: 7
+                                radius: 3.5
+                                y: 6
+                                color: Theme.accent
+                                opacity: 0.35
+                                SequentialAnimation {
+                                    running: dot.visible
+                                    loops: Animation.Infinite
+                                    PauseAnimation { duration: dot.index * 160 }
+                                    ParallelAnimation {
+                                        NumberAnimation { target: dot; property: "y"; to: 0; duration: 260
+                                                          easing.type: Easing.OutQuad }
+                                        NumberAnimation { target: dot; property: "opacity"; to: 1; duration: 260 }
+                                    }
+                                    ParallelAnimation {
+                                        NumberAnimation { target: dot; property: "y"; to: 6; duration: 260
+                                                          easing.type: Easing.InQuad }
+                                        NumberAnimation { target: dot; property: "opacity"; to: 0.35; duration: 260 }
+                                    }
+                                    PauseAnimation { duration: (2 - dot.index) * 160 + 200 }
+                                }
+                            }
                         }
                     }
                     TextEdit {
                         width: parent.width
                         visible: message.text !== ""
-                        text: message.text
+                        text: list.glide ? answerItem.full.substring(0, answerItem.shown) : answerItem.full
                         textFormat: message.state === "refused" ? TextEdit.PlainText : TextEdit.MarkdownText
                         color: message.state === "refused" ? Theme.subtext : Theme.text
                         font.pixelSize: Theme.bodySize
-                        wrapMode: TextEdit.Wrap
+                        // Long words and command lines wrap too, never wider than the card.
+                        wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
                         readOnly: true
                         selectByMouse: true
                         selectionColor: Theme.accent
@@ -340,7 +406,10 @@ Item {
                             color: Theme.text
                             font.pixelSize: Theme.bodySize
                             font.weight: Font.DemiBold
-                            wrapMode: Text.WordWrap
+                            // A long command wraps inside the card.
+                            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                            maximumLineCount: 4
+                            elide: Text.ElideRight
                         }
                     }
                     RowLayout {
@@ -374,6 +443,57 @@ Item {
                                 : backend.text("action_running")
                             color: message.state === "failed" ? Theme.danger : Theme.subtext
                             font.pixelSize: Theme.captionSize
+                        }
+                    }
+                    // A command's output: folded away, and at most a few
+                    // lines tall when shown (long output stretched the
+                    // conversation, product owner 2026-11-01).
+                    Text {
+                        id: outputToggle
+                        objectName: "outputToggle"
+                        property bool open: false
+                        visible: !!message.detail
+                        text: (open ? "▾ " : "▸ ") + backend.text(open ? "hide_output" : "show_output")
+                        color: Theme.accent
+                        font.pixelSize: Theme.captionSize
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            gesturePolicy: TapHandler.ReleaseWithinBounds
+                            onTapped: outputToggle.open = !outputToggle.open
+                        }
+                    }
+                    Rectangle {
+                        objectName: "output"
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Math.min(220, outputText.implicitHeight + 16)
+                        visible: outputToggle.visible && outputToggle.open
+                        radius: 6
+                        color: Theme.dark ? "#1A1B24" : "#F4F6FA"
+                        border.width: 1
+                        border.color: Theme.cardBorder
+                        clip: true
+                        Flickable {
+                            id: outputScroll
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            contentWidth: width
+                            contentHeight: outputText.implicitHeight
+                            boundsBehavior: Flickable.StopAtBounds
+                            ScrollBar.vertical: ScrollBar {}
+                            TextEdit {
+                                id: outputText
+                                width: outputScroll.width
+                                text: message.detail || ""
+                                textFormat: TextEdit.PlainText
+                                color: Theme.text
+                                font.family: "monospace"
+                                font.pixelSize: Theme.captionSize
+                                wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
+                                readOnly: true
+                                selectByMouse: true
+                                selectionColor: Theme.accent
+                                selectedTextColor: Theme.accentText
+                            }
                         }
                     }
                 }

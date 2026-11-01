@@ -17,7 +17,7 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import disks, strings
+from . import disks, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 # The window re-reads the disks this often (a USB stick plugged in); only
@@ -92,6 +92,7 @@ def parse_args(argv):
 class Backend(QObject):
     changed = Signal()
     busyChanged = Signal()
+    lookChanged = Signal()
     message = Signal(str)                       # an error, shown in a dialog
     actionFinished = Signal(str, str, bool)     # action, target, succeeded (the Format window)
     _finished = Signal(str, int, str, str)      # action, exit code, stdout, stderr (from the worker)
@@ -111,8 +112,8 @@ class Backend(QObject):
         self._busy = ""
         self._after = None          # what to do with a successful reply (open a mount point)
         self._target = ""
-        self._dark = dark_mode()
-        self._accent = accent()
+        self._look = themewatch.ThemeWatch(lambda: (dark_mode(), accent()), self)
+        self._look.changed.connect(self.lookChanged)
         self._finished.connect(self._done)
         self._timer = QTimer(self)
         self._timer.setInterval(POLL_SECONDS * 1000)
@@ -229,13 +230,15 @@ class Backend(QObject):
     def textScale(self):
         return text_scale()
 
-    @Property(bool, notify=changed)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, notify=changed)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property("QVariantList", notify=changed)
     def disks(self):

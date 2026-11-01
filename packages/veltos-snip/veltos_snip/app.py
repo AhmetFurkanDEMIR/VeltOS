@@ -29,7 +29,7 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import capture, strings
+from . import capture, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 MODES = ("rect", "window", "full", "free")
@@ -186,13 +186,15 @@ class Snipper(QObject):
     cancelled = Signal()
     failed = Signal()
 
+    lookChanged = Signal()
+
     def __init__(self, texts, mode="rect", capture_image=None, windows=None, overlay=True, parent=None):
         super().__init__(parent)
         self._texts = texts
         self._overlay = overlay              # False: the whole screen at once
         self._mode = mode if mode in MODES else "rect"
-        self._dark = dark_mode()
-        self._accent = accent()
+        self._look = themewatch.ThemeWatch(lambda: (dark_mode(), accent()), self)
+        self._look.changed.connect(self.lookChanged)
         self._image = capture_image          # tests pass a picture instead of capturing
         self._windows = windows
         self._hovered = -1
@@ -213,13 +215,15 @@ class Snipper(QObject):
         """Settings > Accessibility > Text size (text_scale())."""
         return text_scale()
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property(str, notify=changed)
     def mode(self):
@@ -413,6 +417,7 @@ class Delivery(QObject):
 class Editor(QObject):
     """Backend of Main.qml: New snip, mode, delay, markup, save and copy."""
     changed = Signal()
+    lookChanged = Signal()
     hideRequested = Signal()
     showRequested = Signal()
 
@@ -429,8 +434,8 @@ class Editor(QObject):
         self._counter = 0
         self._message = ""
         self._saved = ""
-        self._dark = dark_mode()
-        self._accent = accent()
+        self._look = themewatch.ThemeWatch(lambda: (dark_mode(), accent()), self)
+        self._look.changed.connect(self.lookChanged)
         self._tmp = Path(tempfile.mkdtemp(prefix="veltos-snip-"))
 
     @Property("QVariantMap", constant=True)
@@ -442,13 +447,15 @@ class Editor(QObject):
         """Settings > Accessibility > Text size (text_scale())."""
         return text_scale()
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property(bool, notify=changed)
     def hasImage(self):

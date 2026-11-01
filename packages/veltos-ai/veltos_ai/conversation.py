@@ -63,7 +63,7 @@ def save(file, messages, history, provider):
     start, as the settings with the keys)."""
     file = Path(file)
     file.parent.mkdir(parents=True, exist_ok=True)
-    data = {"messages": [{k: m.get(k) for k in ("id", "kind", "text", "state", "title")} for m in messages
+    data = {"messages": [{k: m.get(k) for k in ("id", "kind", "text", "state", "title", "detail")} for m in messages
                          ][-MAX_MESSAGES:],
             "history": cut_history(history), "provider": provider}
     tmp = file.with_suffix(".tmp")

@@ -17,7 +17,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
 
-from . import debfile, packages, strings
+from . import debfile, packages, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 
@@ -34,10 +34,11 @@ def size_text(size, lang):
 
 class Installer(QObject):
     changed = Signal()
+    lookChanged = Signal()
     closeRequested = Signal()
 
     def __init__(self, path, lang=None, reader=debfile.read, jobs=None, start=None, dark=False, accent="",
-                 scale=1.0, desktop_dirs=("/usr/share/applications",)):
+                 scale=1.0, desktop_dirs=("/usr/share/applications",), follow=None):
         super().__init__()
         self.lang = lang or strings.language()
         self._texts = strings.texts(self.lang)
@@ -46,7 +47,10 @@ class Installer(QObject):
         self._jobs.changed.connect(self.changed)
         self._jobs.finished.connect(self._finished)
         self._start = start
-        self._dark, self._accent, self._scale = dark, accent, scale
+        self._scale = scale
+        # `follow` reads the system's look again (main()); tests give none.
+        self._look = themewatch.ThemeWatch(follow, self, initial=(dark, accent))
+        self._look.changed.connect(self.lookChanged)
         self._desktop_dirs = desktop_dirs
         self._icon_dir = tempfile.mkdtemp(prefix="veltos-package-")
         self._icon_url = ""
@@ -70,13 +74,15 @@ class Installer(QObject):
 
     # --- the theme's properties (Theme.qml reads backend.*) ----------------------------------
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):
@@ -141,7 +147,9 @@ class Installer(QObject):
             return self.t("pkg_wrong_arch").replace("{arch}", self._info["arch"]).replace(
                 "{native}", self._info["nativeArch"])
         if self._page == "done":
-            return self.t("pkg_done")
+            # A command-line tool or a library has no Start entry (iperf3
+            # said "You can find it in Start", VM 2026-11-01).
+            return self.t("pkg_done" if self.hasApps else "pkg_done_tool")
         if self._page == "failed":
             key = packages.failure_key(self._error)
             return self.t("pkg_failed") + (" " + self.t("pkg_" + key) if key else "")
@@ -173,6 +181,12 @@ class Installer(QObject):
         if not self._info or not (self._page == "done" or (self._page == "ready" and self._info["status"] == "same")):
             return []
         return [app for app in self._info["apps"] if self._desktop_file(app["id"])]
+
+    @Property(bool, notify=changed)
+    def hasApps(self):
+        """Whether the package brings an app for Start (it has a
+        .desktop file that is shown)."""
+        return bool(self._info and self._info["apps"])
 
     @Property(bool, notify=changed)
     def launch(self):
@@ -246,7 +260,8 @@ class Installer(QObject):
 def main(path, app, engine_factory, start):
     """Opens the installer window for `path` in the running QGuiApplication."""
     from .app import accent, dark_mode, text_scale
-    installer = Installer(path, start=start, dark=dark_mode(), accent=accent(), scale=text_scale())
+    installer = Installer(path, start=start, dark=dark_mode(), accent=accent(), scale=text_scale(),
+                          follow=lambda: (dark_mode(), accent()))
     app.setApplicationDisplayName(installer.t("pkg_window_title"))
     app.setDesktopFileName("veltos-package-installer")
     engine = engine_factory()

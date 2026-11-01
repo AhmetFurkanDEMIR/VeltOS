@@ -30,6 +30,7 @@ def folder_label(path):
 class TransferBackend(QObject):
     changed = Signal()
     conflictChanged = Signal()
+    lookChanged = Signal()
     _asked = Signal()
 
     def __init__(self, job, base, lang=None, parent=None):
@@ -39,6 +40,9 @@ class TransferBackend(QObject):
         self.lang = lang or strings.language()
         self.job = job
         self._base = base
+        # The base window's look, followed (themewatch.py).
+        if hasattr(base, "lookChanged"):
+            base.lookChanged.connect(self.lookChanged)
         self._details = False
         self._history = []
         self._pending = None
@@ -50,11 +54,11 @@ class TransferBackend(QObject):
         self._timer.timeout.connect(self._tick)
 
     # theme values for Theme.qml
-    @Property(bool, constant=True)
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
         return self._base.darkMode
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accentColor(self):
         return self._base.accentColor
 

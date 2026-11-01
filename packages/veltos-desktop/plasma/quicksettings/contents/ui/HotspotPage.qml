@@ -21,12 +21,15 @@ SubPage {
     signal openSettings()
 
     readonly property bool active: info.active === true
-    readonly property string problem: info.error ? info.error : (!active && info.reason ? info.reason : "")
+    readonly property string problem: info.error ? info.error : (!active && info.reason ? info.reason
+                                      : (active && info.fallback ? "fallback" : ""))
     readonly property var reasons: ({
         "no-wifi": i18n("This PC has no Wi-Fi adapter."),
         "no-ap": i18n("This PC's Wi-Fi adapter can't host a mobile hotspot."),
         "same-adapter": i18n("This PC reaches the internet through its only Wi-Fi adapter, which can't connect and share at the same time."),
         "no-internet": i18n("Connect this PC to the internet first."),
+        "channel": i18n("This PC's only Wi-Fi adapter isn't allowed to share on its network's channel. Connect to the 2.4 GHz network."),
+        "fallback": i18n("5 GHz isn't available here, so the hotspot uses 2.4 GHz."),
         "start-failed": i18n("Mobile hotspot couldn't be turned on."),
         "save-failed": i18n("Mobile hotspot couldn't be turned on.")
     })

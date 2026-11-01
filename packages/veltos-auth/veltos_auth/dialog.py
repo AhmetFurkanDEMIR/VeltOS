@@ -7,6 +7,11 @@ The request (from agent.py) names the cookie, the message, details and
 the accounts that may answer. The window asks for the password, runs
 polkit's helper with it (helper.py) and prints the verdict as its last
 line: SUCCESS (polkit has been told by the helper), FAILURE or CANCELLED.
+When the agent asks it to ("remember", a request of VeltOS AI), the line
+before SUCCESS is "REMEMBER <user> <password>" for the agent's ten minutes.
+
+Three wrong passwords in a row wait 30 seconds, then a minute, then two
+minutes (lockout.py; the count is shared by the session's prompts).
 """
 
 import configparser
@@ -15,12 +20,12 @@ import os
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import Property, QObject, QProcess, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QObject, QProcess, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import helper, strings
+from . import helper, lockout, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 
@@ -48,10 +53,14 @@ class Prompt(QObject):
     """The request for QML and the password check."""
 
     changed = Signal()
+    lookChanged = Signal()
     finished = Signal(str)          # SUCCESS, FAILURE or CANCELLED
 
     def __init__(self, request, lang=None, out=None, helper_command=None, parent=None):
         super().__init__(parent)
+        self._look = themewatch.ThemeWatch(
+            lambda: (kde_value("KDE", "LookAndFeelPackage").endswith(".dark"), accent_colour()), self)
+        self._look.changed.connect(self.lookChanged)
         self.lang = lang or strings.language()
         self.out = out or sys.stdout
         self.request = request
@@ -65,6 +74,31 @@ class Prompt(QObject):
         self._password = ""
         self._process = None
         self._verdict = None
+        self._remember = ""
+        self._lock_left = lockout.remaining()
+        self._lock_timer = QTimer(self)
+        self._lock_timer.setInterval(1000)
+        self._lock_timer.timeout.connect(self._tick)
+        if self._lock_left:
+            self._lock_timer.start()
+
+    def _tick(self):
+        self._lock_left = lockout.remaining()
+        if not self._lock_left:
+            self._lock_timer.stop()
+            self._error = ""
+        self.changed.emit()
+
+    @Property(int, notify=changed)
+    def lockedSeconds(self):
+        return self._lock_left
+
+    @Property(str, notify=changed)
+    def lockText(self):
+        if not self._lock_left:
+            return ""
+        minutes, seconds = divmod(self._lock_left, 60)
+        return self.text("locked_out").replace("{time}", f"{minutes}:{seconds:02d}")
 
     def text(self, key):
         return strings.text(self.lang, key)
@@ -126,19 +160,21 @@ class Prompt(QObject):
     def busy(self):
         return self._busy
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return accent_colour()
+        return self._look.accent
 
     # --- the check ---------------------------------------------------------------------
 
     @Slot(str)
     def submit(self, password):
-        if self._busy or not self._users:
+        if self._busy or not self._users or self._lock_left:
             return
         self._password = password
         self._error = ""
@@ -182,19 +218,28 @@ class Prompt(QObject):
             return
         self._process.deleteLater()
         self._process = None
-        self._password = ""
+        password, self._password = self._password, ""
         self._busy = False
         if status == QProcess.ExitStatus.NormalExit and code == 0:
+            lockout.succeeded()
+            if self.request.get("remember"):
+                self._remember = f"REMEMBER {self._users[self._index]['name']} {password}"
             self.finish("SUCCESS")
             return
         self._attempts += 1
         self._error = self.text("wrong_password")
+        if lockout.failed():
+            self._lock_left = lockout.remaining()
+            self._lock_timer.start()
         self.changed.emit()
 
     def finish(self, verdict):
         if self._verdict is not None:
             return
         self._verdict = verdict
+        if verdict == "SUCCESS" and self._remember:
+            self.out.write(self._remember + "\n")
+            self._remember = ""
         self.out.write(verdict + "\n")
         self.out.flush()
         self.finished.emit(verdict)

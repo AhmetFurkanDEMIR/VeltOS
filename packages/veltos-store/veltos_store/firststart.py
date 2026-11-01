@@ -1,54 +1,57 @@
-"""The first start's "Getting everything ready" window (Windows 11's
-out-of-box screens): full screen over the desktop while
-veltos-first-update.service brings the new installation up to date
-(firstupdate.py), then "You're ready to go" and it closes by itself.
-`veltos-store --first-start`, started at sign-in by
-/etc/xdg/autostart/veltos-first-start.desktop.
+"""The first start's Welcome window: a normal window with a few animated
+cards (Start and search, VeltOS AI, VeltOS Store, Windows programs, making
+it yours) and "Get started". `veltos-store --first-start`, started at
+sign-in by /etc/xdg/autostart/veltos-first-start.desktop.
+
+Until 2026-11-01 the first start covered the screen with "We're getting
+everything ready" while the update ran, and without a network it had to
+ask for one. The product owner wanted that screen gone: the update now runs
+in the background at the first internet connection after the installation
+(veltos-first-update.service, firstupdate.py) and this window only says so
+in one line under the cards.
 
 should_show() decides without Qt (it runs at every sign-in): never in the
-live system, not once the update has finished more than SHOW_AFTER_DONE
-ago, and once per user (~/.config/veltos/first-start-shown). "Continue in
-the background" (after a while) closes the window; the update goes on.
-
-Without a network ("offline") it asks to connect, as Windows 11's "Let's
-connect you to a network": "Connect to Wi-Fi" opens VeltOS Settings at
-Wi-Fi and steps aside; the window comes back when the PC is online (to show
-the update) or when Settings is closed without a connection. "Continue
-without internet" closes it; the update waits for a network by itself.
+live system, once per user (~/.config/veltos/first-start-shown).
 """
 
-import os
 import time
 from pathlib import Path
 
-from PySide6.QtCore import Property, QObject, QProcess, QTimer, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QObject, QTimer, QUrl, Signal, Slot
 
-from . import firstupdate, strings
+from . import firstupdate, strings, themewatch
 from .firstupdate import marker
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
-HIDE_AFTER = 20                  # seconds before "Continue in the background" appears
-CLOSE_AFTER_READY = 4            # seconds "You're ready to go" stays
+
+# The cards: (id, icon, program to open it).
+CARDS = [
+    ("start", "start-here", ["dbus-send", "--session", "--type=method_call", "--dest=org.kde.plasmashell",
+                               "/PlasmaShell", "org.kde.PlasmaShell.activateLauncherMenu"]),
+    ("ai", "veltos-ai", ["veltos-ai", "--window"]),
+    ("store", "veltos-store", ["veltos-store"]),
+    ("windows", "application-x-ms-dos-executable", ["veltos-settings", "windows-apps"]),
+    ("personalize", "preferences-desktop-theme", ["veltos-settings", "personalization"]),
+]
 
 
 class FirstStart(QObject):
     changed = Signal()
+    lookChanged = Signal()
     finished = Signal()
-    hideWindow = Signal()
-    showWindow = Signal()
 
-    def __init__(self, lang=None, status=firstupdate.STATUS, done=firstupdate.DONE, interval=500, shown=None,
-                 dark=True, accent="", scale=1.0):
+    def __init__(self, lang=None, status=firstupdate.STATUS, done=firstupdate.DONE, interval=2000, shown=None,
+                 dark=False, accent="", scale=1.0, start=None, follow=None):
         super().__init__()
         self.lang = lang or strings.language()
         self._texts = strings.texts(self.lang)
         self._status, self._done, self._shown = status, done, shown or marker()
+        self._start = start
+        self._scale = scale
+        # `follow` reads the system's look again (main()); tests give none.
+        self._look = themewatch.ThemeWatch(follow, self, initial=(dark, accent))
+        self._look.changed.connect(self.lookChanged)
         self._data = {}
-        self._started = time.monotonic()
-        self._ready_at = None
-        self._dark, self._accent, self._scale = dark, accent, scale
-        self._away = False           # Settings is open for a network
-        self._settings_pid = 0
         self._timer = QTimer(self)
         self._timer.setInterval(interval)
         self._timer.timeout.connect(self.poll)
@@ -56,13 +59,15 @@ class FirstStart(QObject):
         self.poll()
 
     # Theme.qml reads backend.*
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):
@@ -72,63 +77,33 @@ class FirstStart(QObject):
     def texts(self):
         return self._texts
 
+    @Property("QVariantList", constant=True)
+    def cards(self):
+        return [{"id": key, "icon": icon, "title": self._texts["wl_" + key],
+                 "description": self._texts["wl_" + key + "_desc"]} for key, icon, _program in CARDS]
+
     @Property(str, notify=changed)
-    def state(self):
+    def updateText(self):
+        """One line about the background update."""
         state = self._data.get("state", "")
-        if not state and self._done.exists():
-            return "done"
-        return state or "network"
-
-    @Property(bool, notify=changed)
-    def ready(self):
-        return self.state in ("done", "failed")
-
-    @Property(bool, notify=changed)
-    def offline(self):
-        return self.state == "offline"
-
-    @Property(bool, notify=changed)
-    def bottles(self):
-        return bool(self._data.get("bottles"))
-
-    @Property(int, notify=changed)
-    def percent(self):
-        return int(self._data.get("percent", 0))
-
-    @Property(str, notify=changed)
-    def detail(self):
-        state = self.state
-        if state in ("download", "install"):
-            return self._texts["fs_" + state].replace("{percent}", str(self.percent))
-        return self._texts.get("fs_" + state, "")
-
-    @Property(bool, notify=changed)
-    def canHide(self):
-        return not self.ready and not self.offline and time.monotonic() - self._started > HIDE_AFTER
+        if state == "done" or (not state and self._done.exists()):
+            return self._texts["wl_update_done"]
+        if state == "failed":
+            return self._texts["wl_update_failed"]
+        if state in ("lists", "download", "install", "bottles"):
+            return self._texts["wl_update_working"]
+        return self._texts["wl_update_network"]
 
     @Slot()
     def poll(self):
         self._data = firstupdate.read_status(self._status)
-        if self.ready and self._ready_at is None:
-            self._ready_at = time.monotonic()
-        if self._away and (not self.offline or not running(self._settings_pid)):
-            # Online now (the update shows), or back from Settings without one.
-            self._away = False
-            self.showWindow.emit()
         self.changed.emit()
-        if self._ready_at is not None and time.monotonic() - self._ready_at > CLOSE_AFTER_READY:
-            self.close()
 
-    @Slot()
-    def connectNetwork(self):
-        """VeltOS Settings at Wi-Fi; the window steps aside meanwhile."""
-        result = QProcess.startDetached("veltos-settings", ["wifi"])
-        started, pid = result if isinstance(result, tuple) else (result, 0)
-        if not started:
-            return
-        self._settings_pid = pid
-        self._away = True
-        self.hideWindow.emit()
+    @Slot(str)
+    def open(self, card):
+        program = next((p for key, _icon, p in CARDS if key == card), None)
+        if program and self._start:
+            self._start(program)
 
     @Slot()
     def close(self):
@@ -142,31 +117,14 @@ class FirstStart(QObject):
         self.finished.emit()
 
 
-def running(pid, proc=Path("/proc")):
-    """Whether VeltOS Settings (pid, or any copy when the pid is unknown) runs."""
-    if pid <= 0:
-        for entry in proc.glob("[0-9]*/cmdline"):
-            try:
-                if b"veltos-settings" in entry.read_bytes():
-                    return True
-            except OSError:
-                continue
-        return False
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    return True
-
-
-def main(app, engine_factory):
+def main(app, engine_factory, start=None):
     from .app import accent, dark_mode, text_scale
-    backend = FirstStart(dark=dark_mode(), accent=accent(), scale=text_scale())
+    backend = FirstStart(dark=dark_mode(), accent=accent(), scale=text_scale(), start=start,
+                         follow=lambda: (dark_mode(), accent()))
+    app.setApplicationDisplayName(backend.texts["wl_window"])
     engine = engine_factory()
     engine.rootContext().setContextProperty("backend", backend)
-    engine.load(QUrl.fromLocalFile(str(QML_DIR / "FirstStart.qml")))
+    engine.load(QUrl.fromLocalFile(str(QML_DIR / "Welcome.qml")))
     if not engine.rootObjects():
         return 1
     backend.finished.connect(app.quit)

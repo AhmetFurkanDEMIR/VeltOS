@@ -16,6 +16,8 @@ TEXTS = {
     "no": ("Cancel", "İptal"),
     "administrator": ("Administrator", "Yönetici"),
     "wrong_password": ("The password is incorrect. Try again.", "Parola yanlış. Yeniden deneyin."),
+    "locked_out": ("Too many wrong passwords. Try again in {time}.",
+                   "Çok fazla yanlış parola girildi. {time} sonra yeniden deneyin."),
     "show_details": ("Show more details", "Daha fazla ayrıntı göster"),
     "hide_details": ("Hide details", "Ayrıntıları gizle"),
     "action": ("Action", "Eylem"),

@@ -75,7 +75,7 @@ MouseArea {
     function notifySafe() {
         notify(tr("Safe To Remove Hardware"),
                tr("The '%1' device can now be safely removed from the computer.", deviceDescription),
-               "media-removable");
+               "veltos-usb-drive"); // Windows 11's USB flash drive, not a disk
     }
     function notifyProblem() {
         notify(tr("Problem Ejecting %1", deviceDescription),

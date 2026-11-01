@@ -257,6 +257,17 @@
       </button>
     </div>
   </div>
+  <div class="wrap">
+    <div class="section-head sub reveal">
+      <h3 data-i18n="chats.title">Just ask</h3>
+      <p data-i18n="chats.lead">Three real conversations with the free local model on a VeltOS PC: it reads the PC's details, and it switches dark mode and Wi-Fi on after you press Allow.</p>
+    </div>
+    <div class="chats reveal">
+      <figure class="chat"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="lang-en" src="assets/img/chat-en-info.webp" alt="Asked “Tell me about this PC”, VeltOS AI looks at the PC's details and answers with its processor, memory and disk" width="440" height="310" loading="lazy" decoding="async"><img class="lang-tr" src="assets/img/chat-tr-info.webp" alt="“Bu bilgisayar hakkında bilgi ver” sorusuna VeltOS AI bilgisayarın ayrıntılarına bakıp işlemcisini, belleğini ve diskini söylüyor" width="440" height="310" loading="lazy" decoding="async"></button><figcaption data-i18n="chats.info">About this PC</figcaption></figure>
+      <figure class="chat"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="lang-en" src="assets/img/chat-en-dark.webp" alt="Asked “Turn on dark mode”, VeltOS AI switches to dark mode after Allow" width="440" height="310" loading="lazy" decoding="async"><img class="lang-tr" src="assets/img/chat-tr-dark.webp" alt="“Koyu modu aç” isteğiyle VeltOS AI, İzin ver'den sonra koyu moda geçiyor" width="440" height="310" loading="lazy" decoding="async"></button><figcaption data-i18n="chats.dark">Dark mode on</figcaption></figure>
+      <figure class="chat"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="lang-en" src="assets/img/chat-en-wifi.webp" alt="Asked “Turn on Wi-Fi”, VeltOS AI turns Wi-Fi on after Allow" width="440" height="310" loading="lazy" decoding="async"><img class="lang-tr" src="assets/img/chat-tr-wifi.webp" alt="“Wi-Fi'ı aç” isteğiyle VeltOS AI, İzin ver'den sonra Wi-Fi'ı açıyor" width="440" height="310" loading="lazy" decoding="async"></button><figcaption data-i18n="chats.wifi">Wi-Fi on</figcaption></figure>
+    </div>
+  </div>
 </section>
 
 <!-- Light and dark -------------------------------------------------------- -->
@@ -271,10 +282,14 @@
         <li data-i18n="modes.p2">Displays, scaling and night light in Settings › System › Display.</li>
       </ul>
     </div>
-    <div class="split-visual reveal">
-      <div class="shot-frame">
-        <img src="assets/img/tour-modes.webp" alt="Settings and Photos switching between light and dark mode (animation recorded on VeltOS)" width="960" height="540" loading="lazy" decoding="async" data-i18n-attr="alt:alt.modes">
+    <div class="split-visual reveal slides" data-slides style="--slide-ms: 3000ms">
+      <div class="shot-frame slides-stage">
+        <figure class="slide is-current"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img src="assets/img/light-settings.webp" alt="Settings in light mode" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:mode.settings.light"></button><figcaption data-i18n="mode.settings.light">Settings in light mode</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img src="assets/img/dark-settings.webp" alt="Settings in dark mode" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:mode.settings.dark"></button><figcaption data-i18n="mode.settings.dark">Settings in dark mode</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img src="assets/img/light-photos.webp" alt="Photos in light mode" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:mode.photos.light"></button><figcaption data-i18n="mode.photos.light">Photos in light mode</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img src="assets/img/dark-photos.webp" alt="Photos in dark mode" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:mode.photos.dark"></button><figcaption data-i18n="mode.photos.dark">Photos in dark mode</figcaption></figure>
       </div>
+      <div class="slides-dots"></div>
     </div>
   </div>
 </section>
@@ -313,11 +328,16 @@
       <li class="reveal"><img src="assets/icons/veltos-graphics.svg" alt="" width="48" height="48" loading="lazy"><span data-i18n="app.graphics">Graphics Cards</span></li>
       <li class="reveal"><img src="assets/icons/veltos-winapps.svg" alt="" width="48" height="48" loading="lazy"><span data-i18n="app.winapps">Windows programs</span></li>
     </ul>
-    <div class="tour reveal">
-      <div class="shot-frame">
-        <img class="img-light" src="assets/img/tour-apps.webp" alt="File Explorer, Word, Media Player, Weather, Calendar and Task Manager (animation recorded on VeltOS)" width="960" height="540" loading="lazy" decoding="async" data-i18n-attr="alt:alt.tour.apps">
-        <img class="img-dark" src="assets/img/tour-apps-dark.webp" alt="File Explorer, Word, Media Player, Weather, Calendar and Task Manager (animation recorded on VeltOS)" width="960" height="540" loading="lazy" decoding="async" data-i18n-attr="alt:alt.tour.apps">
+    <div class="tour reveal slides" data-slides>
+      <div class="shot-frame slides-stage">
+        <figure class="slide is-current"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-explorer.webp" alt="File Explorer" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.explorer"><img class="img-dark" src="assets/img/dark-explorer.webp" alt="File Explorer" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.explorer"></button><figcaption data-i18n="app.explorer">File Explorer</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-word.webp" alt="Word" width="1600" height="900" loading="lazy" decoding="async"><img class="img-dark" src="assets/img/dark-word.webp" alt="Word" width="1600" height="900" loading="lazy" decoding="async"></button><figcaption>Word</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-media.webp" alt="Media Player" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.media"><img class="img-dark" src="assets/img/dark-media.webp" alt="Media Player" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.media"></button><figcaption data-i18n="app.media">Media Player</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-weather.webp" alt="Weather" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.weather"><img class="img-dark" src="assets/img/dark-weather.webp" alt="Weather" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.weather"></button><figcaption data-i18n="app.weather">Weather</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-calendar.webp" alt="Calendar" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.calendar"><img class="img-dark" src="assets/img/dark-calendar.webp" alt="Calendar" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.calendar"></button><figcaption data-i18n="app.calendar">Calendar</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-taskmanager.webp" alt="Task Manager" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.taskmanager"><img class="img-dark" src="assets/img/dark-taskmanager.webp" alt="Task Manager" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:app.taskmanager"></button><figcaption data-i18n="app.taskmanager">Task Manager</figcaption></figure>
       </div>
+      <div class="slides-dots"></div>
     </div>
   </div>
 </section>
@@ -328,7 +348,7 @@
     <div class="section-head reveal">
       <p class="kicker" data-i18n="gallery.kicker">Screenshots</p>
       <h2 data-i18n="gallery.title">See it for yourself</h2>
-      <p data-i18n="gallery.lead">Every picture was taken on VeltOS 1.0. Switch this page between light and dark to see both looks; select a picture to see it larger.</p>
+      <p data-i18n="gallery.lead">Every picture was taken on VeltOS. Switch this page between light and dark to see both looks; select a picture to see it larger.</p>
     </div>
     <div class="tabs reveal" role="tablist" data-i18n-attr="aria-label:gallery.tabs" aria-label="Screenshots">
       <button type="button" role="tab" data-shot="0" aria-selected="true" data-i18n="shot.desktop">Desktop</button>
@@ -377,13 +397,17 @@
 
     <div class="section-head sub reveal">
       <h3 data-i18n="tour.title">A minute with VeltOS</h3>
-      <p data-i18n="tour.lead">Start, search, Task View and VeltOS AI, recorded on VeltOS.</p>
+      <p data-i18n="tour.lead">Start, search, Task View, Quick Settings and VeltOS AI, one after another, as screenshots taken on VeltOS.</p>
     </div>
-    <div class="tour reveal">
-      <div class="shot-frame">
-        <img class="img-light" src="assets/img/tour-desktop.webp" alt="Start, search, Task View and VeltOS AI (animation recorded on VeltOS)" width="960" height="540" loading="lazy" decoding="async" data-i18n-attr="alt:alt.tour.desktop">
-        <img class="img-dark" src="assets/img/tour-desktop-dark.webp" alt="The dark desktop, File Explorer, Settings and VeltOS AI (animation recorded on VeltOS)" width="960" height="540" loading="lazy" decoding="async" data-i18n-attr="alt:alt.tour.desktop">
+    <div class="tour reveal slides" data-slides>
+      <div class="shot-frame slides-stage">
+        <figure class="slide is-current"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-start.webp" alt="Start" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:tour.start"><img class="img-dark" src="assets/img/dark-start.webp" alt="Start" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:tour.start"></button><figcaption data-i18n="tour.start">Start</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-search.webp" alt="Search" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:tour.search"><img class="img-dark" src="assets/img/dark-search.webp" alt="Search" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:tour.search"></button><figcaption data-i18n="tour.search">Search</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-taskview.webp" alt="Task View" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:tour.taskview"><img class="img-dark" src="assets/img/dark-taskview.webp" alt="Task View" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:tour.taskview"></button><figcaption data-i18n="tour.taskview">Task View</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-quick.webp" alt="Quick Settings" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:shot.quick"><img class="img-dark" src="assets/img/dark-quick.webp" alt="Quick Settings" width="1600" height="900" loading="lazy" decoding="async" data-i18n-attr="alt:shot.quick"></button><figcaption data-i18n="shot.quick">Quick Settings</figcaption></figure>
+        <figure class="slide"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img class="img-light" src="assets/img/light-ai.webp" alt="VeltOS AI" width="1600" height="900" loading="lazy" decoding="async"><img class="img-dark" src="assets/img/dark-ai.webp" alt="VeltOS AI" width="1600" height="900" loading="lazy" decoding="async"></button><figcaption>VeltOS AI</figcaption></figure>
       </div>
+      <div class="slides-dots"></div>
     </div>
   </div>
 </section>
@@ -425,7 +449,7 @@
     </div>
     <div class="filmstrip three">
       <figure class="reveal"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img src="assets/img/installer.webp" alt="The VeltOS installer's welcome page" width="1600" height="900" loading="lazy" decoding="async"></button><figcaption data-i18n="cap.inst1">Choose your language</figcaption></figure>
-      <figure class="reveal"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img src="assets/img/installer-ai-slide.webp" alt="The installer's slideshow introducing VeltOS AI" width="1200" height="675" loading="lazy" decoding="async"></button><figcaption data-i18n="cap.inst2">Meet VeltOS while it installs</figcaption></figure>
+      <figure class="reveal"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img src="assets/img/installer-ai-slide.webp" alt="The installer's slideshow introducing VeltOS AI" width="1600" height="900" loading="lazy" decoding="async"></button><figcaption data-i18n="cap.inst2">Meet VeltOS while it installs</figcaption></figure>
       <figure class="reveal"><button class="zoom" type="button" data-i18n-attr="aria-label:zoom.open" aria-label="Show larger"><img src="assets/img/installer-done.webp" alt="VeltOS is ready" width="1600" height="900" loading="lazy" decoding="async"></button><figcaption data-i18n="cap.inst3">VeltOS is ready</figcaption></figure>
     </div>
   </div>

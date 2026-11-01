@@ -1,3 +1,22 @@
+veltos-store (1.1.0~dev4) trixie; urgency=medium
+
+  * The first start's full-screen update screen is gone: the update runs in the
+    background at the first internet connection; a Welcome window instead.
+  * pkcon offers no debconf socket: packages with questions (NVIDIA's driver)
+    hung for good in dpkg-preconfigure; they take their defaults now.
+  * One installation after another: wait while apt-get or dpkg runs, again
+    after a lock failure; pkcon repair when dpkg was interrupted.
+  * App Installer: a package without an app (a command-line tool) says it
+    is used from Terminal, not "You can find it in Start", and offers no
+    "Launch when ready".
+  * veltos-package-repair.service finishes interrupted installs at start;
+    apt keeps changed configuration files and waits for the lock.
+  * The Store, the App Installer and Welcome follow light/dark and the accent
+    while open
+    (themewatch.py; the App Installer stayed light after a switch to dark).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 09:00:00 +0000
+
 veltos-store (1.1.0~dev3) trixie; urgency=medium
 
   * First start without a network: "Let's connect you to a network" (Connect

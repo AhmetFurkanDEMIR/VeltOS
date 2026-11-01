@@ -76,6 +76,9 @@ override_dh_auto_install:
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/drive-harddisk-windows.svg
 	install -D -m 644 branding/small/drive-harddisk-windows.svg \
 		debian/veltos-fluent-icons/usr/share/icons/hicolor/16x16/devices/drive-harddisk-windows.svg
+	# Windows 11's USB flash drive (Safely Remove Hardware's notification).
+	install -D -m 644 branding/veltos-usb-drive.svg \
+		debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/veltos-usb-drive.svg
 	for name in drive-removable-media drive-removable-media-usb; do \
 		install -D -m 644 branding/$$name.svg \
 			debian/veltos-fluent-icons/usr/share/icons/hicolor/scalable/devices/$$name.svg; \

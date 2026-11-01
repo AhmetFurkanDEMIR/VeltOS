@@ -39,6 +39,9 @@ def start(args):
         # (docs/dev/testing.md, "Several monitors"); "shot2:" takes its picture.
         "-device", f"virtio-vga,id=video0,max_outputs={args.outputs},xres={SCREEN[0]},yres={SCREEN[1]}",
         "-device", "virtio-tablet-pci",
+        # A USB controller, so "usbstick:add" can plug a flash drive in
+        # (password reset USB, Safely Remove Hardware; vmpreview.py).
+        "-device", "qemu-xhci,id=xhci",
         "-nic", "user,model=virtio-net-pci",
         "-qmp", f"unix:{RUN / 'qmp.sock'},server=on,wait=off",
         "-chardev", f"socket,path={RUN / 'qga.sock'},server=on,wait=off,id=qga0",

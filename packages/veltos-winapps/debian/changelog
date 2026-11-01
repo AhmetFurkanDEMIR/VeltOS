@@ -1,3 +1,14 @@
+veltos-winapps (1.1.0~dev4) trixie; urgency=medium
+
+  * Programs installed in Bottles are listed (every bottle's registry) and
+    removed with Wine's uninstaller inside their bottle (bottles-cli).
+  * veltos-run's entry says it opens files (X-VeltOS-OpenWith) although it is
+    hidden from Start.
+  * The installer window follows light/dark and the accent while open
+    (themewatch.py).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 12:00:00 +0000
+
 veltos-winapps (1.1.0~dev3) trixie; urgency=medium
 
   * Bottles chosen in Settings without internet: the sign-in set-up installs

@@ -10,6 +10,8 @@ Exec=veltos-run %f
 Icon=veltos-run
 Terminal=false
 NoDisplay=true
+# Hidden from Start, but it opens .exe and .msi files (File Explorer's "Open with").
+X-VeltOS-OpenWith=true
 MimeType=application/x-ms-dos-executable;application/x-msdownload;application/x-msi;application/vnd.microsoft.portable-executable;application/x-ms-ne-executable;application/x-wine-extension-msp;application/x-bat;
 Categories=System;
 StartupNotify=true

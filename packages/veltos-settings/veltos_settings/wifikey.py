@@ -19,7 +19,7 @@ from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from . import devices, strings
+from . import devices, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 KINDS = ("psk", "wep", "eap")
@@ -35,8 +35,16 @@ def valid_key(kind, key):
     return bool(key)
 
 
+
+def system_look(accent=""):
+    """(dark, accent) of the session; a given accent stays."""
+    from . import sysinfo
+    return sysinfo.dark_mode(), accent or devices.Personalization().accent()
+
+
 class KeyBackend(QObject):
     answered = Signal(bool, str)
+    lookChanged = Signal()
 
     def __init__(self, kind, name, retry=False, lang=None, dark=None, accent="", parent=None):
         super().__init__(parent)
@@ -44,8 +52,11 @@ class KeyBackend(QObject):
         self._kind = kind if kind in KINDS else "psk"
         self._name = name or "Wi-Fi"
         self._retry = bool(retry)
-        self._dark = dark
-        self._accent = accent
+        # A given look (tests, a caller that knows it) stays; otherwise the
+        # session's, followed while the window is open (themewatch.py).
+        self._look = themewatch.ThemeWatch(None if dark is not None else (lambda: system_look(accent)), self,
+                                           initial=(dark, accent) if dark is not None else None)
+        self._look.changed.connect(self.lookChanged)
 
     @Slot(str, result=str)
     def text(self, key):
@@ -63,16 +74,15 @@ class KeyBackend(QObject):
     def retry(self):
         return self._retry
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        if self._dark is not None:
-            return self._dark
-        from . import sysinfo
-        return sysinfo.dark_mode()
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent or devices.Personalization().accent()
+        return self._look.accent
 
     @Slot(str, result=bool)
     def acceptable(self, key):

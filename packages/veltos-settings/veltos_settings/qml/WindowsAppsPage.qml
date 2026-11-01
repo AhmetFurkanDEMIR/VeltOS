@@ -116,8 +116,13 @@ ColumnLayout {
                     }
                     Label {
                         Layout.fillWidth: true
+                        // Which Windows environment installed it (product owner,
+                        // 2026-11-01): VeltOS' Wine or a bottle of Bottles.
                         text: row.busy ? backend.text("uninstalling")
-                              : [row.modelData.publisher, row.modelData.version,
+                              : [row.modelData.runner === "bottles"
+                                     ? backend.format("installed_with_bottles", row.modelData.bottle || "Bottles")
+                                     : backend.text("installed_with_wine"),
+                                 row.modelData.publisher, row.modelData.version,
                                  row.modelData.installed ? backend.format("installed_on", row.modelData.installed) : ""]
                                 .filter(part => part.length > 0).join("  ·  ")
                         color: Theme.subtext

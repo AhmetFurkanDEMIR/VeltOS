@@ -205,6 +205,53 @@ class HotspotTests(unittest.TestCase):
         self.assertEqual(wireless["band"], "bg")
         self.assertNotIn("channel", wireless)
 
+    def test_a_5ghz_hotspot_that_cannot_start_falls_back_to_2_4_ghz(self):
+        # The owner's laptop: the only card on a 5 GHz network, 5 GHz chosen,
+        # "Mobile hotspot couldn't be turned on" (2026-11-01).
+        h = self.same_card(concurrent=2, link_freq=5260)       # a DFS channel
+        state = h.status()
+        self.assertFalse(state["shared"]["allowed"])
+        h.configure("Phone", "password1", "a")
+        self.assertEqual(h.status()["band"], "a")
+        self.runner.fail_bands = {"a"}
+        state = h.start()
+        self.assertEqual(state["error"], "")
+        self.assertTrue(state["active"])
+        bands = [(w["802-11-wireless"].get("band", ""), w["802-11-wireless"].get("channel", 0))
+                 for w in self.runner.written]
+        self.assertEqual(bands[-2:], [("a", 0), ("bg", 0)])    # never the DFS channel itself
+        self.assertEqual(state["fallback"], "bg")
+        self.assertEqual(state["band"], "a")                    # the choice stays as chosen
+        log = (self.config.parent / "hotspot.log").read_text(encoding="utf-8")
+        self.assertIn("start on band a channel any failed (4): Error: Connection activation failed", log)
+        self.assertIn("5260.0 MHz [52] (20.0 dBm) (no IR, radar detection)", log)
+        self.assertIn("country TR", log)
+        self.assertEqual(h.stop()["fallback"], "")
+        self.assertNotIn("fallback", json.loads(self.config.read_text()))
+
+    def test_the_connection_channel_is_used_where_the_card_may(self):
+        h = self.same_card(concurrent=2, link_freq=5180)
+        self.assertEqual(h.plans(h.status(), ""), [("a", 36), ("bg", 0)])
+        self.assertEqual(h.plans(h.status(), "bg"), [("bg", 0)])
+        self.assertEqual(h.plans(h.status(), "a"), [("a", 36), ("a", 0), ("bg", 0)])
+        h = self.same_card(concurrent=2, link_freq=2437)
+        self.assertEqual(h.plans(h.status(), "bg"), [("bg", 6), ("bg", 0)])
+        h = self.make()
+        self.assertEqual(h.plans(h.status(), ""), [("", 0)])
+        self.assertEqual(h.plans(h.status(), "a"), [("a", 0), ("bg", 0)])
+        self.assertEqual([hotspot.frequency_of(*c) for c in (("bg", 1), ("bg", 14), ("a", 36), ("", 0))],
+                         [2412, 2484, 5180, 0])
+
+    def test_one_channel_on_a_forbidden_channel_says_why(self):
+        # A card that can share only on its network's channel, connected on a
+        # DFS channel: no 60 s wait for a start that cannot work.
+        h = self.same_card(concurrent=1, link_freq=5260)
+        state = h.status()
+        self.assertEqual(state["reason"], "channel")
+        self.assertEqual(h.start()["error"], "channel")
+        self.assertEqual(self.runner.written, [])
+        self.assertFalse(self.runner.virtual)
+
     def test_cards_that_cannot_do_both_still_say_so(self):
         self.assertEqual(self.same_card().status()["reason"], "same-adapter")
         h = self.same_card(concurrent=1)

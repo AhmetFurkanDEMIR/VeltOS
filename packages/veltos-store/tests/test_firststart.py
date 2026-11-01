@@ -172,98 +172,62 @@ class UpdateTests(unittest.TestCase):
         folder = Path(tempfile.mkdtemp())
         cmdline, shown = folder / "cmdline", folder / "shown"
         cmdline.write_text("BOOT_IMAGE=/vmlinuz root=UUID=x quiet splash\n")
-        status, done = folder / "status.json", folder / "done"
-        status.write_text('{"state": "download"}')
-        self.assertTrue(firstupdate.should_show(done, status, shown, cmdline))
+        status, done, enabled = folder / "status.json", folder / "done", folder / "enabled"
+        # Not an installed system with the first-start update: nothing.
+        self.assertFalse(firstupdate.should_show(done, status, shown, cmdline, enabled))
+        enabled.write_text("")
+        self.assertTrue(firstupdate.should_show(done, status, shown, cmdline, enabled))
+        # Long after the update the user who never signed in still gets it.
         done.write_text("done")
-        self.assertTrue(firstupdate.should_show(done, status, shown, cmdline))
-        self.assertFalse(firstupdate.should_show(done, status, shown, cmdline, now=time.time() + 3600))
+        enabled.unlink()
+        self.assertTrue(firstupdate.should_show(done, status, shown, cmdline, enabled))
         shown.write_text("x")
-        self.assertFalse(firstupdate.should_show(done, status, shown, cmdline))
+        self.assertFalse(firstupdate.should_show(done, status, shown, cmdline, enabled))
         shown.unlink()
         cmdline.write_text("BOOT_IMAGE=/live/vmlinuz boot=live quiet\n")
-        self.assertFalse(firstupdate.should_show(done, status, shown, cmdline))
+        self.assertFalse(firstupdate.should_show(done, status, shown, cmdline, enabled))
 
 
 class WindowTests(unittest.TestCase):
     lang = "en"
 
-    def test_window_from_updating_to_ready(self):
-        from PySide6.QtCore import QCoreApplication, QEvent, QUrl
-        from PySide6.QtQml import QQmlApplicationEngine
-        from veltos_store import firststart
-        folder = Path(tempfile.mkdtemp())
-        status, done, shown = folder / "status.json", folder / "done", folder / "shown"
-        firstupdate.write_status("download", 30, status, packages=12)
-        backend = firststart.FirstStart(lang=self.lang, status=status, done=done, interval=20, shown=shown)
-        MESSAGES.clear()
-        engine = QQmlApplicationEngine()
-        engine.rootContext().setContextProperty("backend", backend)
-        engine.load(QUrl.fromLocalFile(str(firststart.QML_DIR / "FirstStart.qml")))
-        self.assertTrue(engine.rootObjects(), MESSAGES)
-        window = engine.rootObjects()[0]
-        window.grabWindow()
-        texts = backend.texts
-        self.assertEqual(backend.detail, texts["fs_download"].replace("{percent}", "30"))
-        self.assertFalse(backend.ready)
-        finished = []
-        backend.finished.connect(lambda: finished.append(True))
-        firstupdate.write_status("done", 100, status)
-        backend.poll()
-        self.assertTrue(backend.ready)
-        window.grabWindow()
-        firststart.CLOSE_AFTER_READY, old = 0, firststart.CLOSE_AFTER_READY
-        try:
-            time.sleep(0.05)
-            backend.poll()
-        finally:
-            firststart.CLOSE_AFTER_READY = old
-        self.assertEqual(finished, [True])
-        self.assertTrue(shown.exists())
-        problems = [m for m in MESSAGES if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()
-                    or "undefined" in m.lower()]
-        self.assertEqual(problems, [])
-        engine.deleteLater()
-        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
-        APP.processEvents()
-
-
-    def test_window_without_a_network(self):
+    def test_welcome_window(self):
+        # The full-screen "getting everything ready" is gone (2026-11-01): a
+        # normal Welcome window with cards and the update's state in a line.
         from PySide6.QtCore import QCoreApplication, QEvent, QObject, QUrl
         from PySide6.QtQml import QQmlApplicationEngine
         from veltos_store import firststart
         folder = Path(tempfile.mkdtemp())
         status, done, shown = folder / "status.json", folder / "done", folder / "shown"
-        firstupdate.write_status("offline", 0, status, bottles=True)
-        backend = firststart.FirstStart(lang=self.lang, status=status, done=done, interval=20, shown=shown)
+        started = []
+        backend = firststart.FirstStart(lang=self.lang, status=status, done=done, interval=20, shown=shown,
+                                        start=started.append)
         MESSAGES.clear()
         engine = QQmlApplicationEngine()
         engine.rootContext().setContextProperty("backend", backend)
-        engine.load(QUrl.fromLocalFile(str(firststart.QML_DIR / "FirstStart.qml")))
+        engine.load(QUrl.fromLocalFile(str(firststart.QML_DIR / "Welcome.qml")))
         self.assertTrue(engine.rootObjects(), MESSAGES)
         window = engine.rootObjects()[0]
         window.grabWindow()
-        self.assertTrue(backend.offline)
-        self.assertTrue(backend.bottles)
-        self.assertFalse(backend.ready)              # it waits; nothing closes by itself
-        self.assertFalse(backend.canHide)
-        buttons = window.findChild(QObject, "offlineButtons")
-        self.assertTrue(buttons.property("visible"))
-        # Back from Settings (no copy running) while still offline: shown again.
-        shown_again, hidden = [], []
-        backend.showWindow.connect(lambda: shown_again.append(True))
-        backend.hideWindow.connect(lambda: hidden.append(True))
-        backend._away, backend._settings_pid = True, 2 ** 22 + 7
+        texts = backend.texts
+        self.assertNotEqual(window.property("visibility"), 5)           # not QWindow.FullScreen
+        self.assertEqual([c["id"] for c in backend.cards], ["start", "ai", "store", "windows", "personalize"])
+        self.assertIsNotNone(window.findChild(QObject, "cards"))
+        self.assertEqual(backend.updateText, texts["wl_update_network"])    # no network yet
+        firstupdate.write_status("download", 30, status)
         backend.poll()
-        self.assertEqual(shown_again, [True])
-        # Connected while Settings was open: shown again for the update.
-        backend._away, backend._settings_pid = True, os.getpid()
+        self.assertEqual(backend.updateText, texts["wl_update_working"])
+        firstupdate.write_status("done", 100, status)
         backend.poll()
-        self.assertEqual(shown_again, [True])        # Settings "still open", still offline
-        firstupdate.write_status("lists", 0, status)
-        backend.poll()
-        self.assertEqual(shown_again, [True, True])
-        self.assertFalse(buttons.property("visible"))
+        self.assertEqual(window.findChild(QObject, "updateLine").property("text"), texts["wl_update_done"])
+        backend.open("ai")
+        backend.open("nothing")
+        self.assertEqual(started, [["veltos-ai", "--window"]])
+        finished = []
+        backend.finished.connect(lambda: finished.append(True))
+        backend.close()
+        self.assertEqual(finished, [True])
+        self.assertTrue(shown.exists())
         problems = [m for m in MESSAGES if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()
                     or "undefined" in m.lower()]
         self.assertEqual(problems, [])

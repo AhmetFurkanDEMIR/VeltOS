@@ -26,6 +26,16 @@ monitor connected to the NVIDIA card disappeared once its driver replaced
 Nouveau (product owner's laptop). veltos-graphics ships
 /usr/lib/modprobe.d/veltos-nvidia.conf, which turns it on.
 
+Monitors on NVIDIA's driver under Wayland also need NVIDIA's GBM library
+(`libnvidia-egl-gbm1`, contrib, "GBM EGL external platform library for
+NVIDIA", 1.1.2.1-1): KWin allocates the buffers of every screen through
+GBM, and a laptop's HDMI port is usually wired to the NVIDIA card. Debian
+13's nvidia-driver 550.163.01-2 neither depends on nor recommends it
+(packages.debian.org: nvidia-driver, nvidia-driver-libs, nvidia-egl-icd,
+libegl-nvidia0, checked 2026-11-01), so the install and every update of
+an installed driver bring it (product owner, 2026-11-01: monitors still
+not seen on the NVIDIA card).
+
 DKMS builds the module for kernels whose headers are installed. Installing
 only linux-headers-amd64 gave the headers of the archive's newest kernel;
 on a PC still running an older kernel no module was built for it, and
@@ -45,6 +55,8 @@ NVIDIA_DRIVERS = ("nvidia-driver", "nvidia-tesla-535-driver")
 NVIDIA_DEFAULT = "nvidia-driver"
 KERNEL_HEADERS = "linux-headers-amd64"
 KERNEL_IMAGE = "linux-image-amd64"
+# KWin's GBM buffers on NVIDIA's driver (see above).
+NVIDIA_GBM = "libnvidia-egl-gbm1"
 # The packages that build NVIDIA's kernel module (their install time tells
 # whether the PC has restarted since).
 NVIDIA_MODULE_PACKAGES = ("nvidia-kernel-dkms", "nvidia-open-kernel-dkms", "nvidia-tesla-535-kernel-dkms")
@@ -197,7 +209,8 @@ def plan(card, installed, modules, recommendation="", status=None):
               installed), "missing" (AMD/Intel firmware or Mesa parts not
               installed), "ready" (open drivers complete), "unsupported",
               "virtual" or "unknown";
-    action:   "install", "update" or "" with its packages;
+    action:   "install", "update" or "" with its packages (an update
+              first installs the ones in `missing`);
     driver:   the driver in use, for "Driver: …".
     """
     kind = card["kind"]
@@ -207,8 +220,12 @@ def plan(card, installed, modules, recommendation="", status=None):
         proprietary = next((p for p in NVIDIA_DRIVERS if p in installed), "")
         if proprietary:
             active = in_use == "nvidia" or "nvidia" in modules
+            # Installs made before 2026-11-01 lack the GBM library: the
+            # update installs it ("missing").
+            missing = [NVIDIA_GBM] if NVIDIA_GBM not in installed else []
             result.update(state="proprietary" if active else "restart", action="update" if active else "",
-                          packages=[proprietary], version=installed.get(proprietary, ""),
+                          packages=[proprietary] + missing, missing=missing,
+                          version=installed.get(proprietary, ""),
                           driver="nvidia" if active else in_use, openDriver=True)
             if not active and status and status.get("restarted"):
                 if status.get("keyMissing"):
@@ -221,7 +238,7 @@ def plan(card, installed, modules, recommendation="", status=None):
             result.update(state="unsupported")
         else:
             result.update(state="available", action="install",
-                          packages=[recommendation or NVIDIA_DEFAULT, KERNEL_HEADERS, KERNEL_IMAGE])
+                          packages=[recommendation or NVIDIA_DEFAULT, NVIDIA_GBM, KERNEL_HEADERS, KERNEL_IMAGE])
         return result
     if kind in OPEN_PACKAGES:
         needed = OPEN_PACKAGES[kind]

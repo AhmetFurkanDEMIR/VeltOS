@@ -140,6 +140,7 @@ class HotspotRunner:
         self.profile = None          # {"ssid", "password", "band", "device"}
         self.up_on = ""              # device the hotspot runs on
         self.fail_up = False
+        self.fail_bands = set()      # bands NetworkManager cannot start an access point on
         self.no_ir_5ghz = False      # the regulatory domain forbids starting a 5 GHz network
         self.metrics = {"enp1s0": 100, "wlp2s0": 600, "wlp3s0": 600}
         self.stations = []           # (mac, ip, name)
@@ -159,7 +160,7 @@ class HotspotRunner:
     def resolve(self, ip, server):
         return next((name for _mac, address, name in self.stations if address == ip), "")
 
-    def __call__(self, command, timeout=20, input=None):
+    def __call__(self, command, timeout=20, input=None, merge=False):
         self.commands.append(list(command))
         c = command
         if c[:3] == ["nmcli", "-t", "-f"] and c[3] == "DEVICE,TYPE,STATE,CONNECTION":
@@ -220,8 +221,9 @@ class HotspotRunner:
                 return 0, "Not connected.\n"
             return 0, f"Connected to 02:00:00:00:01:00 (on {c[2]})\n\tSSID: Home Net\n\tfreq: {self.link_freq}\n"
         if c[:4] == ["nmcli", "--wait", "60", "connection"] and c[4] == "up":
-            if self.fail_up or not self.profile:
-                return 4, ""
+            if self.fail_up or not self.profile or self.profile["band"] in self.fail_bands:
+                return 4, ("Error: Connection activation failed: 802.1X supplicant took too long to authenticate\n"
+                           if merge else "")
             if c[-1] == "veltos-ap" and not self.virtual:
                 return 10, ""
             self.up_on = c[-1]
@@ -249,6 +251,8 @@ class HotspotRunner:
                        f"\t\t\t* 5180.0 MHz [36] (20.0 dBm){flag}\n"
                        "\t\t\t* 5260.0 MHz [52] (20.0 dBm) (no IR, radar detection)\n" + combos
                        + "\tHT Capability overrides:\n\t\t * MCS: ff ff ff ff ff ff ff ff ff ff\n")
+        if c[0].endswith("iw") and c[1:] == ["reg", "get"]:
+            return 0, "global\ncountry TR: DFS-ETSI\n\t(2402 - 2482 @ 40), (N/A, 20), (N/A)\n"
         if c[0].endswith("iw") and c[3:] == ["station", "dump"]:
             return 0, "".join(f"Station {mac} (on {c[2]})\n\tinactive time:\t12 ms\n" for mac, _, _ in self.stations)
         if c[:5] == ["ip", "-4", "-o", "addr", "show"]:

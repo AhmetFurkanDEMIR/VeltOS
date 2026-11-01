@@ -23,7 +23,7 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import bottles, exeinfo, programs, shortcuts
+from . import bottles, exeinfo, programs, shortcuts, themewatch
 from .strings import Texts
 from .winenv import Environment, alternative_runners, has_hardware_vulkan, live_session
 
@@ -65,9 +65,13 @@ def accent_colour():
 
 class Runner(QObject):
     changed = Signal()
+    lookChanged = Signal()
 
     def __init__(self, path, texts=None):
         super().__init__()
+        self._look = themewatch.ThemeWatch(
+            lambda: (kde_value("KDE", "LookAndFeelPackage").endswith(".dark"), accent_colour()), self)
+        self._look.changed.connect(self.lookChanged)
         self.t = texts or Texts()
         self.info = exeinfo.inspect(path)
         self.env = None
@@ -143,13 +147,15 @@ class Runner(QObject):
         """Settings > Accessibility > Text size (text_scale())."""
         return text_scale()
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return accent_colour()
+        return self._look.accent
 
     @Property("QVariantList", notify=changed)
     def newApps(self):

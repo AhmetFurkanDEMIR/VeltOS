@@ -96,3 +96,18 @@ offscreen in English and Turkish with a stand-in for pkcon.
 Not tested on real NVIDIA/AMD/Intel hardware (the modesetting fix
 included) or with Secure Boot on: the
 developer machine has none in a VM (see `docs/dev/status.md`).
+
+## Installing NVIDIA's driver
+
+- The packages: the driver (or nvidia-detect's recommendation),
+  `libnvidia-egl-gbm1` (contrib; KWin's GBM path to screens on the NVIDIA
+  card under Wayland, not pulled in by Debian 13's nvidia-driver), the
+  kernel headers and the newest kernel. An update of an installed driver
+  first installs `libnvidia-egl-gbm1` if it is missing.
+- pkcon runs through `ptyrun.py` without a debconf socket (the install
+  hung for good in dpkg-preconfigure before), waits while another
+  installation holds the dpkg lock and says so ("Waiting for another
+  installation"), then "Downloading", "Installing the driver and building
+  it for this PC".
+- After an install, repair or removal (and an update that added the GBM
+  library) the window asks "Restart now / Later".

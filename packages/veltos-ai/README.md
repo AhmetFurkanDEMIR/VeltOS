@@ -110,3 +110,12 @@ file lists, the server's start on the loopback, the local adapter's stream.
 Not tested here: real conversations with the services (no keys on the
 development machine; `tests/results/2026-10-25-veltos-ai/`), a real model
 download and answer.
+
+## Answers after an action (local model)
+
+With the local model, a switch that worked (light/dark, Wi-Fi,
+Bluetooth, night light, Do not disturb, airplane mode, sound, volume,
+brightness) is confirmed in VeltOS' own sentence (`tools.done_text`, in
+the app's language) instead of a second round of the small model, which
+worded them oddly ("Koyu mod başarıyla yüklendi"). Other actions and the
+online services still get the model's words.

@@ -1,3 +1,9 @@
+veltos-archive (1.1.0~dev1) trixie; urgency=medium
+
+  * The window follows light/dark and the accent while open (themewatch.py).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 15:00:00 +0000
+
 veltos-archive (1.0.0) trixie; urgency=medium
 
   * VeltOS 1.0: the first public release.

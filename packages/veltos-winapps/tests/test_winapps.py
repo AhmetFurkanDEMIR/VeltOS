@@ -303,8 +303,9 @@ class ProgramListTests(unittest.TestCase):
         icon.write_bytes(b"MZ")
 
     def test_lists_the_programs_users_installed(self):
-        found = self.programs.installed_programs(self.env)
+        found = self.programs.installed_programs(self.env, bottles=self.root / "no-bottles")
         self.assertEqual([p["key"] for p in found], ["Notepad++", "7-Zip"])     # newest first
+        self.assertEqual({p["runner"] for p in found}, {"wine"})
         notepad, seven = found
         self.assertEqual(notepad["name"], "Notepad++ (32-bit) çalış")
         self.assertEqual((notepad["publisher"], notepad["date"]), ("Notepad++ Team", "2026-10-22"))
@@ -312,8 +313,31 @@ class ProgramListTests(unittest.TestCase):
         self.assertEqual(Path(seven["icon"]).parts[-4:], ("drive_c", "Program Files", "7-Zip", "7zFM.exe"))
         self.assertEqual(notepad["icon"], "")
 
+    def test_programs_installed_in_bottles(self):
+        # Programs installed in Bottles were missing from Settings and could
+        # not be removed (product owner, 2026-11-01).
+        bottles = self.root / "bottles"
+        bottle = bottles / "VeltOS"
+        bottle.mkdir(parents=True)
+        data = Path(__file__).resolve().parent / "data" / "system.reg"
+        (bottle / "system.reg").write_bytes(data.read_bytes())
+        (bottles / "Empty").mkdir()                     # no registry: not a bottle yet
+        found = self.programs.installed_programs(self.env, bottles=bottles)
+        self.assertEqual(sorted((p["runner"], p["bottle"], p["key"]) for p in found),
+                         [("bottles", "VeltOS", "bottles:VeltOS:7-Zip"),
+                          ("bottles", "VeltOS", "bottles:VeltOS:Notepad++"),
+                          ("wine", "", "7-Zip"), ("wine", "", "Notepad++")])
+        command = self.programs.uninstall_command("bottles:VeltOS:7-Zip", bottles=bottles)
+        self.assertEqual(command, ["flatpak", "run", "--command=bottles-cli", "com.usebottles.bottles", "run",
+                                   "-b", "VeltOS", "-e",
+                                   str(bottle / "drive_c/windows/system32/uninstaller.exe"),
+                                   "--", "--remove", "7-Zip"])
+        self.assertIsNone(self.programs.uninstall_command("bottles:Missing:7-Zip", bottles=bottles))
+        self.assertIsNone(self.programs.uninstall_command("bottles:../x:7-Zip", bottles=bottles))
+
     def test_no_environment_no_programs(self):
-        self.assertEqual(self.programs.installed_programs(winenv.Environment(self.root / "none")), [])
+        self.assertEqual(self.programs.installed_programs(winenv.Environment(self.root / "none"),
+                                                          bottles=self.root / "none"), [])
 
     def test_uninstall_runs_the_programs_own_uninstaller(self):
         command = self.programs.uninstall_command("7-Zip")

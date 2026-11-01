@@ -81,7 +81,10 @@
     "modes.lead": "Ayarlar'dan açık ve koyu mod arasında geçiş yapın ya da VeltOS AI'dan isteyin. Tüm uygulamalar sekiz tema, duvar kağıtları ve seçtiğiniz vurgu rengiyle birlikte buna uyar.",
     "modes.p1": "Tüm VeltOS uygulamalarında, görev çubuğunda ve Başlat'ta Windows 11 görünümü.",
     "modes.p2": "Ekranlar, ölçekleme ve gece ışığı Ayarlar › Sistem › Ekran'da.",
-    "alt.modes": "Açık ve koyu mod arasında geçen Ayarlar ve Fotoğraflar (VeltOS'ta kaydedilmiş animasyon)",
+    "mode.settings.light": "Açık modda Ayarlar",
+    "mode.settings.dark": "Koyu modda Ayarlar",
+    "mode.photos.light": "Açık modda Fotoğraflar",
+    "mode.photos.dark": "Koyu modda Fotoğraflar",
 
     "apps.kicker": "Uygulamalar",
     "apps.title": "Yirmiden fazla kendi uygulaması",
@@ -105,11 +108,10 @@
     "app.disks": "Disk Yönetimi",
     "app.graphics": "Ekran Kartları",
     "app.winapps": "Windows programları",
-    "alt.tour.apps": "Dosya Gezgini, Word, Medya Oynatıcı, Hava Durumu, Takvim ve Görev Yöneticisi (VeltOS'ta kaydedilmiş animasyon)",
 
     "gallery.kicker": "Ekran görüntüleri",
     "gallery.title": "Kendiniz görün",
-    "gallery.lead": "Tüm görüntüler VeltOS 1.0'da alındı. İki görünümü de görmek için bu sayfayı açık ve koyu mod arasında değiştirin; büyütmek için bir görüntüye tıklayın.",
+    "gallery.lead": "Tüm görüntüler VeltOS'ta alındı. İki görünümü de görmek için bu sayfayı açık ve koyu mod arasında değiştirin; büyütmek için bir görüntüye tıklayın.",
     "gallery.tabs": "Ekran görüntüleri",
     "gallery.prev": "Önceki",
     "gallery.next": "Sonraki",
@@ -136,8 +138,15 @@
     "cap.welcome": "Hoş geldiniz",
     "cap.repair": "Otomatik Onarım",
     "tour.title": "VeltOS ile bir dakika",
-    "tour.lead": "Başlat, arama, Görev Görünümü ve VeltOS AI; VeltOS'ta kaydedildi.",
-    "alt.tour.desktop": "Başlat, arama, Görev Görünümü ve VeltOS AI (VeltOS'ta kaydedilmiş animasyon)",
+    "tour.lead": "Başlat, arama, Görev Görünümü, Hızlı Ayarlar ve VeltOS AI; art arda, VeltOS'ta alınmış ekran görüntüleriyle.",
+    "chats.title": "Sormanız yeterli",
+    "chats.lead": "Bir VeltOS bilgisayarında ücretsiz yerel modelle yapılmış üç gerçek konuşma: bilgisayarın ayrıntılarını okuyor, İzin ver'e bastıktan sonra koyu modu ve Wi-Fi'ı açıyor.",
+    "chats.info": "Bu bilgisayar hakkında",
+    "chats.dark": "Koyu modu açma",
+    "chats.wifi": "Wi-Fi'ı açma",
+    "tour.start": "Başlat",
+    "tour.search": "Arama",
+    "tour.taskview": "Görev Görünümü",
 
     "win.kicker": "Windows programları",
     "win.title": "Windows programlarınız, çift tıkla",
@@ -491,6 +500,75 @@
       settle = setTimeout(function () { select(current()); }, 80);
     }, { passive: true });
   }
+
+  /* Slideshows: real screenshots one after another with a crossfade (the
+     animated WebPs showed compression blocks, product owner 2026-11-01).
+     The current dot fills while a picture is shown (a CSS animation on
+     transform); its end moves on. Paused while pointed at, focused or
+     scrolled away; with reduced motion only the dots move on. --------------- */
+  var slideshows = [];
+  document.querySelectorAll("[data-slides]").forEach(function (show) {
+    var slides = Array.prototype.slice.call(show.querySelectorAll(".slide"));
+    var dots = show.querySelector(".slides-dots");
+    if (!slides.length || !dots) return;
+    var index = 0;
+    var buttons = slides.map(function (slide, n) {
+      var dot = document.createElement("button");
+      dot.type = "button";
+      dot.addEventListener("click", function () { go(n); });
+      dots.appendChild(dot);
+      return dot;
+    });
+    function labels() {
+      buttons.forEach(function (dot, n) {
+        var caption = slides[n].querySelector("figcaption");
+        dot.setAttribute("aria-label", caption ? caption.textContent : String(n + 1));
+      });
+    }
+    function go(n) {
+      index = (n + slides.length) % slides.length;
+      slides.forEach(function (slide, i) {
+        var current = i === index;
+        slide.classList.toggle("is-current", current);
+        slide.setAttribute("aria-hidden", current ? "false" : "true");
+        slide.querySelectorAll("button").forEach(function (b) { b.tabIndex = current ? 0 : -1; });
+      });
+      buttons.forEach(function (dot, i) {
+        dot.setAttribute("aria-current", i === index ? "true" : "false");
+        dot.classList.remove("run");
+      });
+      if (!reduced) {
+        var dot = buttons[index];
+        void dot.offsetWidth;            // start the fill again
+        dot.classList.add("run");
+      }
+    }
+    dots.addEventListener("animationend", function (e) {
+      if (e.target === buttons[index]) go(index + 1);
+    });
+    show.addEventListener("mouseenter", function () { show.classList.add("held"); show.classList.add("paused"); });
+    show.addEventListener("mouseleave", function () {
+      show.classList.remove("held");
+      if (!show.classList.contains("away")) show.classList.remove("paused");
+    });
+    show.classList.add("paused", "away");
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          show.classList.toggle("away", !entry.isIntersecting);
+          show.classList.toggle("paused", !entry.isIntersecting || show.classList.contains("held"));
+        });
+      }, { threshold: 0.35 }).observe(show);
+    } else {
+      show.classList.remove("paused", "away");
+    }
+    labels();
+    go(0);
+    slideshows.push(labels);
+  });
+  document.getElementById("lang-toggle").addEventListener("click", function () {
+    slideshows.forEach(function (labels) { labels(); });
+  });
 
   /* Lightbox: shows the picture of the current theme. ------------------------ */
   var box = document.getElementById("lightbox");

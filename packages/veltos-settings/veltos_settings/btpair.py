@@ -21,7 +21,7 @@ from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from . import devices, strings
+from . import devices, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 KINDS = ("confirm", "display", "pin", "passkey", "authorize", "service")
@@ -33,8 +33,16 @@ def spaced(number):
     return f"{text[:3]} {text[3:]}" if len(text) == 6 and text.isdigit() else text
 
 
+
+def system_look(accent=""):
+    """(dark, accent) of the session; a given accent stays."""
+    from . import sysinfo
+    return sysinfo.dark_mode(), accent or devices.Personalization().accent()
+
+
 class PairBackend(QObject):
     answered = Signal(bool, str)
+    lookChanged = Signal()
 
     def __init__(self, kind, name, value="", lang=None, dark=None, accent="", parent=None):
         super().__init__(parent)
@@ -42,8 +50,11 @@ class PairBackend(QObject):
         self._kind = kind if kind in KINDS else "authorize"
         self._name = name or "Bluetooth"
         self._value = value
-        self._dark = dark
-        self._accent = accent
+        # A given look (tests, a caller that knows it) stays; otherwise the
+        # session's, followed while the window is open (themewatch.py).
+        self._look = themewatch.ThemeWatch(None if dark is not None else (lambda: system_look(accent)), self,
+                                           initial=(dark, accent) if dark is not None else None)
+        self._look.changed.connect(self.lookChanged)
 
     @Slot(str, result=str)
     def text(self, key):
@@ -69,16 +80,15 @@ class PairBackend(QObject):
                "passkey": "pair_enter", "authorize": "pair_authorize", "service": "pair_service"}[self._kind]
         return strings.text(self.lang, key).replace("{name}", self._name)
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        if self._dark is not None:
-            return self._dark
-        from . import sysinfo
-        return sysinfo.dark_mode()
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent or devices.Personalization().accent()
+        return self._look.accent
 
     @Slot(bool, str)
     def answer(self, yes, typed):

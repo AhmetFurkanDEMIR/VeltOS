@@ -1,3 +1,21 @@
+veltos-settings (1.1.0~dev4) trixie; urgency=medium
+
+  * Apps > Windows programs: Bottles' programs too, each marked Wine (VeltOS)
+    or Bottles with its bottle.
+  * Mobile hotspot: a 5 GHz hotspot that cannot start runs on 2.4 GHz (and
+    says so); the connection's own channel where the card may host on it;
+    a one-channel card on a radar/restricted channel says why; failed
+    starts are logged in ~/.cache/veltos-settings/hotspot.log.
+  * Add a device, Windows + P and Connect to a network follow light/dark and
+    the accent
+    while open (themewatch.py).
+  * Accounts > Sign-in options: a password hint with the new password, and
+    the password reset USB (create, create a new one, remove) through
+    veltos-auth's password-recovery; without one Settings says a forgotten
+    password can't be reset.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 12:00:00 +0000
+
 veltos-settings (1.1.0~dev3) trixie; urgency=medium
 
   * Mobile hotspot over the only Wi-Fi card: a second interface (veltos-ap,

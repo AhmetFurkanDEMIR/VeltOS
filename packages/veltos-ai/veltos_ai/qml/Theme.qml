@@ -20,6 +20,7 @@ QtObject {
                                     : (dark ? "#6E95FF" : "#2F5EE6")
     readonly property color accentText: "#FFFFFF"
     readonly property color hover: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.05)
+    readonly property color activeFill: dark ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.08)
     readonly property color field: dark ? "#2C2E3A" : "#FFFFFF"
     readonly property color fieldBorder: dark ? "#40435A" : "#D3D8E3"
     readonly property color danger: dark ? "#FF99A4" : "#C42B1C"

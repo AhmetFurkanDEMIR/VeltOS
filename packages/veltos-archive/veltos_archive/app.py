@@ -29,7 +29,7 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import archive, strings
+from . import archive, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 SORT_KEYS = ("name", "size", "packed", "type", "modified", "crc")
@@ -201,13 +201,15 @@ class Backend(QObject):
     extracted = Signal(str)               # destination folder (or the new archive's)
     opened = Signal()                     # an archive was listed
 
+    lookChanged = Signal()
+
     def __init__(self, lang=None, opener=None, parent=None):
         super().__init__(parent)
         self.lang = lang or strings.language()
         self.t = strings.texts(self.lang)
         self._open = opener or (lambda url: QDesktopServices.openUrl(url))
-        self._dark = dark_mode()
-        self._accent = accent()
+        self._look = themewatch.ThemeWatch(lambda: (dark_mode(), accent()), self)
+        self._look.changed.connect(self.lookChanged)
         self._mime = QMimeDatabase()
         self._locale = QLocale(QLocale.Language.Turkish if self.lang == "tr" else QLocale.Language.English,
                                QLocale.Country.Turkey if self.lang == "tr" else QLocale.Country.UnitedStates)
@@ -237,13 +239,15 @@ class Backend(QObject):
         """Settings > Accessibility > Text size (text_scale())."""
         return text_scale()
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property(bool, notify=listingChanged)
     def isOpen(self):

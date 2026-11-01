@@ -1,3 +1,18 @@
+calamares-settings-veltos (1.1.0~dev3) trixie; urgency=medium
+
+  * Side bar: the website link opens on one press and says "Opening…"
+    while the browser starts.
+  * "If you forget your password" page (notesqml@recovery, after the
+    account): a password hint and an optional password reset USB, with a
+    plain note that without one a forgotten password can't be reset.
+  * password-recovery job: writes the hint (AccountsService) and makes
+    the drive with veltos-auth; the last page says whether it worked.
+  * install-veltos' helper: GET /drives (USB drives for the page) and
+    POST /choices (the page's choices for the job; Calamares' QML
+    cannot write its global storage).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 13:00:00 +0000
+
 calamares-settings-veltos (1.1.0~dev2) trixie; urgency=medium
 
   * Welcome page: Türkçe and English first in the language list.

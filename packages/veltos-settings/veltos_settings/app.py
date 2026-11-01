@@ -19,8 +19,8 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import (accounts, apps, assistant, catalog, devices, hotspot, inputs, pointer, prefs, strings,
-               sysinfo, taskbar)
+from . import (accounts, apps, assistant, catalog, devices, hotspot, inputs, pointer, prefs, resetusb,
+               strings, sysinfo, taskbar)
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 LOOK_AND_FEEL = {False: "org.veltos.light", True: "org.veltos.dark"}
@@ -111,7 +111,11 @@ def windows_programs():
 
     apps, used = [], set()
     for program in installed_programs():
-        record = next((r for i, r in enumerate(records) if i not in used and same_program(r, program)), None)
+        # veltos-run's records are VeltOS' own (Wine) installations; a
+        # Bottles program of the same name is another installation.
+        runner = program.get("runner", "wine")
+        record = None if runner != "wine" else next(
+            (r for i, r in enumerate(records) if i not in used and same_program(r, program)), None)
         if record is not None:
             used.add(records.index(record))
         apps.append({"key": program["key"], "name": program["name"],
@@ -119,10 +123,11 @@ def windows_programs():
                      "version": program["version"] or (record or {}).get("version", ""),
                      "installed": program["date"] or (record or {}).get("installed", ""),
                      "sizeKb": program["sizeKb"], "exe": program["icon"],
-                     "shortcut": (record or {}).get("shortcut", ""), "icon": ""})
+                     "shortcut": (record or {}).get("shortcut", ""), "icon": "",
+                     "runner": runner, "bottle": program.get("bottle", "")})
     for index, record in enumerate(records):
         if index not in used:
-            apps.append(dict(record, key="", sizeKb=0, exe="", icon=""))
+            apps.append(dict(record, key="", sizeKb=0, exe="", icon="", runner="wine", bottle=""))
     return apps
 
 
@@ -159,7 +164,8 @@ def system_tools(runner=devices.run, lang="en"):
                            prefs=prefs.Preferences(runner), inputs=inputs.Inputs(runner),
                            accounts=accounts.Accounts(runner), defaults=apps.DefaultApps(runner, lang=lang),
                            startup=apps.StartupApps(lang=lang), taskbar=taskbar.Taskbar(runner),
-                           hotspot=hotspot.Hotspot(runner), assistant=assistant.Assistant())
+                           hotspot=hotspot.Hotspot(runner), assistant=assistant.Assistant(),
+                           resetusb=resetusb.ResetUsb(runner))
 
 
 # Recently used settings (Home > Recommended settings), most used first.
@@ -234,6 +240,7 @@ class Backend(QObject):
     changed = Signal()
     networkChanged = Signal()
     hotspotChanged = Signal()
+    resetUsbChanged = Signal()
     assistantChanged = Signal()
     defaultLocationChanged = Signal()
     bluetoothChanged = Signal()
@@ -281,6 +288,8 @@ class Backend(QObject):
         self._default_location = {"set": False, "label": ""}
         self._assistant = {"loaded": False, "available": False, "provider": "", "providers": [],
                            "services": {}, "actions": True, "ready": False}
+        self._reset_usb = {"loaded": False, "available": False, "configured": False, "hint": "",
+                           "drives": [], "busy": False, "error": ""}
         self._hotspot = {"loaded": False, "available": False, "active": False, "busy": False, "reason": "",
                          "ssid": "", "password": "", "band": "", "bands": [], "sources": [], "source": "",
                          "clients": [], "error": "", "disconnects": "", "device": "", "security": ""}
@@ -1267,11 +1276,56 @@ class Backend(QObject):
 
     @Slot(str, str, str)
     def changePassword(self, current, new, confirm):
+        self.changePasswordWithHint(current, new, confirm, None)
+
+    @Slot(str, str, str, "QVariant")
+    def changePasswordWithHint(self, current, new, confirm, hint):
+        """Change the password; a hint (Windows 11 asks for one with the
+        password) is saved once the password changed."""
         if new != confirm:
             self.accountResult.emit("password", "passwords_differ")
             return
-        self.jobs.submit(lambda: accounts.change_password(current, new),
-                         lambda error: self.accountResult.emit("password", error or ""))
+
+        def work():
+            error = accounts.change_password(current, new)
+            if not error and hint is not None:
+                self.system.resetusb.set_hint(str(hint))
+            return error
+        self.jobs.submit(work, lambda error: (self.accountResult.emit("password", error or ""),
+                                              self.refreshResetUsb()))
+
+    # --- Accounts > Sign-in options: password reset USB (resetusb.py) ---------------------
+
+    @Property("QVariantMap", notify=resetUsbChanged)
+    def resetUsb(self):
+        return self._reset_usb
+
+    @Slot()
+    def refreshResetUsb(self):
+        def work():
+            state = self.system.resetusb.status()
+            state["drives"] = self.system.resetusb.drives() if state["available"] else []
+            return state
+        self.jobs.submit(work, self._merge("_reset_usb", self.resetUsbChanged))
+
+    @Slot(str)
+    def createResetUsb(self, partition):
+        self._update("_reset_usb", self.resetUsbChanged, {"busy": True, "error": ""})
+
+        def done(error):
+            self._update("_reset_usb", self.resetUsbChanged, {"busy": False, "error": error or "",
+                                                             "created": not error})
+            self.refreshResetUsb()
+        self.jobs.submit(lambda: self.system.resetusb.create(partition), done)
+
+    @Slot()
+    def removeResetUsb(self):
+        self._update("_reset_usb", self.resetUsbChanged, {"busy": True, "error": "", "created": False})
+
+        def done(error):
+            self._update("_reset_usb", self.resetUsbChanged, {"busy": False, "error": error or ""})
+            self.refreshResetUsb()
+        self.jobs.submit(lambda: self.system.resetusb.remove(), done)
 
     @Slot(str, str, str, bool)
     def addUser(self, username, full_name, password, admin):

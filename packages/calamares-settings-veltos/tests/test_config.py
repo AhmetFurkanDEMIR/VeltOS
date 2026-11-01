@@ -1,6 +1,8 @@
 """Static checks for the VeltOS installer configuration (run by dh_auto_test)."""
 
 import configparser
+import json
+import os
 import re
 import subprocess
 import unittest
@@ -97,7 +99,7 @@ class ConfigTests(unittest.TestCase):
         # Calamares QML module whose QML comes from the VeltOS branding.
         shown = [m for step in self.settings["sequence"] for m in step.get("show", [])]
         self.assertEqual(shown, ["welcomeq", "localeq", "keyboardq", "partition", "usersq",
-                                 "packagechooserq@windowsapps", "finishedq"])
+                                 "notesqml@recovery", "packagechooserq@windowsapps", "finishedq"])
         executed = [m for step in self.settings["sequence"] for m in step.get("exec", [])]
         for name in ("localeq", "keyboardq", "usersq"):
             self.assertIn(name, executed)
@@ -154,6 +156,67 @@ class ConfigTests(unittest.TestCase):
         finally:
             del sys.modules["libcalamares"]
 
+    def test_password_hint_and_reset_drive(self):
+        """"If you forget your password" (product owner, 2026-11-01): a
+        page after the account page; the job, after the user exists, writes
+        the hint and makes the drive with veltos-auth, never failing the
+        installation."""
+        import importlib.util
+        import sys
+        import tempfile
+        import types
+        shown = [m for step in self.settings["sequence"] for m in step.get("show", [])]
+        self.assertEqual(shown.index("notesqml@recovery"), shown.index("usersq") + 1)
+        instance = next(i for i in self.settings["instances"] if i["id"] == "recovery")
+        self.assertEqual((instance["module"], instance["config"]), ("notesqml", "notesqml-recovery.conf"))
+        conf = load(CALAMARES / "modules/notesqml-recovery.conf")
+        self.assertEqual(conf["qmlFilename"], "recovery")
+        self.assertTrue((CALAMARES / "branding/veltos/recovery.qml").is_file())
+        qml = (CALAMARES / "branding/veltos/recovery.qml").read_text(encoding="utf-8")
+        # Calamares 3.3.14's QML cannot write global storage: the page posts
+        # its choices to install-veltos' helper, the job reads them.
+        self.assertNotIn("Global.insert(", qml)
+        self.assertIn('request.open("POST", "http://127.0.0.1:47823/choices")', qml)
+        self.assertIn("Without a password reset USB, a forgotten password can't be reset.", qml)
+        executed = [m for step in self.settings["sequence"] for m in step.get("exec", [])]
+        self.assertEqual(executed.index("password-recovery"), executed.index("usersq") + 1)
+
+        root = tempfile.mkdtemp()
+        choices = Path(tempfile.mkdtemp()) / "veltos-installer.json"
+        choices.write_text(json.dumps({"hint": "  first cat", "device": "/dev/sdb1", "exclude": "/dev/nvme0n1"}))
+        values = {"rootMountPoint": root, "username": "ayse", "hostname": "ayse-pc"}
+        inserted, warnings = {}, []
+        fake = types.SimpleNamespace(
+            globalstorage=types.SimpleNamespace(value=values.get, insert=inserted.__setitem__),
+            utils=types.SimpleNamespace(debug=lambda *a: None, warning=warnings.append))
+        sys.modules["libcalamares"] = fake
+        os.environ["VELTOS_CHOICES"] = str(choices)
+        self.addCleanup(os.environ.pop, "VELTOS_CHOICES", None)
+        try:
+            spec = importlib.util.spec_from_file_location("password_recovery", PKG / "modules/password-recovery/main.py")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            calls = []
+
+            def runner(command, **_kwargs):
+                calls.append(command)
+                return types.SimpleNamespace(returncode=1, stdout='{"error": "bad-drive"}', stderr="")
+            module.make_drive.__defaults__ = (runner,)
+            self.assertIsNone(module.run())
+            self.assertEqual(calls, [["/usr/libexec/veltos/password-recovery", "create", "ayse", "/dev/sdb1",
+                                      "--root", root, "--host", "ayse-pc", "--exclude", "/dev/nvme0n1"]])
+            self.assertEqual(inserted["veltosRecoveryResult"], "failed")
+            accounts = Path(root) / "var/lib/AccountsService/users/ayse"
+            self.assertEqual(accounts.read_text(), "[User]\nPasswordHint=first cat\n")
+            # AccountsService's own keys stay; the hint is replaced.
+            self.assertEqual(module.with_hint("[User]\nIcon=/x\nPasswordHint=old\n", "new"),
+                             "[User]\nPasswordHint=new\nIcon=/x\n")
+            # The helper's file is found through pkexec's user.
+            self.assertEqual(module.page_choices({"PKEXEC_UID": "../x"}), {})
+            self.assertEqual(module.page_choices({"VELTOS_CHOICES": str(choices)})["device"], "/dev/sdb1")
+        finally:
+            del sys.modules["libcalamares"]
+
     def test_install_screen_like_windows_setup(self):
         # While installing: slideshow and progress only, no buttons.
         self.assertTrue(self.settings["hide-back-and-next-during-exec"])
@@ -203,7 +266,8 @@ class ConfigTests(unittest.TestCase):
         # translated there), in the order of the sequence: each page, and
         # the installation as one step.
         names = {"welcomeq": "Welcome", "localeq": "Location", "keyboardq": "Keyboard",
-                 "partition": "Disk", "usersq": "Account", "packagechooserq@windowsapps": "Windows programs",
+                 "partition": "Disk", "usersq": "Account", "notesqml@recovery": "Password reset",
+                 "packagechooserq@windowsapps": "Windows programs",
                  "finishedq": "Finish"}
         expected = []
         for step in self.settings["sequence"]:

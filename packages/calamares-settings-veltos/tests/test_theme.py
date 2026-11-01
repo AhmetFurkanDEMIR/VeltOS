@@ -171,7 +171,10 @@ class WebsiteHelperTests(unittest.TestCase):
         with socket.socket() as probe:
             probe.bind(("127.0.0.1", 0))
             self.port = probe.getsockname()[1]
-        env = dict(os.environ, VELTOS_WEBSITE_PORT=str(self.port), VELTOS_XDG_OPEN=str(opener))
+        recovery = script(self.tmp / "password-recovery",
+                          "#!/bin/sh\nprintf '[{\"path\": \"/dev/sdb1\", \"args\": \"%s\"}]\\n' \"$*\"\n")
+        env = dict(os.environ, VELTOS_WEBSITE_PORT=str(self.port), VELTOS_XDG_OPEN=str(opener),
+                   VELTOS_RECOVERY=str(recovery), XDG_RUNTIME_DIR=str(self.tmp))
         self.helper = subprocess.Popen(["python3", str(HELPERS / "open-website")], env=env)
         self.addCleanup(self.helper.wait)
         self.addCleanup(self.helper.terminate)
@@ -188,6 +191,34 @@ class WebsiteHelperTests(unittest.TestCase):
         status = connection.getresponse().status
         connection.close()
         return status
+
+    def test_lists_usb_drives_for_the_password_reset_page(self):
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        connection.request("GET", "/drives?exclude=/dev/vda,../etc/passwd,/dev/nvme0n1")
+        answer = connection.getresponse()
+        drives = json.loads(answer.read())
+        connection.close()
+        self.assertEqual(answer.status, 200)
+        # Only well-formed disk names reach the command.
+        self.assertEqual(drives, [{"path": "/dev/sdb1", "args": "drives /dev/vda /dev/nvme0n1"}])
+
+    def test_keeps_the_password_reset_choices_for_the_job(self):
+        def post(body):
+            connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+            connection.request("POST", "/choices", body=body, headers={"Content-Type": "application/json"})
+            status = connection.getresponse().status
+            connection.close()
+            return status
+        self.assertEqual(post(json.dumps({"hint": "first\ncat", "device": "/dev/sdb1", "exclude": "/dev/vda,x;y",
+                                          "other": "ignored"})), 204)
+        saved = self.tmp / "veltos-installer.json"
+        self.assertEqual(json.loads(saved.read_text()), {"hint": "first cat", "device": "/dev/sdb1",
+                                                         "exclude": "/dev/vda"})
+        if os.name == "posix":
+            self.assertEqual(saved.stat().st_mode & 0o777, 0o600)
+        self.assertEqual(post(json.dumps({"device": "/dev/sdb1; rm -rf /"})), 204)
+        self.assertEqual(json.loads(saved.read_text())["device"], "")
+        self.assertEqual(post("not json"), 400)
 
     def test_opens_the_website_once(self):
         self.assertEqual(self.get("/website"), 204)

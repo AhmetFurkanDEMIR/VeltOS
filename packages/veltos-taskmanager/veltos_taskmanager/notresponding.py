@@ -23,7 +23,7 @@ from PySide6.QtGui import QGuiApplication, QIcon, QWindow
 from PySide6.QtQml import QQmlApplicationEngine
 
 from . import app as taskmanager
-from . import strings, system
+from . import strings, system, themewatch
 
 QML = Path(__file__).resolve().parent / "qml" / "NotResponding.qml"
 KDE_HELPER = "/usr/lib/x86_64-linux-gnu/libexec/kwin_killer_helper.kde"
@@ -119,6 +119,7 @@ def end_program(pid, kill=os.kill, is_alive=alive, sleep=time.sleep, note=note_f
 
 class Backend(QObject):
     changed = Signal()
+    lookChanged = Signal()
 
     def __init__(self, pid, caption, desktop_name, lang=None, dirs=None, end=end_program):
         super().__init__()
@@ -138,8 +139,8 @@ class Backend(QObject):
             self._heading = self._texts["nr_title_window"].format(app=name, window=window)
         else:
             self._heading = self._texts["nr_title"].format(app=name)
-        self._dark = taskmanager.dark_mode()
-        self._accent = taskmanager.accent()
+        self._look = themewatch.ThemeWatch(lambda: (taskmanager.dark_mode(), taskmanager.accent()), self)
+        self._look.changed.connect(self.lookChanged)
         self._scale = taskmanager.text_scale()
 
     @Slot(str, result=str)
@@ -159,13 +160,15 @@ class Backend(QObject):
         return self._heading
 
     # Read by Theme.qml.
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):

@@ -241,6 +241,12 @@ msgstr "Önce bu bilgisayarı internete bağlayın."
 msgid "Mobile hotspot couldn't be turned on."
 msgstr "Mobil etkin nokta açılamadı."
 
+msgid "This PC's only Wi-Fi adapter isn't allowed to share on its network's channel. Connect to the 2.4 GHz network."
+msgstr "Bu bilgisayarın tek Wi-Fi bağdaştırıcısının, ağının kanalında paylaşmasına izin verilmiyor. 2,4 GHz ağına bağlanın."
+
+msgid "5 GHz isn't available here, so the hotspot uses 2.4 GHz."
+msgstr "Burada 5 GHz kullanılamıyor; etkin nokta 2,4 GHz kullanıyor."
+
 msgid "Turning on mobile hotspot disconnects this PC from %1."
 msgstr "Mobil etkin nokta açılınca bu bilgisayarın %1 ağıyla bağlantısı kesilir."
 

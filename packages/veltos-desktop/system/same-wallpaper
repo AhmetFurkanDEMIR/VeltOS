@@ -1,0 +1,55 @@
+#!/usr/bin/python3
+"""A screen's desktop without a picture of its own gets the main screen's
+(product owner, 2026-11-01: a plugged-in monitor showed Plasma's default
+wallpaper, not the one chosen in Settings). Windows uses one picture for
+every monitor; a picture chosen for one desktop later is kept.
+
+    same-wallpaper        (run by each desktop when it is made, VeltOSDesktop.qml)
+
+Plasma's desktop scripting (the same way plasma-apply-wallpaperimage sets
+a picture): the picture of the desktop on screen 0, else of any desktop
+that has one, goes to every desktop showing org.kde.image without one.
+"""
+
+import subprocess
+import sys
+
+SCRIPT = """
+var all = desktops();
+var source = "";
+for (var i = 0; i < all.length; i++) {
+    var d = all[i];
+    if (d.wallpaperPlugin !== "org.kde.image") continue;
+    d.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+    var picture = d.readConfig("Image", "");
+    if (picture && (source === "" || d.screen === 0)) source = picture;
+}
+var given = 0;
+if (source !== "") {
+    for (var j = 0; j < all.length; j++) {
+        var e = all[j];
+        if (e.wallpaperPlugin !== "org.kde.image") continue;
+        e.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+        if (!e.readConfig("Image", "")) {
+            e.writeConfig("Image", source);
+            given++;
+        }
+    }
+}
+print(given);
+"""
+
+
+def main():
+    try:
+        result = subprocess.run(["qdbus6", "org.kde.plasmashell", "/PlasmaShell",
+                                 "org.kde.PlasmaShell.evaluateScript", SCRIPT],
+                                capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return 1
+    print(result.stdout.strip())
+    return result.returncode
+
+
+if __name__ == "__main__":
+    sys.exit(main())

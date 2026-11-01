@@ -27,11 +27,33 @@ Item {
     readonly property var texts: turkish ? {
         password: "Parola", signIn: "Oturum aç", wrong: "Parola yanlış. Yeniden deneyin.",
         caps: "Caps Lock açık", sleep: "Uyku", restart: "Yeniden başlat", shutdown: "Kapat",
-        signingIn: "Oturum açılıyor…", power: "Güç"
+        signingIn: "Oturum açılıyor…", power: "Güç",
+        locked: "Çok fazla yanlış parola girildi. %1 sonra yeniden deneyin.",
+        hint: "İpucu: %1", reset: "Parolayı sıfırla", resetTitle: "Parolanızı sıfırlayın",
+        insert: "Bu hesabın parola sıfırlama USB'sini takın ve İleri'yi seçin.",
+        next: "İleri", cancel: "İptal", looking: "USB bellek aranıyor…",
+        noDrive: "USB bellek bulunamadı. Parola sıfırlama USB'sini takıp yeniden deneyin.",
+        noKey: "Bu USB bellek bu hesabın parola sıfırlama USB'si değil.",
+        notSetUp: "Bu hesabın parola sıfırlama USB'si yok.",
+        newPassword: "Yeni parola", confirm: "Parolayı onaylayın", newHint: "Parola ipucu (isteğe bağlı)",
+        apply: "Sıfırla", differ: "Parolalar eşleşmiyor.", empty: "Yeni bir parola girin.",
+        resetDone: "Parolanız sıfırlandı. Yeni parolanızla oturum açın.",
+        failed: "Parola değiştirilemedi.", noService: "Parola sıfırlama şu anda kullanılamıyor."
     } : {
         password: "Password", signIn: "Sign in", wrong: "The password is incorrect. Try again.",
         caps: "Caps Lock is on", sleep: "Sleep", restart: "Restart", shutdown: "Shut down",
-        signingIn: "Signing in…", power: "Power"
+        signingIn: "Signing in…", power: "Power",
+        locked: "Too many wrong passwords. Try again in %1.",
+        hint: "Hint: %1", reset: "Reset password", resetTitle: "Reset your password",
+        insert: "Insert the password reset USB for this account, then select Next.",
+        next: "Next", cancel: "Cancel", looking: "Looking for the USB drive…",
+        noDrive: "No USB drive was found. Insert the password reset USB and try again.",
+        noKey: "This USB drive isn't the password reset USB for this account.",
+        notSetUp: "This account has no password reset USB.",
+        newPassword: "New password", confirm: "Confirm password", newHint: "Password hint (optional)",
+        apply: "Reset", differ: "The passwords don't match.", empty: "Enter a new password.",
+        resetDone: "Your password was reset. Sign in with your new password.",
+        failed: "The password couldn't be changed.", noService: "Password reset isn't available right now."
     }
     readonly property color accent: "#4F7CFF"
 
@@ -42,6 +64,141 @@ Item {
     property string userIcon: ""
     property bool busy: false
 
+    // Three wrong passwords wait 30 seconds, three more a minute, then two
+    // minutes after every three; signing in starts the count again (as
+    // VeltOS' other password prompts, product owner 2026-11-01).
+    property int failures: 0
+    property int lockLeft: 0
+    function lockText() {
+        const minutes = Math.floor(lockLeft / 60), seconds = lockLeft % 60;
+        return texts.locked.arg(minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
+    }
+    Timer {
+        id: lockTimer
+        interval: 1000
+        repeat: true
+        onTriggered: {
+            root.lockLeft = Math.max(0, root.lockLeft - 1);
+            message.text = root.lockLeft > 0 ? root.lockText() : "";
+            if (root.lockLeft === 0) {
+                stop();
+                passwordField.forceActiveFocus();
+            }
+        }
+    }
+
+    // Forgotten passwords (product owner, 2026-11-01): the account's hint
+    // after a wrong password, and "Reset password" only for an account with
+    // a password reset USB. This screen cannot run programs; veltos-auth's
+    // password-recovery service answers it on 127.0.0.1 (only for the sddm
+    // user) and changes the password only when the USB's key matches.
+    property string recoveryService: "http://127.0.0.1:47824"
+    property bool resetAvailable: false
+    property string passwordHint: ""
+    property string resetStep: ""          // "", "insert", "password"
+    property bool resetBusy: false
+    property string resetError: ""
+
+    function ask(path, body, done) {
+        const request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (request.readyState !== XMLHttpRequest.DONE)
+                return;
+            let answer = null;
+            try {
+                answer = request.status === 200 ? JSON.parse(request.responseText) : null;
+            } catch (error) {
+                answer = null;
+            }
+            done(answer);
+        };
+        request.open("POST", recoveryService + path);
+        request.setRequestHeader("Content-Type", "application/json");
+        request.send(JSON.stringify(body));
+    }
+    function loadAccountHelp() {
+        resetAvailable = false;
+        passwordHint = "";
+        if (userName === "")
+            return;
+        const asked = userName;
+        ask("/status", { user: asked }, function (answer) {
+            if (!answer || asked !== root.userName)
+                return;
+            root.resetAvailable = answer.configured === true;
+            root.passwordHint = answer.hint || "";
+        });
+    }
+    onUserNameChanged: loadAccountHelp()
+
+    function resetErrorText(code) {
+        return code === "no-drive" ? texts.noDrive : code === "no-key" ? texts.noKey
+             : code === "not-set-up" ? texts.notSetUp : code === "bad-password" ? texts.empty
+             : code === "unavailable" ? texts.noService : texts.failed;
+    }
+    function startReset() {
+        resetStep = "insert";
+        resetError = "";
+        message.text = "";
+    }
+    function cancelReset() {
+        resetStep = "";
+        resetBusy = false;
+        resetError = "";
+        newPassword.text = "";
+        confirmPassword.text = "";
+        newHint.text = "";
+        passwordField.forceActiveFocus();
+    }
+    function findDrive() {
+        if (resetBusy)
+            return;
+        resetBusy = true;
+        resetError = "";
+        ask("/find", { user: userName }, function (answer) {
+            root.resetBusy = false;
+            if (!answer) {
+                root.resetError = root.resetErrorText("unavailable");
+            } else if (answer.error) {
+                root.resetError = root.resetErrorText(answer.error);
+            } else {
+                root.resetStep = "password";
+                newPassword.forceActiveFocus();
+            }
+        });
+    }
+    function applyReset() {
+        if (resetBusy)
+            return;
+        if (newPassword.text === "") {
+            resetError = texts.empty;
+            return;
+        }
+        if (newPassword.text !== confirmPassword.text) {
+            resetError = texts.differ;
+            return;
+        }
+        resetBusy = true;
+        resetError = "";
+        const body = { user: userName, password: newPassword.text };
+        if (newHint.text !== "")
+            body.hint = newHint.text;
+        ask("/reset", body, function (answer) {
+            root.resetBusy = false;
+            if (!answer || answer.error) {
+                root.resetError = root.resetErrorText(answer ? answer.error : "unavailable");
+                return;
+            }
+            // The count of wrong passwords starts again, as after signing in.
+            root.failures = 0;
+            root.lockLeft = 0;
+            lockTimer.stop();
+            root.cancelReset();
+            root.loadAccountHelp();
+            message.text = root.texts.resetDone;
+        });
+    }
+
     function showSignIn() {
         if (!signInView) {
             signInView = true;
@@ -50,7 +207,7 @@ Item {
     }
 
     function signIn() {
-        if (busy || userName === "")
+        if (busy || userName === "" || lockLeft > 0)
             return;
         busy = true;
         message.text = "";
@@ -109,6 +266,13 @@ Item {
             message.text = root.texts.wrong;
             shake.start();
             passwordField.forceActiveFocus();
+            root.failures += 1;
+            if (root.failures % 3 === 0) {
+                const step = root.failures / 3;
+                root.lockLeft = step === 1 ? 30 : step === 2 ? 60 : 120;
+                message.text = root.lockText();
+                lockTimer.start();
+            }
         }
         function onLoginSucceeded() {
             message.text = root.texts.signingIn;
@@ -173,6 +337,99 @@ Item {
         }
     }
 
+    // A text box and a button in the sign-in box's look (the reset steps).
+    component PanelField: Item {
+        id: plain
+        property alias text: input.text
+        property string placeholder
+        property bool secret: true
+        signal accepted()
+        function focusField() {
+            input.forceActiveFocus();
+        }
+        Layout.fillWidth: true
+        Layout.preferredHeight: 40
+        Rectangle {
+            anchors.fill: parent
+            radius: 6
+            color: "#F2FFFFFF"
+            border.width: 1
+            border.color: "#33000000"
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: 1
+                height: 2
+                color: root.accent
+                visible: input.activeFocus
+            }
+        }
+        TextInput {
+            id: input
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            echoMode: plain.secret ? TextInput.Password : TextInput.Normal
+            passwordCharacter: "●"
+            maximumLength: plain.secret ? 512 : 100
+            font.pixelSize: 15
+            font.family: root.fontFamily
+            color: "#1B1D24"
+            clip: true
+            enabled: !root.resetBusy
+            Accessible.role: Accessible.EditableText
+            Accessible.name: plain.placeholder
+            Keys.onReturnPressed: plain.accepted()
+            Keys.onEnterPressed: plain.accepted()
+            Keys.onEscapePressed: root.cancelReset()
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                visible: input.text.length === 0
+                text: plain.placeholder
+                color: "#6B7080"
+                font.pixelSize: 15
+                font.family: root.fontFamily
+            }
+        }
+    }
+    component PanelButton: Rectangle {
+        id: button
+        property string label
+        property bool primary: false
+        property bool active: true
+        signal clicked()
+        implicitWidth: Math.max(104, caption.implicitWidth + 32)
+        implicitHeight: 36
+        radius: 6
+        opacity: active ? 1 : 0.6
+        color: primary ? (area.containsMouse ? Qt.lighter(root.accent, 1.1) : root.accent)
+                       : (area.containsMouse ? "#40FFFFFF" : "#26FFFFFF")
+        border.width: primary ? 0 : 1
+        border.color: "#59FFFFFF"
+        Accessible.role: Accessible.Button
+        Accessible.name: label
+        Text {
+            id: caption
+            anchors.centerIn: parent
+            text: button.label
+            color: "#FFFFFF"
+            font.pixelSize: 14
+            font.family: root.fontFamily
+            font.weight: Font.DemiBold
+        }
+        MouseArea {
+            id: area
+            anchors.fill: parent
+            hoverEnabled: true
+            enabled: button.active
+            cursorShape: Qt.PointingHandCursor
+            onClicked: button.clicked()
+        }
+    }
+
     // --- Sign-in view ---------------------------------------------------------
     ColumnLayout {
         id: signInPanel
@@ -233,6 +490,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
             Layout.topMargin: 10
+            visible: root.resetStep === ""
 
             SequentialAnimation {
                 id: shake
@@ -272,7 +530,7 @@ Item {
                 font.family: root.fontFamily
                 color: "#1B1D24"
                 clip: true
-                enabled: !root.busy
+                enabled: !root.busy && root.lockLeft === 0
                 Accessible.role: Accessible.EditableText
                 Accessible.name: root.texts.password
                 Keys.onReturnPressed: root.signIn()
@@ -334,6 +592,117 @@ Item {
             color: "#FFE08A"
             font.pixelSize: 13
             font.family: root.fontFamily
+        }
+        // After a wrong password, as Windows does: the hint, and the way
+        // to a new password when the account has a reset USB.
+        Text {
+            id: hintLine
+            objectName: "hintLine"
+            Layout.fillWidth: true
+            visible: root.resetStep === "" && root.failures > 0 && root.passwordHint !== ""
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            text: root.texts.hint.arg(root.passwordHint)
+            color: "#E6FFFFFF"
+            font.pixelSize: 13
+            font.family: root.fontFamily
+            textFormat: Text.PlainText
+        }
+        Text {
+            id: resetLink
+            objectName: "resetLink"
+            Layout.alignment: Qt.AlignHCenter
+            visible: root.resetStep === "" && root.resetAvailable
+            text: root.texts.reset
+            color: "#CFE0FF"
+            font.pixelSize: 14
+            font.family: root.fontFamily
+            font.underline: linkArea.containsMouse
+            Accessible.role: Accessible.Link
+            Accessible.name: text
+            MouseArea {
+                id: linkArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.startReset()
+            }
+        }
+
+        // Reset password: insert the USB, then the new password.
+        ColumnLayout {
+            id: resetPanel
+            objectName: "resetPanel"
+            Layout.fillWidth: true
+            Layout.topMargin: 6
+            visible: root.resetStep !== ""
+            spacing: 12
+            Text {
+                Layout.alignment: Qt.AlignHCenter
+                text: root.texts.resetTitle
+                color: "#FFFFFF"
+                font.pixelSize: 18
+                font.family: root.fontFamily
+                font.weight: Font.DemiBold
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: root.resetStep === "insert"
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                text: root.resetBusy ? root.texts.looking : root.texts.insert
+                color: "#FFFFFF"
+                font.pixelSize: 14
+                font.family: root.fontFamily
+            }
+            PanelField {
+                id: newPassword
+                objectName: "newPassword"
+                visible: root.resetStep === "password"
+                placeholder: root.texts.newPassword
+                onAccepted: confirmPassword.focusField()
+            }
+            PanelField {
+                id: confirmPassword
+                objectName: "confirmPassword"
+                visible: root.resetStep === "password"
+                placeholder: root.texts.confirm
+                onAccepted: newHint.focusField()
+            }
+            PanelField {
+                id: newHint
+                objectName: "newHint"
+                visible: root.resetStep === "password"
+                secret: false
+                placeholder: root.texts.newHint
+                onAccepted: root.applyReset()
+            }
+            Text {
+                id: resetErrorLine
+                objectName: "resetError"
+                Layout.fillWidth: true
+                visible: text !== ""
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                text: root.resetError
+                color: "#FFD2D2"
+                font.pixelSize: 13
+                font.family: root.fontFamily
+            }
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                spacing: 10
+                PanelButton {
+                    label: root.resetStep === "insert" ? root.texts.next : root.texts.apply
+                    primary: true
+                    active: !root.resetBusy
+                    onClicked: root.resetStep === "insert" ? root.findDrive() : root.applyReset()
+                }
+                PanelButton {
+                    label: root.texts.cancel
+                    onClicked: root.cancelReset()
+                }
+            }
         }
     }
 

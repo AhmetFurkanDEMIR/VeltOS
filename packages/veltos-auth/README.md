@@ -23,3 +23,33 @@ with `SUCCESS`; cancelling prints `CANCELLED`.
 
 Limits: the window is not kept above other windows by KWin (it is a
 normal dialog); polkit's "Details" are shown as they come.
+
+## Password reset USB
+
+A forgotten password can be set again on the sign-in screen with a USB
+flash drive made for the account (`veltos_auth/recovery.py`,
+`/usr/libexec/veltos/password-recovery`).
+
+- The drive holds the key: `VeltOS Password Reset/<pc>-<user>.veltoskey`
+  (JSON: user, PC name, 256 random bits as 52 base32 letters) and a
+  README. Nothing on the drive is formatted or removed.
+- The PC keeps only an scrypt hash of the key with a random salt:
+  `/var/lib/veltos/recovery/<user>.json` (mode 600; the folder is readable
+  so Settings can tell whether a drive exists).
+- `password-recovery drives` lists USB/removable partitions with a file
+  system (never the live medium, a mounted system disk or the disk being
+  installed onto); `status USER`; `create USER PARTITION [--root DIR]
+  [--host NAME] [--exclude DISK,...]` and `remove USER` need root (the
+  installer's job; Settings through pkexec and the polkit action
+  `org.veltos.password-recovery`, auth_admin_keep).
+- The sign-in screen cannot run programs: `veltos-password-recovery.socket`
+  (127.0.0.1:47824, Accept=yes) starts `password-recovery serve` per
+  connection, which answers only connections whose socket belongs to the
+  `sddm` user (looked up in /proc/net/tcp): `POST /status` (has a drive,
+  the account's PasswordHint from AccountsService), `/find` (a drive with a
+  matching key is inserted) and `/reset` (finds the key again, then
+  `chpasswd` and the new hint). Anyone holding the drive can reset that
+  account's password, as with Windows' password reset disk. Disk
+  encryption keeps its own password.
+- Tests: `tests/test_recovery.py` (fake lsblk/mount/chpasswd, a stand-in
+  socket and TCP table).

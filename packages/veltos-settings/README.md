@@ -307,3 +307,23 @@ with the C library's `toupper()`, which broke in a Turkish locale).
   the taskbar's theme is always written within the 120 s Settings waits.
 - Maximised, Settings no longer hangs: the scroll bars of VeltOS' controls
   style take no room (veltos-desktop).
+
+## Password hint and password reset USB (Accounts > Sign-in options)
+
+The password change takes an optional hint (AccountsService's
+PasswordHint, set with `busctl` for the own account without a password);
+the sign-in screen shows it after a wrong password. "Password reset USB"
+(`resetusb.py`) shows whether the account has one, lists USB drives
+(veltos-auth's `password-recovery drives`) and creates or removes one
+through pkexec. Without veltos-auth the row is hidden.
+
+## Mobile hotspot bands
+
+`hotspot.py` tries, in order: the connection's own channel where the card
+may start a network on it (no time-sharing), the chosen band, then
+2.4 GHz; a 5 GHz choice that cannot start runs on 2.4 GHz and the page says
+so. A card that can share only on one channel, connected on a radar or
+restricted channel, gets the reason "channel" at once. Failed starts are
+written to `~/.cache/veltos-settings/hotspot.log` with nmcli's error and
+what iw reports about the card (channels, combinations, regulatory
+domain).

@@ -46,6 +46,27 @@ DEFAULT_ACTIONS = ("sleep:3 shot:01-desktop key:meta_l sleep:3 shot:02-start-men
                    "shot:07-closed")
 
 
+USB_STICK = Path("/tmp/vmctl/usbstick.img")
+
+
+def usb_stick(qmp, plug, outdir):
+    """Plug a USB flash drive into the VM or pull it out. The drive is a raw
+    file kept between plugs (format it once in the guest, e.g. `mkfs.vfat
+    -n KEYS /dev/sdX`), on vmctl's USB controller (qemu-xhci)."""
+    if plug:
+        if not USB_STICK.exists():
+            USB_STICK.parent.mkdir(parents=True, exist_ok=True)
+            with open(USB_STICK, "wb") as handle:
+                handle.truncate(256 * 1024 * 1024)
+        qmp.execute("blockdev-add", **{"node-name": "usbstick", "driver": "raw",
+                                        "file": {"driver": "file", "filename": str(USB_STICK)}})
+        qmp.execute("device_add", driver="usb-storage", id="usbstick", drive="usbstick", removable=True)
+    else:
+        qmp.execute("device_del", id="usbstick")
+        time.sleep(1.5)
+        qmp.execute("blockdev-del", **{"node-name": "usbstick"})
+
+
 def play(actions, qmp, outdir):
     for action in actions.split():
         kind, _, arg = action.partition(":")
@@ -96,6 +117,8 @@ def play(actions, qmp, outdir):
             qmp.screenshot(outdir / f"{arg}.png", head=1)
         elif kind == "wakeup":  # wake a guest that went to sleep (systemctl suspend)
             qmp.execute("system_wakeup")
+        elif kind == "usbstick":  # usbstick:add / usbstick:remove, a 256 MB flash drive (vmctl's qemu-xhci)
+            usb_stick(qmp, arg == "add", outdir)
         elif kind == "frames":
             seconds, step, name = arg.split(",")
             end = time.monotonic() + float(seconds)

@@ -621,6 +621,20 @@ class FullBuildTest(unittest.TestCase):
             self.check_terminal(root)
             self.check_controls_style(root)
             self.check_samples(root)
+            self.check_screen_watch(root)
+
+    def check_screen_watch(self, root):
+        """The taskbar comes back after a screen change (KWin script, on by
+        default): plasmashell is restarted only when no panel is on a
+        screen, never before one was seen, at most once a minute."""
+        script = root / "usr/share/kwin/scripts/veltosscreenwatch"
+        meta = json.loads((script / "metadata.json").read_text())
+        self.assertTrue(meta["KPlugin"]["EnabledByDefault"])
+        self.assertEqual(meta["X-Plasma-MainScript"], "ui/main.qml")
+        qml = (script / "contents/ui/main.qml").read_text()
+        self.assertIn('arguments: ["plasma-plasmashell.service", "replace"]', qml)
+        self.assertIn("if (watch.seenPanel && !watch.panelShown())", qml)
+        self.assertIn("Date.now() - watch.lastRestart < watch.minimumGap", qml)
 
     def check_samples(self, root):
         """Sample media for Photos and Media Player: a song with its cover
@@ -738,7 +752,7 @@ class FullBuildTest(unittest.TestCase):
         self.assertEqual(kcminputrc["[Keyboard]"]["NumLock"], "0")
         for helper in ("session-defaults", "update-app-names", "start-categories", "greeter-compositor",
                        "sddm-virtualbox-env", "needs-software-rendering", "trash-icon", "desktop-new",
-                       "numlock-state", "power-mode"):
+                       "numlock-state", "power-mode", "same-wallpaper"):
             path = root / "usr/libexec/veltos" / helper
             self.assertTrue(path.stat().st_mode & 0o111, f"{helper} is not executable")
         # The desktop's Windows 11 menus (plasma override) read their texts

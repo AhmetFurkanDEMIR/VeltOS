@@ -22,7 +22,7 @@ from PySide6.QtGui import QDesktopServices, QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import diagnostics, drivers, gpus, strings
+from . import diagnostics, drivers, gpus, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 DRIVER_KEYS = {"nvidia": "drv_nvidia", "nouveau": "drv_nouveau", "amdgpu": "drv_amdgpu", "radeon": "drv_radeon",
@@ -94,11 +94,20 @@ def size_text(size, lang):
     return text.replace(".", ",") if lang == "tr" else text
 
 
+# pkcon's status lines the window words itself (the rest keep the step's text).
+STATUS = {"Waiting in queue": "busy_waiting", "Waiting for package manager lock": "busy_waiting",
+          "Waiting for authentication": "busy_permission", "Downloading packages": "busy_download",
+          "Installing packages": "busy_installing"}
+
+
 def parse_progress(line):
     """(kind, value) for a line of `pkcon -p` output (as VeltOS Store reads it)."""
     match = re.match(r"^Percentage:\s*(\d+)", line)
     if match:
         return ("percent", min(100, int(match.group(1))))
+    match = re.match(r"^Status:\s*(.+?)\s*$", line)
+    if match:
+        return ("status", STATUS[match.group(1)]) if match.group(1) in STATUS else None
     if line.startswith(("Fatal error:", "Command failed:")):
         return ("error", line.partition(":")[2].strip())
     return None
@@ -118,6 +127,7 @@ class Backend(QObject):
     jobChanged = Signal()
     keyChanged = Signal()
     logChanged = Signal()
+    lookChanged = Signal()
     logRequested = Signal()
     _collected = Signal(object)
 
@@ -153,6 +163,8 @@ class Backend(QObject):
         self._busy = ""            # slot of the card being worked on
         self._busy_text = ""
         self._percent = -1
+        self._ask_restart = False
+        self._restart_after = False
         self._messages = {}        # slot -> (text, ok) after a job
         self._key_message = ""
         self._steps = []
@@ -160,7 +172,9 @@ class Backend(QObject):
         self._job = ""
         self._error = ""
         self.process = None
-        self._dark, self._accent, self._scale = dark_mode(), accent(), text_scale()
+        self._scale = text_scale()
+        self._look = themewatch.ThemeWatch(lambda: (dark_mode(), accent()), self)
+        self._look.changed.connect(self.lookChanged)
 
     # --- properties for QML ----------------------------------------------------------------
 
@@ -188,13 +202,15 @@ class Backend(QObject):
     def keyMessage(self):
         return self._key_message
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):
@@ -338,8 +354,13 @@ class Backend(QObject):
         card, plan = self._raw.get(slot, (None, None))
         if not card or plan["action"] != "update" or self._busy:
             return
-        # The lists first, then only the packages that have a newer version.
-        self._run(slot, "update", [("refresh", []), ("check", list(plan["packages"])), ("update", [])])
+        # The lists first, a part the driver lacks, then only the packages
+        # that have a newer version.
+        missing = list(plan.get("missing", []))
+        steps = [("refresh", [])] + ([("install", missing)] if missing else [])
+        installed = [p for p in plan["packages"] if p not in missing]
+        # KWin uses an added GBM library from the next start on.
+        self._run(slot, "update", steps + [("check", installed), ("update", [])], restart=bool(missing))
 
     @Slot(str)
     def useOpenDriver(self, slot):
@@ -352,10 +373,21 @@ class Backend(QObject):
 
     @Slot()
     def restart(self):
+        self._ask_restart = False
         self._start(REBOOT)
 
-    def _run(self, slot, job, steps):
+    @Property(bool, notify=jobChanged)
+    def askRestart(self):
+        return self._ask_restart
+
+    @Slot()
+    def restartLater(self):
+        self._ask_restart = False
+        self.jobChanged.emit()
+
+    def _run(self, slot, job, steps, restart=False):
         self._busy, self._job, self._steps, self._error = slot, job, steps, ""
+        self._restart_after = restart
         self._messages.pop(slot, None)
         self._next()
 
@@ -424,6 +456,13 @@ class Backend(QObject):
             parsed = parse_progress(line)
             if parsed and parsed[0] == "percent":
                 self._percent = parsed[1]
+            elif parsed and parsed[0] == "status":
+                # "Installing" of NVIDIA's driver includes building it (DKMS),
+                # minutes at 100 %: the text says so, so it does not look stuck.
+                key = parsed[1]
+                if key == "busy_installing" and self._step != "install":
+                    key = "busy_" + self._step
+                self._busy_text = self._texts.get(key, self._busy_text)
             elif parsed:
                 self._error = parsed[1]
         self.jobChanged.emit()
@@ -465,6 +504,10 @@ class Backend(QObject):
             text = self._texts["failed_" + job].replace("{detail}", detail).strip()
         self._busy, self._busy_text, self._percent, self._job, self._step = "", "", -1, "", ""
         self._messages[slot] = (text, ok)
+        if ok and (job in ("install", "repair", "remove") or self._restart_after):
+            # The new driver starts with the next start: ask (product owner,
+            # 2026-11-01: "ask the user to restart").
+            self._ask_restart = True
         if self._job_log:
             self._append_log("".join(self._job_log) + f"[{diagnostics.stamp()}] {text}\n")
             self._job_log = []

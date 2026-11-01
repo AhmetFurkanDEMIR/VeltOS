@@ -49,21 +49,28 @@ Popup {
 
     enter: Transition { NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 90 } }
 
+    // No frame, as the desktop's menu (product owner, 2026-11-01): the line
+    // round the menu and the hard-edged shadow under it read as a frame.
+    // A soft shadow in a few faint layers instead, and in dark mode only a
+    // hairline of light, as Windows 11's menus.
     background: Rectangle {
         radius: 8
         color: Theme.menu
-        border.width: 1
-        border.color: Theme.fieldBorder
-        // Soft shadow.
-        Rectangle {
-            z: -1
-            anchors.fill: parent
-            anchors.margins: -3
-            anchors.topMargin: -1
-            anchors.bottomMargin: -5
-            radius: 11
-            color: "#000000"
-            opacity: Theme.dark ? 0.35 : 0.08
+        border.width: Theme.dark ? 1 : 0
+        border.color: Qt.rgba(1, 1, 1, 0.07)
+        Repeater {
+            model: 4
+            delegate: Rectangle {
+                required property int index
+                z: -1
+                anchors.fill: parent
+                anchors.margins: -(index + 1)
+                anchors.topMargin: -index
+                anchors.bottomMargin: -(index * 2 + 2)
+                radius: 8 + index + 1
+                color: "#000000"
+                opacity: (Theme.dark ? 0.12 : 0.028) * (4 - index) / 4
+            }
         }
     }
 
@@ -228,11 +235,26 @@ Popup {
         padding: 4
         width: Math.max(200, subColumn.implicitWidth + 2 * padding)
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+        // The same frameless look as the menu itself.
         background: Rectangle {
             radius: 8
             color: Theme.menu
-            border.width: 1
-            border.color: Theme.fieldBorder
+            border.width: Theme.dark ? 1 : 0
+            border.color: Qt.rgba(1, 1, 1, 0.07)
+            Repeater {
+                model: 4
+                delegate: Rectangle {
+                    required property int index
+                    z: -1
+                    anchors.fill: parent
+                    anchors.margins: -(index + 1)
+                    anchors.topMargin: -index
+                    anchors.bottomMargin: -(index * 2 + 2)
+                    radius: 8 + index + 1
+                    color: "#000000"
+                    opacity: (Theme.dark ? 0.12 : 0.028) * (4 - index) / 4
+                }
+            }
         }
         contentItem: ColumnLayout {
             id: subColumn

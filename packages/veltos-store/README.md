@@ -111,3 +111,27 @@ to uninstall Firefox.
 - The screenshots of the live image's catalogue were outdated (404) and
   are left out; on an installed system the data is refreshed.
 - Discover's "updates available" notification still opens Discover.
+
+## Package installs (pkcon)
+
+`ptyrun.py` (copied into veltos-graphics and veltos-lighting) runs pkcon
+interactively on a pseudo-terminal, without PackageKit's debconf socket
+(a TMPDIR that does not exist: packages take their defaults instead of
+waiting for questions nobody answers), waits while apt-get or dpkg holds
+the lock, retries after PackageKit's lock failure and runs `pkcon repair`
+once after an interrupted dpkg. `veltos-package-repair.service` finishes an
+interrupted dpkg at start; `/etc/apt/apt.conf.d/50veltos-packages` makes
+APT wait for the lock and keep changed configuration files.
+
+## Light and dark while open
+
+`themewatch.py` (the original; copies in every package that needs it,
+checked by `tests/repo`) watches `~/.config/kdeglobals`: the Store, the App
+Installer and the Welcome window follow a switch between light and dark
+and a new accent at once.
+
+## Welcome
+
+`--first-start` opens the Welcome window (`Welcome.qml`) once per user on
+an installed system; the first update runs in the background at the
+first internet connection (`firstupdate.py`).

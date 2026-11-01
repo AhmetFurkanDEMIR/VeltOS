@@ -20,7 +20,9 @@ ColumnLayout {
         value: s.uuid, label: s.name + " (" + backend.text("source_" + s.kind) + ")"
     }))
     readonly property var bandOptions: (hs.bands || []).map(b => ({ value: b, label: page.bandLabel(b) }))
-    readonly property string problem: hs.error ? hs.error : (!hs.active && hs.reason ? hs.reason : "")
+    // An error, why it cannot start, or the band it fell back to.
+    readonly property string problem: hs.error ? hs.error : (!hs.active && hs.reason ? hs.reason
+                                      : (hs.active && hs.fallback ? "fallback" : ""))
 
     spacing: 4
     Component.onCompleted: backend.refreshHotspot()

@@ -14,12 +14,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Basic"
 
-from veltos_auth import agent, helper, strings, users  # noqa: E402
+from veltos_auth import agent, helper, lockout, strings, users  # noqa: E402
 
 FAKE_HELPER = Path(__file__).resolve().parent / "fake_helper.py"
 
 try:
-    from PySide6.QtCore import QUrl, qInstallMessageHandler
+    from PySide6.QtCore import QObject, QUrl, qInstallMessageHandler
     from PySide6.QtGui import QGuiApplication
     from PySide6.QtQml import QQmlApplicationEngine
     HAVE_QT = True
@@ -137,9 +137,69 @@ class RequestTests(unittest.TestCase):
 
 
 @unittest.skipUnless(HAVE_QT, "needs PySide6 (Build-Depends)")
+class LockoutTests(unittest.TestCase):
+    def test_waits_grow_and_the_right_password_resets(self):
+        # 3 wrong: 30 s, 3 more: 1 min, then 2 min after every 3 (product
+        # owner, 2026-11-01).
+        self.assertEqual([lockout.delay_for(n) for n in range(1, 16)],
+                         [0, 0, 30, 0, 0, 60, 0, 0, 120, 0, 0, 120, 0, 0, 120])
+        path = Path(tempfile.mkdtemp()) / "failures.json"
+        self.assertEqual(lockout.remaining(path, now=100), 0)
+        self.assertEqual([lockout.failed(path, now=100) for _ in range(3)], [0, 0, 30])
+        self.assertEqual(lockout.remaining(path, now=110), 20)
+        self.assertEqual(lockout.remaining(path, now=131), 0)
+        self.assertEqual([lockout.failed(path, now=200) for _ in range(3)], [0, 0, 60])
+        lockout.succeeded(path)
+        self.assertEqual(lockout.load(path), {"count": 0, "until": 0})
+        self.assertEqual(lockout.state_file({"XDG_RUNTIME_DIR": "/run/user/1000"}),
+                         Path("/run/user/1000/veltos/password-failures.json"))
+
+
+class RememberTests(unittest.TestCase):
+    def fake_proc(self, chain):
+        """A /proc with pid -> (parent, command line)."""
+        root = Path(tempfile.mkdtemp())
+        for pid, (parent, command) in chain.items():
+            folder = root / str(pid)
+            folder.mkdir()
+            (folder / "cmdline").write_bytes(command.replace(" ", "\0").encode())
+            (folder / "stat").write_text(f"{pid} (x) S {parent} 0 0\n", encoding="utf-8")
+        return str(root)
+
+    def test_veltos_ai_and_its_children(self):
+        proc = self.fake_proc({300: (200, "pkcon -p install sl"), 200: (100, "/usr/bin/python3 -m veltos_store.ptyrun"),
+                               100: (1, "/usr/bin/python3 /usr/bin/veltos-ai"), 400: (1, "/usr/bin/veltos-store")})
+        self.assertTrue(agent.from_veltos_ai(300, proc))
+        self.assertTrue(agent.from_veltos_ai(100, proc))
+        self.assertFalse(agent.from_veltos_ai(400, proc))
+        self.assertFalse(agent.from_veltos_ai(999, proc))
+
+    def test_answer_with_a_remembered_password(self):
+        command = [sys.executable, str(FAKE_HELPER)]
+        self.assertTrue(agent.answer_with("secret", "velt", "cookie-1", command))
+        self.assertFalse(agent.answer_with("wrong", "velt", "cookie-1", command))
+
+    def test_ten_minutes_for_veltos_ai_and_retained_actions_only(self):
+        a = agent.Agent.__new__(agent.Agent)
+        a.implicit = {"org.freedesktop.packagekit.package-install": 4, "org.freedesktop.policykit.exec": 2}
+        a.remembered = ("velt", "secret", agent.time.monotonic())
+        details = {"polkit.subject-pid": "300"}
+        with mock.patch.object(agent, "from_veltos_ai", lambda pid: pid == 300):
+            self.assertEqual(a.remembered_for(details, "org.freedesktop.packagekit.package-install"),
+                             ("velt", "secret"))
+            # pkexec asks every time; other programs never use it.
+            self.assertIsNone(a.remembered_for(details, "org.freedesktop.policykit.exec"))
+            self.assertIsNone(a.remembered_for({"polkit.subject-pid": "301"},
+                                               "org.freedesktop.packagekit.package-install"))
+            a.remembered = ("velt", "secret", agent.time.monotonic() - agent.REMEMBER_SECONDS - 1)
+            self.assertIsNone(a.remembered_for(details, "org.freedesktop.packagekit.package-install"))
+            self.assertIsNone(a.remembered)
+
+
 class PromptWindowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        os.environ["XDG_RUNTIME_DIR"] = tempfile.mkdtemp()
         cls.app = QGuiApplication.instance() or QGuiApplication([])
         cls.messages = []
         qInstallMessageHandler(lambda _type, _ctx, msg: cls.messages.append(msg))
@@ -151,13 +211,16 @@ class PromptWindowTests(unittest.TestCase):
     def problems(self):
         return [m for m in self.messages if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()]
 
-    def open_prompt(self, lang="en"):
+    def open_prompt(self, lang="en", remember=False):
         from veltos_auth import dialog
+        lockout.succeeded()
         self.messages.clear()
         self.out = io.StringIO()
         request = {"cookie": "cookie-1", "action": "org.test.do", "message": "Allow the test?",
                    "icon": "", "details": {"program": "/usr/bin/test"}, "program": "test",
                    "description": "", "users": [{"uid": 1000, "name": "velt", "realName": "Velt User", "icon": ""}]}
+        if remember:
+            request["remember"] = True
         self.prompt = dialog.Prompt(request, lang=lang, out=self.out,
                                     helper_command=[sys.executable, str(FAKE_HELPER)])
         self.verdicts = []
@@ -199,6 +262,33 @@ class PromptWindowTests(unittest.TestCase):
         self.assertEqual(self.verdicts, ["SUCCESS"])
         self.assertEqual(self.out.getvalue(), "SUCCESS\n")
         self.assertEqual(self.problems(), [])
+
+    def wait_idle(self):
+        import time
+        deadline = time.monotonic() + 10
+        while self.prompt.busy and time.monotonic() < deadline:
+            self.app.processEvents()
+            time.sleep(0.02)
+
+    def test_three_wrong_passwords_wait(self):
+        self.open_prompt()
+        for _ in range(3):
+            self.prompt.submit("nope")
+            self.wait_idle()
+        self.assertGreater(self.prompt.lockedSeconds, 25)
+        self.assertIn("Too many wrong passwords", self.prompt.lockText)
+        self.assertEqual(self.window.findChild(QObject, "error").property("text"), self.prompt.lockText)
+        self.prompt.submit("secret")                      # ignored while it waits
+        self.assertFalse(self.prompt.busy)
+        self.assertEqual(self.verdicts, [])
+        lockout.succeeded()
+        self.assertEqual(self.problems(), [])
+
+    def test_veltos_ai_requests_are_remembered(self):
+        self.open_prompt(remember=True)
+        self.prompt.submit("secret")
+        self.wait_for_verdict()
+        self.assertEqual(self.out.getvalue(), "REMEMBER velt secret\nSUCCESS\n")
 
     def test_cancel_in_turkish(self):
         self.open_prompt("tr")

@@ -270,3 +270,11 @@ text like KDE programs (`NativeTextRendering`): Qt Quick's default
 distance-field text looked uneven at fractional display scales. Qt objects
 are configured with setters, never keyword arguments (PySide6 resolves those
 with the C library's `toupper()`, which broke in a Turkish locale).
+
+## Light and dark while open
+
+The main window follows light/dark, the accent and the text size while
+open; its dialogs (Empty Recycle Bin, Delete File, Open with, Properties,
+the copy window) follow light/dark and the accent through
+`themewatch.py`. Menus and sub-menus have no frame line, only a soft
+shadow (a faint hairline in dark mode).

@@ -44,7 +44,11 @@ Prefer the specific tools; use run_command only when none fits, with a short, sa
 Actions that need administrator rights (installing apps, updates, run_command with administrator) make VeltOS ask \
 for the administrator's password. If nothing can do it, say so and explain how to do it in VeltOS (for example \
 Settings > Bluetooth & devices). Never claim an action happened unless its tool result says ok. Do not include \
-internal or system XML tags in your response."""
+internal or system XML tags in your response.
+
+Do exactly what the user asked and nothing more: no other action, no setting the user did not mention, no \
+information the user did not ask for. After an action, answer in one short sentence. Summarise command output in a \
+few lines; never paste long output."""
 
 
 def kde_value(group, key):
@@ -77,6 +81,16 @@ def socket_name():
     return f"veltos-ai-{os.getuid()}"
 
 
+def command_output(result, limit=4000):
+    """The output part of run_command's result, its last `limit` characters."""
+    try:
+        output = json.loads(result).get("output") or ""
+    except (ValueError, AttributeError):
+        output = ""
+    output = output.rstrip()
+    return ("…\n" + output[-limit:]) if len(output) > limit else output
+
+
 class ChatModel(QAbstractListModel):
     """The conversation's rows for ChatView, changed in place: rows are
     added, removed and updated one at a time. The list was a JavaScript
@@ -85,7 +99,7 @@ class ChatModel(QAbstractListModel):
     selected while an answer came (product owner, 2026-10-31)."""
 
     countChanged = Signal()
-    ROLES = ("mid", "kind", "body", "status", "title")
+    ROLES = ("mid", "kind", "body", "status", "title", "detail")
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -111,7 +125,8 @@ class ChatModel(QAbstractListModel):
     @staticmethod
     def row(message):
         return {"mid": message["id"], "kind": message["kind"], "body": message.get("text") or "",
-                "status": message.get("state") or "", "title": message.get("title") or ""}
+                "status": message.get("state") or "", "title": message.get("title") or "",
+                "detail": message.get("detail") or ""}
 
     def sync(self, messages):
         new = [self.row(m) for m in messages]
@@ -713,8 +728,12 @@ class Backend(QObject):
         self._set_busy(True)
         # After a recognised command the model only words the answer: given
         # the tools again, the local model went on to "install slack" after
-        # "install sl" had worked (installed dev VM, 2026-10-31).
-        tool_list = [] if self._command_done else self._tools()
+        # "install sl" had worked (installed dev VM, 2026-10-31). The local
+        # model also gets no tools after any action: it went on with other
+        # actions nobody asked for (night light, brightness after "switch to
+        # light mode", product owner 2026-11-01).
+        local_follow_up = self.data.get("provider") == "local" and self._rounds >= 1
+        tool_list = [] if self._command_done or local_follow_up else self._tools()
         adapter, history = self._adapter, list(self.history)
         cancel = self._cancel
 
@@ -793,9 +812,30 @@ class Backend(QObject):
 
     # --- actions ----------------------------------------------------------------------------------------
 
+    def _asked_text(self):
+        """The user's last message, and the answer before it (a "yes" to a
+        question the assistant asked counts for what it asked about)."""
+        texts, user_seen = [], False
+        for message in reversed(self._messages):
+            if message["kind"] == "user":
+                if user_seen:
+                    break
+                user_seen = True
+                texts.append(message.get("text") or "")
+            elif message["kind"] == "assistant" and user_seen:
+                texts.append(message.get("text") or "")
+                break
+        return "\n".join(texts)
+
     def _handle_calls(self):
         generation = self._generation
+        asked = self._asked_text()
         for index, call in enumerate(self._calls):
+            if not tools.asked_for(call.get("name", ""), asked):
+                # Not shown and not done; the service is told why.
+                self._results[index] = (False, '{"ok": false, "error": "Not done: the user did not ask for this. '
+                                               'Do not do it unless the user asks for it."}')
+                continue
             arguments = tools.validate(call.get("name", ""), call.get("input"))
             title = tools.title(call.get("name", ""), arguments, self.lang)
             message = self._add("action", "", title=title, state="", call=index)
@@ -853,6 +893,12 @@ class Backend(QObject):
             return
         if ok and self._calls[index].get("id") == "veltos_command":
             self._command_done = True
+        if self._calls[index].get("name") == "run_command":
+            # The command's output under its card, folded away (long output
+            # stretched the conversation, product owner 2026-11-01).
+            message = self._message(self._calls[index].get("message"))
+            if message is not None:
+                message["detail"] = command_output(output)
         self._record(index, ok, output, "done" if ok else "failed")
         self._maybe_continue()
 
@@ -881,7 +927,27 @@ class Backend(QObject):
         if self._busy and self._calls and len(self._results) == len(self._calls):
             results = [(call, self._results[i][1], not self._results[i][0]) for i, call in enumerate(self._calls)]
             self._adapter.add_tool_results(self.history, results)
+            confirmation = self._confirmation()
+            if confirmation:
+                self._adapter.add_assistant(self.history, confirmation)
+                self._add("assistant", confirmation)
+                self._set_busy(False)
+                return
             self._start_turn()
+
+    def _confirmation(self):
+        """With the local model, switches that all worked are confirmed in
+        VeltOS' own words (tools.done_text) instead of the model's."""
+        if self.data.get("provider") != "local":
+            return ""
+        texts = []
+        for index, call in enumerate(self._calls):
+            ok = self._results[index][0]
+            text = tools.done_text(call.get("name", ""), call.get("arguments"), self.lang) if ok else ""
+            if not text:
+                return ""
+            texts.append(text)
+        return " ".join(texts)
 
     @Slot()
     def stop(self):

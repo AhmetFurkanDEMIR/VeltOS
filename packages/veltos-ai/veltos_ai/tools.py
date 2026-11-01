@@ -141,6 +141,57 @@ TOOLS = [
 BY_NAME = {tool["name"]: tool for tool in TOOLS}
 READ_ONLY = ("get_system_info", "search_files", "list_wifi_networks")
 
+# What each action that changes something is about, in the words people
+# use for it (English and Turkish, without Turkish letters: see fold()).
+# An action whose topic the user's message does not mention is not done:
+# after "switch to light mode" the local model also turned off the night
+# light and turned the brightness up (product owner, 2026-11-01: "only what
+# I ask, nothing more"). Actions without an entry (opening an app, a
+# setting, a file; reading information) are not limited.
+TOPICS = {
+    "set_theme": ("dark", "light", "theme", "koyu", "karanlik", "aydinlik", "tema", "acik mod", "acik renk",
+                  "beyaz", "siyah"),
+    "set_volume": ("volume", "sound", "loud", "quiet", "ses"),
+    "set_mute": ("mute", "sound", "silent", "ses", "sessiz", "sustur"),
+    "set_wifi": ("wi-fi", "wifi", "wireless", "wlan", "kablosuz", "internet"),
+    "set_bluetooth": ("bluetooth", "blutut"),
+    "set_do_not_disturb": ("disturb", "notification", "focus", "rahatsiz", "bildirim", "odak"),
+    "take_screenshot": ("screenshot", "screen shot", "capture", "ekran goruntu", "ekran resmi", "snip"),
+    "set_night_light": ("night", "blue light", "eye", "gece", "mavi isik", "goz"),
+    "set_power_mode": ("power", "performance", "battery", "saver", "guc", "performans", "pil", "batarya",
+                       "tasarruf"),
+    "set_brightness": ("bright", "dim", "parlak", "karart"),
+    "set_airplane_mode": ("airplane", "flight", "plane", "ucak"),
+    "connect_wifi": ("connect", "wi-fi", "wifi", "network", "baglan", "aga ", "agina", "ag'"),
+    "set_wallpaper": ("wallpaper", "background", "picture", "duvar", "arka plan", "arkaplan", "resim"),
+    "set_timezone": ("time zone", "timezone", "saat dilimi", "zaman dilimi", "saat"),
+    "power": ("shut", "turn off", "restart", "reboot", "sleep", "sign out", "log out", "lock", "kapat",
+              "yeniden baslat", "uyku", "uyut", "oturum", "kilit"),
+    "install_app": ("install", "download", "get ", "kur", "yukle", "indir"),
+    "uninstall_app": ("uninstall", "remove", "delete", "kaldir", "sil"),
+    "install_updates": ("update", "upgrade", "guncel"),
+    "create_folder": ("folder", "directory", "klasor", "dizin"),
+    "move_to_recycle_bin": ("delete", "remove", "recycle", "trash", "bin", "sil", "cop", "kaldir"),
+    "empty_recycle_bin": ("recycle", "trash", "bin", "geri donusum", "cop"),
+    "write_text_file": ("write", "save", "file", "note", "list", "yaz", "kaydet", "dosya", "not", "liste"),
+}
+FOLD = str.maketrans({"ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u", "â": "a", "î": "i", "û": "u"})
+
+
+def fold(text):
+    """Lower case without Turkish letters ("Işığı" -> "isigi"), so "acik"
+    matches "açık" and "AÇIK"."""
+    return (text or "").replace("İ", "i").replace("I", "ı").lower().translate(FOLD)
+
+
+def asked_for(name, text):
+    """Whether the user's words mention what the action is about."""
+    words = TOPICS.get(name)
+    if not words:
+        return True
+    folded = fold(text)
+    return any(word in folded for word in words)
+
 
 def validate(name, arguments):
     """The arguments if they fit the action's schema, else None."""
@@ -173,6 +224,39 @@ def validate(name, arguments):
 
 def needs_approval(name):
     return name not in READ_ONLY
+
+
+SWITCHES = {
+    "set_wifi": (("Wi-Fi is on.", "Wi-Fi açıldı."), ("Wi-Fi is off.", "Wi-Fi kapatıldı.")),
+    "set_bluetooth": (("Bluetooth is on.", "Bluetooth açıldı."), ("Bluetooth is off.", "Bluetooth kapatıldı.")),
+    "set_night_light": (("Night light is on.", "Gece ışığı açıldı."), ("Night light is off.", "Gece ışığı kapatıldı.")),
+    "set_do_not_disturb": (("Do not disturb is on.", "Rahatsız etmeyin açıldı."),
+                           ("Do not disturb is off.", "Rahatsız etmeyin kapatıldı.")),
+    "set_airplane_mode": (("Airplane mode is on.", "Uçak modu açıldı."), ("Airplane mode is off.", "Uçak modu kapatıldı.")),
+}
+
+
+def done_text(name, arguments, lang):
+    """VeltOS' own sentence for a switch that worked ("" for other actions).
+    The small local model worded these oddly ("Koyu mod başarıyla
+    yüklendi", installed dev VM 2026-11-01); an on/off needs no model."""
+    turkish = lang == "tr"
+    arguments = arguments or {}
+    if name in SWITCHES:
+        on, off = SWITCHES[name]
+        return (on if arguments.get("on") else off)[turkish]
+    if name == "set_theme":
+        dark = arguments.get("mode") == "dark"
+        return ("Koyu moda geçildi." if dark else "Açık moda geçildi.") if turkish else \
+               ("Dark mode is on." if dark else "Light mode is on.")
+    if name == "set_mute":
+        return ("Ses kapatıldı." if arguments.get("muted") else "Ses açıldı.") if turkish else \
+               ("The sound is muted." if arguments.get("muted") else "The sound is on again.")
+    if name == "set_volume" and isinstance(arguments.get("percent"), int):
+        return f"Ses düzeyi %{arguments['percent']}." if turkish else f"The volume is {arguments['percent']}%."
+    if name == "set_brightness" and isinstance(arguments.get("percent"), int):
+        return f"Parlaklık %{arguments['percent']}." if turkish else f"Brightness is {arguments['percent']}%."
+    return ""
 
 
 def title(name, arguments, lang):

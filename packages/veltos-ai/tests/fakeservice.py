@@ -46,6 +46,24 @@ def claude_tool_turn():
     ])
 
 
+def claude_calls(*calls):
+    """A turn that only calls tools: (name, input) pairs."""
+    events = [("message_start", {"type": "message_start", "message": {"id": "msg_3", "role": "assistant",
+                                                                       "content": []}})]
+    for index, (name, arguments) in enumerate(calls):
+        events += [
+            ("content_block_start", {"type": "content_block_start", "index": index,
+                                     "content_block": {"type": "tool_use", "id": f"toolu_{index}", "name": name,
+                                                       "input": {}}}),
+            ("content_block_delta", {"type": "content_block_delta", "index": index,
+                                     "delta": {"type": "input_json_delta", "partial_json": json.dumps(arguments)}}),
+            ("content_block_stop", {"type": "content_block_stop", "index": index}),
+        ]
+    events += [("message_delta", {"type": "message_delta", "delta": {"stop_reason": "tool_use"}, "usage": {}}),
+               ("message_stop", {"type": "message_stop"})]
+    return sse(events)
+
+
 def claude_text(text, stop="end_turn"):
     return sse([
         ("message_start", {"type": "message_start", "message": {"id": "msg_2", "role": "assistant", "content": []}}),

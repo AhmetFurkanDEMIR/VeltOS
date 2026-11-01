@@ -1,0 +1,7 @@
+// VeltOS (veltos-store): package installations never stop to ask.
+// A changed configuration file keeps the version on the PC (dpkg's
+// question about it waited for an answer nobody could give from VeltOS
+// Store, Graphics Cards or the first start's update), and apt waits for
+// another installation to finish instead of failing at once.
+DPkg::Options { "--force-confdef"; "--force-confold"; };
+DPkg::Lock::Timeout "600";

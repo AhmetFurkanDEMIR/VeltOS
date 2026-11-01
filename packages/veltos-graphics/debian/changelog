@@ -1,3 +1,15 @@
+veltos-graphics (1.1.0~dev3) trixie; urgency=medium
+
+  * The same pkcon fixes (no debconf socket, waiting for other installs).
+  * The progress says when it waits for another installation or builds the
+    driver; after an install it asks to restart now or later.
+  * NVIDIA: the install and updates bring libnvidia-egl-gbm1 (contrib),
+    which KWin needs for screens on the NVIDIA card under Wayland and
+    which Debian's nvidia-driver does not pull in.
+  * The window follows light/dark and the accent while open (themewatch.py).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 09:00:00 +0000
+
 veltos-graphics (1.1.0~dev2) trixie; urgency=medium
 
   * pkcon runs with English messages: in Turkish sessions its question

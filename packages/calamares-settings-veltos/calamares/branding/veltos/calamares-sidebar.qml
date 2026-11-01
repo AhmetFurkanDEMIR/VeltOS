@@ -37,11 +37,12 @@ Rectangle {
     readonly property string helper: "http://127.0.0.1:47823/website"
 
     // The steps of settings.conf: welcomeq, localeq, keyboardq, partition,
-    // usersq, packagechooserq@windowsapps, the installation, finishedq.
+    // usersq, notesqml@recovery, packagechooserq@windowsapps, the
+    // installation, finishedq.
     readonly property var steps: [
         ["Welcome", "Hoş geldiniz"], ["Location", "Konum"], ["Keyboard", "Klavye"],
-        ["Disk", "Disk"], ["Account", "Hesap"], ["Windows programs", "Windows programları"],
-        ["Install", "Yükleme"], ["Finish", "Bitiş"]
+        ["Disk", "Disk"], ["Account", "Hesap"], ["Password reset", "Parola sıfırlama"],
+        ["Windows programs", "Windows programları"], ["Install", "Yükleme"], ["Finish", "Bitiş"]
     ]
     // The installer's language (Calamares sets Qt's default locale when the
     // language is chosen on the first page; nothing announces it here).
@@ -202,18 +203,31 @@ Rectangle {
             id: link
             Layout.fillWidth: true
             Layout.topMargin: 2
-            text: "veltos.​ahmetfurkandemir.com"
+            // One click opens it; the browser's first start takes a few
+            // seconds, so the link says "Opening…" meanwhile (product owner,
+            // 2026-11-01: it seemed to need a second click).
+            text: opening.running ? (sideBar.language === "tr" ? "Açılıyor…" : "Opening…")
+                                  : "veltos.​ahmetfurkandemir.com"
             color: Theme.accentText
             font.family: "Inter"
             font.pixelSize: 12
             font.underline: linkMouse.containsMouse
             wrapMode: Text.Wrap
+            Timer {
+                id: opening
+                interval: 6000
+            }
             MouseArea {
                 id: linkMouse
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
+                // On press, not release: a press that turned into a small
+                // drag (a touchpad tap) was no click.
+                onPressed: {
+                    if (opening.running)
+                        return;
+                    opening.restart();
                     const request = new XMLHttpRequest();
                     request.open("GET", sideBar.helper);
                     request.send();

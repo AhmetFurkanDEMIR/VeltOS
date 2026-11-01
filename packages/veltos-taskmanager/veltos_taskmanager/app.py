@@ -13,7 +13,7 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import gpu, model, strings, system
+from . import gpu, model, strings, system, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 HISTORY = 60  # seconds shown in the graphs, as Windows
@@ -80,6 +80,7 @@ def detached(command):
 class Backend(QObject):
     changed = Signal()
     startupChanged = Signal()
+    lookChanged = Signal()
 
     def __init__(self, lang=None, processes=None, performance=None, startup=None,
                  end_task=None, start=detached, gpus=None):
@@ -100,8 +101,8 @@ class Backend(QObject):
         self._history = {key: [0.0] * HISTORY for key in ("cpu", "memory", "disk", "net")}
         self._net_peak = 1.0
         self._process_count = 0
-        self._dark = dark_mode()
-        self._accent = accent()
+        self._look = themewatch.ThemeWatch(lambda: (dark_mode(), accent()), self)
+        self._look.changed.connect(self.lookChanged)
         self._timer = QTimer(self)
         self._timer.setInterval(1000)
         self._timer.timeout.connect(self.refresh)
@@ -149,13 +150,15 @@ class Backend(QObject):
         """Settings > Accessibility > Text size (text_scale())."""
         return text_scale()
 
-    @Property(bool, notify=changed)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, notify=changed)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     def _matches(self, item):
         return not self._search or self._search.lower() in item["name"].lower()

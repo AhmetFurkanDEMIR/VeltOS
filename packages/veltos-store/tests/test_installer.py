@@ -147,6 +147,57 @@ class InstallerWindowTests(unittest.TestCase):
         window.grabWindow()
         self.assertEqual(self.problems(), [])
 
+    def test_the_window_follows_light_and_dark_while_open(self):
+        # The App Installer kept its light page after the system turned
+        # dark (dev VM, 2026-11-01): kdeglobals is watched (themewatch.py).
+        from veltos_store import app, themewatch
+        home = self.folder / "config"
+        home.mkdir()
+        kdeglobals = home / "kdeglobals"
+        kdeglobals.write_bytes(b"[KDE]\nLookAndFeelPackage=org.veltos.desktop\n")
+        old = os.environ.get("XDG_CONFIG_HOME")
+        os.environ["XDG_CONFIG_HOME"] = str(home)
+        try:
+            self.assertEqual(themewatch.config_home(), home)
+            backend, window = self.open(build_deb(self.folder))
+            backend._look.deleteLater()
+            backend._look = themewatch.ThemeWatch(lambda: (app.dark_mode(), app.accent()), backend, delay=50)
+            backend._look.changed.connect(backend.lookChanged)
+            self.assertFalse(backend.darkMode)
+            seen = []
+            backend.lookChanged.connect(lambda: seen.append(backend.darkMode))
+            # kwriteconfig6 and Settings replace the file.
+            replacement = home / "kdeglobals.new"
+            replacement.write_bytes(b"[KDE]\nLookAndFeelPackage=org.veltos.desktop.dark\n"
+                                    b"[General]\nAccentColor=232,17,35\n")
+            os.replace(replacement, kdeglobals)
+            self.assertTrue(wait(lambda: backend.darkMode, 5000))
+            self.assertEqual(seen, [True])
+            self.assertNotEqual(backend.accent, "")
+            # Back to light, through the same watch.
+            kdeglobals.write_bytes(b"[KDE]\nLookAndFeelPackage=org.veltos.desktop\n")
+            self.assertTrue(wait(lambda: not backend.darkMode, 5000))
+            window.grabWindow()
+            self.assertEqual(self.problems(), [])
+        finally:
+            if old is None:
+                os.environ.pop("XDG_CONFIG_HOME", None)
+            else:
+                os.environ["XDG_CONFIG_HOME"] = old
+
+    def test_a_tool_without_an_app_is_not_in_start(self):
+        deb = build_deb(self.folder)
+        info = debfile.read(deb)
+        backend, window = self.open(deb, reader=lambda path: dict(info, apps=[]))
+        self.assertFalse(backend.hasApps)
+        backend.install()
+        self.assertTrue(wait(lambda: backend.page != "working"))
+        self.assertEqual(backend.page, "done")
+        self.assertEqual(backend.body, backend.texts["pkg_done_tool"])
+        self.assertEqual(self.started, [])
+        window.grabWindow()
+        self.assertEqual(self.problems(), [])
+
     def test_installed_and_older_versions(self):
         deb = build_deb(self.folder)
         info = debfile.read(deb)

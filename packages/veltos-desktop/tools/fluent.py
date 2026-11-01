@@ -509,9 +509,12 @@ def dark_popup_rim(svg, name="svg"):
 
 
 LIGHT_POPUP = "#ffffff"
+# Light mode's taskbar: an airy near-white instead of the scheme's grey
+# window colour (product owner, 2026-11-01: "not grey in light mode").
+LIGHT_TASKBAR = "#f9fafc"
 
 
-def white_popup(svg, name="svg"):
+def white_popup(svg, name="svg", colour=LIGHT_POPUP):
     """Light mode: popups (Start, search, the flyouts) in the white of VeltOS
     Settings' cards instead of the colour scheme's grey window colour, which
     they took through `ColorScheme-Background` (product owner, 2026-10-23:
@@ -519,9 +522,9 @@ def white_popup(svg, name="svg"):
     Only the popup frame changes; programs keep the scheme's colours."""
     def paint(match):
         tag = match.group(0).replace(' class="ColorScheme-Background"', "")
-        tag = re.sub(r"fill:currentColor", f"fill:{LIGHT_POPUP}", tag)
-        if f"fill:{LIGHT_POPUP}" not in tag:
-            tag = tag.replace('style="', f'style="fill:{LIGHT_POPUP};', 1)
+        tag = re.sub(r"fill:currentColor", f"fill:{colour}", tag)
+        if f"fill:{colour}" not in tag:
+            tag = tag.replace('style="', f'style="fill:{colour};', 1)
         return tag
     result, count = re.subn(r'<(?:rect|path)\b[^>]*class="ColorScheme-Background"[^>]*>', paint, svg)
     if count == 0:
@@ -586,7 +589,10 @@ def build_desktoptheme(upstream, root, name, variant):
         raise SystemExit(f"{name}: no scroll bar separator hint found (Fluent changed?)")
     (dest / "colors").unlink(missing_ok=True)       # follow the system scheme (docstring)
     for rel, opacity in PANEL_OPACITY.items():
-        write_svgz(dest / rel, set_background_opacity(read_svgz(dest / rel), opacity, rel))
+        svg = set_background_opacity(read_svgz(dest / rel), opacity, rel)
+        if variant == "light":
+            svg = white_popup(svg, rel, LIGHT_TASKBAR)
+        write_svgz(dest / rel, svg)
 
     # Plasma 6 reads metadata.json; theme settings live in plasmarc.
     groups = desktop_entry_groups(base / "metadata.desktop")

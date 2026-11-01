@@ -222,6 +222,54 @@ button.shot-frame { cursor: zoom-in; }
 .app-grid li:hover { transform: translateY(-3px) scale(1.03); }
 .tour { max-width: 960px; margin: 0 auto; }
 
+/* VeltOS AI conversations (real ones, recorded with the free local model):
+   the page's language picks its set (product owner, 2026-11-01); the other
+   set's pictures are lazy and never load. */
+html[data-lang="tr"] .lang-en, html:not([data-lang="tr"]) .lang-tr { display: none; }
+.chats { display: grid; gap: 14px; }
+.chat { margin: 0; display: grid; grid-template-columns: 1fr; }
+.chat .zoom { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); }
+.chat img { display: block; width: 100%; height: auto; }
+.chat figcaption { color: var(--muted); font-size: 14px; padding-top: 8px; }
+@media (min-width: 961px) {
+  .chats { grid-template-columns: repeat(3, 1fr); align-items: start; }
+}
+@media (max-width: 960px) and (min-width: 641px) {
+  .chats { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Slideshows: real screenshots one after another, crossfading (the
+   animated WebPs showed compression blocks, product owner 2026-11-01).
+   Only opacity and transform move; nothing runs while scrolled away. */
+.slides-stage { position: relative; aspect-ratio: 16 / 9; }
+.slides-stage .slide { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity .8s var(--ease); }
+.slides-stage .slide.is-current { opacity: 1; z-index: 1; }
+.slides-stage .slide .zoom, .slides-stage .slide img { width: 100%; height: 100%; }
+.slides-stage .slide img { display: block; object-fit: cover; }
+html[data-theme="dark"] .slides-stage .img-light, html[data-theme="light"] .slides-stage .img-dark { display: none; }
+.slide figcaption {
+  position: absolute; left: 14px; bottom: 14px; padding: 6px 12px; border-radius: 999px; pointer-events: none;
+  background: rgba(8, 12, 36, .78); color: #fff; font-size: 14px; font-weight: 600; line-height: 1.3;
+}
+.slides-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+.slides-dots button {
+  position: relative; width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; overflow: hidden;
+  background: var(--line); cursor: pointer; transition: width .3s var(--ease), background-color .3s var(--ease);
+}
+.slides-dots button[aria-current="true"] { width: 30px; background: var(--surface-2); }
+.slides-dots button::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; transform: scaleX(0); transform-origin: left;
+  background: linear-gradient(135deg, #4f7cff, #5b3fe0);
+}
+.slides-dots button[aria-current="true"]::after { transform: scaleX(1); }
+.slides-dots button.run::after { animation: slide-progress var(--slide-ms, 3600ms) linear forwards; }
+.slides.paused .slides-dots button::after { animation-play-state: paused; }
+@keyframes slide-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .slides-stage .slide { transition: none; }
+  .slides-dots button.run::after { animation: none; }
+}
+
 /* Gallery */
 /* Two even rows of six (four per row on tablets, one scrolling row on
    phones): a lone last button on its own row looked unfinished. */

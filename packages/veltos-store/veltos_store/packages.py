@@ -21,6 +21,11 @@ from PySide6.QtCore import QObject, QProcess, QProcessEnvironment, Signal
 
 STATUS = {  # pkcon status -> text key in strings.py
     "Waiting for authentication": "authorising",
+    # Another installation first: PackageKit's queue, or dpkg's lock held by
+    # an apt-get (ptyrun.py prints the same status while it waits).
+    "Waiting in queue": "locked",
+    "Waiting for package manager lock": "locked",
+    "Refreshing software list": "refreshing",
     "Downloading packages": "downloading",
     "Downloading": "downloading",
     "Installing packages": "installing",

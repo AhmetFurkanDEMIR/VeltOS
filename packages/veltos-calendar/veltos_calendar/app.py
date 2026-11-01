@@ -22,7 +22,7 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import store, strings
+from . import store, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 VIEWS = ("day", "workweek", "week", "month", "year")
@@ -85,9 +85,12 @@ def iso(day):
 class Backend(QObject):
     changed = Signal()
     eventsChanged = Signal()
+    lookChanged = Signal()
 
     def __init__(self, lang=None, path=None, today=None, parent=None):
         super().__init__(parent)
+        self._look = themewatch.ThemeWatch(lambda: (dark_mode(), accent_colour()), self)
+        self._look.changed.connect(self.lookChanged)
         self.lang = lang or strings.language()
         self.locale = QLocale(QLocale.Language.Turkish, QLocale.Country.Turkey) if self.lang == "tr" \
             else QLocale(QLocale.Language.English, QLocale.Country.UnitedStates)
@@ -204,13 +207,15 @@ class Backend(QObject):
     def trCount(self, key, count):
         return self.text(key, count=count)
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return dark_mode()
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return accent_colour()
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):

@@ -22,7 +22,7 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import leds, msi, strings
+from . import leds, msi, strings, themewatch
 from .config import (SWATCHES, accent, dark_mode, helper_command, load_settings, restore, run, save_settings,
                      text_scale)
 
@@ -31,6 +31,7 @@ QML_DIR = Path(__file__).resolve().parent / "qml"
 
 class Backend(QObject):
     changed = Signal()
+    lookChanged = Signal()
 
     def __init__(self, lang=None, root=leds.LEDS, runner=run, settings=None, apply_delay=250, accent_color=None,
                  msi_setup=None):
@@ -40,8 +41,12 @@ class Backend(QObject):
         self._root = root
         self._runner = runner
         self._settings_file = settings
-        self._accent = accent() if accent_color is None else accent_color
-        self._dark, self._scale = dark_mode(), text_scale()
+        # A given accent (tests) stays; otherwise the system's, followed.
+        self._scale = text_scale()
+        self._look = themewatch.ThemeWatch(
+            (lambda: (dark_mode(), accent())) if accent_color is None else None, self,
+            initial=None if accent_color is None else (dark_mode(), accent_color))
+        self._look.changed.connect(self.lookChanged)
         self._keyboards = []
         self._selected = 0
         self._choice = {}
@@ -60,13 +65,15 @@ class Backend(QObject):
     def texts(self):
         return self._texts
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return self._dark
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return self._accent
+        return self._look.accent
 
     @Property(float, constant=True)
     def textScale(self):
@@ -164,8 +171,8 @@ class Backend(QObject):
     @Slot(bool)
     def setMatchAccent(self, match):
         values = {"matchAccent": bool(match)}
-        if match and self._accent:
-            values["color"] = self._accent
+        if match and self._look.accent:
+            values["color"] = self._look.accent
         self._update(**values)
 
     @Slot()

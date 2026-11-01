@@ -38,6 +38,27 @@ class ArtworkTests(unittest.TestCase):
         for copy in copies:
             self.assertEqual(copy.read_bytes(), source, f"{copy} differs from veltos-store's ptyrun.py")
 
+    def test_theme_watch_copies_match(self):
+        """Every VeltOS window follows light/dark and the accent while it is
+        open (product owner, 2026-11-01): the packages that build on their
+        own carry the same watcher."""
+        source = (REPO / "packages/veltos-store/veltos_store/themewatch.py").read_bytes()
+        copies = sorted(REPO.glob("packages/*/veltos_*/themewatch.py"))
+        self.assertGreaterEqual(len(copies), 12)
+        for copy in copies:
+            self.assertEqual(copy.read_bytes(), source, f"{copy} differs from veltos-store's themewatch.py")
+
+    def test_no_window_reads_its_look_only_once(self):
+        """A darkMode or accent(Color) property declared constant never
+        repaints after the system switches between light and dark (the App
+        Installer stayed light, 2026-11-01)."""
+        for path in sorted(REPO.glob("packages/*/veltos_*/*.py")):
+            lines = path.read_text(encoding="utf-8").splitlines()
+            for number, line in enumerate(lines):
+                if re.match(r"\s+def (darkMode|accent|accentColor)\(self\):", line) and number:
+                    self.assertNotIn("constant=True", lines[number - 1],
+                                     f"{path.relative_to(REPO)}:{number + 1}: {line.strip()} is constant")
+
     def test_grub_png_tool_copies_match(self):
         """veltos-boot builds in isolation and keeps a copy of the tool that
         rewrites GRUB's pictures (build/scripts/plain-png.py)."""

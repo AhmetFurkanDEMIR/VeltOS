@@ -30,12 +30,14 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(plan["state"], "available")
         self.assertIn("linux-image-amd64", plan["packages"])
         self.assertEqual(plan["action"], "install")
-        self.assertEqual(plan["packages"], ["nvidia-driver", "linux-headers-amd64", "linux-image-amd64"])
+        self.assertEqual(plan["packages"], ["nvidia-driver", "libnvidia-egl-gbm1", "linux-headers-amd64",
+                                            "linux-image-amd64"])
         self.assertEqual(plan["driver"], "nouveau")
 
     def test_nvidia_detect_recommendation_is_used(self):
         plan = drivers.plan(NVIDIA, {}, set(), "nvidia-tesla-535-driver")
-        self.assertEqual(plan["packages"], ["nvidia-tesla-535-driver", "linux-headers-amd64", "linux-image-amd64"])
+        self.assertEqual(plan["packages"], ["nvidia-tesla-535-driver", "libnvidia-egl-gbm1", "linux-headers-amd64",
+                                            "linux-image-amd64"])
 
     def test_nvidia_legacy_card_is_unsupported(self):
         plan = drivers.plan(NVIDIA, {}, set(), "unsupported")
@@ -48,9 +50,15 @@ class PlanTests(unittest.TestCase):
 
     def test_nvidia_driver_in_use(self):
         card = dict(NVIDIA, driver="nvidia")
-        plan = drivers.plan(card, {"nvidia-driver": "550.163.01-2"}, {"nvidia", "nvidia_drm"})
+        plan = drivers.plan(card, {"nvidia-driver": "550.163.01-2", "libnvidia-egl-gbm1": "1.1.2.1-1"},
+                            {"nvidia", "nvidia_drm"})
         self.assertEqual((plan["state"], plan["action"]), ("proprietary", "update"))
         self.assertEqual(plan["packages"], ["nvidia-driver"])
+        # An install from before 2026-11-01: the update brings KWin's GBM
+        # library (monitors on the NVIDIA card under Wayland).
+        plan = drivers.plan(card, {"nvidia-driver": "550.163.01-2"}, {"nvidia", "nvidia_drm"})
+        self.assertEqual(plan["packages"], ["nvidia-driver", "libnvidia-egl-gbm1"])
+        self.assertEqual(plan["missing"], ["libnvidia-egl-gbm1"])
         self.assertEqual(plan["version"], "550.163.01-2")
         self.assertEqual(plan["driver"], "nvidia")
 

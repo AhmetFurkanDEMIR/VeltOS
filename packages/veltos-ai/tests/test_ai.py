@@ -341,7 +341,9 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(self.service.requests, [])           # the model was not asked
         backend.allowAction(messages[1]["id"])
         self.assertEqual(done, [True])
-        self.assertEqual((backend.messages[-1]["kind"], backend.messages[-1]["text"]), ("assistant", "Done."))
+        # VeltOS' own sentence for the switch; the model is never asked.
+        self.assertEqual((backend.messages[-1]["kind"], backend.messages[-1]["text"]), ("assistant", "Wi-Fi is on."))
+        self.assertEqual(self.service.requests, [])
         self.assertFalse(backend.busy)
 
     def test_no_tools_after_a_recognised_command(self):
@@ -494,6 +496,76 @@ class BackendTests(unittest.TestCase):
         model.sync([{"id": 1, "kind": "user", "text": "hi"}, {"id": 5, "kind": "user", "text": "b"}])
         self.assertEqual(events[-1], ("reset",))           # never happens: shown anew
         self.assertEqual([r["mid"] for r in model.rows], [1, 5])
+
+    def test_only_what_was_asked(self):
+        # After "switch to light mode" the local model also turned the night
+        # light off and the brightness up (product owner, 2026-11-01): actions
+        # the user's words do not mention are not shown and not done.
+        backend = self.backend("claude", fake.claude_calls(("set_theme", {"mode": "light"}),
+                                                           ("set_night_light", {"on": False}),
+                                                           ("set_brightness", {"percent": 100})),
+                               fake.claude_text("Light mode is on."))
+        backend.send("Switch to light mode")
+        actions = [m for m in backend.messages if m["kind"] == "action"]
+        self.assertEqual([m["title"] for m in actions], [tools.title("set_theme", {"mode": "light"}, "en")])
+        backend.denyAction(actions[0]["id"])
+        results = self.service.requests[1]["body"]["messages"][-1]["content"]
+        skipped = [r for r in results if "did not ask" in r["content"]]
+        self.assertEqual(len(skipped), 2)
+        # A "yes" to the assistant's own question counts for what it asked about.
+        self.assertTrue(tools.asked_for("set_night_light", "yes\nShould I also turn off the night light?"))
+        self.assertTrue(tools.asked_for("set_wifi", "Wİ-Fİ'I AÇ"))
+        self.assertTrue(tools.asked_for("set_theme", "Açık moda geç"))
+        self.assertFalse(tools.asked_for("set_theme", "Bluetooth'u aç"))
+        self.assertTrue(tools.asked_for("open_app", "anything"))
+
+    def test_local_model_switches_are_confirmed_in_veltos_words(self):
+        # The 2B local model answered "Koyu mod başarıyla yüklendi" ("dark
+        # mode loaded successfully", dev VM 2026-11-01): a switch that worked
+        # gets VeltOS' own sentence, and the model is not asked again.
+        done = self.stub_wifi()
+        backend = self.backend("claude", fake.claude_calls(("set_wifi", {"on": True})),
+                               fake.claude_text("never asked"))
+        backend.lang = "tr"
+        backend.send("Wi-Fi'ı aç")
+        backend.data["provider"] = "local"      # the call came; the local model would word the answer
+        action = next(m for m in backend.messages if m["kind"] == "action")
+        backend.allowAction(action["id"])
+        self.assertEqual(done, [True])
+        self.assertEqual(backend.messages[-1]["kind"], "assistant")
+        self.assertEqual(backend.messages[-1]["text"], "Wi-Fi açıldı.")
+        self.assertEqual(len(self.service.requests), 1)
+        self.assertFalse(backend.busy)
+        self.assertEqual(tools.done_text("set_theme", {"mode": "dark"}, "en"), "Dark mode is on.")
+        self.assertEqual(tools.done_text("set_brightness", {"percent": 40}, "tr"), "Parlaklık %40.")
+        self.assertEqual(tools.done_text("open_app", {"name": "x"}, "en"), "")
+
+    def test_local_model_gets_no_tools_after_an_action(self):
+        backend = self.backend("claude")
+        backend.data["provider"] = "local"
+        backend._rounds = 1
+        captured = {}
+
+        def stream(adapter, history, system, tool_list, opener, cancelled):
+            captured["tools"] = tool_list
+            yield "end", {"stop": "end_turn"}
+        old = providers.stream
+        providers.stream = stream
+        self.addCleanup(setattr, providers, "stream", old)
+        backend._adapter = providers.adapter("claude", {"key": "k"})
+        backend._start_turn()
+        self.assertEqual(captured["tools"], [])
+        backend.data["provider"] = "claude"
+        backend._start_turn()
+        self.assertTrue(captured["tools"])
+
+    def test_command_output_under_its_card(self):
+        from veltos_ai import app
+        self.assertEqual(app.command_output(json.dumps({"ok": True, "output": "Linux 6.12\n"})), "Linux 6.12")
+        long = app.command_output('{"ok": true, "output": "%s"}' % ("x" * 5000))
+        self.assertTrue(long.startswith("…\n"))
+        self.assertEqual(len(long), 4002)
+        self.assertEqual(app.command_output("not json"), "")
 
     def test_follows_the_theme(self):
         # The pane can switch the theme itself; its colours follow at once.

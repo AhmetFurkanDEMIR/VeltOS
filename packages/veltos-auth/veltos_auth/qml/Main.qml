@@ -330,7 +330,7 @@ ApplicationWindow {
                     selectionColor: window.accent
                     selectedTextColor: "#FFFFFF"
                     font.pixelSize: 13
-                    enabled: !auth.busy
+                    enabled: !auth.busy && auth.lockedSeconds === 0
                     Accessible.role: Accessible.EditableText
                     Accessible.name: auth.tr("password")
                     onAccepted: yesButton.clicked()
@@ -345,9 +345,9 @@ ApplicationWindow {
             }
             Text {
                 objectName: "error"
-                visible: auth.error !== "" || auth.busy
+                visible: auth.error !== "" || auth.busy || auth.lockText !== ""
                 Layout.fillWidth: true
-                text: auth.busy ? auth.tr("checking") : auth.error
+                text: auth.busy ? auth.tr("checking") : auth.lockText !== "" ? auth.lockText : auth.error
                 color: auth.busy ? window.subtext : window.danger
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap
@@ -370,9 +370,9 @@ ApplicationWindow {
                     objectName: "yes"
                     primary: true
                     label: auth.tr("yes")
-                    enabledState: !auth.busy
+                    enabledState: !auth.busy && auth.lockedSeconds === 0
                     onClicked: {
-                        if (!auth.busy) {
+                        if (!auth.busy && auth.lockedSeconds === 0) {
                             auth.submit(passwordField.text);
                             passwordField.text = "";
                         }

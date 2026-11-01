@@ -22,7 +22,7 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 
-from . import devices, strings
+from . import devices, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 MODES = ("pc", "duplicate", "extend", "second")
@@ -33,19 +33,30 @@ def socket_name():
     return f"veltos-project-{os.getuid()}"
 
 
+
+def system_look(accent=""):
+    """(dark, accent) of the session; a given accent stays."""
+    from . import sysinfo
+    return sysinfo.dark_mode(), accent or devices.Personalization().accent()
+
+
 class ProjectBackend(QObject):
     changed = Signal()
     advance = Signal()
     finished = Signal()
     _applied = Signal(bool)
+    lookChanged = Signal()
 
     def __init__(self, display=None, lang=None, dark=None, accent="", threaded=True, parent=None):
         super().__init__(parent)
         self.lang = lang or strings.language()
         self.display = display or devices.Display()
         self._threaded = threaded
-        self._dark = dark
-        self._accent = accent
+        # A given look (tests, a caller that knows it) stays; otherwise the
+        # session's, followed while the window is open (themewatch.py).
+        self._look = themewatch.ThemeWatch(None if dark is not None else (lambda: system_look(accent)), self,
+                                           initial=(dark, accent) if dark is not None else None)
+        self._look.changed.connect(self.lookChanged)
         state = self.display.state()
         self._count = state.get("count", 0)
         self._mode = state.get("project", "pc")
@@ -73,18 +84,15 @@ class ProjectBackend(QObject):
     def outputs(self):
         return self._outputs
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        if self._dark is not None:
-            return self._dark
-        from . import sysinfo
-        return sysinfo.dark_mode()
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        if self._accent:
-            return self._accent
-        return devices.Personalization().accent()
+        return self._look.accent
 
     @Property(bool, notify=changed)
     def busy(self):

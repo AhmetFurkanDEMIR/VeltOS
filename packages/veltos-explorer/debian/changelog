@@ -1,3 +1,16 @@
+veltos-explorer (1.1.0~dev3) trixie; urgency=medium
+
+  * Menus without a frame: no line round them, a soft shadow (dark mode: a
+    hairline of light).
+  * Windows programs (.exe, .msi) and programs open with a double-click again:
+    the runner's entry is hidden from Start, and the app list was empty, so
+    "Select an app" opened instead of the installation.
+  * Empty Recycle Bin, Delete File, Open with, Properties and the copy window
+    follow
+    light/dark and the accent while open; the main window an accent change too.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 12:00:00 +0000
+
 veltos-explorer (1.1.0~dev2) trixie; urgency=medium
 
   * No KDE windows with the Wayland "W" icon: the Recycle Bin through GLib,

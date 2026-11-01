@@ -1,3 +1,20 @@
+veltos-ai (1.1.0~dev4) trixie; urgency=medium
+
+  * Only what was asked: actions whose topic the user's words do not mention
+    are neither shown nor done; the local model gets no tools after an action.
+  * A command's output is folded under its card (a few lines tall when open);
+    long words and lines wrap in answers.
+  * Three typing dots while waiting, the answer's words appear smoothly, the
+    view glides down.
+  * Wide windows: a side bar (new chat, suggestions, settings) and a wider
+    conversation; the settings button shows when settings are open and says
+    why they stay open without a service.
+  * With the local model, switches that worked (light/dark, Wi-Fi,
+    Bluetooth, night light, sound, brightness...) are confirmed in VeltOS'
+    own words ("Koyu moda geçildi.") instead of the small model's.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 10:00:00 +0000
+
 veltos-ai (1.1.0~dev3) trixie; urgency=medium
 
   * The conversation is kept until "New chat" (conversation.py); a kept

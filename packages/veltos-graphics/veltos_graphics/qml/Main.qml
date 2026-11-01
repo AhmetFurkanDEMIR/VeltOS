@@ -78,6 +78,62 @@ ApplicationWindow {
         id: logWindow
         transientParent: window
     }
+
+    // After a driver was installed, repaired or removed: restart now or later.
+    Rectangle {
+        objectName: "restartQuestion"
+        anchors.fill: parent
+        z: 10
+        visible: backend.askRestart
+        color: Theme.dark ? "#99000000" : "#66000000"
+        MouseArea { anchors.fill: parent; hoverEnabled: true }
+        Rectangle {
+            anchors.centerIn: parent
+            width: Math.min(parent.width - 48, 460)
+            height: question.implicitHeight + 48
+            radius: 8
+            color: Theme.card
+            border.width: 1
+            border.color: Theme.cardBorder
+            ColumnLayout {
+                id: question
+                anchors.fill: parent
+                anchors.margins: 24
+                spacing: 14
+                Label {
+                    Layout.fillWidth: true
+                    text: backend.texts.restart_title
+                    color: Theme.text
+                    font.pixelSize: Theme.bodySize + 6
+                    font.weight: Font.DemiBold
+                    wrapMode: Text.Wrap
+                }
+                Label {
+                    Layout.fillWidth: true
+                    text: backend.texts.restart_body
+                    color: Theme.text
+                    font.pixelSize: Theme.bodySize + 1
+                    wrapMode: Text.Wrap
+                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignRight
+                    Layout.topMargin: 6
+                    spacing: 8
+                    VButton {
+                        objectName: "restartNow"
+                        text: backend.texts.restart_now
+                        primary: true
+                        onClicked: backend.restart()
+                    }
+                    VButton {
+                        objectName: "restartLater"
+                        text: backend.texts.restart_later
+                        onClicked: backend.restartLater()
+                    }
+                }
+            }
+        }
+    }
     Connections {
         target: backend
         function onLogRequested() {

@@ -46,6 +46,31 @@ Item {
     property date now: new Date()
     property double lastTick: Date.now()
 
+    // Three wrong passwords wait 30 seconds, three more a minute, then two
+    // minutes after every three; unlocking starts the count again (as
+    // VeltOS' other password prompts, product owner 2026-11-01).
+    property int failures: 0
+    property int lockLeft: 0
+    function lockText() {
+        const minutes = Math.floor(lockLeft / 60), seconds = lockLeft % 60;
+        const time = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+        return tr("Too many wrong passwords. Try again in %1.",
+                  "Çok fazla yanlış parola girildi. %1 sonra yeniden deneyin.").arg(time);
+    }
+    Timer {
+        id: lockTimer
+        interval: 1000
+        repeat: true
+        onTriggered: {
+            ui.lockLeft = Math.max(0, ui.lockLeft - 1);
+            ui.message = ui.lockLeft > 0 ? ui.lockText() : "";
+            if (ui.lockLeft === 0) {
+                stop();
+                password.forceActiveFocus();
+            }
+        }
+    }
+
     function showSignIn(text) {
         if (welcome) {
             return;
@@ -96,7 +121,7 @@ Item {
         }
     }
     function submit() {
-        if (grace.running) {
+        if (grace.running || lockLeft > 0) {
             return;
         }
         authenticator.respond(password.text);
@@ -112,6 +137,13 @@ Item {
             password.text = "";
             grace.restart();
             shake.start();
+            ui.failures += 1;
+            if (ui.failures % 3 === 0) {
+                const step = ui.failures / 3;
+                ui.lockLeft = step === 1 ? 30 : step === 2 ? 60 : 120;
+                ui.message = ui.lockText();
+                lockTimer.start();
+            }
         }
         function onSucceeded() {
             if (authenticator.hadPrompt) {
@@ -423,7 +455,7 @@ Item {
                 font.family: "Inter"
                 font.pixelSize: 14
                 clip: true
-                enabled: !grace.running
+                enabled: !grace.running && ui.lockLeft === 0
                 Accessible.name: ui.tr("Password", "Parola")
                 onTextChanged: idle.restart()
                 Keys.onReturnPressed: ui.submit()

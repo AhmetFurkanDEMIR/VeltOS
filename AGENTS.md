@@ -60,10 +60,10 @@ owner sets priorities; agents act as the engineering team.
 | `build/scripts/` | In-container scripts: package build, ISO build, and what keeps the ISO under 2 GiB (`trim-pool.py`, `shrink-initrd.py`, run by binary hooks 9200/9300) |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin script `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
-| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy, Maps location access); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`); Mobile hotspot (`hotspot.py`, also `/usr/libexec/veltos/hotspot` for Quick Settings; `/usr/libexec/veltos/hotspot-interface`, pkexec, adds the `veltos-ap` interface that shares the Wi-Fi card's own connection); Apps > VeltOS AI (`assistant.py`); Windows + P and the chooser on a new screen (`project.py`, `kscreen_osd.py` owning KScreen's `org.kde.kscreen.osdService`); the VeltOS Bluetooth agent (`btagent.py`, `/usr/libexec/veltos/bt-agent`) and its Add a device window (`btpair.py`, `--bt-pair`); the VeltOS network agent (`nmagent.py`, `/usr/libexec/veltos/network-agent`, NetworkManager's Wi-Fi key requests) and its Connect to a network window (`wifikey.py`, `--wifi-key`); Accessibility > Mouse pointer (`pointer.py`: style, custom colour, size; follows light/dark mode through `/usr/libexec/veltos/pointer-style`) |
+| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin scripts `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and `veltosscreenwatch` (the taskbar back after a screen change) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
+| `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy, Maps location access); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`); Mobile hotspot (`hotspot.py`, also `/usr/libexec/veltos/hotspot` for Quick Settings; `/usr/libexec/veltos/hotspot-interface`, pkexec, adds the `veltos-ap` interface that shares the Wi-Fi card's own connection); Apps > VeltOS AI (`assistant.py`); Windows + P and the chooser on a new screen (`project.py`, `kscreen_osd.py` owning KScreen's `org.kde.kscreen.osdService`); the VeltOS Bluetooth agent (`btagent.py`, `/usr/libexec/veltos/bt-agent`) and its Add a device window (`btpair.py`, `--bt-pair`); the VeltOS network agent (`nmagent.py`, `/usr/libexec/veltos/network-agent`, NetworkManager's Wi-Fi key requests) and its Connect to a network window (`wifikey.py`, `--wifi-key`); Accessibility > Mouse pointer (`pointer.py`: style, custom colour, size; follows light/dark mode through `/usr/libexec/veltos/pointer-style`); Accounts > Sign-in options' password hint and reset USB (`resetusb.py`) |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. This PC offers Format for eligible drives through VeltOS Disk Management and distinguishes USB, removable and fixed Windows drives. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`), and the Windows 11 Properties window (`--properties`, also from the desktop); Windows 11's copy window (`--transfer`, `transfer.py`) and "Delete File" (`--delete-permanently`); no KIO windows: the Recycle Bin through GLib (`--recycle`, `removal.py`), deleting (`--remove`), launchers and programs with "Open File - Security Warning" (`--run`, `runprogram.py`); the portal's Access and Account requests in its question window (`--question`) |
-| `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked |
+| `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked; the password reset USB (`recovery.py`, `/usr/libexec/veltos/password-recovery`: key on the stick, scrypt hash in `/var/lib/veltos/recovery`, socket service on 127.0.0.1:47824 for the sign-in screen only) |
 | `packages/veltos-clock/` | VeltOS Clock: Windows 11 Clock (Focus sessions, Timer, Alarm, Stopwatch, World clock); `veltos-clock-agent` rings alarms and timers while the app is closed, and VeltOS Calendar's reminders |
 | `packages/veltos-calendar/` | VeltOS Calendar: Windows 11 Calendar (day, work week, week, month, year views; quick event card and full editor; repeats and reminders) on one iCalendar file (`~/.local/share/veltos-calendar/calendar.ics`) |
 | `packages/veltos-taskmanager/` | VeltOS Task Manager: Windows 11 Task Manager layout (Processes, Performance, Startup apps), psutil, GPUs from DRM fdinfo / amdgpu sysfs / nvidia-smi (`gpu.py`); Ctrl+Shift+Esc; also KWin's "is not responding" window (diverts `kwin_killer_helper`, `notresponding.py`) and the notice after a crash instead of DrKonqi (`crash.py`, drop-in for DrKonqi's per-crash launcher service) |
@@ -81,7 +81,7 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-fluent-icons/` | Fluent icons/cursors from a pinned upstream release (Microsoft logos removed), VeltOS "This PC" and Recycle Bin icons; the cursor themes drawn from upstream's SVGs at 24-96 px (`tools/cursors.py`) |
 | `packages/veltos-boot/` | Plymouth splash (+ Plymouth defaults diversion), GRUB theme and fonts, boot defaults, SDDM-after-Plymouth ordering, disk-encryption password screen (initramfs hook), start-up screen at the screen's resolution (`resolution/`: set at installation, kept in step at sign-in), GRUB start counting with the Recovery and safe-graphics entries (`grub.d/10_linux`) |
 | `packages/veltos-recovery/` | VeltOS Automatic Repair: after two starts that did not finish, GRUB starts `veltos-recovery.target`, a full-screen Windows 11 style recovery window on Qt's linuxfb (Restart, Startup Repair, Safe mode, Command Prompt as a console sign-in, last start's problems, Turn off); the services that clear the count or restart after a failed start; `veltos-safe-graphics` (starts without a graphics driver sign in to Plasma on X11); persistent journal |
-| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), `release-disks` (unmounts the PC's disks before Calamares starts, so every partitioning choice is offered), `console-cache` (the installed system's console keymap cache), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
+| `packages/calamares-settings-veltos/` | VeltOS installer (Calamares) configuration and branding: VeltOS QML pages for Calamares' QML modules (`branding/veltos/*q.qml`, Windows 11 setup look), slideshow, partition layout (BitLocker-like encryption), installer jobs (incl. `boot-resolution`, and `boot-check`, which stops an installation whose system could not start), `release-disks` (unmounts the PC's disks before Calamares starts, so every partitioning choice is offered), "If you forget your password" (`recovery.qml`, `notesqml@recovery`, job `password-recovery`: hint and reset USB; the helper `open-website` also serves `/drives` and `/choices`), `console-cache` (the installed system's console keymap cache), live welcome window (Try/Install), live session settings; the installer's Qt style `veltos-installer` (`style/`, C++ plugin over Kvantum: Calamares' disk bars, legend and resize bar in VeltOS' look, Disk Management's sizes, drop-down lists under their box) |
 | `packages/veltos-disks/` | VeltOS Disk Management: Windows 11's Disk Management layout (volume list over the disk map, partitions to scale) on UDisks2 (busctl): format (Windows 11's Format window, `FormatWindow.qml`, also alone for File Explorer's `--format`), delete, new simple volume, label, mount/unmount/eject, initialize; the running system's volumes protected; replaces KDE Partition Manager |
 | `packages/veltos-graphics/` | VeltOS Graphics Cards: the PC's graphics cards (lspci, sysfs, eglinfo, vulkaninfo) with driver and properties; one button installs or updates NVIDIA's driver (Debian non-free, `nvidia-detect`, DKMS, Secure Boot key through mokutil, kernel modesetting `veltos-nvidia.conf`, Repair) or the AMD/Intel firmware and Mesa drivers through `pkcon`; the Driver log window (`diagnostics.py`); also Settings > Display > Graphics cards |
 | `packages/veltos-lighting/` | VeltOS Keyboard Lighting: a laptop keyboard's lights (sysfs LEDs; colour on multicolour LEDs, ASUS, System76) in Windows 11's Dynamic Lighting layout, a pkexec helper (`/usr/libexec/veltos/keyboard-light`, allowed for the active user), restore at sign-in; MSI laptops get MSI's driver on request (`msi.py`); Settings > Personalization > Keyboard lighting |
@@ -128,6 +128,12 @@ owner sets priorities; agents act as the engineering team.
   generated files in `build-assets/` (git-ignored) via `debian/rules`.
 - Package unit tests: Python `unittest` under `packages/<pkg>/tests/`, run
   by `override_dh_auto_test`. Standard library only.
+- Shared code between packages that build on their own is copied, and
+  `tests/repo` checks the copies match: `ptyrun.py` (every pkcon caller) and
+  `themewatch.py` (veltos-store's original). A VeltOS window's `darkMode`,
+  `accent` or `accentColor` property must notify (`ThemeWatch`, never
+  `constant=True`; `tests/repo` rejects it): windows follow a light/dark
+  switch while open, as on Windows 11.
 - Shell: `bash` with `set -euo pipefail` for scripts; POSIX `sh` for
   live-build hooks and maintainer scripts.
 - Line endings: LF everywhere (`.gitattributes`). Files from a Windows bind
@@ -150,10 +156,14 @@ and JavaScript with no build step, no external requests and no cookies:
 - Pictures: `assets/img/light-*.webp` and `dark-*.webp` (1600x900) are
   pairs of screenshots of an installed system (English, 1920x1080,
   downscaled); the page shows the pair's picture of its own theme (classes
-  `img-light`/`img-dark`, the hidden one lazy and never loaded). `tour-*.webp`
-  are animations made of real screenshots joined by crossfades
-  (`out/vm/make-gif.py`, git-ignored aid); `assets/gif/*.gif` are the same
-  for the README. Start-up, sign-in and installer pictures have one look.
+  `img-light`/`img-dark`, the hidden one lazy and never loaded). The
+  tours are slideshows of those stills (`[data-slides]`, crossfade, dots,
+  running only while in view); the animated WebPs they replaced showed
+  lossy compression blocks (product owner, 2026-11-01). `assets/gif/*.gif`
+  are animations for the README (`out/vm/make-gif.py`, git-ignored aid).
+  VeltOS AI's conversations (`chat-en-*`/`chat-tr-*.webp`, crops of the
+  pane) come per language (classes `lang-en`/`lang-tr`). Start-up,
+  sign-in and installer pictures have one look.
   `og.jpg` (1200x630) is the link preview. Retake them when the desktop
   changes visibly, and never show something the ISO does not do.
 - Icons: copies of the OS's own SVGs (`tests/repo` checks they still
@@ -1333,3 +1343,38 @@ and JavaScript with no build step, no external requests and no cookies:
   on `contentY` was re-evaluated; compute from `contentY` itself there
   (VeltOS AI's `follow` stayed true). PySide6's `QProcess.startDetached`
   returns `(ok, pid)`.
+
+- Interactive pkcon (2026-11-01) makes a debconf helper socket in TMPDIR;
+  PackageKit then runs dpkg-preconfigure with `DEBIAN_FRONTEND=passthrough`
+  and waits for answers nobody gives (the NVIDIA driver's questions: the
+  install "hung" for good). With a TMPDIR that does not exist there is no
+  socket and packages take their defaults (`ptyrun.py`). PackageKit waits
+  for the dpkg lock only a while, then fails "Could not get lock ... held
+  by process"; `ptyrun.py` waits and retries. Its status lines include
+  "Waiting for package manager lock" (libpackagekit-glib2 1.3.1).
+- Debian 13's nvidia-driver (550.163.01-2) does not pull
+  `libnvidia-egl-gbm1` (contrib), which KWin needs for screens on the
+  NVIDIA card under Wayland; VeltOS Graphics Cards installs it.
+- Calamares 3.3.14 QML: `Global.value(...)` works, `Global.insert(...)` is
+  "not a function"; a QML page without its own module config cannot hand
+  values to a job through global storage. The VeltOS installer's pages
+  post them to install-veltos' helper (127.0.0.1:47823), which writes
+  `$XDG_RUNTIME_DIR/veltos-installer.json`; jobs find it through
+  PKEXEC_UID. `notesqml` instances show any branding QML as a step
+  (`qmlFilename`). Calamares lists disks by device name, so a USB stick
+  (`sda`) may come before the PC's disk.
+- SDDM's greeter QML cannot run programs, but its XMLHttpRequest reaches
+  127.0.0.1: veltos-auth's password-recovery service (socket-activated,
+  Accept=yes) tells the greeter's connections apart by the peer socket's
+  owner in /proc/net/tcp (user sddm), and refuses everyone else.
+- The dev VM has a USB controller (qemu-xhci) and `vm do "usbstick:add"` /
+  `"usbstick:remove"` plug a 256 MB stick (format it once in the guest).
+  Turkish text can be typed into a session with the Turkish Q layout
+  (`kxkbrc` LayoutList tr + `dbus-send --session --type=signal /Layouts
+  org.kde.keyboard.reloadConfig`) by sending the US keys that make each
+  letter (`out/vm/trq-keys.py`); Plasma 6.3 has no `org.kde.klipper`
+  service to paste from.
+- `pkill -f PATTERN` in a `vm exec` also matches the command's other words:
+  `pkill -f '[c]alamares'; dpkg -i calamares-settings-veltos_*.deb` killed
+  its own shell before dpkg ran (the file name contains "calamares").
+  Use `pkill -x calamares`, or a call of its own.

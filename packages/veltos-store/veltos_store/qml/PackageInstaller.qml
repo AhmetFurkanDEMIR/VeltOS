@@ -285,7 +285,7 @@ ApplicationWindow {
             CheckBox {
                 id: launchBox
                 objectName: "launch"
-                visible: window.page === "ready" && backend.status !== "same"
+                visible: window.page === "ready" && backend.status !== "same" && backend.hasApps
                 checked: backend.launch
                 text: backend.texts.pkg_launch
                 font.pixelSize: Theme.bodySize

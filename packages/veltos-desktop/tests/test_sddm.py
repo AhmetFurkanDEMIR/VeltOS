@@ -159,6 +159,118 @@ class SignInScreenTests(unittest.TestCase):
         self.assertFalse(self.root.property("busy"))
         self.assertEqual(self.problems(), [])
 
+    def test_three_wrong_passwords_wait(self):
+        # 3 wrong: 30 s, 3 more: 1 min, then 2 min (product owner, 2026-11-01).
+        self.root.setProperty("signInView", True)
+        password = self.find_password_field()
+        for _ in range(3):
+            password.setProperty("text", "nope")
+            QMetaObject.invokeMethod(self.root, "signIn")
+            self.sddm.loginFailed.emit()
+            self.app.processEvents()
+        self.assertEqual(self.root.property("lockLeft"), 30)
+        self.assertFalse(password.property("enabled"))
+        calls = len(self.sddm.calls)
+        password.setProperty("text", "secret")
+        QMetaObject.invokeMethod(self.root, "signIn")
+        self.assertEqual(len(self.sddm.calls), calls)          # nothing tried while it waits
+        self.root.setProperty("lockLeft", 0)
+        for _ in range(3):
+            QMetaObject.invokeMethod(self.root, "signIn")
+            self.sddm.loginFailed.emit()
+        self.assertEqual(self.root.property("lockLeft"), 60)
+        self.root.setProperty("lockLeft", 0)
+        for _ in range(3):
+            QMetaObject.invokeMethod(self.root, "signIn")
+            self.sddm.loginFailed.emit()
+        self.assertEqual(self.root.property("lockLeft"), 120)
+        self.assertEqual(self.problems(), [])
+
+    def wait_for(self, condition, seconds=5):
+        import time
+        deadline = time.monotonic() + seconds
+        while not condition() and time.monotonic() < deadline:
+            self.app.processEvents()
+            time.sleep(0.02)
+        return condition()
+
+    def test_hint_and_password_reset_usb(self):
+        # Forgotten passwords (product owner, 2026-11-01): the hint after a
+        # wrong password; "Reset password" only for an account with a reset
+        # USB; the USB first, then the new password. A stand-in for
+        # veltos-auth's password-recovery service answers.
+        import http.server
+        import json
+        import threading
+        requests = []
+        answers = {"/status": {"configured": True, "hint": "first cat"}, "/find": {"error": "no-drive"},
+                   "/reset": {"error": ""}}
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+                requests.append((self.path, body))
+                data = json.dumps(answers[self.path]).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+            def log_message(self, *_args):
+                pass
+        server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.shutdown)
+        self.root.setProperty("recoveryService", f"http://127.0.0.1:{server.server_address[1]}")
+        QMetaObject.invokeMethod(self.root, "loadAccountHelp")
+        self.assertTrue(self.wait_for(lambda: self.root.property("resetAvailable")))
+        self.assertEqual(requests[-1], ("/status", {"user": "velt"}))
+        self.root.setProperty("signInView", True)
+        hint = self.root.findChild(QObject, "hintLine")
+        # The sign-in box fades in (250 ms); the hint waits for a wrong password.
+        self.assertTrue(self.wait_for(lambda: self.find_password_field().property("visible")))
+        self.assertFalse(hint.property("visible"))
+        password = self.find_password_field()
+        password.setProperty("text", "nope")
+        QMetaObject.invokeMethod(self.root, "signIn")
+        self.sddm.loginFailed.emit()
+        self.app.processEvents()
+        self.assertTrue(self.wait_for(lambda: hint.property("visible")))
+        self.assertEqual(hint.property("text"), "Hint: first cat")
+        self.assertTrue(self.root.findChild(QObject, "resetLink").property("visible"))
+        QMetaObject.invokeMethod(self.root, "startReset")
+        self.assertEqual(self.root.property("resetStep"), "insert")
+        QMetaObject.invokeMethod(self.root, "findDrive")
+        self.assertTrue(self.wait_for(lambda: self.root.property("resetError") != ""))
+        self.assertEqual(self.root.property("resetError"),
+                         "No USB drive was found. Insert the password reset USB and try again.")
+        answers["/find"] = {"error": ""}
+        QMetaObject.invokeMethod(self.root, "findDrive")
+        self.assertTrue(self.wait_for(lambda: self.root.property("resetStep") == "password"))
+        fields = [self.root.findChild(QObject, name) for name in ("newPassword", "confirmPassword", "newHint")]
+        self.assertTrue(all(f is not None and f.property("visible") for f in fields))
+        fields[0].setProperty("text", "new one")
+        fields[1].setProperty("text", "other")
+        QMetaObject.invokeMethod(self.root, "applyReset")
+        self.assertEqual(self.root.property("resetError"), "The passwords don't match.")
+        fields[1].setProperty("text", "new one")
+        fields[2].setProperty("text", "tea")
+        QMetaObject.invokeMethod(self.root, "applyReset")
+        self.assertTrue(self.wait_for(lambda: self.root.property("resetStep") == ""))
+        self.assertIn(("/reset", {"user": "velt", "password": "new one", "hint": "tea"}), requests)
+        self.assertEqual(self.root.property("resetStep"), "")
+        self.assertEqual(self.root.property("failures"), 0)
+        self.assertEqual(self.problems(), [])
+
+    def test_no_reset_link_without_a_reset_usb(self):
+        # The service answers nothing here (none runs): no link, no hint.
+        self.root.setProperty("recoveryService", "http://127.0.0.1:9")
+        QMetaObject.invokeMethod(self.root, "loadAccountHelp")
+        self.app.processEvents()
+        self.assertFalse(self.root.property("resetAvailable"))
+        self.assertFalse(self.root.findChild(QObject, "resetLink").property("visible"))
+
     def test_signs_in_to_plasma_on_x11_without_a_graphics_driver(self):
         # The screen runs on X11 only at a start without a graphics driver
         # (veltos-recovery's safe-graphics); Wayland cannot run then.

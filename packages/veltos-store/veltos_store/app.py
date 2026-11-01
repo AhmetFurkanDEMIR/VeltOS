@@ -15,7 +15,7 @@ from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 
-from . import catalog, packages, strings
+from . import catalog, packages, strings, themewatch
 
 QML_DIR = Path(__file__).resolve().parent / "qml"
 
@@ -63,6 +63,7 @@ class Backend(QObject):
     catalogChanged = Signal()
     statesChanged = Signal()
     updatesChanged = Signal()
+    lookChanged = Signal()
     loaded = Signal(object, object)   # entries, details function (from the loading thread)
     updatesFound = Signal(int)        # from the update check thread
     removalChecked = Signal(str, bool)  # package, protected (from the check thread)
@@ -71,6 +72,9 @@ class Backend(QObject):
                  jobs=None, start=detached, update_checker=None, background=True, start_page="home",
                  refresher=None, protected=packages.removal_is_protected, names=catalog.apply_veltos_names):
         super().__init__()
+        self._look = themewatch.ThemeWatch(
+            lambda: (kde_value("KDE", "LookAndFeelPackage").endswith(".dark"), accent()), self)
+        self._look.changed.connect(self.lookChanged)
         self._start_page = start_page
         self.lang = lang or strings.language()
         self._texts = strings.texts(self.lang)
@@ -159,13 +163,15 @@ class Backend(QObject):
         """Settings > Accessibility > Text size (text_scale())."""
         return text_scale()
 
-    @Property(bool, constant=True)
+    # Light/dark and the accent follow the system while the window is open
+    # (themewatch.py).
+    @Property(bool, notify=lookChanged)
     def darkMode(self):
-        return kde_value("KDE", "LookAndFeelPackage").endswith(".dark")
+        return self._look.dark
 
-    @Property(str, constant=True)
+    @Property(str, notify=lookChanged)
     def accent(self):
-        return accent()
+        return self._look.accent
 
     @Property(bool, notify=catalogChanged)
     def loading(self):
@@ -440,14 +446,15 @@ def main(argv=None):
         pass
     # veltos-store --install-file FILE.deb: the package installer window (a
     # .deb opened from File Explorer); one window per file, not the Store.
-    # veltos-store --first-start: the first start's "Getting everything
-    # ready" screen (the launcher decided already that it is wanted).
+    # veltos-store --first-start: the first start's Welcome window (the
+    # launcher decided already that it is wanted).
     if "--first-start" in argv[1:]:
         from . import firststart
         QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)
-        app.setApplicationName("veltos-first-start")
-        app.setDesktopFileName("veltos-store")
-        return firststart.main(app, QQmlApplicationEngine)
+        app.setApplicationName("veltos-welcome")
+        app.setDesktopFileName("veltos-welcome")
+        app.setWindowIcon(QIcon.fromTheme("start-here"))
+        return firststart.main(app, QQmlApplicationEngine, detached)
     if "--install-file" in argv[1:-1]:
         from . import installer
         QQuickWindow.setTextRenderType(QQuickWindow.TextRenderType.NativeTextRendering)

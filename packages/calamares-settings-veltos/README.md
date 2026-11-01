@@ -254,3 +254,20 @@ the progress ring offscreen. The themed pages were checked in the dev VM
 Status: an installation with "Encrypt system" (UEFI, VM) was tested end to
 end on 2026-10-19 (`tests/results/2026-10-19-encrypted-install-uefi/`);
 plain and BIOS installations are not yet tested — see `docs/dev/status.md`.
+
+## If you forget your password (password hint and reset USB)
+
+`notesqml@recovery` shows `branding/veltos/recovery.qml` after the account
+page: an optional password hint and an optional password reset USB, with
+the plain note that without one a forgotten password cannot be reset. The
+USB drives come from install-veltos' helper (`helpers/open-website`, the
+signed-in user on 127.0.0.1:47823, `GET /drives?exclude=...`, which asks
+veltos-auth's `password-recovery drives`). Calamares 3.3.14's QML cannot
+write its global storage (`Global.insert` is not callable), so the page
+posts its choices to the helper (`POST /choices`), which keeps them in
+`$XDG_RUNTIME_DIR/veltos-installer.json` (mode 600). The
+`password-recovery` job (after `usersq`) reads that file (through
+`PKEXEC_UID`), writes the hint into the new user's AccountsService file and
+runs `password-recovery create USER PARTITION --root ... --host ...`; it
+never stops the installation, and the last page says whether the drive
+was made (`veltosRecoveryResult`).

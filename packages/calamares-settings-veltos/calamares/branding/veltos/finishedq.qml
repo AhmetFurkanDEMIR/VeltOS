@@ -217,6 +217,28 @@ VeltPage {
         wrapMode: Text.WrapAnywhere
     }
 
+    // The password reset USB of "If you forget your password" could not be
+    // written (the password-recovery job never stops the installation).
+    VeltInfoBar {
+        Layout.fillWidth: true
+        Layout.topMargin: 6
+        visible: !page.failed && page.shown && Global.value("veltosRecoveryResult") === "failed"
+        severity: "warning"
+        title: page.t("The password reset USB couldn't be made.", "Parola sıfırlama USB'si oluşturulamadı.")
+        lines: [page.t("You can make one in Settings > Accounts > Sign-in options.",
+                       "Ayarlar > Hesaplar > Oturum açma seçenekleri'nden oluşturabilirsiniz.")]
+    }
+    VeltInfoBar {
+        Layout.fillWidth: true
+        Layout.topMargin: 6
+        visible: !page.failed && page.shown && Global.value("veltosRecoveryResult") === "ok"
+        severity: "success"
+        title: page.t("Your password reset USB is ready. Keep it safe.",
+                      "Parola sıfırlama USB'niz hazır. Güvenli bir yerde saklayın.")
+        lines: [page.t("With it you can set a new password on the sign-in screen if you forget yours.",
+                       "Parolanızı unutursanız onunla oturum açma ekranında yeni bir parola belirleyebilirsiniz.")]
+    }
+
     Item {
         visible: !page.failed
         Layout.fillHeight: true

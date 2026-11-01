@@ -258,31 +258,32 @@ Product owner, 2026-10-31 (evening):
 
 Product owner, 2026-11-01 (tested ISO 1.1-dev6 on the laptop):
 
-114. [ ] First start: no full-screen "getting everything ready" screen; the update and upgrade run in the background at the first internet connection after the installation (once only); a modern animated Welcome window instead
-115. [ ] VeltOS AI: the settings button does not react
-116. [ ] VeltOS AI does things nobody asked for (after "switch to light mode": night light off, brightness up); only the asked action or information, stable, tested
-117. [ ] VeltOS AI: long command output looks bad in the conversation
-118. [ ] VeltOS AI: nicer typing/answer animation, soft scrolling down
-119. [ ] VeltOS AI as a normal window, maximised or full screen: the narrow upright column looks bad; a proper wide layout
-120. [ ] Monitors still not seen with NVIDIA or Intel graphics; after making the monitor screen 1 and unplugging its HDMI cable the laptop's taskbar does not come back
-121. [ ] Graphics Cards: the driver install hangs on the loading screen; install the driver without Secure Boot, ask to restart afterwards, the driver in use after the restart
-122. [ ] File Explorer: double-clicking .exe/.msi shows "Open with" instead of starting the Windows installation (only Firefox works)
-123. [ ] Programs installed in Bottles are missing from Settings' Windows programs list; list and uninstall them, show whether Wine or Bottles installed each
-124. [ ] The .deb App Installer hangs on its loading screen
-125. [ ] APT's lock: package jobs (driver, .deb, apt update) block each other or leave the lock; one after another without hanging, as on Windows
-126. [ ] Resizing Start (larger/smaller) crashes the system
-127. [ ] Password prompts (sign-in and in the system): after 3 wrong passwords wait 30 s, after 3 more 1 min, then 2 min after every further 3; a right password resets the count
-128. [ ] "I forgot my password" with a recovery USB stick (optional, made in the installer; a long strong code in a file on the stick; sign-in screen button only when set up; a note when not), and a password hint as in Windows 11
-129. [ ] "Safely remove hardware": a modern Windows 11 style USB stick icon instead of the hard disk
-130. [ ] Website: VeltOS AI shown with conversations (PC information, dark mode on, Wi-Fi on), Turkish on the Turkish page, English on the English page
-131. [ ] Website: the "A minute with VeltOS" animation has artefacts; fix it or use a slideshow of pictures
-132. [ ] Website: the "Installs in a few minutes" picture is squashed; a better full-scale picture
-133. [ ] File Explorer's right-click menu has a frame; remove it as on the desktop
-134. [ ] VeltOS AI: after one password, no new password prompt for 10 minutes where possible
-135. [ ] A plugged-in monitor gets the same wallpaper as the main screen
-136. [ ] Taskbar, tray flyouts (Wi-Fi, Bluetooth), calendar, removable devices: modern Windows 11 look in light and dark, no grey light mode, no extra frames
-137. [ ] Installer: the VeltOS website link at the bottom left needs one click, not two
-138. [ ] Mobile hotspot on the owner's laptop (one Wi-Fi card, network "RememberNoRussian", band 5 GHz): "Mobile hotspot couldn't be turned on"
+114. [x] First start: no full-screen "getting everything ready" screen; the update and upgrade run in the background at the first internet connection after the installation (once only); a modern animated Welcome window instead: The full-screen first-start window is gone: `veltos-first-update` waits in the background for the first internet connection (also over later starts) and installs the updates (and Bottles only when chosen) once; the Welcome window (`veltos-store --first-start`, `Welcome.qml`: animated gradient header, cards for Start, VeltOS AI, Store, Windows programs and personalisation that slide in, an update note) opens once per user on an installed system. Unit and offscreen window tests; dev VM: the window shown directly (`114-welcome-window.webp`; it never opens in a live system). A real first start of an installed system is still to be seen
+115. [x] VeltOS AI: the settings button does not react: The pane's settings button opens Settings > Apps > VeltOS AI (and shows a hint while a reply runs). Window tests; dev VM
+116. [x] VeltOS AI does things nobody asked for (after "switch to light mode": night light off, brightness up); only the asked action or information, stable, tested: Actions whose topic the user's words do not mention are neither shown nor done (`tools.asked_for`), the local model gets no tools after an action, and switches the local model did are confirmed in VeltOS' own words (`tools.done_text`: "Dark mode is on." / "Koyu moda geçildi."; the 2B model had answered "Koyu mod başarıyla yüklendi"). Unit tests; dev VM with the real Qwen3.5 2B in English and Turkish: "Turn on dark mode", "Turn on Wi-Fi", "Tell me about this PC" each did exactly that (`116-130-*.webp`)
+117. [x] VeltOS AI: long command output looks bad in the conversation: A command's output is folded under its card ("Show output", a few lines tall when open, long words wrap). Unit and window tests
+118. [x] VeltOS AI: nicer typing/answer animation, soft scrolling down: Typing dots while waiting, the answer revealed smoothly, the view glides to the end. Window tests; dev VM
+119. [x] VeltOS AI as a normal window, maximised or full screen: the narrow upright column looks bad; a proper wide layout: Maximised or full screen: a side bar with New chat and settings, the conversation in a centred reading column. Window test (wide window); dev VM
+120. [x] Monitors still not seen with NVIDIA or Intel graphics; after making the monitor screen 1 and unplugging its HDMI cable the laptop's taskbar does not come back: NVIDIA: the install and every update now bring `libnvidia-egl-gbm1` (contrib), which KWin needs for screens on an NVIDIA card under Wayland and which Debian 13's nvidia-driver does not pull in (checked on packages.debian.org); KMS was already on. Taskbar: in the dev VM (two virtual screens) the taskbar came back after unplugging both with the monitor as main display and after "Second screen only"; since Plasma has a line of such bugs, the new KWin script `veltosscreenwatch` restarts plasmashell when no taskbar is on any screen after a screen change (tested: plasmashell stopped, screen plugged, taskbar back; a normal unplug restarted nothing; `120-*.webp`). Real NVIDIA/Intel laptops untested
+121. [x] Graphics Cards: the driver install hangs on the loading screen; install the driver without Secure Boot, ask to restart afterwards, the driver in use after the restart: The hang was pkcon's debconf socket (nothing answered the driver's questions): pkcon runs without it and the packages take their defaults; installs wait for other package jobs; the progress names each step; after an install a "Restart now / Later" question. Dev VM with a recorded RTX 4060: downloading, installing and building, done in about 2 minutes, modules built by DKMS, the restart question (`121-*.webp`). The driver in use after a restart needs real NVIDIA hardware
+122. [x] File Explorer: double-clicking .exe/.msi shows "Open with" instead of starting the Windows installation (only Firefox works): The runner's desktop entry was hidden from Explorer's app lookup; Windows programs now open with veltos-run at once. Window test; dev VM
+123. [x] Programs installed in Bottles are missing from Settings' Windows programs list; list and uninstall them, show whether Wine or Bottles installed each: Settings lists Bottles' programs too (each bottle's registry), marks every program "Wine (VeltOS)" or "Bottles: <bottle>" and uninstalls through `bottles-cli run` in its bottle. Unit tests; Bottles itself untested in the VM this time
+124. [x] The .deb App Installer hangs on its loading screen: Same cause as 121 (debconf socket). Dev VM: iperf3 (a debconf question and a dependency) installed with the question's default, also while another process held the dpkg lock ("Waiting for another installation to finish..."); a package without an app now says it is used from Terminal (`124-*.webp`)
+125. [x] APT's lock: package jobs (driver, .deb, apt update) block each other or leave the lock; one after another without hanging, as on Windows: Every pkcon caller waits while apt/dpkg runs, retries after a lock failure, runs `pkcon repair` once after an interrupted dpkg; `veltos-package-repair.service` finishes interrupted installs at start; APT waits up to 10 minutes for the lock. Unit tests; dev VM (lock held for 40 s, the install waited and finished)
+126. [x] Resizing Start (larger/smaller) crashes the system: Start has one fixed size (min = max), so it cannot be resized. Dev VM
+127. [x] Password prompts (sign-in and in the system): after 3 wrong passwords wait 30 s, after 3 more 1 min, then 2 min after every further 3; a right password resets the count: Sign-in screen, lock screen and VeltOS' authentication prompt (shared count in `lockout.py`). Unit and QML tests
+128. [x] "I forgot my password" with a recovery USB stick (optional, made in the installer; a long strong code in a file on the stick; sign-in screen button only when set up; a note when not), and a password hint as in Windows 11: veltos-auth `recovery.py`: a 256-bit key on the stick, only its scrypt hash on the PC; the installer's new page "If you forget your password" (hint and optional stick, with the note that without one a forgotten password cannot be reset), its `password-recovery` job and a note on the last page; Settings > Accounts > Sign-in options (hint with the password, create/remove the stick); the sign-in screen shows the hint after a wrong password and "Reset password" only for accounts with a stick, served by a root service that answers only the sddm user. Dev VM with a USB stick: the installer wrote the key and the hash, the last page confirmed it; on the sign-in screen the hint, "No USB drive was found" without the stick, the new password with it, signed in with the new password; the service refused a normal user and root (403) (`128-*.webp`)
+129. [x] "Safely remove hardware": a modern Windows 11 style USB stick icon instead of the hard disk: A new USB flash drive icon (`veltos-usb-drive`) in the notification. Dev VM with a USB stick (`129-safely-remove-usb.webp`)
+130. [x] Website: VeltOS AI shown with conversations (PC information, dark mode on, Wi-Fi on), Turkish on the Turkish page, English on the English page: Three real conversations with the local model under the VeltOS AI section, the page's language picking its set (the other set never loads). Checked in a browser in both languages and at phone width
+131. [x] Website: the "A minute with VeltOS" animation has artefacts; fix it or use a slideshow of pictures: The three animated WebPs (lossy blocks) are now slideshows of full-quality screenshots with a crossfade, dots and a progress fill; they run only while in view and not with reduced motion. New pictures for Start, search and Task View in both looks. Checked in a browser
+132. [x] Website: the "Installs in a few minutes" picture is squashed; a better full-scale picture: The slideshow picture had been stretched from an 886x620 crop to 16:9; the installer pictures are now full-screen 1920x1080 screenshots of the maximised installer (welcome, "Meet VeltOS AI" in English, the last page)
+133. [x] File Explorer's right-click menu has a frame; remove it as on the desktop: No line around menus and sub-menus, a soft shadow (dark mode: a faint hairline). Dev VM light and dark (`133-*.webp`)
+134. [x] VeltOS AI: after one password, no new password prompt for 10 minutes where possible: The authentication agent answers VeltOS AI's next requests for actions polkit keeps answers for during 10 minutes after one right password. Unit tests
+135. [x] A plugged-in monitor gets the same wallpaper as the main screen: A new screen's desktop gets the main screen's picture (`same-wallpaper`); Settings' picture change covers unplugged desktops too. Dev VM with a second virtual screen (`135-*.webp`)
+136. [x] Taskbar, tray flyouts (Wi-Fi, Bluetooth), calendar, removable devices: modern Windows 11 look in light and dark, no grey light mode, no extra frames: Light taskbar near-white instead of grey, Quick Settings tiles white with a hairline (dark: faint white), footer under a hairline, popups white in light mode. Dev VM light and dark (`136-*.webp`)
+137. [x] Installer: the VeltOS website link at the bottom left needs one click, not two: One press opens it; the link says "Opening…" while the browser starts (its first start took about 12 s in the VM, which looked like a missed click)
+138. [x] Mobile hotspot on the owner's laptop (one Wi-Fi card, network "RememberNoRussian", band 5 GHz): "Mobile hotspot couldn't be turned on": A 5 GHz hotspot that cannot start runs on 2.4 GHz and Settings says so; the connection's own channel is used where the card may host on it; a one-channel card on a radar/restricted channel says why instead of failing after a minute; every failed start is logged in `~/.cache/veltos-settings/hotspot.log` with what the card reported. Unit tests; the owner's laptop is needed to confirm
+139. [x] Every VeltOS window follows a switch between light and dark, and a new accent colour, while it is open (found in the dev VM while checking item 136: the open App Installer kept its light page after the switch to dark; the product owner asked to do it in this session). Windows whose `darkMode`/`accent(Color)` property was constant now take it from `themewatch.py` (a `QFileSystemWatcher` on `~/.config` and `kdeglobals`, read again 300 ms after a change, a notify signal; one copy per package, `tests/repo` checks they match veltos-store's): Archive, the authentication prompt, Clock, Disk Management, Graphics Cards, Keyboard Lighting, Mail (the open message is drawn again), Snipping Tool (overlay and markup window), Store (main window, App Installer, Welcome), Task Manager (and its not-responding window), Weather, Windows program installer, Calendar, Maps, File Explorer's dialogs (Empty Recycle Bin/Delete File, Open with, Properties, the copy window; the main window now also follows an accent change) and Settings' Add a device, Windows + P and Connect to a network windows. `tests/repo` rejects a constant `darkMode`/`accent`/`accentColor` property in any package. Tests: veltos-store replaces kdeglobals as kwriteconfig6 does and sees the App Installer turn dark and light again; all 17 packages' builds and tests passed. Dev VM: Store, Weather, Clock, Task Manager and Calendar open, switched to dark: all turned dark at once; the App Installer turned from dark to light in place (`tests/results/2026-11-01-items-114-138/theme-follow-*.webp`)
 
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
@@ -315,6 +316,11 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
 
 ## Known gaps
 
+- Calamares lists a USB stick before the PC's disk when its device name
+  sorts first (`sda` before `vda` in the dev VM, 2026-11-01): the disk page
+  then shows the stick first. Nothing is erased without choosing "Erase
+  disk" and confirming, but a stick should never be the default target.
+  Calamares 3.3.14 has no setting for the order; to look at.
 - Product owner's requests still open (2026-10-20 list): taskbar transparency/colour/animations closer
   to Windows 11; Windows 11 style for the grey KDE/Qt window
   backgrounds and for inputs, spin boxes and radio buttons in KDE
@@ -441,6 +447,14 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
    enterprise (802.1X) Wi-Fi network with the new key window (106), the
    mobile hotspot over a real Wi-Fi card that carries the internet (108),
    a first start of an installed system without a network (112).
+   Items 114-139 (2026-11-01) are done; to see on the owner's laptop:
+   monitors on the NVIDIA/Intel card with the driver and
+   `libnvidia-egl-gbm1` (120), the taskbar after unplugging the HDMI
+   monitor that was display 1 (120: `veltosscreenwatch` restarts
+   plasmashell if needed), the NVIDIA driver in use after the restart
+   (121), the mobile hotspot with 5 GHz chosen (138: falls back to 2.4 GHz;
+   if it still fails, `~/.cache/veltos-settings/hotspot.log` says why),
+   and a real first start with the Welcome window (114).
 1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
    built (F1, F2, F7); the remaining release steps are F3-F6 (website),
    F8 (contributors) and F9 (publishing the ISO on a GitHub release and the

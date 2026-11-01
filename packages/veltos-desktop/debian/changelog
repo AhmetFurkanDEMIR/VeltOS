@@ -1,3 +1,24 @@
+veltos-desktop (1.1.0~dev3) trixie; urgency=medium
+
+  * Start has one size (it could be dragged larger and smaller, and resizing
+    it brought the system down).
+  * A new screen's desktop gets the main screen's picture (same-wallpaper).
+  * Safely Remove Hardware's notification shows a USB flash drive.
+  * Quick Settings: Windows 11 tiles (white with a hairline in light mode),
+    the footer under a hairline; the light taskbar near-white, not grey.
+  * Sign-in and lock screens: 3 wrong passwords wait 30 s, then 1 min,
+    then 2 min after every further 3.
+  * KWin script veltosscreenwatch: when no taskbar is on any screen a few
+    seconds after the screens changed (a monitor unplugged), plasmashell
+    is started again.
+  * Sign-in screen: the account's password hint after a wrong password;
+    "Reset password" for accounts with a password reset USB (veltos-auth's
+    password-recovery service): the USB, then a new password and hint.
+  * Quick Settings' hotspot: why a one-channel card cannot share, and the
+    note when a 5 GHz hotspot runs on 2.4 GHz.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 13:00:00 +0000
+
 veltos-desktop (1.1.0~dev2) trixie; urgency=medium
 
   * The dark global theme has the white pointer, the light one the dark pointer.

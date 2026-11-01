@@ -1,3 +1,11 @@
+veltos-lighting (1.1.0~dev3) trixie; urgency=medium
+
+  * The same pkcon fixes as VeltOS Store (no debconf socket, waiting for
+    other installations, repair of interrupted installs).
+  * The window follows light/dark and the accent while open (themewatch.py).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 01 Nov 2026 09:00:00 +0000
+
 veltos-lighting (1.1.0~dev2) trixie; urgency=medium
 
   * pkcon runs with English messages: in Turkish sessions its question

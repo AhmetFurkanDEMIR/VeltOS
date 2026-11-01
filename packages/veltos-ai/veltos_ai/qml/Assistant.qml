@@ -19,6 +19,13 @@ Item {
     property bool docked: true
     property bool settingsOpen: false
     readonly property bool showSettings: settingsOpen || !backend.ready
+    // A wide window (maximised, full screen) gets a side bar and a wider
+    // conversation; one narrow upright column looked lost there (product
+    // owner, 2026-11-01).
+    readonly property bool wide: !docked && width >= 1000
+    readonly property int columnWidth: wide ? Math.min(Math.round(1040 * Math.min(1.25, Theme.textScale)),
+                                                       main.width - 96)
+                                            : Theme.chatWidth
     signal closeRequested()
 
     function focusInput() { composer.focusInput(); }
@@ -45,8 +52,96 @@ Item {
         }
     }
 
+    // --- side bar (wide windows) ----------------------------------------------------------------
+    Rectangle {
+        id: sidebar
+        objectName: "sidebar"
+        visible: assistant.wide
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: visible ? Math.round(280 * Math.min(1.25, Theme.textScale)) : 0
+        color: Theme.dark ? "#191A23" : "#ECEFF7"
+        Rectangle {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 1
+            color: Theme.edge
+        }
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 6
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.bottomMargin: 12
+                spacing: 10
+                Kirigami.Icon {
+                    Layout.preferredWidth: 28
+                    Layout.preferredHeight: 28
+                    source: "veltos-ai"
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: backend.text("app_title")
+                    color: Theme.text
+                    font.pixelSize: Theme.headingSize + 2
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+            }
+            SideButton {
+                objectName: "sideNewChat"
+                Layout.fillWidth: true
+                icon: "document-new"
+                label: backend.text("new_chat")
+                enabledState: backend.chat.count > 0
+                onClicked: {
+                    assistant.settingsOpen = false;
+                    backend.newChat();
+                }
+            }
+            Text {
+                Layout.topMargin: 16
+                Layout.leftMargin: 6
+                text: backend.text("try_asking")
+                color: Theme.subtext
+                font.pixelSize: Theme.captionSize
+                font.weight: Font.DemiBold
+            }
+            Repeater {
+                model: ["suggest_dark", "suggest_info", "suggest_bluetooth", "suggest_mail"]
+                delegate: SideButton {
+                    required property string modelData
+                    Layout.fillWidth: true
+                    icon: "chat-message-new"
+                    label: backend.text(modelData)
+                    enabledState: !backend.busy && backend.ready
+                    onClicked: {
+                        assistant.settingsOpen = false;
+                        backend.send(backend.text(modelData));
+                    }
+                }
+            }
+            Item { Layout.fillHeight: true }
+            SideButton {
+                objectName: "sideSettings"
+                Layout.fillWidth: true
+                icon: "configure"
+                label: backend.text("settings")
+                active: assistant.showSettings
+                onClicked: assistant.settingsOpen = !assistant.settingsOpen
+            }
+        }
+    }
+
     ColumnLayout {
-        anchors.fill: parent
+        id: main
+        anchors.left: sidebar.right
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
         anchors.leftMargin: assistant.docked ? 1 : 0
         spacing: 0
 
@@ -66,10 +161,12 @@ Item {
                 Layout.fillWidth: true
                 spacing: 0
                 Text {
+                    Layout.fillWidth: true
                     text: backend.text("app_title")
                     color: Theme.text
                     font.pixelSize: Theme.headingSize
                     font.weight: Font.DemiBold
+                    elide: Text.ElideRight
                 }
                 Text {
                     objectName: "providerTitle"
@@ -92,13 +189,50 @@ Item {
                 objectName: "settingsButton"
                 icon: "configure"
                 tip: backend.text("settings")
-                onClicked: assistant.settingsOpen = !assistant.settingsOpen
+                // Shown pressed while the settings are open: with no service
+                // ready they stay open, and a click seemed to do nothing.
+                active: assistant.showSettings
+                onClicked: {
+                    if (!backend.ready)
+                        settingsHint.restart();
+                    assistant.settingsOpen = !assistant.settingsOpen;
+                }
             }
             IconButton {
                 visible: assistant.docked
                 icon: "window-close"
                 tip: backend.text("close")
                 onClicked: assistant.closeRequested()
+            }
+        }
+
+        // With no service ready the settings stay open: say why when the
+        // settings button is pressed.
+        Rectangle {
+            id: settingsBar
+            objectName: "settingsHint"
+            Layout.fillWidth: true
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            Layout.preferredHeight: visible ? hintText.implicitHeight + 16 : 0
+            visible: opacity > 0
+            opacity: 0
+            radius: 6
+            color: Theme.dark ? "#2B2F45" : "#E8EEFF"
+            Text {
+                id: hintText
+                anchors.fill: parent
+                anchors.margins: 8
+                text: backend.text("settings_first")
+                color: Theme.text
+                font.pixelSize: Theme.captionSize
+                wrapMode: Text.Wrap
+            }
+            SequentialAnimation {
+                id: settingsHint
+                NumberAnimation { target: settingsBar; property: "opacity"; to: 1; duration: 150 }
+                PauseAnimation { duration: 3500 }
+                NumberAnimation { target: settingsBar; property: "opacity"; to: 0; duration: 300 }
             }
         }
 
@@ -109,6 +243,7 @@ Item {
             currentIndex: assistant.showSettings ? 1 : 0
             ChatView {
                 id: chatView
+                columnWidth: assistant.columnWidth
                 onSuggestion: text => backend.send(text)
             }
             SettingsView {
@@ -123,7 +258,7 @@ Item {
             objectName: "composer"
             visible: !assistant.showSettings
             Layout.fillWidth: true
-            Layout.maximumWidth: Theme.chatWidth - 28
+            Layout.maximumWidth: assistant.columnWidth - 28
             Layout.alignment: Qt.AlignHCenter
             Layout.leftMargin: 14
             Layout.rightMargin: 14
@@ -228,7 +363,7 @@ Item {
         RowLayout {
             visible: !assistant.showSettings
             Layout.fillWidth: true
-            Layout.maximumWidth: Theme.chatWidth - 36
+            Layout.maximumWidth: assistant.columnWidth - 36
             Layout.alignment: Qt.AlignHCenter
             Layout.leftMargin: 18
             Layout.rightMargin: 18

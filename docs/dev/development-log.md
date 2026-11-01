@@ -3,6 +3,107 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-01 — Items 114-138: the owner's list after testing ISO 1.1-dev6
+
+The product owner tested 1.1-dev6 on the laptop and sent 25 items. All are
+done; what needs the owner's hardware is marked in status.md.
+
+- Hangs in package installs (121 Graphics Cards, 124 App Installer):
+  interactive pkcon makes a debconf socket in TMPDIR and PackageKit then
+  runs dpkg-preconfigure in passthrough mode, waiting for an answer nobody
+  gives (the NVIDIA driver's questions). `ptyrun.py` runs pkcon with a
+  TMPDIR that does not exist, so packages take their defaults; it also
+  waits while apt/dpkg runs and retries after PackageKit's "Could not get
+  lock" (125), with `pkcon repair` once after an interrupted dpkg and
+  `veltos-package-repair.service` at start. Dev VM: iperf3 (a debconf
+  question) installed through the App Installer while another process
+  held the dpkg lock for 40 s; the NVIDIA driver installed through the
+  window in about 2 minutes, then the restart question.
+- NVIDIA monitors (120): packages.debian.org shows Debian 13's
+  nvidia-driver neither depends on nor recommends `libnvidia-egl-gbm1`
+  (contrib), KWin's GBM path to screens on an NVIDIA card; VeltOS Graphics
+  Cards installs it with the driver and with every update of an existing
+  install. The taskbar after an unplug: the dev VM always got it back (two
+  virtual screens, monitor as display 1, also "Second screen only"), so a
+  KWin script restarts plasmashell when no panel window is on a screen
+  after a screen change.
+- File Explorer and .exe/.msi (122): the runner's entry carried
+  NoDisplay, so Explorer's app lookup found no app and showed "Open with".
+- Bottles' programs (123) listed from each bottle with the runner shown,
+  uninstalled through `bottles-cli run` (its CLI takes the program's
+  arguments after `--`, checked in Bottles' cli.py).
+- VeltOS AI (115-119, 134): settings button, only asked actions, folded
+  command output, typing dots and gliding scroll, a wide layout maximised,
+  the agent remembering one password for VeltOS AI for 10 minutes; with
+  the real local model in the dev VM the Turkish confirmation read
+  "Koyu mod başarıyla yüklendi", so switches are now confirmed in VeltOS'
+  own words without a second model round (faster too).
+- Password reset USB and hint (128): see status.md; the installer page
+  first stored its choices with `Global.insert`, which Calamares 3.3.14's
+  QML cannot call ("not a function"; reading with `Global.value` works),
+  so nothing reached the job in the first VM installation; the page now
+  posts them to install-veltos' helper, which writes
+  `$XDG_RUNTIME_DIR/veltos-installer.json` for the job (root, PKEXEC_UID).
+  The second installation wrote the key to the stick and the hash to the
+  new system. On the live sign-in screen: hint, "Reset password", no stick
+  → message, stick → new password, signed in with it; the service refused
+  a normal user and root.
+- Smaller items: Start has one size (126), password waits 30 s/1 min/2 min
+  (127), a USB stick icon (129), menus without frames (133), the same
+  wallpaper on a new monitor (135), white light-mode taskbar and Quick
+  Settings tiles (136), the installer link says "Opening…" (137), and the
+  hotspot falls back from 5 GHz to 2.4 GHz with a log of failed starts
+  (138). First start (114): no full-screen screen; updates at the first
+  internet connection; a Welcome window.
+- Website (130-132): real VeltOS AI conversations in English and Turkish,
+  slideshows of still screenshots instead of animated WebPs (the
+  compression blocks), and full-screen installer pictures (the old slide
+  had been stretched from an 886x620 crop).
+- Mistakes on the way: Git Bash heredocs mangled backslash escapes in
+  patch scripts several times (the editor tools were used instead); a
+  `pkill -f '[c]alamares'` in the same `vm exec` as `dpkg -i
+  calamares-settings-veltos_*.deb` killed its own shell (the file name
+  matched), so the first rerun used the old page; a test run on the
+  Windows host wrote a record to `C:\\var\\lib\\veltos\\recovery\\`
+  (`str(Path("/var/..."))` has backslashes there; fixed with a relative
+  path; the stray test file is still on the host).
+
+## 2026-11-01 — Every window follows light/dark while open (item 139)
+
+Found in the dev VM while checking the flyouts of item 136: after
+switching to dark mode, the open App Installer kept its light page and only
+its frame (KWin's) turned dark. A survey showed twelve apps reading the
+look once at start (their `darkMode`/`accent` Qt properties were
+`constant=True`, so QML never asked again); the product owner asked to fix
+it in this session instead of a separate one.
+
+- `themewatch.py` (veltos-store, copied into every package that needs it,
+  as `ptyrun.py` is): `ThemeWatch(read)` watches `~/.config` and
+  `kdeglobals` (kwriteconfig6 and Settings replace the file, which drops a
+  watch on the file itself), reads the look again 300 ms after a change and
+  emits `changed` when light/dark or the accent differ. Each window keeps
+  one (`self._look`), its properties notify with `lookChanged`, and the
+  apps' `Theme.qml` files, already bound to them, repaint. Windows built
+  with a given look (tests, callers that pass `dark=`) keep it.
+- A repository check against constant `darkMode`/`accent`/`accentColor`
+  properties found seven more windows the first survey (which looked only
+  for apps without any file watcher) had missed: Calendar, Maps, File
+  Explorer's dialogs and Settings' three small windows. All converted;
+  Mail draws the open message again in the new colours (a new page name
+  per look, since the reading pane reloads only for a new address); File
+  Explorer's main window followed light/dark already and now an accent
+  change too.
+- Tests: veltos-store's App Installer test replaces kdeglobals the way
+  kwriteconfig6 does and waits for the window to turn dark and light again;
+  `tests/repo` checks the 16 copies and the property declarations. All 17
+  rebuilt packages' tests passed in the builder (the first run failed in
+  veltos-graphics' window test, which still expected the NVIDIA package
+  list without `libnvidia-egl-gbm1`; updated).
+- Dev VM: Store, Weather, Clock, Task Manager and Calendar open, the theme
+  switched with VeltOS AI's own `set_theme`: every window turned dark at
+  once; the App Installer turned from dark to light in place
+  (`tests/results/2026-11-01-items-114-138/theme-follow-*.webp`).
+
 ## 2026-10-31 — Items 108-113: hotspot over one card, lock screen picture, AI conversation, offline first start
 
 The product owner's evening list: the mobile hotspot works in Windows 11

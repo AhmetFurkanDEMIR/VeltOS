@@ -146,6 +146,13 @@ Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):
   two screens are side by side, the VM's tablet pointer spans the whole
   desktop, not screen 1: a `vm do` click at x lands at x * (sum of the
   widths) / 1920, so scale clicks (1920 + 1024 wide: x * 0.652).
+- A USB flash drive in the dev VM (2026-11-01): `vmctl.py` gives the VM a
+  USB controller (qemu-xhci); `build/run.sh vm do "usbstick:add"` plugs a
+  256 MB stick (a raw file in the container, kept between plugs) and
+  `"usbstick:remove"` pulls it. Format it once in the guest (`printf
+  'label: dos\n,,c\n' | sfdisk /dev/sda && mkfs.vfat -n KEYS /dev/sda1`).
+  The installer's disk page may then list the stick first: choose the
+  VM's disk.
 - Mail (Thunderbird) test data without a mail server: a POP3 account that
   never connects (`user.js` with `mail.server.serverN.login_at_startup
   false`) and an mbox `Inbox` in the profile's `Mail/<host>/`; delete a

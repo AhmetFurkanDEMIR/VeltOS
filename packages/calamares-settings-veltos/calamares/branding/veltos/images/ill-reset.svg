@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- VeltOS installer: if you forget your password (a USB flash drive and a key). SPDX-License-Identifier: CC-BY-SA-4.0 -->
+  <defs>
+    <linearGradient id="disc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5A85FF"/>
+      <stop offset="1" stop-color="#2F4FD6"/>
+    </linearGradient>
+    <linearGradient id="stick" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCE5FA"/>
+    </linearGradient>
+    <linearGradient id="plug" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E9EDF5"/>
+      <stop offset="1" stop-color="#B9C3D6"/>
+    </linearGradient>
+    <linearGradient id="key" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFC94D"/>
+      <stop offset="1" stop-color="#F29A1F"/>
+    </linearGradient>
+  </defs>
+  <circle cx="118" cy="122" r="96" fill="#000000" opacity="0.12" transform="translate(0 6)"/>
+  <circle cx="118" cy="122" r="96" fill="url(#disc)"/>
+  <g transform="translate(112 124) rotate(-30)">
+    <rect x="-24" y="-92" width="34" height="30" rx="3" fill="url(#plug)"/>
+    <rect x="-17" y="-84" width="7" height="7" rx="1" fill="#7E8AA3"/>
+    <rect x="-4" y="-84" width="7" height="7" rx="1" fill="#7E8AA3"/>
+    <rect x="-38" y="-66" width="62" height="118" rx="14" fill="#000000" opacity="0.14" transform="translate(0 5)"/>
+    <rect x="-38" y="-66" width="62" height="118" rx="14" fill="url(#stick)"/>
+    <rect x="-38" y="-66" width="62" height="18" rx="8" fill="#4F7CFF" opacity="0.9"/>
+    <circle cx="-7" cy="30" r="5" fill="#4F7CFF" opacity="0.55"/>
+  </g>
+  <g transform="translate(170 168) rotate(-35)">
+    <circle cx="0" cy="0" r="26" fill="#000000" opacity="0.12" transform="translate(0 5)"/>
+    <circle cx="0" cy="0" r="26" fill="url(#key)"/>
+    <circle cx="-6" cy="0" r="9" fill="#FFFFFF" opacity="0.85"/>
+    <path d="M 24 -7 H 66 V 7 H 58 V 18 H 46 V 7 H 24 Z" fill="url(#key)"/>
+  </g>
+</svg>
