@@ -183,20 +183,69 @@ ApplicationWindow {
             font.pixelSize: 13
             color: root.subtle
         }
-        // The operating system's website (product owner, 2026-10-22).
-        Label {
+        // The operating system's website (product owner, 2026-10-22). One
+        // press opens it and the line says so until the browser is in front
+        // (its first start in a live session takes several seconds, and a
+        // link that did nothing visible looked unclickable; 2026-11-02).
+        Item {
+            id: website
+            objectName: "websiteLink"
+            property bool opening: false
             Layout.fillWidth: true
-            Layout.topMargin: 4
-            horizontalAlignment: Text.AlignHCenter
-            textFormat: Text.StyledText
-            text: welcome.text("website") + " <a href=\"https://veltos.ahmetfurkandemir.com/\">veltos.ahmetfurkandemir.com</a>"
-            linkColor: root.palette.highlight
-            font.pixelSize: 13
-            color: root.subtle
-            onLinkActivated: link => Qt.openUrlExternally(link)
-            HoverHandler {
-                enabled: parent.hoveredLink !== ""
-                cursorShape: Qt.PointingHandCursor
+            Layout.topMargin: 2
+            implicitHeight: websiteRow.implicitHeight + 8
+            activeFocusOnTab: true
+            Accessible.role: Accessible.Link
+            Accessible.name: "veltos.ahmetfurkandemir.com"
+            Accessible.onPressAction: open()
+            Keys.onReturnPressed: open()
+            Keys.onEnterPressed: open()
+            Keys.onSpacePressed: open()
+            function open() {
+                if (opening)
+                    return;
+                opening = true;
+                openingTimeout.restart();
+                welcome.openWebsite();
+            }
+            Timer {
+                id: openingTimeout
+                interval: 30000
+                onTriggered: website.opening = false
+            }
+            Connections {
+                target: root
+                // The browser's window took the focus: it is there.
+                function onActiveChanged() {
+                    if (!root.active)
+                        website.opening = false;
+                }
+            }
+            Row {
+                id: websiteRow
+                anchors.centerIn: parent
+                spacing: 6
+                Label {
+                    visible: !website.opening
+                    text: welcome.text("website")
+                    font.pixelSize: 13
+                    color: root.subtle
+                }
+                Label {
+                    id: websiteText
+                    text: website.opening ? welcome.text("opening") : "veltos.ahmetfurkandemir.com"
+                    font.pixelSize: 13
+                    font.underline: !website.opening && (websiteHover.hovered || website.activeFocus)
+                    color: website.opening ? root.subtle : root.accent
+                    HoverHandler {
+                        id: websiteHover
+                        cursorShape: website.opening ? Qt.BusyCursor : Qt.PointingHandCursor
+                    }
+                    TapHandler {
+                        gesturePolicy: TapHandler.ReleaseWithinBounds
+                        onTapped: website.open()
+                    }
+                }
             }
         }
     }

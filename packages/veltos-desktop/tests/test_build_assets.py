@@ -541,6 +541,36 @@ class TaskbarTests(unittest.TestCase):
         # Its setting (Settings > Personalization > Taskbar) is valid XML.
         ET.parse(PKG / "plasma/showdesktop/contents/config/main.xml")
 
+    def test_acrylic_like_windows_11(self):
+        # Fluent-round's translucent frame pieces: dark (scheme colour, the
+        # dark rim, an empty helper), light (white), the taskbar's
+        # (fill attribute). One colour and opacity each; the rest stays.
+        dark = ('<g id="top"><rect style="opacity:0.75;fill:currentColor;stroke-width:0.9" '
+                'class="ColorScheme-Background" /><rect style="fill:#000000;opacity:0.35" /></g>'
+                '<g id="center"><rect style="opacity:1;fill:none;fill-opacity:1;stroke:none" />'
+                '<rect style="opacity:0.75;fill:currentColor;fill-opacity:1;stroke:none" '
+                'class="ColorScheme-Background" /></g><g id="shadow-top"><rect style="fill:#ffffff" /></g>')
+        out = fluent.acrylic(dark, "#2c2c2c", 0.86, "t")
+        self.assertEqual(out.count("fill:#2c2c2c;opacity:0.86"), 2)
+        self.assertNotIn("ColorScheme-Background", out)
+        self.assertIn("fill:#000000;opacity:0.35", out)                  # the rim stays
+        self.assertIn("fill:none", out)                                   # the helper stays
+        self.assertIn('<g id="shadow-top"><rect style="fill:#ffffff" />', out)
+        self.assertIn("stroke-width:0.9", out)
+        light = '<g id="topleft"><path style="opacity:0.75;fill:#ffffff" /></g>'
+        self.assertIn('style="fill:#f9f9f9;opacity:0.85"', fluent.acrylic(light, "#f9f9f9", 0.85, "t"))
+        bar = ('<g id="center" transform="x"><rect id="r" fill="none" /><rect class="ColorScheme-Background" '
+               'fill="currentColor" style="opacity:0.7" /></g>')
+        out = fluent.acrylic(bar, "#202020", 0.86, "t")
+        self.assertIn('<rect style="fill:#202020;opacity:0.86" />', out)
+        self.assertIn('<rect id="r" fill="none" />', out)
+        with self.assertRaises(SystemExit):
+            fluent.acrylic('<g id="top"><rect style="fill:#000000" /></g>', "#fff", 1, "t")
+        # The contrast effect brightens the desktop behind in light mode and
+        # darkens it in dark mode (it pulled both to a mid grey before).
+        self.assertIn("intensity=1.4", fluent.ACRYLIC["light"]["contrast"])
+        self.assertIn("intensity=0.45", fluent.ACRYLIC["dark"]["contrast"])
+
     def test_see_through_like_windows(self):
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")
         self.assertIn('panel.opacity = "translucent"', js)
@@ -592,9 +622,15 @@ class TaskbarTests(unittest.TestCase):
             fluent.white_popup("<svg/>")
         for ui in ("startmenu/contents/ui/StartMenu.qml", "search/contents/ui/main.qml"):
             text = (PKG / "plasma" / ui).read_text(encoding="utf-8")
-            self.assertIn('readonly property color surface: dark ? Kirigami.Theme.backgroundColor : "#ffffff"', text)
             self.assertRegex(text, r"Qt\.alpha\(Kirigami\.Theme\.highlightColor, [^)]*0\.06\)")
             self.assertIn('NumberAnimation { target: rise; property: "y"', text)
+        search = (PKG / "plasma/search/contents/ui/main.qml").read_text(encoding="utf-8")
+        self.assertIn('readonly property color surface: dark ? Kirigami.Theme.backgroundColor : "#ffffff"', search)
+        # Start is one surface: the popup's own (acrylic with blur); a tint of
+        # its own showed as a second frame inside the popup (2026-11-02).
+        start = (PKG / "plasma/startmenu/contents/ui/StartMenu.qml").read_text(encoding="utf-8")
+        self.assertNotIn("color: menu.surface", start)
+        self.assertNotIn("opacity: 0.35", start)
 
 
 @unittest.skipUnless(shutil.which("rsvg-convert") and (FLUENT_DIR / "Kvantum").is_dir(),

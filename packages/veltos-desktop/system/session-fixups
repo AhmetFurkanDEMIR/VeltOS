@@ -39,6 +39,23 @@ done
 # 5 % steps, which blur text and window buttons (see display-scale).
 /usr/libexec/veltos/display-scale || true
 
+# A monitor the kernel sees as connected but the desktop does not list (a
+# graphics card that came up late, a missed hot-plug; product owner,
+# 2026-11-02: monitors not seen on the processor's or the NVIDIA card's
+# outputs): the connectors are probed once more, as Settings > Display >
+# Detect does (pkexec, no password for the active session).
+veltos_connected=$(grep -lx connected /sys/class/drm/card*-*/status 2>/dev/null | wc -l)
+veltos_shown=$(kscreen-doctor -j 2>/dev/null | python3 -c '
+import json, sys
+try:
+    print(sum(1 for o in json.load(sys.stdin).get("outputs", []) if o.get("connected")))
+except ValueError:
+    print(0)' 2>/dev/null)
+if [ "${veltos_connected:-0}" -gt "${veltos_shown:-0}" ] && [ -x /usr/libexec/veltos/display-detect ]; then
+    pkexec /usr/libexec/veltos/display-detect >/dev/null 2>&1 || true
+fi
+unset veltos_connected veltos_shown
+
 # KDE's display daemon (kded module "kscreen": a screen plugged in or out,
 # the laptop lid) is set to start with the session but was not running in
 # a VeltOS session (dev VM, 2026-10-25); start it if kded did not.

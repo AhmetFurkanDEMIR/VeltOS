@@ -277,6 +277,59 @@ class RearrangeTests(unittest.TestCase):
         self.assertFalse(display.set_positions([]))
 
 
+class DetectDisplaysTests(unittest.TestCase):
+    """Windows 11's "Detect other display" (product owner, 2026-11-02:
+    monitors on the processor's or the NVIDIA card's outputs not seen)."""
+
+    def test_detect_turns_on_and_reports_missing(self):
+        calls = []
+        kernel = [{"connector": "eDP-1", "card": "card1", "status": "connected"},
+                  {"connector": "HDMI-A-1", "card": "card0", "status": "connected"},
+                  {"connector": "DP-1", "card": "card1", "status": "connected"},
+                  {"connector": "DP-2", "card": "card1", "status": "disconnected"}]
+        kwin = {"outputs": [{"name": "eDP-1", "connected": True, "enabled": True},
+                            {"name": "HDMI-A-1", "connected": True, "enabled": False}]}
+
+        def run(command, timeout=20, input=None):
+            calls.append(list(command))
+            if command == devices.Display.DETECT:
+                return 0, json.dumps(kernel)
+            if command == ["kscreen-doctor", "--json"]:
+                return 0, json.dumps(kwin)
+            return 0, ""
+        result = devices.Display(run).detect(sleep=lambda _s: None)
+        self.assertEqual(result["connected"], ["eDP-1", "HDMI-A-1", "DP-1"])
+        self.assertEqual(result["turnedOn"], ["HDMI-A-1"])
+        self.assertEqual(result["missing"], ["DP-1"])
+        self.assertEqual(calls[-1], ["kscreen-doctor", "output.HDMI-A-1.enable"])
+        # The helper refused (no polkit agent...): nothing turned on, no error.
+        result = devices.Display(lambda c, timeout=20, input=None: (127, "")).detect(sleep=lambda _s: None)
+        self.assertEqual((result["connected"], result["turnedOn"]), ([], []))
+
+    def test_helper_probes_every_connector(self):
+        import importlib.machinery
+        import importlib.util
+        path = Path(__file__).resolve().parent.parent / "bin/veltos-display-detect"
+        loader = importlib.machinery.SourceFileLoader("display_detect", str(path))
+        spec = importlib.util.spec_from_loader("display_detect", loader)
+        helper = importlib.util.module_from_spec(spec)
+        loader.exec_module(helper)
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, status in (("card0-HDMI-A-1", "disconnected"), ("card1-eDP-1", "connected")):
+                Path(tmp, name).mkdir()
+                Path(tmp, name, "status").write_text(status)
+                Path(tmp, name, "enabled").write_text("enabled")
+            Path(tmp, "card0").mkdir()
+            Path(tmp, "renderD128").mkdir()
+            ran = []
+            result = helper.probe(tmp, run=lambda command, **kw: ran.append(command))
+            # The kernel would probe on "detect"; the stand-in file just keeps it.
+            self.assertEqual(Path(tmp, "card0-HDMI-A-1", "status").read_text(), "detect")
+            self.assertEqual([r["connector"] for r in result], ["HDMI-A-1", "eDP-1"])
+            self.assertEqual(result[1]["card"], "card1")
+            self.assertEqual(ran[0], ["udevadm", "trigger", "--subsystem-match=drm", "--action=change"])
+
+
 class MultipleDisplaysTests(unittest.TestCase):
     """Windows' Project choices (Windows + P, Settings > Display > Multiple
     displays) as kscreen-doctor arguments."""

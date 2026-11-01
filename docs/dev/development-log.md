@@ -3,6 +3,61 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-02 — Items 140-147: the owner's list after testing ISO 1.1-dev7
+
+- Set-up: the dev VM with ISO 1.1-dev7, installed (English, Istanbul,
+  erase disk, account "Jordan Lee" with the hint "Name of my first cat"),
+  a USB stick formatted in the guest for the reset USB.
+- 140, live welcome link: QEMU opened Firefox within 8 s of one press, so
+  the link worked; what was missing was any sign that the press was taken
+  while the browser starts. The link says "Opening ... in the web browser"
+  until the browser has the focus and opens once.
+- 141, hint and reset: the sign-in screen's hint worked on the installed
+  dev7 (installer's hint after a wrong password). The lock screen had
+  neither hint nor reset; a session that signs in automatically first
+  asks for the password there. The lock screen's QML has no network
+  (kscreenlocker's network access manager), so it runs veltos-auth's new
+  `password-recovery status-self`; "Reset password" runs `want-reset` and
+  switches to SDDM's greeter, which opens its reset panel; after the reset
+  and signing in with the new password the same session (9) was active and
+  unlocked. Reset link only after a wrong password; Tab order checked.
+- 142, taskbar after the first dark switch: not reproduced (first sign-in,
+  Welcome > Make it yours, Colours, English and Turkish, 100 % and 125 %,
+  blur on and off). Found on the way: a new account has no plasmarc of its
+  own until the first switch (the default comes from /etc/xdg/plasmarc);
+  written at sign-in now, and the light/dark command reads the shell's
+  theme back (`print(theme)` through evaluateScript returns
+  `('theme=VeltOS-Dark;',)`) and asks again until it matches.
+- 143, Secure Boot: the restart question of item 121 hid the key step;
+  it now asks for the one-time password and registers the key before
+  restarting when Secure Boot is on and the key is not enrolled.
+- 144, monitors on two graphics cards: researched (KDE bug 452219 and
+  forum threads: KWin renders on the boot display's card; outputs on the
+  other card need buffers imported across cards; `KWIN_DRM_DEVICES`
+  trades one card's outputs for the other's). Without the owner's laptop
+  no cause could be confirmed; added Settings > Display > Detect other
+  displays (connectors probed again through pkexec, screens KWin keeps off
+  turned on) and a detailed "Screens" part in the Graphics Cards driver
+  log. Untested on real hardware.
+- 145, acrylic: with blur and contrast loaded in the dev VM the light
+  popups measured (229, 230, 233) and the dark ones (60, 61, 66): the one
+  contrast setting (0.18) made a mid-grey backdrop. Tried values on the
+  installed theme (`out/vm/acrylic-proto.py`), then moved them into
+  `tools/fluent.py` (`ACRYLIC`): light popups about (245, 247, 250), dark
+  (40, 41, 47), taskbar (239, 242, 245) / (29, 31, 38). Start's own 35 %
+  surface (a band inside the popup frame), the grey footers and the first
+  hidden icon's highlight are gone.
+- 146, mouse pointer: the page existed under Accessibility only; now also
+  under Personalization and linked from Mouse.
+- 147, Welcome: three pages like Windows 11's Get Started (greeting,
+  Make it yours, the cards), slides, page dots, Back/Next.
+- Went wrong: Python edit scripts in Git Bash heredocs lost backslash
+  escapes three times (control characters in fluent.py, a broken line
+  continuation in debian/rules, a test file) — caught by reading the
+  result, fixed with the Edit tool; noted in AGENTS.md. A stray
+  `docker cp` copied the VM's 256 MB stick image into the repository root;
+  removed before committing.
+
 ## 2026-11-01 — ISO 1.1-dev7 built and tested
 
 - `veltos-1.1-dev7-amd64.hybrid.iso`, 2,112,466,944 bytes (33.4 MiB under

@@ -1,3 +1,10 @@
+veltos-auth (1.1.0~dev2) trixie; urgency=medium
+
+  * password-recovery status-self and want-reset for the lock screen (its own
+    account only); the sign-in screen's /status says resetRequested once.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 10:00:00 +0000
+
 veltos-auth (1.1.0~dev1) trixie; urgency=medium
 
   * Three wrong passwords wait 30 seconds, three more a minute, then two

@@ -476,3 +476,51 @@ The screen asks veltos-auth's password-recovery service on 127.0.0.1:47824
 drive was found..." / "This USB drive isn't the password reset USB for
 this account."), then takes the new password, its confirmation and a new
 hint. After a reset the count of wrong passwords starts again.
+
+## Acrylic like Windows 11 (2026-11-02)
+
+With the blur effect (real graphics cards) Plasma draws Start, the flyouts,
+toasts and the taskbar with the theme's `translucent/` backgrounds.
+`tools/fluent.py` paints them in Windows 11's acrylic colours (`ACRYLIC`:
+light popups #F9F9F9 at 85 %, taskbar #F3F3F3 at 85 %; dark popups #2C2C2C
+at 86 %, taskbar #202020 at 86 %) and gives each mode its own contrast
+effect: light mode brightens the blurred desktop behind (contrast 0.5,
+intensity 1.4), dark mode darkens it (contrast 0.9, intensity 0.45). The
+one contrast setting before (0.18 for both) pulled the desktop behind to a
+mid grey: light popups came out grey, dark ones pale grey. Start has no
+surface of its own any more (a 35 % tint inside the popup frame showed as
+a second frame), its footer and Quick Settings' page footers are lines,
+not boxes, and the hidden-icons flyout no longer highlights its first icon
+when it opens. Test with blur loaded in a VM (`out/vm/shell-restart.sh`).
+
+## Lock screen: hint and reset (2026-11-02)
+
+After a wrong password the lock screen shows the account's hint and, for
+an account with a password reset USB, "Reset password". The lock screen
+may not use the network: it runs veltos-auth's `password-recovery
+status-self` (Plasma's executable data engine) for both, and `want-reset`
+before switching to the sign-in screen (`sessionManagement.switchUser()`),
+which then opens its reset panel at once. The sign-in screen shows "Reset
+password" only after a wrong password too, and Tab goes through the reset
+fields and buttons.
+
+## Monitors the desktop does not list (2026-11-02)
+
+At sign-in `session-fixups` counts the connectors the kernel reports
+connected and the screens KWin lists; when the kernel sees more, it runs
+veltos-settings' `display-detect` (pkexec, no password), which probes
+every card's connectors again and sends udev change events.
+
+## First sign-in: the taskbar's theme file (2026-11-02)
+
+`veltos-session.sh` writes `~/.config/plasmarc` ([Theme] name=...) at the
+first sign-in when the account has none: a plasmarc that appeared only at
+the first light/dark switch was one the running plasmashell might not pick
+up.
+
+## Window frames without a line (2026-11-02)
+
+Fluent's Aurorae frames draw a 1 px line around every window (dark mode
+#686868 at 50 %, a light ring; light mode black at 15 %, a grey one).
+`tools/fluent.py` (`FRAME_BORDERS`) paints it in the frame's own colour, so
+a window ends in its own colour where its shadow begins.

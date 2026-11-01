@@ -1,3 +1,11 @@
+veltos-store (1.1.0~dev5) trixie; urgency=medium
+
+  * Welcome in three pages as Windows 11's Get Started: a greeting over drifting
+    colours, Make it yours (mode and accent, applied at once), the cards; page
+    dots, Back and Next.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 10:00:00 +0000
+
 veltos-store (1.1.0~dev4) trixie; urgency=medium
 
   * The first start's full-screen update screen is gone: the update runs in the

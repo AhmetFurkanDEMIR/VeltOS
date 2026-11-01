@@ -175,9 +175,10 @@ class RecoveryTests(unittest.TestCase):
         accounts = self.tmp / "accounts"
         accounts.mkdir()
         (accounts / "ayse").write_text("[User]\nPasswordHint=tea\n")
-        kwargs = {"root": str(self.root), "runner": self.system, "mount": self.mount, "accounts": accounts}
+        kwargs = {"root": str(self.root), "runner": self.system, "mount": self.mount, "accounts": accounts,
+                  "wants": self.tmp / "wants"}
         self.assertEqual(recovery.answer("POST", "/status", {"user": "ayse"}, **kwargs),
-                         (200, {"configured": True, "hint": "tea"}))
+                         (200, {"configured": True, "hint": "tea", "resetRequested": False}))
         self.assertEqual(recovery.answer("POST", "/find", {"user": "ayse"}, **kwargs), (200, {"error": ""}))
         self.assertEqual(recovery.answer("POST", "/reset", {"user": "ayse", "password": "p"}, **kwargs),
                          (200, {"error": ""}))
@@ -189,9 +190,11 @@ class RecoveryTests(unittest.TestCase):
         server, client = socket.socketpair()
         client.settimeout(10)
         result = {}
+        accounts = {1000: "ayse", 1001: "ali"}
         thread = threading.Thread(target=lambda: result.update(code=recovery.serve(
-            server, allowed_uid=117, uid_of=lambda _sock: uid, root=str(self.root), runner=self.system,
-            mount=self.mount, accounts=self.tmp)))
+            server, allowed_uid=117, uid_of=lambda _sock: uid, account_of=lambda peer: accounts.get(peer, ""),
+            wants=self.tmp / "wants", root=str(self.root), runner=self.system, mount=self.mount,
+            accounts=self.tmp)))
         thread.start()
         client.sendall(request)
         data = b""
@@ -216,9 +219,41 @@ class RecoveryTests(unittest.TestCase):
                    b"Content-Length: " + str(len(body)).encode() + b"\r\n\r\n" + body)
         answer = self.serve_once(request, uid=117)
         self.assertTrue(answer.startswith(b"HTTP/1.0 200 OK"), answer)
-        self.assertEqual(json.loads(answer.partition(b"\r\n\r\n")[2]), {"configured": False, "hint": ""})
+        self.assertEqual(json.loads(answer.partition(b"\r\n\r\n")[2]),
+                         {"configured": False, "hint": "", "resetRequested": False})
         refused = self.serve_once(request, uid=1000)
         self.assertTrue(refused.startswith(b"HTTP/1.0 403"), refused)
+
+    @staticmethod
+    def post(path, user):
+        body = json.dumps({"user": user}).encode()
+        return (f"POST {path} HTTP/1.0\r\nContent-Length: {len(body)}\r\n\r\n").encode() + body
+
+    def test_lock_screen_asks_for_the_reset_panel(self):
+        # The lock screen (the user's own process) may ask the sign-in
+        # screen to open its reset panel, for its own account only; the
+        # sign-in screen sees the wish once.
+        self.assertTrue(self.serve_once(self.post("/want-reset", "ayse"), uid=1000).startswith(b"HTTP/1.0 200"))
+        for uid, user, path in ((1001, "ayse", "/want-reset"), (1000, "ayse", "/status"),
+                                (1000, "ayse", "/reset"), (0, "root", "/want-reset")):
+            self.assertTrue(self.serve_once(self.post(path, user), uid=uid).startswith(b"HTTP/1.0 403"), path)
+        first = self.serve_once(self.post("/status", "ayse"), uid=117)
+        self.assertTrue(json.loads(first.partition(b"\r\n\r\n")[2])["resetRequested"])
+        again = self.serve_once(self.post("/status", "ayse"), uid=117)
+        self.assertFalse(json.loads(again.partition(b"\r\n\r\n")[2])["resetRequested"])
+        # An old wish is not used.
+        recovery.want_reset("ayse", self.tmp / "wants", now=1000)
+        self.assertFalse(recovery.take_reset_wish("ayse", self.tmp / "wants", now=1000 + 301))
+
+    def test_own_hint_through_accountsservice(self):
+        def runner(command, input=None, timeout=60):
+            if "FindUserByName" in command:
+                return 0, '{"type":"o","data":["/org/freedesktop/Accounts/User1000"]}'
+            if command[-1] == "PasswordHint" and command[-3] == "/org/freedesktop/Accounts/User1000":
+                return 0, '{"type":"s","data":"tea with \\"milk\\""}'
+            return 1, ""
+        self.assertEqual(recovery.own_hint("ayse", runner), 'tea with "milk"')
+        self.assertEqual(recovery.own_hint("ayse", lambda *a, **k: (1, "")), "")
 
     def test_peer_uid_from_the_tcp_table(self):
         table = self.tmp / "tcp"

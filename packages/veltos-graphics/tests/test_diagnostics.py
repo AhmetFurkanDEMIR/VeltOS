@@ -41,7 +41,34 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertIn("nvidia-current/550.163.01: added", text)
         self.assertIn("pkcon -p install nvidia-driver:amd64", text)
         self.assertIn("== DKMS", text)
-        self.assertEqual(sorted(set(runs)), ["dkms", "lspci", "mokutil"])
+        self.assertEqual(sorted(set(runs)), ["dkms", "journalctl", "kscreen-doctor", "lspci", "mokutil"])
+        self.assertIn("== Screens the desktop shows", text)
+
+    def test_screens_per_card(self):
+        # Which card drives which connector (2026-11-02: monitors on the
+        # processor's or the NVIDIA card's outputs not seen).
+        drm = Path(tempfile.mkdtemp())
+        for card, driver, boot in (("card0", "nvidia", "0"), ("card1", "i915", "1")):
+            device = drm / card / "device"
+            device.mkdir(parents=True)
+            (device / "boot_vga").write_text(boot + "\n")
+            target = drm / ("driver-" + driver)
+            target.mkdir()
+            try:
+                (device / "driver").symlink_to(target)
+            except OSError:
+                self.skipTest("no symlinks here")
+        for name, status, modes in (("card0-HDMI-A-1", "connected", "1920x1080\n1280x720\n"),
+                                    ("card1-eDP-1", "connected", "2560x1600\n"),
+                                    ("card1-DP-1", "disconnected", "")):
+            (drm / name).mkdir()
+            (drm / name / "status").write_text(status + "\n")
+            (drm / name / "enabled").write_text("enabled\n" if status == "connected" else "disabled\n")
+            (drm / name / "modes").write_text(modes)
+        self.assertEqual(diagnostics.screens(drm), [
+            "card0: driver driver-nvidia", "  HDMI-A-1: connected, enabled, 2 modes",
+            "card1: driver driver-i915, boot display", "  DP-1: disconnected, disabled",
+            "  eDP-1: connected, enabled, 1 modes"])
 
     def test_module_parameters(self):
         sysfs = Path(tempfile.mkdtemp())

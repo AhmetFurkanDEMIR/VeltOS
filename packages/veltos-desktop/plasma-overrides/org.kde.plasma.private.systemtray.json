@@ -21,6 +21,12 @@
       "new": "        readonly property int delegateHeight: Kirigami.Units.iconSizes.smallMedium + Kirigami.Units.largeSpacing * 2 // VeltOS\n"
     },
     {
+      "file": "contents/ui/HiddenItemsView.qml",
+      "why": "no highlight on the first icon as the flyout opens (it showed as a grey box, product owner 2026-11-02); the arrow keys still select one",
+      "old": "            if (activeFocus && currentIndex === -1) {\n                currentIndex = 0\n            } else if (!activeFocus && currentIndex >= 0) {\n",
+      "new": "            if (!activeFocus && currentIndex >= 0) { // VeltOS: no first-icon highlight on opening\n"
+    },
+    {
       "file": "contents/ui/ExpandedRepresentation.qml",
       "why": "small flyouts: the icons only while no item is open, the drives list as a small menu as tall as its entries",
       "old": "    Layout.minimumWidth: Kirigami.Units.gridUnit * 24\n    Layout.minimumHeight: Kirigami.Units.gridUnit * 24\n",

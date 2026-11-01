@@ -102,7 +102,7 @@ ApplicationWindow {
                 spacing: 14
                 Label {
                     Layout.fillWidth: true
-                    text: backend.texts.restart_title
+                    text: backend.keyNeeded ? backend.texts.sb_dialog_title : backend.texts.restart_title
                     color: Theme.text
                     font.pixelSize: Theme.bodySize + 6
                     font.weight: Font.DemiBold
@@ -110,20 +110,54 @@ ApplicationWindow {
                 }
                 Label {
                     Layout.fillWidth: true
-                    text: backend.texts.restart_body
+                    text: backend.keyNeeded ? backend.texts.sb_dialog_body : backend.texts.restart_body
                     color: Theme.text
                     font.pixelSize: Theme.bodySize + 1
                     wrapMode: Text.Wrap
+                }
+                // Secure Boot on: the one-time password for the firmware's
+                // key screen comes first, then the restart (2026-11-02).
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    visible: backend.keyNeeded
+                    spacing: 8
+                    PasswordField {
+                        id: dialogKey
+                        objectName: "dialogKey"
+                        Layout.fillWidth: true
+                        placeholder: backend.texts.sb_password
+                        onAccepted: dialogConfirm.focusField()
+                    }
+                    PasswordField {
+                        id: dialogConfirm
+                        objectName: "dialogConfirm"
+                        Layout.fillWidth: true
+                        placeholder: backend.texts.sb_confirm
+                        onAccepted: if (restartNow.enabledState) restartNow.clicked()
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        visible: text !== ""
+                        text: backend.keyBusy ? backend.texts.sb_registering
+                              : backend.keyMessage === backend.texts.sb_registered ? "" : backend.keyMessage
+                        color: backend.keyBusy ? Theme.subtext : Theme.errorIcon
+                        font.pixelSize: Theme.bodySize + 1
+                        wrapMode: Text.Wrap
+                    }
                 }
                 RowLayout {
                     Layout.alignment: Qt.AlignRight
                     Layout.topMargin: 6
                     spacing: 8
                     VButton {
+                        id: restartNow
                         objectName: "restartNow"
                         text: backend.texts.restart_now
                         primary: true
-                        onClicked: backend.restart()
+                        enabledState: !backend.keyNeeded
+                                      || (dialogKey.text.length > 0 && dialogConfirm.text.length > 0 && !backend.keyBusy)
+                        onClicked: backend.keyNeeded ? backend.registerKeyAndRestart(dialogKey.text, dialogConfirm.text)
+                                                     : backend.restart()
                     }
                     VButton {
                         objectName: "restartLater"

@@ -135,3 +135,13 @@ and a new accent at once.
 `--first-start` opens the Welcome window (`Welcome.qml`) once per user on
 an installed system; the first update runs in the background at the
 first internet connection (`firstupdate.py`).
+
+## Welcome, three pages (2026-11-02)
+
+`Welcome.qml` follows Windows 11's Get Started app: a greeting over
+drifting VeltOS colours (the logo with a pulse, "Hi.", "Welcome to
+VeltOS"), "Make it yours" (two small desktop previews for light and dark
+mode and the accent colours, applied at once through VeltOS Settings'
+helpers, `firststart.SettingsLook`), and "Get to know VeltOS" (the cards
+and the background update's line); page dots, Back and Next, the arrow
+keys. Every page's parts rise in one after another when it comes in.

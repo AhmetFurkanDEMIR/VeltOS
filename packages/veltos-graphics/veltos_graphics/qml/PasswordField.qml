@@ -10,6 +10,9 @@ Rectangle {
     property alias text: input.text
     property string placeholder
     signal accepted()
+    function focusField() {
+        input.forceActiveFocus();
+    }
 
     implicitWidth: 260
     implicitHeight: Math.round(34 * Theme.textScale)

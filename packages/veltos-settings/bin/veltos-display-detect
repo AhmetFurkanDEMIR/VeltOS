@@ -1,0 +1,77 @@
+#!/usr/bin/python3
+"""Windows 11's "Detect other display" (Settings > Display > Multiple
+displays): every graphics card's connectors are probed again and the
+desktop (KWin) is told, so a monitor that is plugged in but not shown -
+a hot-plug that was missed, a card that was asleep - comes up (product
+owner, 2026-11-02: monitors on the processor's graphics or on the NVIDIA
+card were not seen).
+
+    display-detect      probe, then print the connectors as JSON
+
+Run through pkexec (org.veltos.display.detect: the user of the active
+session, no password). It writes "detect" to /sys/class/drm/*/status (the
+kernel probes that connector) and asks udev for a change event of the DRM
+devices; nothing else.
+"""
+
+import json
+import os
+import subprocess
+import sys
+
+DRM = "/sys/class/drm"
+
+
+def connectors(drm=DRM):
+    """[(name, path)] of every connector (card0-HDMI-A-1, ...)."""
+    try:
+        names = sorted(os.listdir(drm))
+    except OSError:
+        return []
+    return [(name, os.path.join(drm, name)) for name in names
+            if name.startswith("card") and "-" in name and os.path.exists(os.path.join(drm, name, "status"))]
+
+
+def read(path):
+    try:
+        with open(path, encoding="ascii", errors="replace") as handle:
+            return handle.read().strip()
+    except OSError:
+        return ""
+
+
+def driver_of(drm, card):
+    try:
+        return os.path.basename(os.readlink(os.path.join(drm, card, "device", "driver")))
+    except OSError:
+        return ""
+
+
+def probe(drm=DRM, run=subprocess.run):
+    for _name, path in connectors(drm):
+        try:
+            with open(os.path.join(path, "status"), "w", encoding="ascii") as handle:
+                handle.write("detect")
+        except OSError:
+            pass
+    try:
+        run(["udevadm", "trigger", "--subsystem-match=drm", "--action=change"], timeout=20,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        run(["udevadm", "settle", "--timeout=5"], timeout=20, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    result = []
+    for name, path in connectors(drm):
+        card = name.split("-", 1)[0]
+        result.append({"connector": name.split("-", 1)[1], "card": card, "driver": driver_of(drm, card),
+                       "status": read(os.path.join(path, "status")), "enabled": read(os.path.join(path, "enabled"))})
+    return result
+
+
+def main():
+    print(json.dumps(probe()))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -44,7 +44,6 @@ FocusScope {
     // product owner, 2026-10-23 (items 35 and 37).
     readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor)
                                  === Kirigami.ColorUtils.Dark
-    readonly property color surface: dark ? Kirigami.Theme.backgroundColor : "#ffffff"
 
     // "home", "recommended" or "category"; searching overrides them while
     // the field has text.
@@ -687,17 +686,12 @@ FocusScope {
 
     // --- Layout ------------------------------------------------------------
 
-    // A light tint over Plasma's popup background, which is see-through
-    // with blur ("acrylic", like Windows 11's Start) and solid without the
-    // blur effect (software rendering), so the text stays readable. The
-    // tint used to be 94 % opaque and hid the acrylic (product owner,
-    // 2026-10-21).
-    Rectangle {
-        anchors.fill: parent
-        radius: Kirigami.Units.cornerRadius !== undefined ? Kirigami.Units.cornerRadius * 2 : 12
-        color: menu.surface
-        opacity: 0.35
-    }
+    // No surface of its own: Plasma's popup background is the one surface,
+    // see-through with blur ("acrylic", like Windows 11's Start; its tint
+    // and opacity come from the VeltOS Plasma theme) and solid without the
+    // blur effect (software rendering). A tint here covered only the
+    // inside of the popup frame and showed as a second frame around Start
+    // (product owner, 2026-11-02: "unnecessary outer windows").
 
     // Opening: the content rises a little and fades in, as Windows 11's
     // Start does (Plasma only shows the popup).
@@ -1294,8 +1288,10 @@ FocusScope {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 3.2
-            // Light mode: the same white as the rest, the line above only.
-            color: menu.dark ? Qt.alpha(Kirigami.Theme.textColor, 0.04) : "transparent"
+            // The same surface as the rest, the line above only: a band of
+            // its own stopped short of the popup frame's edges and looked
+            // like a box inside Start (product owner, 2026-11-02).
+            color: "transparent"
 
             Kirigami.Separator {
                 anchors.top: parent.top

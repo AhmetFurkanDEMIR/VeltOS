@@ -72,7 +72,18 @@ if [ -n "$veltos_theme" ] &&
    [ "$(kreadconfig6 --file plasmarc --group Theme --key name 2>/dev/null)" != "$veltos_theme" ]; then
     kwriteconfig6 --file plasmarc --group Theme --key name "$veltos_theme" || true
 fi
-unset veltos_theme
+# A new account has no plasmarc of its own (the theme comes from
+# /etc/xdg/plasmarc), and a file that appears only later, at the first
+# light/dark switch, is one the running plasmashell may never pick up: on
+# the product owner's first start after installation the taskbar stayed
+# light after switching to dark (2026-11-02). The file is there from the
+# first sign-in on.
+veltos_plasmarc="${XDG_CONFIG_HOME:-$HOME/.config}/plasmarc"
+if [ -n "$veltos_theme" ] && ! grep -qs '^\[Theme\]' "$veltos_plasmarc"; then
+    mkdir -p "$(dirname "$veltos_plasmarc")" &&
+        printf '[Theme]\nname=%s\n' "$veltos_theme" >> "$veltos_plasmarc" || true
+fi
+unset veltos_theme veltos_plasmarc
 
 # GTK programs (Firefox, ...) use the VeltOS GTK theme: Breeze with the
 # Windows 11 caption buttons of the window frames. Breeze, KDE's default,

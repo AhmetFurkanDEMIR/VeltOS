@@ -135,4 +135,21 @@ ColumnLayout {
             }
         }
     }
+
+    // Related settings, as in Windows 11: the pointer's style, colour and
+    // size (Accessibility > Mouse pointer); shown with or without a mouse
+    // (product owner, 2026-11-02: "where do I choose the pointer?").
+    SectionLabel {
+        visible: !page.touchpad
+        text: backend.text("related_settings")
+    }
+    SettingCard {
+        objectName: "mousePointerLink"
+        visible: !page.touchpad
+        Layout.fillWidth: true
+        icon: "input-mouse-symbolic"
+        title: backend.pages.find(p => p.id === "accessibility").items.find(i => i.id === "pointer").title
+        description: backend.pages.find(p => p.id === "personalization").items.find(i => i.id === "mousepointer").description
+        onActivated: page.itemActivated({ action: "", page: "pointer", pageId: "accessibility" })
+    }
 }

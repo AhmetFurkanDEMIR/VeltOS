@@ -246,6 +246,22 @@ class WindowTests(unittest.TestCase):
         backend.registerKey("one", "two")
         self.assertEqual(backend.keyMessage, backend.texts["sb_mismatch"])
         self.call("toggle", "01:00.0")
+        # Right after the install the restart question asks for the Secure
+        # Boot password first, then restarts (product owner, 2026-11-02).
+        self.assertTrue(backend.keyNeeded)
+        fake = Path(tempfile.mkdtemp()) / "mokutil-ok"
+        fake.write_text("#!/bin/sh\ncat >/dev/null\nexit 0\n", encoding="utf-8", newline="\n")
+        fake.chmod(0o755)
+        backend.key_program = str(fake)
+        self.started.clear()
+        backend.registerKeyAndRestart("one", "one")
+        deadline = time.monotonic() + 10
+        while not self.started and time.monotonic() < deadline:
+            self.app.processEvents()
+            time.sleep(0.01)
+        self.assertEqual(self.started, [REBOOT])
+        self.assertEqual(backend.keyMessage, backend.texts["sb_registered"])
+        self.assertFalse(backend.keyBusy)
         self.assertEqual(self.problems(), [])
 
     def test_driver_in_use_updates_and_goes_back(self):

@@ -53,3 +53,15 @@ flash drive made for the account (`veltos_auth/recovery.py`,
   encryption keeps its own password.
 - Tests: `tests/test_recovery.py` (fake lsblk/mount/chpasswd, a stand-in
   socket and TCP table).
+
+## The lock screen's requests (2026-11-02)
+
+The lock screen (the user's own kscreenlocker greeter) cannot reach the
+network. `password-recovery status-self` prints the caller's own account,
+whether it has a reset USB and its hint (AccountsService's PasswordHint
+over the system bus); `password-recovery want-reset` asks the service
+(`POST /want-reset`, accepted only from a process of that same account)
+to open the sign-in screen's reset panel for it. The service keeps the
+wish in `/run/veltos-password-recovery/<user>` for five minutes; the
+sign-in screen's `/status` answers `resetRequested` once. The reset itself
+still needs the USB key and the sign-in screen's own connection.

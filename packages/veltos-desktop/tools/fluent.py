@@ -95,19 +95,44 @@ FRAME_TINTS = {
     "light": {"opacity:0.25;fill:#f3fdff": "opacity:0;fill:#f3fdff"},
     "dark": {"opacity:0.05;fill:#ffffff": "opacity:0;fill:#ffffff"},
 }
+# Fluent's frames have a 1 px line around the window (dark: #686868 at 50 %,
+# a light ring; light: black at 15 %, a grey one). The product owner wants
+# no line at all, the edge in the window's own colour (2026-11-02): the line
+# is painted in the frame colour, so the window simply ends where its
+# shadow begins.
+FRAME_BORDERS = {
+    "light": {"opacity:0.15;fill:#000000": "opacity:1;fill:#f3f5fa"},
+    "dark": {"opacity:0.5;fill:#686868": "opacity:1;fill:#1c1d26"},
+}
 CAPTION_W, CAPTION_H = 46, 32
 WINDOW_RADIUS = 8
 
 DESKTOPTHEMES = {"VeltOS": "light", "VeltOS-Dark": "dark"}
 # Plasma theme files that show other projects' or companies' logos.
 DESKTOPTHEME_DROP = ("icons/start.svgz", "icons/manjaro.svgz", "widgets/branding.svgz")
-# Taskbar background opacity, see-through like Windows 11: the normal
-# background is used without the blur effect (no 3D acceleration) and stays
-# readable; the translucent one is used with blur ("acrylic").
-PANEL_OPACITY = {"widgets/panel-background.svgz": 0.86,
-                 "translucent/widgets/panel-background.svgz": 0.7}
-# Blur with more colour, closer to Windows 11 acrylic than Fluent's default.
-CONTRAST_EFFECT = ["enabled=true", "contrast=0.18", "intensity=1.1", "saturation=1.7"]
+# Taskbar background opacity without the blur effect (no 3D acceleration):
+# see-through like Windows 11 and still readable. With blur, the translucent
+# backgrounds get ACRYLIC below.
+PANEL_OPACITY = {"widgets/panel-background.svgz": 0.86}
+# Windows 11's acrylic, used where KWin can blur (Plasma then takes the
+# translucent/ backgrounds, so on real graphics cards): Start, the flyouts
+# and the taskbar in these colours over the blurred desktop, which KWin's
+# contrast effect first brightens (light) or darkens (dark). The values
+# before (75 % of the scheme's background, contrast 0.18 in both modes)
+# pulled the desktop behind to a mid grey: light popups came out grey
+# (229, 230, 233), dark ones a pale grey (60, 61, 66); product owner,
+# 2026-11-02. With these, measured in the dev VM with blur loaded: light
+# popups about (245, 247, 250), dark ones about (40, 41, 47), the taskbar
+# about (239, 242, 245) and (29, 31, 38) over the Bloom wallpapers.
+ACRYLIC = {
+    "light": {"popup": ("#f9f9f9", 0.85), "taskbar": ("#f3f3f3", 0.85),
+              "contrast": ["enabled=true", "contrast=0.5", "intensity=1.4", "saturation=1.5"]},
+    "dark": {"popup": ("#2c2c2c", 0.86), "taskbar": ("#202020", 0.86),
+             "contrast": ["enabled=true", "contrast=0.9", "intensity=0.45", "saturation=1.5"]},
+}
+ACRYLIC_FILES = {"translucent/dialogs/background.svgz": "popup",
+                 "translucent/widgets/panel-background.svgz": "taskbar"}
+FRAME_PIECES = ("center", "top", "bottom", "left", "right", "topleft", "topright", "bottomleft", "bottomright")
 
 COLOR_SCHEMES = {
     "VeltOSLight": {"source": "FluentLight.colors", "name": "VeltOS Light", "variant": "light"},
@@ -313,6 +338,10 @@ def build_aurorae(upstream, root):
             if old not in frame:
                 raise SystemExit(f"{fluent}/decoration.svg: frame tint {old} not found")
             frame = frame.replace(old, new)
+        for old, new in FRAME_BORDERS[variant].items():
+            if old not in frame:
+                raise SystemExit(f"{fluent}/decoration.svg: frame border {old} not found")
+            frame = frame.replace(old, new)
         decoration.write_text(frame, encoding="utf-8")
         # The window buttons are monochrome; only the frame may carry the accent.
         for svg in dest.glob("*.svg"):
@@ -437,6 +466,40 @@ def set_background_opacity(svg, opacity, name="svg"):
     result, count = re.subn(r'<(?:rect|path)\b[^>]*class="ColorScheme-Background"[^>]*>', fix, svg)
     if count == 0:
         raise SystemExit(f"{name}: no frame pieces to make see-through")
+    return result
+
+
+def acrylic(svg, colour, opacity, name="svg"):
+    """Paint the frame pieces of a translucent Plasma background (the
+    elements in the scheme's background colour or Fluent's white) in one
+    colour and opacity (ACRYLIC). Shadows, the dark mode's dark rim
+    (#000000) and empty helper rectangles stay."""
+    count = 0
+
+    def piece(group):
+        def paint(element):
+            nonlocal count
+            tag = element.group(0)
+            style = re.search(r'style="([^"]*)"', tag)
+            text = style.group(1) if style else ""
+            if "fill:none" in text or "fill:#000000" in text or 'fill="none"' in tag:
+                return tag
+            if not ('class="ColorScheme-Background"' in tag or "currentColor" in tag
+                    or re.search(r"fill:#(?:ffffff|f9fafc)\b", text)):
+                return tag
+            count += 1
+            text = re.sub(r"(?<![-\w])fill:[^;]*;?", "", text)
+            text = re.sub(r"(?<![-\w])opacity:[0-9.]+;?", "", text).strip(";")
+            text = f"fill:{colour};opacity:{opacity}" + (f";{text}" if text else "")
+            tag = tag.replace(' class="ColorScheme-Background"', "")
+            tag = re.sub(r'\sfill="currentColor"', "", tag)
+            if style:
+                return tag.replace(style.group(0), f'style="{text}"')
+            return re.sub(r"^<(\w+)", rf'<\1 style="{text}"', tag)
+        return re.sub(r"<(?:rect|path)\b[^>]*>", paint, group.group(0))
+    result = re.sub(r'<g\b[^>]*id="(?:%s)"[^>]*>.*?</g>' % "|".join(FRAME_PIECES), piece, svg, flags=re.S)
+    if count == 0:
+        raise SystemExit(f"{name}: no frame pieces to paint (Fluent changed?)")
     return result
 
 
@@ -593,10 +656,12 @@ def build_desktoptheme(upstream, root, name, variant):
         if variant == "light":
             svg = white_popup(svg, rel, LIGHT_TASKBAR)
         write_svgz(dest / rel, svg)
+    for rel, part in ACRYLIC_FILES.items():
+        write_svgz(dest / rel, acrylic(read_svgz(dest / rel), *ACRYLIC[variant][part], name=rel))
 
     # Plasma 6 reads metadata.json; theme settings live in plasmarc.
     groups = desktop_entry_groups(base / "metadata.desktop")
-    groups["[ContrastEffect]"] = CONTRAST_EFFECT
+    groups["[ContrastEffect]"] = ACRYLIC[variant]["contrast"]
     groups["[Wallpaper]"] = ["defaultWallpaperTheme=VeltOS", "defaultFileSuffix=.png",
                              "defaultWidth=3840", "defaultHeight=2160"]
     plasmarc = [f"# {ATTRIBUTION}"]

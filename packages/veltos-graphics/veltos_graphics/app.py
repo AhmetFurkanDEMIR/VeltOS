@@ -167,6 +167,7 @@ class Backend(QObject):
         self._restart_after = False
         self._messages = {}        # slot -> (text, ok) after a job
         self._key_message = ""
+        self._key_busy = False
         self._steps = []
         self._step = ""
         self._job = ""
@@ -237,6 +238,13 @@ class Backend(QObject):
     @Property(bool, notify=cardsChanged)
     def loaded(self):
         return self._loaded
+
+    @Property(bool, notify=cardsChanged)
+    def keyNeeded(self):
+        """NVIDIA's driver is installed, Secure Boot is on and the firmware
+        does not know DKMS's key yet: without it the driver does not load
+        after the restart."""
+        return any(card.get("needsKey") for card in self._cards)
 
     @Slot()
     def refresh(self):
@@ -573,7 +581,7 @@ class Backend(QObject):
     # --- Secure Boot ------------------------------------------------------------------------
 
     @Slot(str, str)
-    def registerKey(self, password, confirm):
+    def registerKey(self, password, confirm, then_restart=False):
         """Asks the firmware to enrol DKMS's key at the next start (mokutil
         --import reads the one-time password twice from its input; pkexec
         asks for the administrator's password first)."""
@@ -583,17 +591,36 @@ class Backend(QObject):
             return
         process = QProcess(self)
         process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
+        self._key_busy = True
+        self.keyChanged.emit()
 
         def finished(code, status):
             ok = status == QProcess.ExitStatus.NormalExit and code == 0
             self._key_message = self._texts["sb_registered"] if ok else self._texts["sb_failed"]
+            self._key_busy = False
             process.deleteLater()
             self.keyChanged.emit()
+            if ok and then_restart:
+                self.restart()
 
         process.finished.connect(finished)
-        process.start("pkexec", ["mokutil", "--import", str(drivers.MOK_KEY)])
+        process.start(self.key_program, ["mokutil", "--import", str(drivers.MOK_KEY)])
         process.write(f"{password}\n{password}\n".encode())
         process.closeWriteChannel()
+
+    key_program = "pkexec"
+
+    @Slot(str, str)
+    def registerKeyAndRestart(self, password, confirm):
+        """Right after installing NVIDIA's driver with Secure Boot on: the
+        one-time password for the firmware's key screen, then the restart
+        (product owner, 2026-11-02: ask for the Secure Boot password
+        directly after the install, then "Restart now", as before)."""
+        self.registerKey(password, confirm, True)
+
+    @Property(bool, notify=keyChanged)
+    def keyBusy(self):
+        return self._key_busy
 
 
 def main(argv=None):

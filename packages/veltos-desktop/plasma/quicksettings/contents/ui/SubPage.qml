@@ -80,11 +80,21 @@ ColumnLayout {
         }
     }
 
+    // The link under a hairline, as the main page's footer: a grey rounded
+    // band here looked like a box inside the flyout (product owner,
+    // 2026-11-02: no extra frames).
     Rectangle {
         Layout.fillWidth: true
         Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
-        color: Qt.alpha(Kirigami.Theme.textColor, 0.04)
-        radius: Kirigami.Units.cornerRadius
+        color: "transparent"
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            height: 1
+            color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
+        }
 
         PlasmaComponents3.Label {
             id: link

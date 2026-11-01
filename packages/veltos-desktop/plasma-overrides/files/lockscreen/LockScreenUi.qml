@@ -27,6 +27,7 @@ import Qt5Compat.GraphicalEffects
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.private.sessions
 import org.kde.plasma.private.keyboardindicator as KeyboardIndicator
+import org.kde.plasma.plasma5support as P5Support
 import org.kde.plasma.workspace.components as PW
 import org.kde.breeze.components
 
@@ -51,6 +52,49 @@ Item {
     // VeltOS' other password prompts, product owner 2026-11-01).
     property int failures: 0
     property int lockLeft: 0
+
+    // After a wrong password, as on the sign-in screen: the account's hint
+    // and, for an account with a password reset USB, "Reset password",
+    // which opens the sign-in screen's reset panel (product owner,
+    // 2026-11-02: no hint when signing in on the lock screen). This screen
+    // may not use the network; veltos-auth's password-recovery answers
+    // for the user's own account ("status-self", "want-reset").
+    readonly property string recoveryTool: "/usr/libexec/veltos/password-recovery"
+    property string hint: ""
+    property bool resetConfigured: false
+    property bool resetBusy: false
+    function startReset() {
+        if (resetBusy) {
+            return;
+        }
+        resetBusy = true;
+        recovery.connectSource(recoveryTool + " want-reset");
+    }
+    P5Support.DataSource {
+        id: recovery
+        engine: "executable"
+        connectedSources: []
+        onNewData: (source, data) => {
+            disconnectSource(source);
+            let answer = null;
+            try {
+                answer = JSON.parse(data["stdout"] || "");
+            } catch (error) {
+                answer = null;
+            }
+            if (source.endsWith(" status-self")) {
+                ui.hint = answer && answer.hint ? String(answer.hint) : "";
+                ui.resetConfigured = !!answer && answer.configured === true;
+            } else if (source.endsWith(" want-reset")) {
+                // The sign-in screen comes up over this one with its reset
+                // panel open; signing in there unlocks this session.
+                if (answer && answer.error === "") {
+                    sessionManagement.switchUser();
+                }
+                ui.resetBusy = false;
+            }
+        }
+    }
     function lockText() {
         const minutes = Math.floor(lockLeft / 60), seconds = lockLeft % 60;
         const time = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
@@ -585,6 +629,43 @@ Item {
             font.pixelSize: 14
             wrapMode: Text.Wrap
         }
+        Text {
+            objectName: "hintLine"
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            visible: ui.failures > 0 && ui.hint !== "" && !ui.welcome
+            text: ui.tr("Hint: %1", "İpucu: %1").arg(ui.hint)
+            textFormat: Text.PlainText
+            color: "#E6FFFFFF"
+            font.family: "Inter"
+            font.pixelSize: 13
+            wrapMode: Text.Wrap
+        }
+        Text {
+            id: resetLink
+            objectName: "resetLink"
+            Layout.alignment: Qt.AlignHCenter
+            visible: ui.failures > 0 && ui.resetConfigured && !ui.welcome && sessionManagement.canSwitchUser
+            text: ui.resetBusy ? ui.tr("Opening the sign-in screen…", "Oturum açma ekranı açılıyor…")
+                               : ui.tr("Reset password", "Parolayı sıfırla")
+            color: "#CFE0FF"
+            font.family: "Inter"
+            font.pixelSize: 14
+            font.underline: resetArea.containsMouse || activeFocus
+            activeFocusOnTab: true
+            Keys.onReturnPressed: ui.startReset()
+            Keys.onEnterPressed: ui.startReset()
+            Keys.onSpacePressed: ui.startReset()
+            Accessible.role: Accessible.Link
+            Accessible.name: text
+            MouseArea {
+                id: resetArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: ui.startReset()
+            }
+        }
     }
 
     SequentialAnimation {
@@ -737,6 +818,9 @@ Item {
 
     // Fade in, as Windows does when the screen locks.
     opacity: 0
-    Component.onCompleted: opacity = 1
+    Component.onCompleted: {
+        opacity = 1;
+        recovery.connectSource(recoveryTool + " status-self");
+    }
     Behavior on opacity { NumberAnimation { duration: 400 } }
 }

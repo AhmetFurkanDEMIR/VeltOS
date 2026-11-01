@@ -326,6 +326,17 @@ TEXTS = {
     "duplicate_displays": ("Duplicate these displays", "Bu ekranları çoğalt"),
     "extend_displays": ("Extend these displays", "Bu ekranları genişlet"),
     "show_only_on": ("Show only on {number}", "Yalnızca {number} üzerinde göster"),
+    # Windows 11's "Detect other display" (2026-11-02).
+    "detect_title": ("Detect other displays", "Diğer ekranları algıla"),
+    "detect_desc": ("Look for a monitor that is plugged in but not shown",
+                    "Takılı olduğu hâlde görünmeyen bir monitörü arar"),
+    "detect_button": ("Detect", "Algıla"),
+    "detecting": ("Detecting…", "Algılanıyor…"),
+    "detect_none": ("We didn't find another display.", "Başka bir ekran bulunamadı."),
+    "detect_found": ("Turned on: {names}", "Açıldı: {names}"),
+    "detect_missing": ("{names} is plugged in but can't be shown. VeltOS Graphics Cards' driver log says why.",
+                       "{names} takılı ama gösterilemiyor. Nedeni VeltOS Ekran Kartları'nın sürücü "
+                       "günlüğünde yazar."),
     "main_display": ("Make this my main display", "Bunu ana ekranım yap"),
     "main_display_desc": ("The taskbar and new windows open here", "Görev çubuğu ve yeni pencereler burada açılır"),
     "display_off": ("This display is not in use. Choose how to use your displays above.",

@@ -12,7 +12,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 try:
     from PySide6.QtCore import (Property, QCoreApplication, QEvent, QMetaObject, QObject, Qt, QUrl,
                                 Signal, Slot, qInstallMessageHandler)
-    from PySide6.QtGui import QGuiApplication, QStandardItem, QStandardItemModel
+    from PySide6.QtGui import QGuiApplication, QKeyEvent, QStandardItem, QStandardItemModel
     from PySide6.QtQml import QQmlPropertyMap
     from PySide6.QtQuick import QQuickView
     HAVE_QT = True
@@ -231,6 +231,8 @@ class SignInScreenTests(unittest.TestCase):
         # The sign-in box fades in (250 ms); the hint waits for a wrong password.
         self.assertTrue(self.wait_for(lambda: self.find_password_field().property("visible")))
         self.assertFalse(hint.property("visible"))
+        # "Reset password" too only after a wrong password (2026-11-02).
+        self.assertFalse(self.root.findChild(QObject, "resetLink").property("visible"))
         password = self.find_password_field()
         password.setProperty("text", "nope")
         QMetaObject.invokeMethod(self.root, "signIn")
@@ -250,6 +252,22 @@ class SignInScreenTests(unittest.TestCase):
         self.assertTrue(self.wait_for(lambda: self.root.property("resetStep") == "password"))
         fields = [self.root.findChild(QObject, name) for name in ("newPassword", "confirmPassword", "newHint")]
         self.assertTrue(all(f is not None and f.property("visible") for f in fields))
+        # Tab goes down the fields to the buttons (product owner, 2026-11-02).
+        self.view.show()
+        self.view.requestActivate()
+        self.app.processEvents()
+        QMetaObject.invokeMethod(fields[0], "focusField")
+        self.assertTrue(self.wait_for(lambda: self.view.activeFocusItem() is not None))
+        order = []
+        for _ in range(5):
+            item = self.view.activeFocusItem()
+            while item is not None and not item.objectName():
+                item = item.parentItem()
+            order.append(item.objectName() if item is not None else "")
+            for kind in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease):
+                QCoreApplication.sendEvent(self.view, QKeyEvent(kind, Qt.Key.Key_Tab, Qt.KeyboardModifier.NoModifier))
+            self.app.processEvents()
+        self.assertEqual(order, ["newPassword", "confirmPassword", "newHint", "resetNext", "resetCancel"])
         fields[0].setProperty("text", "new one")
         fields[1].setProperty("text", "other")
         QMetaObject.invokeMethod(self.root, "applyReset")
@@ -261,6 +279,33 @@ class SignInScreenTests(unittest.TestCase):
         self.assertIn(("/reset", {"user": "velt", "password": "new one", "hint": "tea"}), requests)
         self.assertEqual(self.root.property("resetStep"), "")
         self.assertEqual(self.root.property("failures"), 0)
+        self.assertEqual(self.problems(), [])
+
+    def test_lock_screen_reset_opens_the_reset_panel(self):
+        # "Reset password" on the lock screen switches to this screen, and
+        # the service says so: the reset panel opens at once.
+        import http.server
+        import json
+        import threading
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers["Content-Length"]))
+                data = json.dumps({"configured": True, "hint": "", "resetRequested": True}).encode()
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+            def log_message(self, *_args):
+                pass
+        server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.shutdown)
+        self.root.setProperty("recoveryService", f"http://127.0.0.1:{server.server_address[1]}")
+        QMetaObject.invokeMethod(self.root, "loadAccountHelp")
+        self.assertTrue(self.wait_for(lambda: self.root.property("resetStep") == "insert"))
+        self.assertTrue(self.root.property("signInView"))
         self.assertEqual(self.problems(), [])
 
     def test_no_reset_link_without_a_reset_usb(self):

@@ -1378,3 +1378,26 @@ and JavaScript with no build step, no external requests and no cookies:
   `pkill -f '[c]alamares'; dpkg -i calamares-settings-veltos_*.deb` killed
   its own shell before dpkg ran (the file name contains "calamares").
   Use `pkill -x calamares`, or a call of its own.
+- The lock screen (kscreenlocker_greet, 2026-11-02) gives its QML no
+  network: XMLHttpRequest to 127.0.0.1 fails (its own network access
+  manager factory), unlike SDDM's greeter. Plasma's executable data engine
+  (`org.kde.plasma.plasma5support`, `DataSource { engine: "executable" }`)
+  works there and runs as the user. A greeter started by an earlier
+  (automatic) lock keeps the QML it loaded: unlock and lock again after
+  copying a changed `LockScreenUi.qml`. `sessionManagement.switchUser()`
+  shows SDDM's greeter; signing in there as the same user unlocks the
+  existing session (SDDM's ReuseSession, default true).
+- Plasma draws its `translucent/` popup and panel backgrounds only with
+  the blur effect, so VMs never show them unless blur and contrast are
+  loaded (`out/vm/shell-restart.sh`); the theme's `[ContrastEffect]`
+  applies to everything behind those popups. One contrast of 0.18 for
+  both modes pulled the desktop behind to a mid grey: light popups looked
+  grey, dark ones pale grey, only on real graphics cards (2026-11-02).
+  plasmashell takes a new theme's contrast values with a theme switch.
+- Shell heredocs again (2026-11-02): Python edit scripts passed through a
+  Git Bash heredoc lost `\b`, `\1` and `\n` escapes several times
+  (backspace and SOH characters in fluent.py, a broken line continuation
+  in debian/rules). Code with backslashes goes through the Edit/Write
+  tools only; check with `cat -A` when in doubt.
+- The dev VM's screen goes blank after some idle minutes (DPMS): a black
+  screenshot right after a long build means "press a key", not a crash.

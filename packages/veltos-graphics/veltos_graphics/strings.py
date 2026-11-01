@@ -122,6 +122,16 @@ TEXTS = {
                 "yazılımına kaydetmesi gerekir. Tek kullanımlık bir parola seçin; bir sonraki yeniden "
                 "başlatmada mavi bir ekran bu parolayı sorar: “Enroll MOK”, “Continue”, "
                 "“Yes” seçeneklerini seçip parolayı yazın."),
+    # The restart question right after installing NVIDIA's driver with
+    # Secure Boot on (product owner, 2026-11-02).
+    "sb_dialog_title": ("One more step: Secure Boot", "Bir adım daha: Güvenli Önyükleme"),
+    "sb_dialog_body": ("Secure Boot is on, so the PC must accept the new driver once. Choose a one-time "
+                       "password and restart. A blue screen then appears: choose “Enroll MOK”, “Continue”, "
+                       "“Yes”, type this password and choose “Reboot”.",
+                       "Güvenli Önyükleme açık; bilgisayarın yeni sürücüyü bir kez onaylaması gerekiyor. Tek "
+                       "kullanımlık bir parola seçip yeniden başlatın. Ardından mavi bir ekran açılır: “Enroll "
+                       "MOK”, “Continue”, “Yes” seçeneklerini seçin, bu parolayı yazın ve “Reboot”u seçin."),
+    "sb_registering": ("Registering the driver key…", "Sürücü anahtarı kaydediliyor…"),
     "sb_password": ("One-time password", "Tek kullanımlık parola"),
     "sb_confirm": ("Confirm password", "Parolayı onaylayın"),
     "sb_register": ("Register key", "Anahtarı kaydet"),

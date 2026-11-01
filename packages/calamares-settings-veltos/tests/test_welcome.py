@@ -23,6 +23,9 @@ try:
     from PySide6.QtCore import QUrl, qInstallMessageHandler
     from PySide6.QtGui import QGuiApplication
     from PySide6.QtQml import QQmlApplicationEngine
+    # Imported first, so rootObjects() gives QQuickWindows (with
+    # contentItem()), not plain QWindows (AGENTS.md).
+    from PySide6.QtQuick import QQuickWindow  # noqa: F401
     HAVE_QT = True
 except ImportError:
     HAVE_QT = False
@@ -99,6 +102,36 @@ class WindowTests(unittest.TestCase):
         self.assertIn("--print-reply", calls[1][1])
         self.assertIn("org.kde.Shutdown.logout", calls[1][1])
         self.assertTrue(calls[1][2])
+
+    def test_website_link_opens_once_and_says_so(self):
+        # Product owner, 2026-11-02: the website link looked unclickable
+        # (the browser's first start takes seconds). One press opens it and
+        # the line says "Opening..." meanwhile; more presses open nothing.
+        app = QGuiApplication.instance() or QGuiApplication([])
+        welcome.LOGO = str(PKG / "branding/veltos-logo.svg")
+        opened = []
+        backend = welcome.welcome_object(welcome.TEXTS["en"])
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("welcome", backend)
+        with mock.patch("PySide6.QtGui.QDesktopServices.openUrl", lambda url: opened.append(url.toString()) or True):
+            engine.load(QUrl.fromLocalFile(str(welcome.qml_file())))
+            window = engine.rootObjects()[0]
+            link = None
+            stack = [window.contentItem()]
+            while stack:
+                item = stack.pop()
+                if item.objectName() == "websiteLink":
+                    link = item
+                stack.extend(item.childItems())
+            self.assertIsNotNone(link)
+            from PySide6.QtCore import QMetaObject
+            QMetaObject.invokeMethod(link, "open")
+            QMetaObject.invokeMethod(link, "open")
+            app.processEvents()
+        self.assertEqual(opened, [welcome.WEBSITE])
+        self.assertTrue(link.property("opening"))
+        engine.deleteLater()
+        app.processEvents()
 
     def test_window_comes_back_when_the_installer_closes(self):
         # The product owner could not change the language again after

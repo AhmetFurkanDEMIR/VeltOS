@@ -271,3 +271,11 @@ posts its choices to the helper (`POST /choices`), which keeps them in
 runs `password-recovery create USER PARTITION --root ... --host ...`; it
 never stops the installation, and the last page says whether the drive
 was made (`veltosRecoveryResult`).
+
+## Live welcome: the website link (2026-11-02)
+
+The live welcome window's link opens the website with one press
+(`openWebsite`: Qt through the desktop portal, xdg-open otherwise) and the
+line says "Opening ... in the web browser" until the browser's window
+takes the focus (its first start in a live session takes seconds; the link
+looked as if it could not be clicked). Keyboard: Tab to it, Enter.

@@ -599,6 +599,33 @@ class Display:
             return False
         return self.run(["kscreen-doctor"] + args, timeout=30)[0] == 0
 
+    DETECT = ["pkexec", "/usr/libexec/veltos/display-detect"]
+
+    def detect(self, settle=2.0, sleep=time.sleep):
+        """Windows 11's "Detect other display": the kernel probes every
+        graphics card's connectors again (display-detect, pkexec, no
+        password) and KWin is told; a screen KWin then knows but keeps off
+        is turned on (extended). Returns {"connected": connector names the
+        kernel sees, "shown": KWin's screens, "turnedOn": names turned on,
+        "missing": connected but unknown to KWin} (product owner,
+        2026-11-02: monitors not seen on the processor's or NVIDIA's
+        graphics)."""
+        code, out = self.run(self.DETECT, timeout=60)
+        try:
+            kernel = json.loads(out) if code == 0 else []
+        except ValueError:
+            kernel = []
+        connected = [k.get("connector", "") for k in kernel
+                     if isinstance(k, dict) and k.get("status") == "connected"]
+        sleep(settle)                      # KWin adds new outputs a moment after the uevent
+        outputs = self.raw()
+        names = {o.get("name", "") for o in outputs}
+        turned_on = [o.get("name", "") for o in outputs if not o.get("enabled") and o.get("name")]
+        if turned_on:
+            self.run(["kscreen-doctor"] + [f"output.{name}.enable" for name in turned_on], timeout=30)
+        return {"connected": connected, "shown": sorted(names), "turnedOn": turned_on,
+                "missing": [name for name in connected if name not in names]}
+
     def raw(self):
         code, out = self.run(["kscreen-doctor", "--json"])
         try:

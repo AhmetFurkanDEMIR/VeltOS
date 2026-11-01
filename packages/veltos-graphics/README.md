@@ -111,3 +111,17 @@ developer machine has none in a VM (see `docs/dev/status.md`).
   it for this PC".
 - After an install, repair or removal (and an update that added the GBM
   library) the window asks "Restart now / Later".
+
+## Secure Boot right after the install (2026-11-02)
+
+When NVIDIA's driver was installed with Secure Boot on and DKMS's key is
+not enrolled yet, the restart question asks for the one-time password
+first ("One more step: Secure Boot", what the blue screen will ask) and
+"Restart now" registers the key (`mokutil --import` through pkexec) and
+restarts. Before, the plain restart question let the PC restart without
+the key, and the driver did not load.
+
+The driver log's "Screens" part names each card's driver and whether the
+firmware started on it, every connector's state, what the desktop shows
+(`kscreen-doctor -o`), the EGL drivers and KWin's own messages about
+screens: what is needed when a monitor is not seen.

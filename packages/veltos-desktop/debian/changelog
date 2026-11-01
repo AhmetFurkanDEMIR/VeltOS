@@ -1,3 +1,24 @@
+veltos-desktop (1.1.0~dev4) trixie; urgency=medium
+
+  * Start, the flyouts, toasts and the taskbar in Windows 11's acrylic where
+    KWin can blur: light #F9F9F9 / dark #2C2C2C at 85-86 %, a contrast effect
+    per mode (light popups were grey, dark ones pale grey).
+  * Start without a surface of its own (a second frame inside the popup), Quick
+    Settings' page footers and Start's footer as lines, no highlight on the
+    first hidden icon.
+  * Lock screen: the hint and "Reset password" after a wrong password; the reset
+    opens the sign-in screen's reset panel.
+  * Sign-in screen: "Reset password" only after a wrong password; Tab goes
+    through the reset fields and buttons.
+  * First sign-in: ~/.config/plasmarc is written, so the taskbar follows the
+    first light/dark switch.
+  * At sign-in, a monitor the kernel sees but the desktop does not list makes
+    the connectors be probed again (Settings' display-detect).
+  * Window frames without the 1 px line around them (light in dark mode, grey
+    in light mode): the edge is the window's own colour.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 10:00:00 +0000
+
 veltos-desktop (1.1.0~dev3) trixie; urgency=medium
 
   * Start has one size (it could be dragged larger and smaller, and resizing

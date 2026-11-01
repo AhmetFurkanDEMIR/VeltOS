@@ -84,6 +84,33 @@ def module_parameters(root=Path("/sys/module")):
     return rows
 
 
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
+KWIN_PATTERN = re.compile(r"drm|egl|gbm|gpu|output|connector|modeset|atomic|framebuffer|nvidia|i915|amdgpu",
+                          re.I)
+
+
+def screens(root=Path("/sys/class/drm")):
+    """Each card (its driver, whether the firmware started with it) and its
+    connectors with their state."""
+    rows = []
+    for card in sorted(root.glob("card[0-9]*")):
+        if "-" in card.name:
+            continue
+        try:
+            driver = os.path.basename(os.readlink(card / "device" / "driver"))
+        except OSError:
+            driver = "?"
+        boot = read(card / "device" / "boot_vga").strip()
+        rows.append(f"{card.name}: driver {driver}" + (", boot display" if boot == "1" else ""))
+        for connector in sorted(root.glob(card.name + "-*")):
+            status = read(connector / "status").strip() or "?"
+            enabled = read(connector / "enabled").strip()
+            modes = [m for m in read(connector / "modes").splitlines() if m.strip()]
+            rows.append(f"  {connector.name[len(card.name) + 1:]}: {status}"
+                        + (f", {enabled}" if enabled else "") + (f", {len(modes)} modes" if modes else ""))
+    return rows
+
+
 def dkms_logs(root=DKMS):
     """The newest build logs of DKMS's NVIDIA modules (dkms 3 keeps the log of
     a failed build in build/make.log, of the others per kernel)."""
@@ -107,11 +134,23 @@ def report(runner=run):
     out.extend(module_parameters() or ["No graphics kernel module of NVIDIA or Nouveau is loaded."])
     out.append(heading("Graphics cards"))
     out.append(runner(["lspci", "-nnk", "-d", "::0300"]) + "\n" + runner(["lspci", "-nnk", "-d", "::0302"]))
+    # Which card drives which screen, and what the desktop (KWin) shows: a
+    # monitor on the processor's or the NVIDIA card's outputs that was not
+    # seen shows here as connected but missing from KWin's list
+    # (product owner, 2026-11-02).
     out.append(heading("Screens (DRM connectors)"))
-    connectors = []
-    for status in sorted(Path("/sys/class/drm").glob("card*-*/status")):
-        connectors.append(f"{status.parent.name}: {read(status).strip()}")
-    out.extend(connectors or ["(none)"])
+    out.extend(screens() or ["(none)"])
+    out.append(heading("Screens the desktop shows (kscreen-doctor)"))
+    out.append(ANSI.sub("", runner(["kscreen-doctor", "-o"])) or "(no answer)")
+    out.append(heading("EGL drivers"))
+    for folder in ("/usr/share/glvnd/egl_vendor.d", "/usr/share/egl/egl_external_platform.d"):
+        names = sorted(p.name for p in Path(folder).glob("*.json")) if Path(folder).is_dir() else []
+        out.append(f"{folder}: " + (", ".join(names) or "(none)"))
+    out.append(heading("Desktop (KWin) messages about screens, this start"))
+    lines = [line for line in runner(["journalctl", "--user", "-b", "--no-pager", "-o", "short-monotonic",
+                                      "_COMM=kwin_wayland"], timeout=30).splitlines()
+             if KWIN_PATTERN.search(line)]
+    out.append("\n".join(lines[-150:]) or "(none)")
     out.append(heading("DKMS"))
     if shutil.which("dkms") or runner is not run:
         out.append(runner(["dkms", "status"]) or "(no DKMS modules)")

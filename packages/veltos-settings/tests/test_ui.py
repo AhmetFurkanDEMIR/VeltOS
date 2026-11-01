@@ -511,6 +511,22 @@ class SettingsWindowTests(unittest.TestCase):
         self.show("personalization", "themes")
         self.assertEqual(self.problems(), [])
 
+    def test_mouse_pointer_found_from_mouse_and_personalization(self):
+        # Product owner, 2026-11-02: "where do I choose the pointer?" The
+        # page is also under Personalization and linked from Mouse, as in
+        # Windows 11, and search finds it once.
+        from veltos_settings import catalog
+        personal = next(p for p in catalog.PAGES if p["id"] == "personalization")
+        self.assertIn("pointer", [i.get("page") for i in personal["items"]])
+        self.assertEqual([r["title"] for r in catalog.search("imleç", "tr")].count("Fare işaretçisi"), 1)
+        self.show("devices", "mouse")
+        links = self.items("mousePointerLink")
+        self.assertEqual(len(links), 1)
+        QMetaObject.invokeMethod(links[0], "activated")
+        self.app.processEvents()
+        self.assertEqual(self.window.property("subPage"), "pointer")
+        self.assertEqual(self.problems(), [])
+
     def test_items_open_pages_and_actions(self):
         self.call("activate", {"action": "updates", "page": ""})
         self.call("activate", {"action": "website", "page": ""})
@@ -639,7 +655,9 @@ class SettingsWindowTests(unittest.TestCase):
                 fake.chmod(0o755)
                 calls = Path(home, "gdbus-calls")
                 gdbus = bin_dir / "gdbus"
-                gdbus.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" > "{calls}"\n')
+                # The shell answers the read-back with the theme it now has.
+                gdbus.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" >> "{calls}"\n'
+                                 'case "$*" in *print*) echo "(\'theme=VeltOS-Dark;\',)" ;; esac\n')
                 gdbus.chmod(0o755)
                 Path(home, ".config").mkdir()
                 plasmarc = Path(home, ".config/plasmarc")
@@ -650,9 +668,37 @@ class SettingsWindowTests(unittest.TestCase):
                 subprocess.run(["sh", "-c", APPLY_THEME, "sh", "org.veltos.dark", "VeltOS-Dark", "dark"],
                                env=env, check=True)
                 self.assertEqual(plasmarc.read_text(), after, before)
-                # The running taskbar is told as well, not only through the file.
-                self.assertEqual(calls.read_text().splitlines()[-2:],
-                                 ["org.kde.PlasmaShell.evaluateScript", "\"theme = 'VeltOS-Dark'\""])
+                # The running taskbar is told as well, not only through the
+                # file, and asked once whether it took the theme.
+                lines = calls.read_text().splitlines()
+                self.assertEqual(lines.count("\"theme = 'VeltOS-Dark'\""), 1)
+                self.assertEqual(lines.count("\"print('theme=' + theme + ';')\""), 1)
+
+    @unittest.skipUnless(os.name == "posix", "runs the theme command")
+    def test_theme_command_asks_a_busy_taskbar_again(self):
+        # Right after the first sign-in plasmashell may not take the theme
+        # at once (product owner, 2026-11-02): the command tries again.
+        import subprocess
+        from veltos_settings.app import APPLY_THEME
+        with tempfile.TemporaryDirectory() as home:
+            bin_dir = Path(home, "bin")
+            bin_dir.mkdir()
+            for name in ("plasma-apply-lookandfeel", "sleep"):
+                (bin_dir / name).write_text("#!/bin/sh\nexit 0\n")
+                (bin_dir / name).chmod(0o755)
+            calls = Path(home, "gdbus-calls")
+            gdbus = bin_dir / "gdbus"
+            # The third read-back finds the new theme.
+            gdbus.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" >> "{calls}"\n'
+                             f'case "$*" in *print*) n=$(grep -c print "{calls}");'
+                             ' [ "$n" -ge 3 ] && echo "(\'theme=VeltOS-Dark;\',)" || echo "(\'theme=VeltOS;\',)" ;; esac\n')
+            gdbus.chmod(0o755)
+            env = dict(os.environ, HOME=home, PATH=f"{bin_dir}:{os.environ['PATH']}")
+            env.pop("XDG_CONFIG_HOME", None)
+            subprocess.run(["sh", "-c", APPLY_THEME, "sh", "org.veltos.dark", "VeltOS-Dark", "dark"],
+                           env=env, check=True)
+            lines = calls.read_text().splitlines()
+            self.assertEqual(lines.count("\"theme = 'VeltOS-Dark'\""), 3)
 
     def test_system_pages_read_the_system(self):
         for page, sub in (("network", "wifi"), ("devices", "bluetooth"), ("system", "sound"),

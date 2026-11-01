@@ -95,6 +95,22 @@ TEXTS = {
                             "Ayarlar'da açık veya koyu mod, renkler ve arka plan."),
     "wl_open": ("Open", "Aç"),
     "wl_get_started": ("Get started", "Başlayalım"),
+    # Its three pages (2026-11-02): greeting, "Make it yours", the cards.
+    "wl_hello": ("Hi.", "Merhaba."),
+    "wl_lead": ("Let's set up a few things together. It only takes a moment.",
+                "Birkaç şeyi birlikte ayarlayalım. Yalnızca bir dakika sürer."),
+    "wl_lets_go": ("Let's go", "Devam edelim"),
+    "wl_mode_intro": ("Choose your mode and a colour. You can change them any time in Settings.",
+                      "Modunuzu ve bir renk seçin. İstediğiniz zaman Ayarlar'dan değiştirebilirsiniz."),
+    "wl_mode": ("Choose your mode", "Modunuzu seçin"),
+    "wl_light": ("Light", "Açık"),
+    "wl_dark": ("Dark", "Koyu"),
+    "wl_accent": ("Accent colour", "Vurgu rengi"),
+    "wl_applying": ("Applying…", "Uygulanıyor…"),
+    "wl_explore": ("Get to know VeltOS", "VeltOS'u tanıyın"),
+    "wl_next": ("Next", "İleri"),
+    "wl_back": ("Back", "Geri"),
+    "wl_page": ("Page %1 of %2", "Sayfa %1 / %2"),
     # The first start's update, in the background (firstupdate.py)
     "wl_update_network": ("VeltOS installs the newest updates in the background as soon as this PC is "
                           "connected to the internet.",

@@ -127,6 +127,12 @@ Item {
                 return;
             root.resetAvailable = answer.configured === true;
             root.passwordHint = answer.hint || "";
+            // "Reset password" on the lock screen switched to this screen:
+            // its reset panel opens at once.
+            if (answer.resetRequested === true && root.resetAvailable) {
+                root.signInView = true;
+                root.startReset();
+            }
         });
     }
     onUserNameChanged: loadAccountHelp()
@@ -140,6 +146,7 @@ Item {
         resetStep = "insert";
         resetError = "";
         message.text = "";
+        resetNext.forceActiveFocus();
     }
     function cancelReset() {
         resetStep = "";
@@ -380,6 +387,9 @@ Item {
             color: "#1B1D24"
             clip: true
             enabled: !root.resetBusy
+            // Tab goes to the next field and the buttons (product owner,
+            // 2026-11-02: Tab did not move down in the reset fields).
+            activeFocusOnTab: true
             Accessible.role: Accessible.EditableText
             Accessible.name: plain.placeholder
             Keys.onReturnPressed: plain.accepted()
@@ -407,8 +417,13 @@ Item {
         opacity: active ? 1 : 0.6
         color: primary ? (area.containsMouse ? Qt.lighter(root.accent, 1.1) : root.accent)
                        : (area.containsMouse ? "#40FFFFFF" : "#26FFFFFF")
-        border.width: primary ? 0 : 1
-        border.color: "#59FFFFFF"
+        border.width: activeFocus ? 2 : primary ? 0 : 1
+        border.color: activeFocus ? "#FFFFFF" : "#59FFFFFF"
+        activeFocusOnTab: true
+        Keys.onReturnPressed: if (active) clicked()
+        Keys.onEnterPressed: if (active) clicked()
+        Keys.onSpacePressed: if (active) clicked()
+        Keys.onEscapePressed: root.cancelReset()
         Accessible.role: Accessible.Button
         Accessible.name: label
         Text {
@@ -612,12 +627,18 @@ Item {
             id: resetLink
             objectName: "resetLink"
             Layout.alignment: Qt.AlignHCenter
-            visible: root.resetStep === "" && root.resetAvailable
+            // Only after a wrong password, as Windows does (product owner,
+            // 2026-11-02).
+            visible: root.resetStep === "" && root.resetAvailable && root.failures > 0
             text: root.texts.reset
             color: "#CFE0FF"
             font.pixelSize: 14
             font.family: root.fontFamily
-            font.underline: linkArea.containsMouse
+            font.underline: linkArea.containsMouse || activeFocus
+            activeFocusOnTab: true
+            Keys.onReturnPressed: root.startReset()
+            Keys.onEnterPressed: root.startReset()
+            Keys.onSpacePressed: root.startReset()
             Accessible.role: Accessible.Link
             Accessible.name: text
             MouseArea {
@@ -693,12 +714,15 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 10
                 PanelButton {
+                    id: resetNext
+                    objectName: "resetNext"
                     label: root.resetStep === "insert" ? root.texts.next : root.texts.apply
                     primary: true
                     active: !root.resetBusy
                     onClicked: root.resetStep === "insert" ? root.findDrive() : root.applyReset()
                 }
                 PanelButton {
+                    objectName: "resetCancel"
                     label: root.texts.cancel
                     onClicked: root.cancelReset()
                 }

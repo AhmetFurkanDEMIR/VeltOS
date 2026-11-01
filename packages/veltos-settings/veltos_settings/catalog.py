@@ -109,6 +109,13 @@ PAGES = [
          "title": ("Themes", "Temalar"),
          "desc": ("Wallpaper, colour and mode together", "Duvar kağıdı, renk ve mod bir arada"),
          "keywords": "theme themes wallpaper colour look tema temalar duvar kağıdı görünüm"},
+        # Windows 11 offers the pointer under Themes and under Accessibility;
+        # here it is one more row of Personalization (product owner,
+        # 2026-11-02: "where do I choose the mouse pointer?").
+        {"id": "mousepointer", "icon": "input-mouse-symbolic", "page": "pointer",
+         "title": ("Mouse pointer", "Fare işaretçisi"),
+         "desc": ("Pointer style, colour and size", "İşaretçi stili, rengi ve boyutu"),
+         "keywords": "mouse pointer cursor colour color size fare işaretçi imleç renk boyut"},
         {"id": "lockscreen", "icon": "system-lock-screen-symbolic", "page": "lockscreen",
          "title": ("Lock screen", "Kilit ekranı"),
          "desc": ("Picture, when to lock, password on wake", "Resim, ne zaman kilitleneceği, uyanınca parola"),
@@ -323,11 +330,14 @@ def search(query, lang):
     words = fold(query).split()
     if not words:
         return []
-    results = []
+    results, seen = [], set()
     for p in PAGES:
         for item in p["items"]:
             haystack = fold(" ".join([*item["title"], *item["desc"], item.get("keywords", ""),
                                       *p["title"]]))
-            if all(word in haystack for word in words):
+            # The same page under two headings (Mouse pointer) is found once.
+            key = (item.get("page") or item.get("action"), item["title"][0])
+            if all(word in haystack for word in words) and key not in seen:
+                seen.add(key)
                 results.append(localized_item(item, lang, p))
     return results

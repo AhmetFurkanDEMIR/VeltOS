@@ -26,6 +26,13 @@ sign-in screen (SDDM, user "sddm") cannot run programs: it talks to
 connections of the sddm user (the peer's socket owner in /proc/net/tcp)
 and resets a password only after finding a drive whose key matches the
 account's hash.
+
+The lock screen (the user's own kscreenlocker greeter) cannot reach the
+network: it runs `status-self` for the hint and whether a drive exists,
+and for "Reset password" `want-reset`, which asks the service to open the
+sign-in screen's reset panel for this account; the lock screen then
+switches to the sign-in screen. A user's own processes can ask only that,
+for their own account; nothing else is answered for them.
 """
 
 import base64
@@ -54,6 +61,10 @@ RECORDS = "var/lib/veltos/recovery"
 ACCOUNTS = Path("/var/lib/AccountsService/users")
 PORT = 47824
 GREETER_USER = "sddm"
+# "Reset password" chosen on the lock screen: the sign-in screen opens its
+# reset panel for the account while the mark is fresh.
+WANTS = Path("/run/veltos-password-recovery")
+WANT_SECONDS = 300
 # File systems a reset drive can carry (what Windows and VeltOS can write).
 FILESYSTEMS = ("vfat", "exfat", "ntfs", "ntfs3", "ext4", "ext3", "ext2", "btrfs", "f2fs")
 # scrypt's cost: the key is random (256 bits), the hash only has to keep it
@@ -344,6 +355,44 @@ def hint_of(user, accounts=ACCOUNTS):
     return match.group(1).strip() if match else ""
 
 
+def own_hint(user, runner=run):
+    """The hint as the user's own processes can read it (AccountsService
+    answers PasswordHint on the system bus; its file is root's)."""
+    code, out = runner(["busctl", "--json=short", "call", "org.freedesktop.Accounts", "/org/freedesktop/Accounts",
+                        "org.freedesktop.Accounts", "FindUserByName", "s", user])
+    try:
+        path = json.loads(out)["data"][0] if code == 0 else ""
+    except (ValueError, KeyError, IndexError, TypeError):
+        path = ""
+    if not path:
+        return ""
+    code, out = runner(["busctl", "--json=short", "get-property", "org.freedesktop.Accounts", path,
+                        "org.freedesktop.Accounts.User", "PasswordHint"])
+    try:
+        return str(json.loads(out)["data"]) if code == 0 else ""
+    except (ValueError, KeyError, TypeError):
+        return ""
+
+
+def want_reset(user, wants=WANTS, now=None):
+    """Mark that the sign-in screen should open its reset panel for user."""
+    wants = Path(wants)
+    wants.mkdir(mode=0o700, parents=True, exist_ok=True)
+    (wants / user).write_text(str(int(now if now is not None else time.time())), encoding="ascii")
+
+
+def take_reset_wish(user, wants=WANTS, now=None):
+    """Whether a fresh "Reset password" from the lock screen waits for the
+    account (the mark is used once)."""
+    path = Path(wants) / user
+    try:
+        stamp = int(path.read_text(encoding="ascii").strip())
+        path.unlink()
+    except (OSError, ValueError):
+        return False
+    return 0 <= (now if now is not None else time.time()) - stamp <= WANT_SECONDS
+
+
 def valid_password(password):
     return bool(password) and len(password) <= 512 and not re.search(r"[\r\n\0]", password)
 
@@ -435,16 +484,17 @@ def respond(stream, status, payload):
                     f"Content-Length: {len(body)}\r\nConnection: close\r\n\r\n").encode("latin-1") + body)
 
 
-def answer(method, path, body, root="/", runner=run, mount=Mounted, accounts=ACCOUNTS):
+def answer(method, path, body, root="/", runner=run, mount=Mounted, accounts=ACCOUNTS, wants=WANTS):
     """(status, payload) for the sign-in screen's requests:
-    POST /status {"user"}            -> {"configured", "hint"}
+    POST /status {"user"}            -> {"configured", "hint", "resetRequested"}
     POST /find {"user"}              -> {"error"} ("" when the drive is in)
     POST /reset {"user", "password", "hint"} -> {"error"}"""
     user = str(body.get("user", ""))
     if method != "POST" or not valid_user(user) or not user_exists(user, root):
         return 400, {"error": "bad-request"}
     if path == "/status":
-        return 200, {"configured": configured(user, root), "hint": hint_of(user, accounts)}
+        return 200, {"configured": configured(user, root), "hint": hint_of(user, accounts),
+                     "resetRequested": take_reset_wish(user, wants)}
     if path == "/find":
         return 200, {"error": find_key(user, root, runner, mount)[0]}
     if path == "/reset":
@@ -454,21 +504,66 @@ def answer(method, path, body, root="/", runner=run, mount=Mounted, accounts=ACC
     return 404, {"error": "bad-request"}
 
 
-def serve(sock, allowed_uid=None, uid_of=peer_uid, **kwargs):
+def own_account(uid):
+    try:
+        return pwd.getpwuid(uid).pw_name
+    except (KeyError, TypeError):
+        return ""
+
+
+def serve(sock, allowed_uid=None, uid_of=peer_uid, account_of=own_account, wants=WANTS, **kwargs):
     """Answer one connection (systemd's socket, Accept=yes)."""
     allowed = greeter_uid() if allowed_uid is None else allowed_uid
     request = read_request(sock)
     if request is None:
         return 1
-    if allowed is None or uid_of(sock) != allowed:
+    peer = uid_of(sock)
+    if allowed is None or peer != allowed:
+        # A user's own processes (the lock screen) may only ask for the
+        # sign-in screen's reset panel, for their own account.
+        method, path, body = request
+        user = str(body.get("user", ""))
+        if (method == "POST" and path == "/want-reset" and peer is not None and peer != 0
+                and valid_user(user) and account_of(peer) == user):
+            want_reset(user, wants)
+            respond(sock, 200, {"error": ""})
+            return 0
         respond(sock, 403, {"error": "forbidden"})
         return 1
     if request[0] == "OPTIONS":
         respond(sock, 200, {})
         return 0
-    status, payload = answer(*request, **kwargs)
+    status, payload = answer(*request, wants=wants, **kwargs)
     respond(sock, status, payload)
     return 0
+
+
+def ask_service(path, body, port=PORT, timeout=10):
+    """A client request to the service (the lock screen's "Reset password")."""
+    data = json.dumps(body).encode("utf-8")
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=timeout) as conn:
+            conn.sendall((f"POST {path} HTTP/1.0\r\nContent-Type: application/json\r\n"
+                          f"Content-Length: {len(data)}\r\n\r\n").encode("latin-1") + data)
+            reply = b""
+            while True:
+                chunk = conn.recv(4096)
+                if not chunk:
+                    break
+                reply += chunk
+    except OSError:
+        return None
+    head, _, payload = reply.partition(b"\r\n\r\n")
+    if not head.startswith(b"HTTP/1.0 200"):
+        return None
+    try:
+        return json.loads(payload.decode("utf-8"))
+    except ValueError:
+        return None
+
+
+def me():
+    return own_account(os.getuid()) if pwd else ""
 
 
 def main(args):
@@ -479,6 +574,15 @@ def main(args):
     if len(args) == 2 and args[0] == "status":
         print(json.dumps({"configured": configured(args[1])}))
         return 0
+    if args == ["status-self"]:
+        # For the lock screen: the caller's own account only.
+        user = me()
+        print(json.dumps({"user": user, "configured": configured(user), "hint": own_hint(user) if user else ""}))
+        return 0
+    if args == ["want-reset"]:
+        reply = ask_service("/want-reset", {"user": me()})
+        print(json.dumps({"error": "" if reply is not None else "unavailable"}))
+        return 0 if reply is not None else 1
     if args[:1] == ["serve"]:
         sock = socket.socket(fileno=0)
         try:
@@ -499,6 +603,7 @@ def main(args):
         ok = valid_user(args[1]) and remove_record(args[1])
         print(json.dumps({"error": "" if ok else "failed"}))
         return 0 if ok else 1
-    print("usage: password-recovery drives [DISK...] | status USER | create USER PARTITION "
-          "[--root DIR] [--host NAME] [--exclude DISK,...] | remove USER | serve", file=sys.stderr)
+    print("usage: password-recovery drives [DISK...] | status USER | status-self | want-reset | "
+          "create USER PARTITION [--root DIR] [--host NAME] [--exclude DISK,...] | remove USER | serve",
+          file=sys.stderr)
     return 2

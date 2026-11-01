@@ -1,3 +1,11 @@
+veltos-settings (1.1.0~dev5) trixie; urgency=medium
+
+  * Display: Detect other displays (display-detect through pkexec, no password).
+  * Mouse pointer also under Personalization and linked from Mouse.
+  * Light/dark: plasmashell is asked until it reports the new theme.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 10:00:00 +0000
+
 veltos-settings (1.1.0~dev4) trixie; urgency=medium
 
   * Apps > Windows programs: Bottles' programs too, each marked Wine (VeltOS)

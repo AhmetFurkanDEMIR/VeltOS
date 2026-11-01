@@ -52,8 +52,20 @@ rm -f "$f.veltos"
 # Plasma::Theme's name, which also writes plasmarc): on the product owner's
 # first start after installation the taskbar stayed in the old mode until
 # the next start, while plasmarc already held the new theme (2026-10-28).
-gdbus call --session --dest org.kde.plasmashell --object-path /PlasmaShell \
-    --method org.kde.PlasmaShell.evaluateScript "\"theme = '$2'\"" >/dev/null 2>&1
+# The shell is asked until it reports the new theme: right after the first
+# sign-in plasmashell is busy for a while and a single call could be lost,
+# which left the taskbar light in dark mode (product owner, 2026-11-02).
+i=0
+while [ $i -lt 30 ]; do
+    gdbus call --session --dest org.kde.plasmashell --object-path /PlasmaShell \
+        --method org.kde.PlasmaShell.evaluateScript "\"theme = '$2'\"" >/dev/null 2>&1
+    case "$(gdbus call --session --dest org.kde.plasmashell --object-path /PlasmaShell \
+        --method org.kde.PlasmaShell.evaluateScript "\"print('theme=' + theme + ';')\"" 2>/dev/null)" in
+        *"theme=$2;"*) break ;;
+    esac
+    i=$((i + 1))
+    sleep 2
+done
 # The Terminal follows the theme (veltos-desktop).
 [ -x /usr/libexec/veltos/terminal-theme ] && /usr/libexec/veltos/terminal-theme "$3"
 # So does the mouse pointer, unless the user chose a style of its own
@@ -887,6 +899,26 @@ class Backend(QObject):
     def identifyDisplays(self):
         """Each display shows its number for a moment (Windows' Identify)."""
         self._start(["veltos-settings", "--identify"])
+
+    @Slot()
+    def detectDisplays(self):
+        """Windows' Detect: probe the connectors again, turn on a screen
+        KWin keeps off, and say what was found."""
+        if self._display.get("detecting"):
+            return
+        self._update("_display", self.displayChanged, {"detecting": True, "detectText": ""})
+
+        def done(result):
+            result = result or {}
+            if result.get("missing"):
+                text = self.format("detect_missing", ", ".join(result["missing"]))
+            elif result.get("turnedOn"):
+                text = self.format("detect_found", ", ".join(result["turnedOn"]))
+            else:
+                text = self.text("detect_none")
+            self._update("_display", self.displayChanged, {"detecting": False, "detectText": text})
+            self.refreshDisplay()
+        self.jobs.submit(self.system.display.detect, done)
 
     def follow_screens(self, app, delay=400):
         """Display follows displays plugged in, taken away or changed

@@ -327,3 +327,17 @@ restricted channel, gets the reason "channel" at once. Failed starts are
 written to `~/.cache/veltos-settings/hotspot.log` with nmcli's error and
 what iw reports about the card (channels, combinations, regulatory
 domain).
+
+## Added 2026-11-02
+
+- Display > "Detect other displays" (Windows 11's Detect):
+  `/usr/libexec/veltos/display-detect` (pkexec, polkit action
+  `org.veltos.display.detect`, no password for the active session) writes
+  "detect" to every `/sys/class/drm/card*-*/status` and asks udev for a
+  change event; then a screen KWin knows but keeps off is turned on, and a
+  connected one KWin does not know is named ("the driver log says why").
+- Mouse pointer: also under Personalization and as "Related settings" on
+  Bluetooth & devices > Mouse; search finds it once.
+- The light/dark command asks plasmashell until it reports the new Plasma
+  theme (up to a minute): right after the first sign-in a single call
+  could be lost and the taskbar kept the old mode.

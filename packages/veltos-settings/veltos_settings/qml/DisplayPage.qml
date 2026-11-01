@@ -249,6 +249,22 @@ ColumnLayout {
         }
     }
 
+    // Windows 11's "Detect other display", also with one screen: a monitor
+    // that is plugged in but not shown comes up (2026-11-02).
+    SettingRow {
+        objectName: "detectDisplays"
+        Layout.fillWidth: true
+        icon: "video-display-symbolic"
+        title: backend.text("detect_title")
+        description: page.disp.detectText ? page.disp.detectText : backend.text("detect_desc")
+        VButton {
+            objectName: "detectButton"
+            text: page.disp.detecting ? backend.text("detecting") : backend.text("detect_button")
+            enabledState: !page.disp.detecting
+            onClicked: backend.detectDisplays()
+        }
+    }
+
     SettingRow {
         objectName: "multipleDisplays"
         Layout.fillWidth: true

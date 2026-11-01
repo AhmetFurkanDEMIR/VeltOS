@@ -10,10 +10,17 @@ in the background at the first internet connection after the installation
 (veltos-first-update.service, firstupdate.py) and this window only says so
 in one line under the cards.
 
+Since 2026-11-02 (product owner: "more beautiful and animated, like
+Windows 11") the window has three pages, as Windows 11's Get Started app:
+a greeting over drifting colours, "Make it yours" (light or dark mode and
+the accent colour, applied at once through VeltOS Settings' own helpers),
+and the cards with the update's line.
+
 should_show() decides without Qt (it runs at every sign-in): never in the
 live system, once per user (~/.config/veltos/first-start-shown).
 """
 
+import threading
 import time
 from pathlib import Path
 
@@ -35,14 +42,47 @@ CARDS = [
 ]
 
 
+class SettingsLook:
+    """Light/dark and the accent through VeltOS Settings' own helpers (the
+    same commands as Settings > Personalization > Colours, so the taskbar
+    and every open window follow)."""
+
+    def __init__(self):
+        from veltos_settings import devices
+        from veltos_settings.app import APPLY_THEME, DESKTOP_THEME, LOOK_AND_FEEL
+        self.devices = devices
+        self.accents = list(devices.ACCENTS)
+        self.command = lambda dark: ["sh", "-c", APPLY_THEME, "sh", LOOK_AND_FEEL[dark], DESKTOP_THEME[dark],
+                                     "dark" if dark else "light"]
+
+    def set_mode(self, dark):
+        personal = self.devices.Personalization()
+        return personal.set_mode(self.command(dark), personal.accent())
+
+    def set_accent(self, colour):
+        return self.devices.Personalization().set_accent(colour)
+
+
+def settings_look():
+    try:
+        return SettingsLook()
+    except ImportError:          # without VeltOS Settings: the card opens nothing more
+        return None
+
+
 class FirstStart(QObject):
     changed = Signal()
     lookChanged = Signal()
     finished = Signal()
+    applyingChanged = Signal()
+    _applied = Signal()
 
     def __init__(self, lang=None, status=firstupdate.STATUS, done=firstupdate.DONE, interval=2000, shown=None,
-                 dark=False, accent="", scale=1.0, start=None, follow=None):
+                 dark=False, accent="", scale=1.0, start=None, follow=None, look=None):
         super().__init__()
+        self._settings = look
+        self._applying = 0
+        self._applied.connect(self._done_applying)
         self.lang = lang or strings.language()
         self._texts = strings.texts(self.lang)
         self._status, self._done, self._shown = status, done, shown or marker()
@@ -99,6 +139,51 @@ class FirstStart(QObject):
         self._data = firstupdate.read_status(self._status)
         self.changed.emit()
 
+    # --- Make it yours: light or dark, the accent ---------------------------------------------
+
+    @Property(bool, constant=True)
+    def canPersonalize(self):
+        return self._settings is not None
+
+    @Property("QVariantList", constant=True)
+    def accents(self):
+        return self._settings.accents if self._settings is not None else []
+
+    @Property(bool, notify=applyingChanged)
+    def applying(self):
+        return self._applying > 0
+
+    def _apply(self, work):
+        """Runs a look change off the window's thread (it takes seconds);
+        one after the other, as Settings does."""
+        self._applying += 1
+        self.applyingChanged.emit()
+
+        def run():
+            with self._lock:
+                try:
+                    work()
+                finally:
+                    self._applied.emit()
+        threading.Thread(target=run, daemon=True).start()
+
+    _lock = threading.Lock()
+
+    def _done_applying(self):
+        self._applying = max(0, self._applying - 1)
+        self.applyingChanged.emit()
+        self._look.check()
+
+    @Slot(bool)
+    def setDarkMode(self, dark):
+        if self._settings is not None and dark != self._look.dark:
+            self._apply(lambda: self._settings.set_mode(dark))
+
+    @Slot(str)
+    def setAccent(self, colour):
+        if self._settings is not None:
+            self._apply(lambda: self._settings.set_accent(colour))
+
     @Slot(str)
     def open(self, card):
         program = next((p for key, _icon, p in CARDS if key == card), None)
@@ -120,7 +205,7 @@ class FirstStart(QObject):
 def main(app, engine_factory, start=None):
     from .app import accent, dark_mode, text_scale
     backend = FirstStart(dark=dark_mode(), accent=accent(), scale=text_scale(), start=start,
-                         follow=lambda: (dark_mode(), accent()))
+                         follow=lambda: (dark_mode(), accent()), look=settings_look())
     app.setApplicationDisplayName(backend.texts["wl_window"])
     engine = engine_factory()
     engine.rootContext().setContextProperty("backend", backend)

@@ -177,6 +177,13 @@ class OverrideTests(unittest.TestCase):
         self.assertIn('ui.tr("Welcome", "Hoş geldiniz")', ui)
         self.assertIn("ui.finish();", ui)
         self.assertIn("ui.woke();", ui)
+        # After a wrong password: the hint and "Reset password", which
+        # switches to the sign-in screen's reset panel (2026-11-02).
+        self.assertIn('recoveryTool + " status-self"', ui)
+        self.assertIn("visible: ui.failures > 0 && ui.hint !== \"\" && !ui.welcome", ui)
+        self.assertIn("visible: ui.failures > 0 && ui.resetConfigured", ui)
+        self.assertIn("sessionManagement.switchUser();", ui)
+        self.assertEqual(ui.count("Component.onCompleted"), 1)
         self.assertTrue((shell / "contents/lockscreen/LockScreen.qml").exists())   # the rest stays Plasma's
         original = self.source / "plasma/shells/org.kde.plasma.desktop/contents/lockscreen/LockScreenUi.qml"
         original.write_text(original.read_text(encoding="utf-8") + "// changed\n", encoding="utf-8")

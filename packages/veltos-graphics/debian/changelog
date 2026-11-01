@@ -1,3 +1,12 @@
+veltos-graphics (1.1.0~dev4) trixie; urgency=medium
+
+  * After installing NVIDIA's driver with Secure Boot on, the restart question
+    asks for the one-time password and registers the key before restarting.
+  * Driver log: each card's connectors, what the desktop shows, EGL drivers and
+    KWin's messages about screens.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 10:00:00 +0000
+
 veltos-graphics (1.1.0~dev3) trixie; urgency=medium
 
   * The same pkcon fixes (no debconf socket, waiting for other installs).

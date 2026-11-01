@@ -223,11 +223,67 @@ class WindowTests(unittest.TestCase):
         backend.open("ai")
         backend.open("nothing")
         self.assertEqual(started, [["veltos-ai", "--window"]])
+        # Three pages (2026-11-02): the greeting, Make it yours, the cards.
+        self.assertEqual(window.property("page"), 0)
+        self.assertEqual(window.findChild(QObject, "hello").property("text"), texts["wl_hello"])
+        window.setProperty("page", 2)
+        APP.processEvents()
+        self.assertIsNotNone(window.findChild(QObject, "getStarted"))
+        self.assertFalse(backend.canPersonalize)                      # no VeltOS Settings in the test
         finished = []
         backend.finished.connect(lambda: finished.append(True))
         backend.close()
         self.assertEqual(finished, [True])
         self.assertTrue(shown.exists())
+        problems = [m for m in MESSAGES if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()
+                    or "undefined" in m.lower()]
+        self.assertEqual(problems, [])
+        engine.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        APP.processEvents()
+
+
+    def test_make_it_yours_applies_mode_and_accent(self):
+        # Light or dark and the accent from the Welcome window, through
+        # VeltOS Settings' helpers (a stand-in here), one after the other.
+        import time
+        from PySide6.QtCore import QCoreApplication, QEvent, QObject, QUrl
+        from PySide6.QtQml import QQmlApplicationEngine
+        from veltos_store import firststart
+        calls = []
+
+        class Look:
+            accents = ["#2F5EE6", "#E81123"]
+
+            def set_mode(self, dark):
+                time.sleep(0.05)
+                calls.append(("mode", dark))
+
+            def set_accent(self, colour):
+                calls.append(("accent", colour))
+        folder = Path(tempfile.mkdtemp())
+        backend = firststart.FirstStart(lang=self.lang, status=folder / "s", done=folder / "d", interval=1000,
+                                        shown=folder / "shown", look=Look())
+        MESSAGES.clear()
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", backend)
+        engine.load(QUrl.fromLocalFile(str(firststart.QML_DIR / "Welcome.qml")))
+        window = engine.rootObjects()[0]
+        window.setProperty("page", 1)
+        window.grabWindow()
+        self.assertTrue(backend.canPersonalize)
+        self.assertEqual(backend.accents, Look.accents)
+        backend.setDarkMode(False)                    # already light: nothing to do
+        backend.setDarkMode(True)
+        backend.setAccent("#E81123")
+        self.assertTrue(backend.applying)
+        deadline = time.monotonic() + 5
+        while backend.applying and time.monotonic() < deadline:
+            APP.processEvents()
+            time.sleep(0.01)
+        self.assertFalse(backend.applying)
+        self.assertEqual(calls, [("mode", True), ("accent", "#E81123")])
+        self.assertIsNotNone(window.findChild(QObject, "accents"))
         problems = [m for m in MESSAGES if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()
                     or "undefined" in m.lower()]
         self.assertEqual(problems, [])

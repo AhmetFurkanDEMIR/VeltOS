@@ -19,6 +19,7 @@ from pathlib import Path
 LIVE_MEDIUM = Path("/run/live/medium")
 INSTALLED_QML = Path("/usr/share/veltos-live-welcome/Main.qml")
 LOGO = "/usr/share/icons/hicolor/scalable/apps/veltos-logo.svg"
+WEBSITE = "https://veltos.ahmetfurkandemir.com/"
 
 TEXTS = {
     "en": {
@@ -33,6 +34,7 @@ TEXTS = {
         "later": "You can also start the installation later with the "
                  "“Install VeltOS” icon on the desktop.",
         "website": "More about VeltOS:",
+        "opening": "Opening veltos.ahmetfurkandemir.com in the web browser…",
     },
     "tr": {
         "title": "VeltOS'a hoş geldiniz",
@@ -46,6 +48,7 @@ TEXTS = {
         "later": "Kurulumu daha sonra masaüstündeki “VeltOS'u Kur” "
                  "simgesiyle de başlatabilirsiniz.",
         "website": "VeltOS hakkında daha fazlası:",
+        "opening": "veltos.ahmetfurkandemir.com web tarayıcısında açılıyor…",
     },
 }
 
@@ -130,6 +133,18 @@ def welcome_object(texts):
         @Slot()
         def close(self):
             QGuiApplication.instance().quit()
+
+        @Slot()
+        def openWebsite(self):
+            """The website in the web browser. Qt asks the desktop portal (with
+            an activation token, so the browser comes to the front); if that
+            fails, xdg-open. The browser's first start in a live session
+            takes several seconds, so the window says "Opening..." meanwhile
+            (product owner, 2026-11-02: the link looked as if it could not
+            be clicked)."""
+            from PySide6.QtGui import QDesktopServices
+            if not QDesktopServices.openUrl(QUrl(WEBSITE)):
+                QProcess.startDetached("xdg-open", [WEBSITE])
 
         @Slot(result=str)
         def language(self):
