@@ -3,6 +3,30 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-01 — ISO 1.1-dev7 built and tested
+
+- `veltos-1.1-dev7-amd64.hybrid.iso`, 2,112,466,944 bytes (33.4 MiB under
+  2 GiB), SHA-256
+  8332442a07598bd5e481fe977561293018b9ac36b0e178f6738251f222ca8faa; built
+  from commit d74e31a with the Debian snapshot of 2026-10-31 12:00 UTC (the
+  host clock is still not trusted for fresh Release files). Its squashfs
+  holds the new pieces (`veltos_auth/recovery.py`, the reset socket
+  enabled, `recovery.qml` and its job, `veltosscreenwatch`, `themewatch.py`,
+  `Welcome.qml`, `veltos-usb-drive.svg`).
+- Boot tests: UEFI 20 PASS, BIOS 19 PASS, Secure Boot 21 PASS, no FAIL;
+  plasmashell after about 31 s (`out/test-results/20261101-170018-uefi`,
+  `-170226-bios`, `-170433-secureboot`).
+- Installed in the dev VM (English, erase disk, a USB stick for the
+  password reset): the job made the drive; after the restart the sign-in
+  screen showed the installer's hint and "Reset password" after a wrong
+  password; the first start opened the Welcome window with all cards and
+  "VeltOS is up to date" (the background update had run); Settings showed
+  the reset USB as set up (`tests/results/2026-11-01-items-114-138/dev7-*`).
+  The website's Start, search and Task View pictures were taken again on
+  this installed system.
+- Copied to the owner's Desktop as `VeltOS-1.1-dev7-20261101-163250.iso`
+  with its `.sha256` for manual tests; not released.
+
 ## 2026-11-01 — Items 114-138: the owner's list after testing ISO 1.1-dev6
 
 The product owner tested 1.1-dev6 on the laptop and sent 25 items. All are
