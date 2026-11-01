@@ -3,6 +3,33 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-02 — ISO 1.1-dev8 built and tested
+
+- `veltos-1.1-dev8-amd64.hybrid.iso`, 2,112,491,520 bytes (33.4 MiB under
+  2 GiB), SHA-256
+  8a7e5bc9c6b3157877f43f8ac79812f367018dba39a117a9dadd61a24989abae; built
+  from commit 062d381. The first attempt with the Debian snapshot mirror
+  stopped after an hour: snapshot.debian.org answered "503 TooManyRequests"
+  for the chroot's packages (`out/build-iso-dev8-snapshot503.log`); the
+  host clock is right again, so the second run used ftp.tr.debian.org for
+  the build (the image's own sources stay deb.debian.org). Lintian's
+  errors are the known ones (`__pycache__` in two Calamares modules, the
+  Task Manager's triplet directory).
+- Boot tests: UEFI 20 PASS, BIOS 19 PASS, Secure Boot 21 PASS, no FAIL;
+  plasmashell after 30.8-33.8 s (`out/test-results/20261101-223959-uefi`,
+  `-224207-bios`, `-224418-secureboot`).
+- In the live system of this ISO: the dark window frame has no #686868
+  line left, the light Plasma theme's contrast effect is 0.5 / 1.4 / 1.5,
+  `display-detect` and its call in `session-fixups` are installed.
+- Installed in the dev VM (English, erase disk, the hint "Name of my first
+  cat", no reset USB): after the restart a wrong password showed the hint
+  and no "Reset password" (the account has no reset USB); the first start
+  opened the three-page Welcome window; the window edge goes from the
+  shadow straight into the window's colour
+  (`tests/results/2026-11-02-items-140-147/dev8-installed-*`).
+- Copied to the owner's Desktop as `VeltOS-1.1-dev8-20261101-221043.iso`
+  with its `.sha256` for manual tests; not released.
+
 ## 2026-11-02 — Items 140-147: the owner's list after testing ISO 1.1-dev7
 
 - Set-up: the dev VM with ISO 1.1-dev7, installed (English, Istanbul,
@@ -51,6 +78,14 @@ went wrong, so the next person can trust the state of the repository.
   under Personalization and linked from Mouse.
 - 147, Welcome: three pages like Windows 11's Get Started (greeting,
   Make it yours, the cards), slides, page dots, Back/Next.
+- 148 (asked before the ISO), the line around windows: Fluent's Aurorae
+  frames carry a 1 px line in every edge piece (dark #686868 at 50 %,
+  light black at 15 %); painted in the frame colour now. Measured in the
+  VM: dark window (28, 29, 38) had a (43, 49, 71) ring, now the edge
+  goes from the window's colour straight into the shadow. Firefox (its
+  own title bar, GTK client-side decoration) keeps a 1 px grey edge:
+  neither a user style sheet on `:root` nor a GTK `decoration` rule in
+  the VeltOS GTK theme changed it; left open.
 - Went wrong: Python edit scripts in Git Bash heredocs lost backslash
   escapes three times (control characters in fluent.py, a broken line
   continuation in debian/rules, a test file) — caught by reading the

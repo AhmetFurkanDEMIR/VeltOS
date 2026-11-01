@@ -1401,3 +1401,9 @@ and JavaScript with no build step, no external requests and no cookies:
   tools only; check with `cat -A` when in doubt.
 - The dev VM's screen goes blank after some idle minutes (DPMS): a black
   screenshot right after a long build means "press a key", not a crash.
+- snapshot.debian.org refused a full ISO build's downloads with "503
+  TooManyRequests / No healthy backends" (2026-11-02, after an hour of
+  package builds); the host clock was right again (HTTP Date matched), so
+  the ISO was built with `VELTOS_DEBIAN_MIRROR=http://ftp.tr.debian.org/debian`
+  (2.4 MB/s from the host; deb.debian.org 1.7 MB/s). The installed
+  system's sources stay deb.debian.org (`--mirror-binary`).
