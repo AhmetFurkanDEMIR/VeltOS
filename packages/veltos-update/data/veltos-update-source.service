@@ -1,0 +1,18 @@
+[Unit]
+Description=VeltOS Update: VeltOS' package source
+Documentation=file:///usr/share/doc/veltos-update/README.md
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/veltos/update-source
+# A background task: it never slows the PC down.
+Nice=10
+IOSchedulingClass=idle
+# It writes one file, /etc/apt/sources.list.d/veltos.sources.
+ProtectSystem=strict
+ReadWritePaths=/etc/apt/sources.list.d
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes

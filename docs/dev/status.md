@@ -1,8 +1,7 @@
 # VeltOS Status
 
-Last updated: 2026-11-02 evening (items 149-152: no black frame in dark
-mode, both graphics cards' monitors, the close button's corner, light/dark
-switches one at a time). Every "Implemented" item names the evidence that shows it working.
+Last updated: 2026-11-02 night (items 153-157: VeltOS Update, releases by
+GitHub Actions, the website for 1.1, the language button). Every "Implemented" item names the evidence that shows it working.
 "Untested" means nobody has observed it working yet. Most observations are
 from QEMU/KVM virtual machines (no 3D acceleration) and VirtualBox VMs; the
 product owner installed VeltOS on their own laptop (NVIDIA RTX 4070 Max-Q)
@@ -303,6 +302,14 @@ Product owner's list of 2026-11-02, evening (after testing ISO 1.1-dev8):
 151. [x] In dark mode the close button (X) at the top right sticks out: two causes, both fixed. Window frames (KWin's Aurorae): the buttons sat 1 px inside the frame's outermost pixel, so the red hover left a 1 px rim beside it (dark in dark mode); the buttons now reach the edge (plasma-overrides/aurorae.json) and the red fills the rounded corner. The self-drawn windows (File Explorer, Notepad, Media Player, PDF Reader, Photos, Mail, Office): the red was a square that stuck out of the window's rounded corner; it now rounds the corner like the window (`topRightRadius`, square when maximised). Dev VM, light and dark (`151-*.webp`)
 152. [x] After the first start: dark mode, restart, light mode: the taskbar, Start and Settings broke and dark mode could not be chosen again: Not reproduced in the dev VM with the same steps (Welcome window to dark, restart, Colours to light, back to dark; with and without the blur effect: every switch turned the taskbar, Start and Settings). Two ways it could break are closed: two switches at the same time (Settings, the Welcome window and VeltOS AI each started their own) wrote kdeglobals and plasmarc over each other; every switch now takes one lock (`flock` in `APPLY_THEME`) and checks the colour scheme after the global theme (`plasma-apply-colorscheme` when it did not follow). And the Welcome window dropped a second quick click (Light, then Dark ended in light): it now applies the last choice, one change at a time, and its tiles show the choice at once. Untested on the owner's PC
 
+Product owner's list of 2026-11-02, night (website, updates, GitHub Actions):
+
+153. [x] Update the website with all recent changes; modern on phones and desktops; English and Turkish without mistakes; nothing overflowing or missing (menu); pictures not squashed, sharp; dark screenshots in dark mode, light in light mode: The release values (version, date, ISO, size, SHA-256) come from meta tags that GitHub Actions rewrites and are filled in both languages (Turkish written without a suffix after the version); what VeltOS 1.1 adds (VeltOS Update's section, FAQ, password reset, keyboard lighting, Bottles, windows and pointer following light/dark) is marked `data-since="1.1"` and appears with the release (`?release=1.1` previews it). Pictures were taken again at 1920x1080 on an installed 1.1-dev10 system (US formats) and kept at that size (WebP 90: the 1600 px ones were soft; VeltOS AI's, start-up, sign-in and installer pictures are unchanged); the Personalize section compares light and dark with a slider (both looks on purpose); everything else follows the page's theme. No picture is squashed (rendered ratios measured at 1024 and 375 px); no sideways scrolling at 375 px
+154. [x] (during the work) The language button showed only "EN" or "TR": both are shown, the current one filled (dark, light, phone width checked)
+155. [x] Version updates: a release's changes (VeltOS AI, the OS itself, a new app) reach users' PCs; a daily background check with a Windows 11 style notification, a manual check in Settings, the release's notes from GitHub shown nicely, files and installed programs kept: VeltOS Update (`veltos-update`, `veltos-system`, Settings > VeltOS Update; architecture 2.56). A release's packages are a signed APT repository among its files; the notification "VeltOS 1.1 is ready" opens the page; Download & install updates, adds new apps and asks for a restart. Seen end to end in the dev VM with a pretend release, in the live system and in an installation of ISO 1.1-dev10 (one administrator prompt, the restart, "You're up to date · VeltOS 1.1" afterwards, 29 sample files and an installed program kept; `tests/results/2026-11-02-veltos-update/`). Fixed on the way: Restart now did nothing (also in Graphics Cards and Keyboard Lighting; dev10 still has that bug, the next ISO not). Systems installed from VeltOS 1.0 have no VeltOS Update yet (one new installation, or `dpkg -i` of the package from the 1.1 release)
+156. [x] Releases by GitHub Actions on main: the ISO, the release with its notes and the website's SHA-256 from the workflow: `.github/workflows/release.yml` (architecture 2.57; build guide "Releases"). Untested on GitHub: it needs the repository secret `VELTOS_APT_SIGNING_KEY` and runs when a push changes `VERSION` (only on the owner's "Relase çık")
+157. [x] Keep the ISO under 2 GiB for the release without giving up quality, speed or animations and without removing anything: the workflow and `build-iso.sh` refuse an ISO of 2 GiB or more; VeltOS Update adds two small packages; nothing was removed: ISO 1.1-dev10 is 2,112,495,616 bytes, 33.4 MiB under the limit, boot tests UEFI 19, BIOS 18, Secure Boot 20 checks passed
+
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
 SHA-256, website download and pictures updated) only when the owner says
@@ -478,6 +485,12 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
    driver log has the details if one stays dark), the taskbar after the
    first start's light/dark switches (142, 152), the dark mode edges with
    a real graphics card (149, seen in the VM with blur loaded).
+   Items 153-157 (2026-11-02 night): before the first release by GitHub
+   Actions the owner stores the archive key as the secret
+   `VELTOS_APT_SIGNING_KEY` and keeps a backup of it; the first run of
+   the workflow is the first real test of it (build guide "Releases").
+   VeltOS Update with a real administrator prompt and a restart is to see
+   on an installed system.
 1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
    built (F1, F2, F7); the remaining release steps are F3-F6 (website),
    F8 (contributors) and F9 (publishing the ISO on a GitHub release and the

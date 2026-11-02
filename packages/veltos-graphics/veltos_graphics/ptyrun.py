@@ -11,8 +11,8 @@ it runs here in a pty that answers that question; the transaction stays
 interactive and polkit asks through the session's agent (VeltOS' prompt).
 
 Usage: python3 -m PACKAGE.ptyrun pkcon -p install NAME (VeltOS Store,
-VeltOS Graphics Cards and VeltOS Keyboard Lighting each carry this file, as
-packages build on their own; tests/repo checks that the copies match). Everything pkcon prints is
+VeltOS Graphics Cards, VeltOS Keyboard Lighting and VeltOS Update each carry
+this file, as packages build on their own; tests/repo checks that the copies match). Everything pkcon prints is
 passed on to standard output; the exit code is pkcon's.
 
 One installation after another (product owner, 2026-11-01: the graphics

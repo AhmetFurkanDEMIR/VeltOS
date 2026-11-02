@@ -1,0 +1,6 @@
+veltos-system (1.1.0~dev1) trixie; urgency=medium
+
+  * New: the package that depends on every VeltOS package of an installed
+    system, so new apps come with VeltOS Update.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 12:00:00 +0000

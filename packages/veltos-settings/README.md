@@ -163,7 +163,8 @@ open VeltOS Settings.
   - **Accessibility**: Text size (KDE fonts), Animation effects;
   - **Privacy & security**: Location (VeltOS Maps access, off by default),
     Screen lock, Searching files (balooctl6).
-- "Check for updates" and "Get apps" open VeltOS Store.
+- "Get apps" opens VeltOS Store; VeltOS Update is a page of its own
+  (below).
 - `bin/veltos-settings-redirect`, installed as `/usr/bin/systemsettings`,
   `/usr/bin/kcmshell6`, `/usr/bin/kinfocenter` and `/usr/bin/keditfiletype`
   (KDE's programs are diverted to `*.kde` by the preinst), maps KDE module
@@ -256,7 +257,6 @@ the theme switch applies the global theme).
   volume, game controllers, pen tablets, on-screen keyboard, spelling.
 - Windows programs have no Modify / Repair entries; Uninstall runs the
   program's own uninstaller, whose window may still appear.
-- No automatic update checks yet (VeltOS Update opens the Store).
 
 ## App icon and text
 
@@ -341,3 +341,29 @@ domain).
 - The light/dark command asks plasmashell until it reports the new Plasma
   theme (up to a minute): right after the first sign-in a single call
   could be lost and the taskbar kept the old mode.
+
+## VeltOS Update page (2026-11-02)
+
+The last item of the navigation, Windows Update's place
+(`catalog.py` item "updates", page "update"; `qml/UpdatePage.qml`,
+`vupdate.py`; `veltos-settings update` opens it, as the notification's
+"View update" does). It uses veltos-update's modules (Recommends: without
+them the page says VeltOS Update is not installed):
+
+- the status card: "You're up to date" with the VeltOS version and the
+  last check, "VeltOS 1.1 is available" (with "N other updates come with
+  it": Debian's, VeltOS' own packages belong to the release), other
+  updates, checking, installing with the step and pkcon's percentage,
+  "Restart to finish", failures (administrator permission refused, no
+  network) with Try again;
+- the release's notes in the window's language (the release text's part
+  before or after `<!-- tr -->`, rendered as Markdown), its date and a link
+  to the release on GitHub;
+- notifications on or off (`~/.config/veltos/update.conf`), what is kept,
+  the website.
+
+Install runs the steps of `veltos_update.steps.plan` one after another
+through `ptyrun` (pkcon; one administrator prompt per pkcon transaction),
+then installs what `veltos-system` depends on and is missing (new apps),
+and clears the saved counts. Seen in the dev VM with a pretend release
+(2026-11-02): notification, page, install, "You're up to date" afterwards.

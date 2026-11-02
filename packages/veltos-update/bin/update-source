@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+"""VeltOS' package source while the newest VeltOS release carries VeltOS'
+signed package index (veltos-update-source.service, run as root by its
+timer; veltos_update.source)."""
+
+import sys
+
+from veltos_update import source
+
+sys.exit(source.main())

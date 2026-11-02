@@ -95,6 +95,70 @@ class SettingsWindowTests(unittest.TestCase):
         return [m for m in self.messages if "qml" in m.lower() or "error" in m.lower()
                 or "undefined" in m.lower() or "warning" in m.lower()]
 
+    def test_veltos_update_page(self):
+        """Settings > VeltOS Update with stand-ins for veltos-update (which
+        the package build does not have): a newer release with its notes in
+        the window's language, Download & install through its steps with
+        their progress, the new app of the release, then Restart now."""
+        import time
+        from types import SimpleNamespace
+        from veltos_settings import vupdate
+
+        def key(text):
+            return tuple(int(p) for p in text.split(".")) if text else ()
+        saved = {"checked": time.time() - 3600, "others": 2, "latest": {
+            "version": "1.2", "tag": "v1.2", "name": "VeltOS 1.2", "url": "https://example.invalid/v1.2",
+            "published": "2026-12-01T10:00:00Z",
+            "body": "## What's new\n\n- Faster apps\n\n<!-- tr -->\n## Yenilikler\n\n- Daha hızlı uygulamalar"}}
+        saves = []
+        check = SimpleNamespace(load=lambda: dict(saved), save=saves.append, notify_enabled=lambda: True,
+                                set_notify=lambda on: True, other_updates=lambda: (0, 0))
+        release = SimpleNamespace(
+            installed_version=lambda: "1.1", newer=lambda a, b: key(a) > key(b), RELEASES_PAGE="",
+            notes=lambda body, lang: body.partition("<!-- tr -->")[2 if lang == "tr" else 0].strip(),
+            fetch=lambda: saved["latest"])
+        steps = SimpleNamespace(
+            META="veltos-system", installed=lambda name: False, arch=lambda: "amd64",
+            plan=lambda have, native: [("refresh", ["-p", "refresh"]),
+                                       ("system", ["-p", "install", "veltos-system:amd64"]),
+                                       ("update", ["-p", "update"]), ("apps", [])],
+            missing_apps=lambda: ["veltos-newapp"],
+            progress=lambda line: ("percent", 40) if line.startswith("Percentage") else None)
+        runs = []
+        updater = vupdate.Updater(self.lang, self.backend.jobs, self.backend._start, self.backend,
+                                  mods=(check, release, steps), run_process=lambda step, args: runs.append((step, args)))
+        updater.changed.connect(self.backend.veltosUpdateChanged)
+        self.backend._vupdate = updater
+        self.show("update")
+        view = self.backend.veltosUpdate
+        self.assertEqual(view["state"], "available")
+        self.assertEqual(view["title"], self.backend.text("vu_release").replace("{version}", "1.2"))
+        self.assertIn("Daha hızlı" if self.lang == "tr" else "Faster apps", view["notes"])
+        self.assertTrue(self.items("updateNotes"))
+        self.assertEqual([i.property("text") for i in self.items("updateTitle")], [view["title"]])
+        self.backend.veltosUpdateAction()                 # Download & install
+        self.assertEqual(runs[-1][0], "refresh")
+        updater.finished("refresh", 0, "")
+        updater.finished("system", 0, "")
+        updater.progress("Percentage:\t40")
+        self.assertEqual(self.backend.veltosUpdate["percent"], 40)
+        self.assertEqual(self.backend.veltosUpdate["state"], "installing")
+        updater.finished("update", 0, "")
+        self.assertEqual(runs[-1], ("apps", ["-p", "install", "veltos-newapp:amd64"]))
+        updater.finished("apps", 0, "")
+        self.assertEqual(self.backend.veltosUpdate["state"], "restart")
+        # The saved counts are cleared, so the page opened again says "up to date".
+        self.assertEqual((saves[-1]["others"], saves[-1]["veltos"]), (0, 0))
+        self.backend.veltosUpdateAction()                 # Restart now
+        self.assertEqual(self.started[-1], vupdate.REBOOT)
+        # A refused password: "couldn't be installed" and Try again.
+        updater.install()
+        updater.finished("refresh", 1, "Fatal error: Not authorized")
+        self.assertEqual(self.backend.veltosUpdate["state"], "failed")
+        self.assertEqual(self.backend.veltosUpdate["subtitle"], self.backend.text("vu_failed_auth"))
+        self.app.processEvents()
+        self.assertEqual(self.problems(), [])
+
     def test_language_choices_put_turkish_and_english_first(self):
         self.assertEqual(self.backend.languageOptions, [
             {"value": "tr", "label": "Türkçe"},

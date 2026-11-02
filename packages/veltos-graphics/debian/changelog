@@ -1,3 +1,10 @@
+veltos-graphics (1.1.0~dev5) trixie; urgency=medium
+
+  * Restart now waits for Plasma's answer (dbus-send --print-reply): sent
+    without it, Plasma's logout and restart did nothing (dev VM 2026-11-02).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 17:30:00 +0000
+
 veltos-graphics (1.1.0~dev4) trixie; urgency=medium
 
   * After installing NVIDIA's driver with Secure Boot on, the restart question

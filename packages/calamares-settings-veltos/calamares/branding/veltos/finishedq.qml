@@ -51,7 +51,8 @@ VeltPage {
         model: page.failed ? [] : [
             page.t("Your files and settings start fresh on the new system.", "Yeni sistemde dosyalarınız ve ayarlarınız sıfırdan başlar."),
             page.t("Sign in with the account you created.", "Oluşturduğunuz hesapla oturum açın."),
-            page.t("Updates and new apps come from VeltOS Store.", "Güncelleştirmeler ve yeni uygulamalar VeltOS Store'dan gelir.")
+            page.t("New VeltOS versions come through Settings > VeltOS Update, apps from VeltOS Store.",
+                   "Yeni VeltOS sürümleri Ayarlar > VeltOS Güncelleme'den, uygulamalar VeltOS Mağaza'dan gelir.")
         ]
         delegate: RowLayout {
             required property var modelData

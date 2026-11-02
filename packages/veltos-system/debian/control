@@ -1,0 +1,50 @@
+Source: veltos-system
+Section: metapackages
+Priority: optional
+Maintainer: VeltOS Developers <1ahmetfurkandemir@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               python3
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: veltos-system
+Architecture: all
+Depends: veltos-ai,
+         veltos-archive,
+         veltos-auth,
+         veltos-base,
+         veltos-boot,
+         veltos-calculator,
+         veltos-calendar,
+         veltos-camera,
+         veltos-clock,
+         veltos-desktop,
+         veltos-disks,
+         veltos-explorer,
+         veltos-fluent-icons,
+         veltos-graphics,
+         veltos-lighting,
+         veltos-llama,
+         veltos-mail,
+         veltos-maps,
+         veltos-media,
+         veltos-msi-ec,
+         veltos-notepad,
+         veltos-office,
+         veltos-pdf,
+         veltos-photos,
+         veltos-recovery,
+         veltos-settings,
+         veltos-snip,
+         veltos-store,
+         veltos-taskmanager,
+         veltos-update,
+         veltos-weather,
+         veltos-winapps,
+         veltos-wine-addons,
+         ${misc:Depends}
+Description: VeltOS: every part of an installed VeltOS system
+ Depends on every VeltOS package an installed system has (the installer
+ left out), so an app that a VeltOS release adds reaches installed PCs
+ with the release's update (VeltOS Update). Removing it removes nothing
+ else.

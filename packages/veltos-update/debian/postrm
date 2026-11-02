@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove|purge)
+        # The source names the archive key this package carried: without
+        # it every apt update would fail.
+        rm -f /etc/apt/sources.list.d/veltos.sources /etc/apt/sources.list.d/veltos.sources.new
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

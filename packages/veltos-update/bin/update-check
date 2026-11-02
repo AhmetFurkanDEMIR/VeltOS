@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+"""VeltOS Update's daily check (veltos-update-check.service, a user service):
+looks for a new VeltOS release and other updates and tells the user once
+(veltos_update.check)."""
+
+import sys
+
+from veltos_update import check, notify
+
+sys.exit(0 if check.run(notify=notify.send) is not None else 1)

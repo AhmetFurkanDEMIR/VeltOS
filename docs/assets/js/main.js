@@ -19,13 +19,13 @@
     "nav.menu": "Menü",
     "theme.toggle": "Açık veya koyu",
 
-    "hero.eyebrow": "Sürüm 1.0 · Ücretsiz · Açık kaynak · Debian 13",
+    "hero.eyebrow": "Sürüm <span data-release=\"version\"></span> · Ücretsiz · Açık kaynak · Debian 13",
     "hero.title1": "Senin Bilgisayarın.",
     "hero.title2": "Sınır Tanıma.",
     "hero.lead": "VeltOS, Windows 11 kullanıcılarının zaten bildiği gibi çalışan ücretsiz bir işletim sistemidir: Başlat, görev çubuğu, Dosya Gezgini, Ayarlar ve mağaza tam beklediğiniz yerde. Yirmiden fazla kendi uygulaması, VeltOS AI yardımcısı, Office, modern bir kurulum programı ve Windows programı desteğiyle gelir.",
     "hero.download": "VeltOS'u indir",
     "hero.source": "Kaynak kodu",
-    "hero.meta": "64 bit bilgisayarlar · 2,1 GB ISO · Türkçe ve English · Her zaman ücretsiz",
+    "hero.meta": "64 bit bilgisayarlar · <span data-release=\"size\"></span> ISO · Türkçe ve English · Her zaman ücretsiz",
     "hero.float.ai": "Windows + C · yardıma hazır",
     "hero.float.sec1": "Güvenli Önyükleme · AppArmor",
     "hero.float.sec2": "Yalnızca imzalı yazılım",
@@ -52,7 +52,7 @@
     "f4.t": "Hızlı Ayarlar",
     "f4.d": "Wi-Fi, Bluetooth, mobil etkin nokta, gece ışığı, güç modları, ses ve parlaklık tek panelde. Windows + P ile ikinci ekrana yansıtın.",
     "f5.t": "VeltOS Mağaza",
-    "f5.d": "Debian'ın imzalı arşivinden binlerce ücretsiz uygulama ve oyun, tek tıkla kurulur. Güncelleştirmeler de aynı yerden gelir.",
+    "f5.d": "Debian'ın imzalı arşivinden binlerce ücretsiz uygulama ve oyun, tek tıkla kurulur. Güncellemeleri de aynı yerden gelir.",
     "f6.t": "Office, çalışmaya hazır",
     "f6.d": "Word, Excel ve PowerPoint belgeleri VeltOS Office'te açılır ve varsayılan olarak Microsoft biçimlerinde kaydedilir; başlamak için şablonlar hazır.",
     "f7.t": "Windows programları",
@@ -67,6 +67,12 @@
     "f11.d": "Az sayıda arka plan hizmeti, Windows 11'deki gibi bellek sıkıştırma ve oturum açma ekranına yaklaşık dört saniyelik açılış.",
     "f12.t": "Anlaşılır bir kurulum",
     "f12.d": "Windows 11 tarzında kurulum: Windows'un yanına ya da yerine, isterseniz şifreli, birkaç dakikada ve kendi dilinizde.",
+    "f13.t": "Güncellemeler size gelir",
+    "f13.d": "Yeni bir VeltOS sürümü çıktığında bilgisayarınız onu güncelleme olarak alır: yeni uygulamalar ve düzeltmeler gelir; dosyalarınız, ayarlarınız ve programlarınız olduğu gibi kalır.",
+    "f14.t": "Parolanızı mı unuttunuz?",
+    "f14.d": "Kurulum sırasında hazırlanan bir parola ipucu ve isteğe bağlı bir parola sıfırlama USB belleği: oturum açma ve kilit ekranı, yanlış bir paroladan sonra bunları sunar.",
+    "f15.t": "Klavye aydınlatması",
+    "f15.d": "Dizüstü bilgisayarınızın klavye ışıkları ve renkleri, Windows 11'in Dinamik Aydınlatma'sındaki gibi Ayarlar'da. Açık kaynaklı msi-ec sürücüsünün desteklediği MSI dizüstü bilgisayarlar bu sürücüyü tek düğmeyle alır.",
 
     "ai.title": "Masaüstünüzde bir yardımcı",
     "ai.lead": "Windows + C'ye basın, VeltOS AI tıpkı Copilot gibi çalışmanızın yanında açılsın. Bir soru sorun, e-posta yazdırın ya da bir ayarı sizin için değiştirsin: her zaman önce size sorar.",
@@ -81,10 +87,13 @@
     "modes.lead": "Ayarlar'dan açık ve koyu mod arasında geçiş yapın ya da VeltOS AI'dan isteyin. Tüm uygulamalar sekiz tema, duvar kağıtları ve seçtiğiniz vurgu rengiyle birlikte buna uyar.",
     "modes.p1": "Tüm VeltOS uygulamalarında, görev çubuğunda ve Başlat'ta Windows 11 görünümü.",
     "modes.p2": "Ekranlar, ölçekleme ve gece ışığı Ayarlar › Sistem › Ekran'da.",
+    "modes.p3": "Açık pencereler açık ve koyu mod arasında anında geçer; fare işaretçisi de seçtiğiniz renk ve boyutta buna uyar.",
     "mode.settings.light": "Açık modda Ayarlar",
     "mode.settings.dark": "Koyu modda Ayarlar",
-    "mode.photos.light": "Açık modda Fotoğraflar",
-    "mode.photos.dark": "Koyu modda Fotoğraflar",
+    "cmp.light": "Açık",
+    "cmp.dark": "Koyu",
+    "cmp.label": "Açık ve koyu modu karşılaştır",
+    "cmp.caption": "Açık ve koyu modda Ayarlar: karşılaştırmak için sürükleyin.",
 
     "apps.kicker": "Uygulamalar",
     "apps.title": "Yirmiden fazla kendi uygulaması",
@@ -153,10 +162,24 @@
     "win.lead": "Dosya Gezgini'nde bir .exe veya .msi dosyasını açın: VeltOS, Wine'ı hazırlar, programı kurar ve Windows'un Uygulama Yükleyicisi'ne benzeyen bir pencereyle Başlat'a ekler.",
     "win.p1": "Programlar Başlat'ta görünür; onları Ayarlar › Uygulamalar'dan kaldırırsınız.",
     "win.p2": "Wine 10, Wine Mono, Gecko ve Direct3D oyunları için DXVK; hepsi imzalı arşivlerden.",
+    "win.p5": "Ya da kurulumda Bottles'ı seçin: Ayarlar ikisinin programlarını da listeler ve kaldırır.",
     "win.p3": "Her program çalışmaz: hile önleyicili oyunlar ve kendi sürücüsünü isteyen programlar genellikle çalışmaz. Bir program çalışmadığında VeltOS size söyler.",
     "win.p4": "Wine bir güvenlik korumalı alanı değildir: yalnızca güvendiğiniz programları çalıştırın, asla yönetici olarak değil.",
     "win.card.t": "7-Zip",
     "win.card.d": "Kuruldu · Başlat'ta",
+
+    "upd.kicker": "VeltOS Güncelleme",
+    "upd.title": "Yeni sürümler size gelir",
+    "upd.lead": "Yeni bir VeltOS sürümü çıktığında bilgisayarınız onu yeniden kurulum gerekmeden, güncelleme olarak alır. Dosyalarınız, ayarlarınız ve programlarınız olduğu gibi kalır.",
+    "upd.p1": "VeltOS günde bir kez arka planda yeni bir sürüm olup olmadığına bakar ve size bir bildirimle haber verir.",
+    "upd.p2": "Ayarlar › VeltOS Güncelleme, sürümle gelenleri kendi dilinizde gösterir ve tek düğmeyle yükler.",
+    "upd.p3": "Yeni VeltOS uygulamaları güncellemeyle gelir; Debian'ın güvenlik güncellemeleri de aynı yoldan gelir.",
+    "upd.p4": "Her sürüm otomatik olarak derlenir ve açılış testlerinden geçer; paketleri imzalıdır.",
+    "upd.toast.app": "VeltOS Güncelleme",
+    "upd.toast.t": "VeltOS 1.1 hazır",
+    "upd.toast.d": "Yeni özellikler ve düzeltmeler yüklenmeye hazır. Dosyalarınız ve uygulamalarınız olduğu gibi kalır.",
+    "upd.toast.b": "Güncellemeyi görüntüle",
+    "alt.update": "Yeni bir sürüm ve notlarıyla Ayarlar › VeltOS Güncelleme",
 
     "inst.kicker": "Kurulum",
     "inst.title": "Birkaç dakikada kurulur",
@@ -166,9 +189,9 @@
     "cap.inst3": "VeltOS hazır",
 
     "specs.kicker": "Teknik ayrıntılar",
-    "s.title": "Sürüm 1.0: kendini kanıtlamış yazılımlar üzerine kurulu",
+    "s.title": "Sürüm <span data-release=\"version\"></span>: kendini kanıtlamış yazılımlar üzerine kurulu",
     "s.version": "Sürüm",
-    "s.version.v": "1.0 (27 Ekim 2026)",
+    "s.version.v": "<span data-release=\"version\"></span> (<span data-release=\"date\"></span>)",
     "s.base": "Temel",
     "s.kernel": "Çekirdek",
     "s.kernel.v": "Linux 6.12 LTS, Güvenli Önyükleme için imzalı",
@@ -182,27 +205,27 @@
     "s.lang": "Diller",
     "s.lang.v": "VeltOS uygulamalarında Türkçe ve İngilizce; sistemde çok daha fazlası",
     "s.iso": "ISO",
-    "s.iso.v": "2,1 GB; USB bellek ve DVD için tek bir hibrit görüntü",
+    "s.iso.v": "<span data-release=\"size\"></span>; USB bellek ve DVD için tek bir hibrit görüntü",
     "s.licence": "Lisans",
     "s.licence.v": "GPL-3.0-or-later (görseller CC BY-SA 4.0)",
 
     "d.kicker": "İndir",
-    "d.title": "VeltOS 1.0'ı indirin",
+    "d.title": "VeltOS <span data-release=\"version\"></span> sürümünü indirin",
     "d.lead": "64 bit bilgisayarlar için tek bir ISO dosyası hem canlı sistem olarak açılır hem de VeltOS'u kurar. Önce canlı olarak deneyin, sonra Windows'un yanına ya da yerine kurun.",
-    "dl.badge": "ilk sürüm",
-    "dl.meta": "VeltOS-1.0-amd64.iso · 2,1 GB · 64 bit",
+    "dl.badge": "son sürüm",
+    "dl.meta": "<span data-release=\"iso-name\"></span> · <span data-release=\"size\"></span> · 64 bit",
     "dl.button": "ISO'yu indir",
     "dl.release": "Sürüm notları ve tüm dosyalar GitHub'da ›",
     "d.copy": "Kopyala",
     "d.copied": "Kopyalandı",
-    "dl.hashnote": "İndirdikten sonra doğrulayın. Linux'ta, ISO'nun yanındaki <a href=\"https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.0/VeltOS-1.0-amd64.iso.sha256\">.sha256 dosyasıyla</a>: <code>sha256sum -c VeltOS-1.0-amd64.iso.sha256</code> komutu <code>OK</code> yazar. Windows PowerShell'de: <code>Get-FileHash VeltOS-1.0-amd64.iso</code> yukarıdaki değerin aynısını büyük harflerle gösterir.",
+    "dl.hashnote": "İndirdikten sonra doğrulayın. Linux'ta, ISO'nun yanındaki <a data-release=\"sha-url\" href=\"#download\">.sha256 dosyasıyla</a>: <code>sha256sum -c <span data-release=\"iso-name\"></span>.sha256</code> komutu <code>OK</code> yazar. Windows PowerShell'de: <code>Get-FileHash <span data-release=\"iso-name\"></span></code> yukarıdaki değerin aynısını büyük harflerle gösterir.",
     "dl.inc.title": "ISO'nun içinde",
     "dl.inc1": "Canlı sistem: hiçbir şey kurmadan VeltOS'u deneyin",
     "dl.inc2": "Kurulum programı: Windows'un yanına, yerine ya da boş alana",
     "dl.inc3": "Gereken her şey: internet bağlantısı olmadan kurulur",
     "dl.inc4": "UEFI, BIOS ve Güvenli Önyükleme ile açılır",
     "dl.s1.t": "ISO'yu indirin",
-    "dl.s1.d": "Tüm 64 bit bilgisayarlar için tek dosya, yaklaşık 2,1 GB.",
+    "dl.s1.d": "Tüm 64 bit bilgisayarlar için tek dosya, yaklaşık <span data-release=\"size\"></span>.",
     "dl.s2.t": "USB belleğe yazın",
     "dl.s2.d": "Windows'ta Rufus veya balenaEtcher kullanın (balenaEtcher macOS ve Linux'ta da var). 4 GB veya daha büyük bir bellek yeterli.",
     "dl.s3.t": "Bilgisayarınızı ondan başlatın",
@@ -231,9 +254,10 @@
     "q.4.q": "Windows'u koruyabilir miyim?",
     "q.4.a": "Evet. Kurulum programı VeltOS'u Windows'un yanına kurabilir. Bilgisayar açılırken ikisi arasında seçim yapmak için F1'e basın; basmazsanız VeltOS açılır.",
     "q.5.q": "Günlük kullanıma hazır mı?",
-    "q.5.a": "VeltOS 1.0, herkese açık ilk sürümdür. Her yeni sistemde olduğu gibi kurmadan önce dosyalarınızı yedekleyin ve çalışmayan bir şey görürseniz GitHub'da bildirin.",
-    "q.6.q": "Güncelleştirmeler nasıl geliyor?",
-    "q.6.a": "Güvenlik ve uygulama güncelleştirmeleri Debian'ın imzalı arşivinden gelir; VeltOS Mağaza bunları gösterir ve kurar.",
+    "q.5.a": "VeltOS genç bir sistemdir: her ISO yayımlanmadan önce otomatik olarak derlenir ve açılış testlerinden geçer. Her yeni sistemde olduğu gibi kurmadan önce dosyalarınızı yedekleyin ve çalışmayan bir şey görürseniz GitHub'da bildirin.",
+    "q.6.q": "Güncellemeler nasıl geliyor?",
+    "q.6.a": "Güvenlik ve uygulama güncellemeleri Debian'ın imzalı arşivinden gelir; VeltOS Mağaza bunları gösterir ve kurar.",
+    "q.6.b": "Yeni bir VeltOS sürümü bilgisayarınıza güncelleme olarak gelir: VeltOS günde bir kez yeni sürüm arar ve size haber verir; Ayarlar › VeltOS Güncelleme onu Debian'ın güvenlik güncellemeleriyle birlikte yükler. Dosyalarınız, ayarlarınız ve programlarınız olduğu gibi kalır; VeltOS'u yeniden kurmanız gerekmez.",
     "q.7.q": "VeltOS AI verilerimi bir yere gönderiyor mu?",
     "q.7.a": "Çevrimiçi bir hizmet seçtiyseniz mesajlarınız kendi anahtarınızla seçtiğiniz hizmete gider. Ücretsiz yerel model tamamen bilgisayarınızda çalışır; yazdıklarınız bilgisayarınızdan çıkmaz.",
     "q.8.q": "VeltOS hangi dilleri konuşuyor?",
@@ -252,7 +276,7 @@
     tr: "VeltOS — Senin Bilgisayarın. Sınır Tanıma. | Windows 11 tarzı ücretsiz işletim sistemi"
   };
   var DESCRIPTIONS = {
-    tr: "VeltOS 1.0, Windows 11 gibi çalışan ücretsiz ve açık kaynaklı bir işletim sistemidir: Başlat, görev çubuğu, Dosya Gezgini, Ayarlar, Mağaza, VeltOS AI, Office, Windows programı desteği ve 20'den fazla kendi uygulaması. Debian 13 tabanlı. ISO'yu indirin."
+    tr: "VeltOS, Windows 11 gibi çalışan ücretsiz ve açık kaynaklı bir işletim sistemidir: Başlat, görev çubuğu, Dosya Gezgini, Ayarlar, Mağaza, VeltOS AI, Office, Windows programı desteği ve 20'den fazla kendi uygulaması. Debian 13 tabanlı. ISO'yu indirin."
   };
   var SITE = "https://veltos.ahmetfurkandemir.com/";
 
@@ -284,6 +308,52 @@
     return root.getAttribute("data-lang") === "tr" && TR[key] !== undefined ? TR[key] : english[key];
   }
 
+  /* The newest release, from the meta tags GitHub Actions writes
+     (build/scripts/update-site.py): every [data-release] element, in both
+     languages (the Turkish texts carry empty ones). */
+  function metaValue(name) {
+    var el = document.querySelector('meta[name="' + name + '"]');
+    return el ? el.getAttribute("content") || "" : "";
+  }
+  var release = {
+    version: metaValue("veltos-version"),
+    date: metaValue("veltos-release-date"),
+    url: metaValue("veltos-iso-url"),
+    sha256: metaValue("veltos-iso-sha256"),
+    size: parseInt(metaValue("veltos-iso-size"), 10) || 0
+  };
+  function releaseText(key, turkish) {
+    if (key === "version") return release.version;
+    if (key === "sha256") return release.sha256;
+    if (key === "iso-name") return release.url.split("/").pop();
+    if (key === "size") {
+      if (!release.size) return "";
+      var gb = (release.size / 1e9).toFixed(1);
+      return (turkish ? gb.replace(".", ",") : gb) + " GB";
+    }
+    if (key === "date") {
+      var parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(release.date);
+      if (!parts) return "";
+      var day = new Date(Date.UTC(+parts[1], +parts[2] - 1, +parts[3]));
+      try {
+        return day.toLocaleDateString(turkish ? "tr-TR" : "en-GB",
+          { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+      } catch (e) { return release.date; }
+    }
+    return "";
+  }
+  function fillRelease(turkish) {
+    document.querySelectorAll("[data-release]").forEach(function (el) {
+      var key = el.getAttribute("data-release");
+      if (key === "sha-url") {
+        if (release.url) el.setAttribute("href", release.url + ".sha256");
+        return;
+      }
+      var value = releaseText(key, turkish);
+      if (value && el.textContent !== value) el.textContent = value;
+    });
+  }
+
   function formatCount(el, value) {
     var turkish = root.getAttribute("data-lang") === "tr";
     var text = value.toFixed(parseInt(el.getAttribute("data-decimals") || "0", 10));
@@ -313,6 +383,7 @@
     document.querySelectorAll("[data-count]").forEach(function (el) {
       if (el.dataset.done) el.textContent = formatCount(el, parseFloat(el.getAttribute("data-count")));
     });
+    fillRelease(turkish);
   }
 
   applyLanguage(root.getAttribute("data-lang") === "tr" ? "tr" : "en");
@@ -568,6 +639,33 @@
   });
   document.getElementById("lang-toggle").addEventListener("click", function () {
     slideshows.forEach(function (labels) { labels(); });
+  });
+
+  /* Light and dark side by side: the line follows a range input laid over
+     the picture (drag, click or the arrow keys). Once in view it moves a
+     little by itself, so it is clear that it can be moved. ------------------ */
+  document.querySelectorAll("[data-compare]").forEach(function (box) {
+    var range = box.querySelector(".compare-range");
+    var touched = false;
+    function set(value) { box.style.setProperty("--pos", value + "%"); }
+    range.addEventListener("input", function () { touched = true; set(range.value); });
+    set(range.value);
+    if (reduced || !("IntersectionObserver" in window)) return;
+    var hint = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      hint.disconnect();
+      var start = null;
+      function frame(now) {
+        if (touched) return;
+        if (start === null) start = now;
+        var p = Math.min(1, (now - start) / 1600);
+        set((50 + 18 * Math.sin(p * Math.PI * 2) * (1 - p)).toFixed(2));
+        if (p < 1) requestAnimationFrame(frame);
+        else set(range.value);
+      }
+      setTimeout(function () { requestAnimationFrame(frame); }, 400);
+    }, { threshold: 0.6 });
+    hint.observe(box);
   });
 
   /* Lightbox: shows the picture of the current theme. ------------------------ */

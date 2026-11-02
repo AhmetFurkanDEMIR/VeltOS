@@ -51,6 +51,7 @@ Depends: ${python3:Depends},
          systemsettings,
          ${misc:Depends}
 Recommends: bluedevil,
+            veltos-update,
             bluez,
             kscreen,
             veltos-auth,

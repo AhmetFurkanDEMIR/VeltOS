@@ -1,3 +1,10 @@
+calamares-settings-veltos (1.1.0~dev5) trixie; urgency=medium
+
+  * The finished page names VeltOS Update for new VeltOS versions and
+    VeltOS Mağaza by its Turkish name.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 17:45:00 +0000
+
 calamares-settings-veltos (1.1.0~dev4) trixie; urgency=medium
 
   * Live welcome: the website link opens with one press and says "Opening..."

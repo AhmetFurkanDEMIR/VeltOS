@@ -129,6 +129,61 @@ BINARY = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".iso", ".deb", ".gz
           ".woff", ".woff2", ".ttf", ".otf", ".pdf", ".mp3", ".mp4", ".ogg", ".wav", ".webm"}
 
 
+class ReleaseTests(unittest.TestCase):
+    """What a release (`.github/workflows/release.yml`) relies on."""
+
+    def image_packages(self):
+        names = set()
+        for path in (REPO / "build/live-build/config/package-lists").glob("*.list.chroot"):
+            names.update(re.findall(r"^(veltos-[a-z0-9-]+)\s*$", path.read_text(encoding="utf-8"), re.M))
+        return names
+
+    def test_veltos_system_names_every_package_of_an_installed_system(self):
+        """New apps reach installed PCs through veltos-system's Depends
+        (VeltOS Update): it must name every VeltOS package the image keeps
+        after the installation (the installer, calamares-settings-veltos,
+        is not in the lists' veltos-* names)."""
+        control = (REPO / "packages/veltos-system/debian/control").read_text(encoding="utf-8")
+        field = control.split("Package: veltos-system", 1)[1].split("Depends:", 1)[1].split("Description:", 1)[0]
+        depends = {d.strip() for d in field.split(",") if d.strip() and not d.strip().startswith("${")}
+        expected = (self.image_packages() - {"veltos-system"}) | {"veltos-fluent-icons"}
+        self.assertEqual(sorted(depends ^ expected), [], "veltos-system's Depends and the image's packages differ")
+        self.assertIn("veltos-system", self.image_packages())
+        self.assertIn("veltos-update", self.image_packages())
+
+    def test_version_file_matches_the_system(self):
+        """VERSION names the release; the system says the same version."""
+        version = (REPO / "VERSION").read_text(encoding="utf-8").strip()
+        self.assertRegex(version, r"^\d+\.\d+(\.\d+)?$")
+        os_release = (REPO / "packages/veltos-base/os-release").read_text(encoding="utf-8")
+        self.assertIn(f'VERSION_ID="{version}"', os_release)
+        notes = REPO / f"docs/release-notes/{version}.md"
+        self.assertTrue(notes.exists(), f"{notes} (the release's text) is missing")
+        text = notes.read_text(encoding="utf-8")
+        english, marker, turkish = text.partition("<!-- tr -->")
+        self.assertTrue(marker and english.strip() and turkish.strip(),
+                        "release notes need English, the line <!-- tr --> and Turkish")
+
+    def test_every_package_has_a_changelog_version(self):
+        for control in sorted((REPO / "packages").glob("*/debian/changelog")):
+            first = control.read_text(encoding="utf-8").splitlines()[0]
+            self.assertRegex(first, r"^[a-z0-9.+-]+ \([0-9][A-Za-z0-9.+~-]*\) ", control)
+
+
+class RestartTests(unittest.TestCase):
+    def test_restart_waits_for_plasmas_answer(self):
+        """Plasma's org.kde.Shutdown did nothing for a dbus-send that did not
+        wait for the reply (VeltOS Update's Restart now, dev VM 2026-11-02)."""
+        found = 0
+        for path in sorted(REPO.glob("packages/*/veltos_*/*.py")):
+            text = path.read_text(encoding="utf-8")
+            for command in re.findall(r"\[[^\]]*logoutAndReboot[^\]]*\]", text):
+                if "dbus-send" in command:
+                    found += 1
+                    self.assertIn("--print-reply", command, path)
+        self.assertGreaterEqual(found, 3)
+
+
 class LineEndingTests(unittest.TestCase):
     def test_no_crlf_in_text_files(self):
         offenders = []

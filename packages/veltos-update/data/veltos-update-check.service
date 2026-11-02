@@ -1,0 +1,11 @@
+[Unit]
+Description=VeltOS Update: look for a new VeltOS release and other updates
+After=graphical-session.target
+
+[Service]
+Type=exec
+ExecStart=/usr/libexec/veltos/update-check
+# A background task: it never slows the desktop down.
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=infinity

@@ -3,6 +3,142 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-02 — Items 153-157: VeltOS Update, releases by GitHub Actions, the website
+
+The product owner asked for new releases to reach installed PCs as
+updates (a daily background check, a Windows 11 style notification,
+Settings to check by hand, the release's notes from GitHub, nothing of
+the user's lost), for releases to be built and published by GitHub
+Actions with the website's SHA-256 following, for the website to show
+everything new in both languages on phones and desktops with sharp
+pictures of the page's own theme, and for the ISO to stay under 2 GiB
+without removing anything.
+
+- **VeltOS Update** (`packages/veltos-update`, new; architecture 2.56): a
+  release's packages as a signed flat APT repository among the release's
+  files; `update-source` (system timer) turns the source on only while
+  the newest release has the signed index; `update-check` (user timer,
+  daily) tells about a new release once and about other updates once a
+  day; Settings > VeltOS Update (`vupdate.py`, `UpdatePage.qml`) shows the
+  notes in the window's language and installs (pkcon through `ptyrun`).
+  `packages/veltos-system` (new) depends on every VeltOS package an
+  installed system keeps, so a release's new app arrives with the update;
+  `tests/repo` checks it against the image's package lists.
+- Archive key: ed25519, fingerprint BD18 359F 96FB 279D B805 AF77 FBE8 3B22
+  791B 7861, made in the builder; the public key is in veltos-update, the
+  secret one git-ignored in `out/keys/` until the owner stores it as the
+  repository secret `VELTOS_APT_SIGNING_KEY`. The builder image has
+  `gpg-agent` now and takes the mirror variables (the host clock was 3 h
+  behind: deb.debian.org "not live until").
+- **Dev VM, the live dev9 system with the new packages** (a pretend VeltOS
+  1.1: veltos-base 1.1.0, Calculator 1.1.0, a new app "veltos-hello"
+  pulled in by veltos-system 1.1.0, signed with the archive key by
+  `make-apt-repo.sh`, served from the VM container; the release JSON as
+  GitHub's API returns it, with this release's real notes;
+  `tests/results/2026-11-02-veltos-update/make-test-repo.sh`):
+  - `update-source` against GitHub: v1.0 has no index, so no source and
+    `apt update` works; before, a fixed source file made `apt-get update`
+    exit 100 and `pkcon refresh` print "Fatal error" (seen first, then
+    redesigned). Against the pretend repository: the source is written, APT
+    accepts the InRelease signature.
+  - `update-check` in the session: the notification "VeltOS 1.1 is ready"
+    at the bottom right, still there after 15 s; "View update" opened
+    Settings on the page. Found and fixed: Settings opened and closed at
+    once (systemd stopped it with the check's cgroup; it now starts as its
+    own unit), the page counted VeltOS' own packages as "4 other updates"
+    (now Debian's only), the notes repeated the release's heading.
+  - "Download & install": veltos-base 1.0.0 -> 1.1.0, Calculator 1.0.0 ->
+    1.1.0, veltos-hello installed, veltos-system 1.1.0~dev1 -> 1.1.0
+    (`/var/log/dpkg.log`); `/etc/os-release` says 1.1; "Restart to finish".
+    A file in Documents and `~/.config/kdeglobals` kept their SHA-256. Reopened,
+    the page said "You're up to date · VeltOS 1.1" (after a fix: the
+    install now clears the saved counts); "Check for updates" checked
+    again; Start's search found the new app. Pictures:
+    `tests/results/2026-11-02-veltos-update/` (1-6).
+- **Dev VM, an installation of ISO 1.1-dev10** (UEFI, English, account
+  "Jordan Lee" with automatic sign-in, the pretend release made again
+  from the dev10 build's own packages): `veltos-update-source.timer`
+  enabled and running, the user timer due 15 minutes after signing in;
+  against GitHub the source stayed off. With sample documents, pictures,
+  music and KMines installed from Debian: the notification, the page,
+  Download & install with VeltOS' "User Account Control" asking once
+  ("Authentication is required to update software"), then "Restart to
+  finish"; dpkg.log: veltos-base and Calculator 1.1.0, veltos-hello
+  installed, veltos-system 1.1.0; after the restart "You're up to date ·
+  VeltOS 1.1". All 29 sample files kept their SHA-256 (only
+  `kdeglobals` differed: the test switched to dark mode in between), KMines
+  was still installed. Pictures 7-10.
+  - Found and fixed: "Restart now" did nothing. `dbus-send` to Plasma's
+    `org.kde.Shutdown` without waiting for the reply was ignored (twice, on
+    a fresh session too); with `--print-reply` the VM restarted at once.
+    The same command was in Graphics Cards and Keyboard Lighting; all three
+    wait now (`tests/repo` checks). The button itself was not clicked again
+    after the fix (the command was, in the session).
+  - The page no longer shows the release text's ISO download line (for new
+    installations only). Not seen on screen: Turkish (unit-tested in both
+    languages).
+- **Releases by GitHub Actions** (`.github/workflows/release.yml`;
+  architecture 2.57; build guide "Releases"): `VERSION` (1.0) and
+  `docs/release-notes/1.0.md`, `1.1.md` (English, `<!-- tr -->`, Turkish);
+  `release-bump.py`, `release-check.py` (no `~dev` versions, changed
+  packages must grow), `release-notes.py`, `make-apt-repo.sh` (`build/run.sh
+  apt-repo`), `update-site.py`. `tests/repo/test_build_tools.py` runs the
+  bump and the check on a copy, the site update on a copy (idempotent with
+  the site's own values; a pretend 1.9 changes every marked value and
+  nothing else), the release text, the workflow's tools and commands, and
+  (in the builder) the repository's file names. Not run on GitHub yet: it
+  needs the secret and a push of a new `VERSION`.
+- **Website**: the release values (version, date, ISO link, size,
+  SHA-256) come from meta tags the workflow rewrites; main.js fills them in
+  both languages (Turkish without a suffix after the version: "VeltOS 1.0
+  sürümünü indirin"); what 1.1 adds (VeltOS Update's section and FAQ
+  answer, password reset, keyboard lighting, Bottles, windows and pointer
+  following light/dark) is marked `data-since="1.1"` and stays hidden
+  until the release (`?release=1.1` previews it). The language button
+  shows EN and TR with the current one filled (owner, during the work).
+  The "Personalize" pictures are a light/dark comparison with a slider;
+  every other picture follows the page's theme.
+- **Website pictures** taken again on that installed dev10 system at
+  1920x1080 (US formats: the Istanbul time zone had set Turkish dates in
+  the English session, "Kasım 2026"; the VM's locale was set to en_US for
+  the pictures) and kept at that size as WebP 90 (30 pictures, 2.0 MB; the
+  1600 px ones at about 35 KB were soft): Start, File Explorer, Settings
+  (pixel-aligned pair for the comparison), Quick Settings, Store, Word,
+  Photos, Media Player (albums), Weather, Calendar, Task Manager, Start
+  over windows, search, Task View, VeltOS Update (the VM's VERSION_ID set
+  back to 1.0 for that picture only). VeltOS AI's, the start-up, sign-in,
+  installer and repair pictures are unchanged. The link preview and the
+  README's two animations were made from the new pictures. Checked in the
+  browser: in dark mode 27 dark pictures and the comparison's light one,
+  in light mode the opposite, none broken, no console errors; no
+  sideways scrolling at 375 px with release 1.1's sections shown. The
+  KMines and veltos-hello test packages were removed before the pictures.
+- Packages after dev10 (veltos-update notes, the restart commands): repo
+  29, veltos-update 16, Settings 223, Graphics Cards 58, Keyboard Lighting
+  10 tests, all OK (`out/pkg-final.log`). The installer's finished page
+  said "Updates and new apps come from VeltOS Store" (and "VeltOS Store"
+  in Turkish): it now names Settings > VeltOS Update for new versions and
+  "VeltOS Mağaza" (calamares-settings-veltos 1.1.0~dev5, 67 tests OK; not
+  yet seen in an installer).
+
+## 2026-11-02 — ISO 1.1-dev10 built and tested
+
+- `veltos-1.1-dev10-amd64.hybrid.iso`, 2,112,495,616 bytes (33.4 MiB
+  under 2 GiB), SHA-256
+  443eaf82584270585733a84c71d46826648e8bbb2125ee079285d6f86ecbeccf; built
+  from the working tree of items 153-157 (before the restart fix) with
+  snapshot.debian.org of 2026-11-01 (the host clock was 3 h behind);
+  1292 package and repository tests in the build; lintian's errors are the
+  known three (`out/iso-dev10.log`).
+- Boot tests: UEFI 19, BIOS 18, Secure Boot 20 checks, none failed, no
+  crashed processes; plasmashell after 34.3 / 35.2 / 34.3 s (an
+  installation was running in the dev VM at the same time)
+  (`out/test-results/20261102-133313-uefi`, `-133523-bios`,
+  `-133734-secureboot`).
+- Installed in the dev VM (above). Copied to the owner's Desktop as
+  `VeltOS-1.1-dev10-20261102-130452.iso` with its `.sha256`; not
+  released. The superseded dev9 build directory was deleted.
+
 ## 2026-11-02 — ISO 1.1-dev9 built and tested
 
 - `veltos-1.1-dev9-amd64.hybrid.iso`, 2,112,481,280 bytes (33.4 MiB under

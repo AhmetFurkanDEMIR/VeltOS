@@ -1562,6 +1562,86 @@ were measured (below).
   games still choose NVIDIA's card (PRIME offload). Not yet seen on real
   hardware.
 
+### 2.56 VeltOS Update: a release reaches installed PCs as package updates (2026-11-02)
+
+- Decision: every GitHub release carries, besides the ISO, all of VeltOS'
+  packages of that build as a flat APT repository signed with VeltOS'
+  archive key (ed25519, fingerprint BD18 359F 96FB 279D B805 AF77 FBE8
+  3B22 791B 7861; the secret half goes into the GitHub Actions secret
+  `VELTOS_APT_SIGNING_KEY` and a backup the product owner keeps; it was
+  made in the builder on 2026-11-02 and lies git-ignored in `out/keys/`
+  on the build PC). Installed PCs use
+  `https://github.com/AhmetFurkanDEMIR/VeltOS/releases/latest/download/`
+  as a package source (`veltos-update`), so a new release arrives through
+  APT/PackageKit like any update. A user timer looks for a new release
+  once a day (GitHub's `releases/latest` API, compared with `VERSION_ID`)
+  and shows a notification; Settings > VeltOS Update shows the release's
+  notes (English or Turkish, from the release text) and installs: `pkcon
+  refresh`, `veltos-system` if missing, `pkcon update`, then any of
+  `veltos-system`'s dependencies that are missing (new apps), then asks
+  for a restart. `veltos-system` depends on every VeltOS package an
+  installed system keeps; adding an app to a release means adding it
+  there.
+- The source file is not shipped: a system timer writes it while the
+  newest release has an index signed with the key and removes it while it
+  has none (a 404). A fixed source made every `apt update` and every
+  PackageKit refresh (VeltOS Store, Graphics Cards, the first start) fail
+  while the newest release, VeltOS 1.0, had no index (dev VM, 2026-11-02).
+- Why: the product owner asked for releases (new apps, OS-level changes)
+  to reach users' PCs without a new installation and without losing
+  files, settings or programs. Package updates replace only packaged
+  files: `/home`, `/etc` changes (conffiles are asked about or kept) and
+  installed programs stay. Measured in the dev VM: a pretend release
+  (veltos-base 1.1.0, a changed app, a new app through `veltos-system`)
+  installed from a local signed repository in seconds; a user file and
+  `kdeglobals` kept their SHA-256.
+- Alternatives: downloading the new ISO and re-installing over the
+  system (2 GB per release, a full installer run, user data at risk; what
+  the owner wanted to avoid); a separate APT server (hosting and keys to
+  run; GitHub releases are free and are already where the ISO is); GitHub
+  Pages for the repository (1 GB site limit, 100 MB files; the packages
+  are 280 MB); an image-based updater (OSTree or A/B partitions: a
+  different system design, not Debian's).
+- Trade-offs: GitHub renames assets with `~` or `+`, so the repository's
+  file names are sanitised and the index names them so
+  (`make-apt-repo.sh`); `latest/download/` follows the newest release, so a
+  release published between `apt update` and the download makes that
+  download fail once; GitHub's API allows 60 unauthenticated requests an
+  hour per address (one a day per PC). Systems installed from VeltOS 1.0
+  have no `veltos-update` and need one new installation or `dpkg -i` of
+  it. Release versions must be higher than every development version a
+  PC may have (`X.Y.Z~devN` < `X.Y.Z`): `release-bump.py` sets them,
+  `release-check.py` refuses a release with `~dev` versions or a changed
+  package whose version did not grow.
+
+### 2.57 Releases are built and published by GitHub Actions (2026-11-02)
+
+- Decision: `.github/workflows/release.yml` runs on every push to `main`;
+  when `VERSION` names a version without a tag, it builds the builder
+  image, every package and the ISO (`build/run.sh iso`, the same commands
+  as on a developer's PC), checks the ISO is under 2 GiB, boots it in QEMU
+  with UEFI, BIOS and Secure Boot (KVM on the runner), makes the signed
+  package repository from the ISO's own packages, publishes the release
+  `vVERSION` (ISO, `.sha256`, packages, index, `docs/release-notes/
+  VERSION.md` with the ISO's name and SHA-256 in both languages, marked
+  latest) and then commits the website's and the README's new values
+  (`update-site.py`: meta tags, `data-release` elements, structured
+  data, the README's release block, the sitemap's date). Any failed step
+  stops it before anything is published.
+- Why: the product owner asked for builds, releases and the website's
+  SHA-256 to come from GitHub Actions instead of a developer's PC, and
+  releases stay a decision ("Relase çık"): only a commit that changes
+  `VERSION` makes one.
+- Alternatives: building on the developer's PC and uploading by hand
+  (how 1.0 was released: slow uploads, the host clock and disk were
+  problems); a tag push as the trigger (a second step to forget; the tag
+  is made by the release instead).
+- Trade-offs: a run takes hours on a hosted runner (the ISO and three
+  boot tests); the runner's disk is freed first. The website's values
+  change only after the release exists, so a pushed page never links to a
+  missing ISO; what a release adds to the page is marked `data-since` and
+  stays hidden until then.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

@@ -1,0 +1,13 @@
+[Unit]
+Description=VeltOS Update: look for updates once a day
+
+[Timer]
+# 15 minutes after signing in (never during the session's first minutes),
+# then every 24 hours; the check itself skips when the last one is less
+# than 20 hours old, so several sign-ins a day still mean one check.
+OnStartupSec=15min
+OnUnitActiveSec=24h
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target

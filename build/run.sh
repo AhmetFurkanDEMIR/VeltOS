@@ -7,6 +7,9 @@
 #   build/run.sh packages [name...]  build the VeltOS .deb packages into
 #                             out/packages (all, or only the named ones)
 #   build/run.sh iso          build packages + the live ISO into out/iso
+#   build/run.sh apt-repo [DIR]  VeltOS Update's package repository from the
+#                             newest ISO build's packages (or DIR) into out/apt
+#                             (signed with VELTOS_APT_SIGNING_KEY when set)
 #   build/run.sh test [mode]  boot the newest ISO in QEMU/KVM and verify it
 #                             (mode: uefi (default), bios, secureboot)
 #   build/run.sh test-winapps [fixture]  install a real Windows program
@@ -40,7 +43,10 @@ ensure_image() {
 
 cmd_image() {
     log "Building builder image $IMAGE"
-    docker build -t "$IMAGE" "$HOST_ROOT/build/builder"
+    docker build -t "$IMAGE" \
+        --build-arg VELTOS_DEBIAN_MIRROR="${VELTOS_DEBIAN_MIRROR:-}" \
+        --build-arg VELTOS_SECURITY_MIRROR="${VELTOS_SECURITY_MIRROR:-}" \
+        "$HOST_ROOT/build/builder"
 }
 
 # Common docker run arguments: repo read-only at /src, outputs at /out.
@@ -177,6 +183,19 @@ cmd_shell() {
     run_builder -it --privileged -v "$VOLUME:/build" "$IMAGE" bash
 }
 
+cmd_apt_repo() {
+    ensure_image
+    local dir="${1:-}"
+    if [ -z "$dir" ]; then
+        dir="$(ls -td "$REPO_ROOT"/out/iso/*/ 2>/dev/null | head -n1 || true)"
+    fi
+    [ -n "$dir" ] || { echo "error: no ISO build under out/iso" >&2; exit 1; }
+    local rel="${dir#"$REPO_ROOT"/}"
+    log "Package repository from $rel"
+    run_builder -e VELTOS_APT_SIGNING_KEY "$IMAGE" \
+        bash /src/build/scripts/make-apt-repo.sh "/src/${rel%/}" /out/apt
+}
+
 cmd_clean() {
     log "Removing build volume $VOLUME"
     docker volume rm "$VOLUME"
@@ -188,8 +207,9 @@ main() {
     case "$cmd" in
         image|packages|iso|test|preview|shell|clean) "cmd_$cmd" "$@" ;;
         test-winapps) cmd_test_winapps "$@" ;;
+        apt-repo) cmd_apt_repo "$@" ;;
         vm) cmd_vm "$@" ;;
-        *) sed -n '2,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2 ;;
+        *) sed -n '2,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2 ;;
     esac
 }
 

@@ -38,6 +38,7 @@ build/run.sh test secureboot   # UEFI with Secure Boot (Microsoft keys enrolled)
 build/run.sh test-winapps # install a real Windows program through veltos-run in the ISO
 build/run.sh preview      # install out/packages/*.deb into a live VM, scripted screenshots
 build/run.sh vm start     # long-running VM (also: do, exec, exec-user, upload, stop, reset-disk)
+build/run.sh apt-repo     # VeltOS Update's package repository from the newest ISO build into out/apt/
 build/run.sh shell        # interactive shell in the builder (build volume at /build)
 build/run.sh clean        # delete the build volume (next build starts cold)
 ```
@@ -52,9 +53,45 @@ Environment variables:
 | `VELTOS_SECURITY_MIRROR` | `http://deb.debian.org/debian-security/` | Security mirror used during the build |
 | `VELTOS_BUILDER_IMAGE` | `veltos-builder:dev` | Builder image tag |
 | `VELTOS_BUILD_VOLUME` | `veltos-build` | Docker volume holding the live-build tree and cache |
+| `VELTOS_APT_SIGNING_KEY` | (none) | `apt-repo`: the ASCII-armoured secret archive key; without it the repository is unsigned |
+
+The mirror variables also reach `build/run.sh image` (build arguments), so
+the builder image can be built while the host's clock is behind and
+deb.debian.org's fresh Release files are "not live" yet (a snapshot such
+as `http://snapshot.debian.org/archive/debian/20261101T120000Z`).
 
 The installed system always points APT at `deb.debian.org`, whatever mirror
 was used to build.
+
+## Releases (GitHub Actions)
+
+A release is made by `.github/workflows/release.yml` when a push to
+`main` changes `VERSION` to a version that has no tag yet; nothing is
+released by a developer's PC. The steps, for VeltOS 1.2:
+
+1. Write `docs/release-notes/1.2.md`: English, a line `<!-- tr -->`,
+   Turkish (no "## VeltOS 1.2" heading: the release's name is shown above
+   it on GitHub and in Settings).
+2. `python3 build/scripts/release-bump.py 1.2`: `VERSION`, veltos-base's
+   os-release and changelog, and every package whose version is a
+   development one (`1.2.0~devN` -> `1.2.0`).
+3. `python3 build/scripts/release-check.py --version 1.2 --previous v1.1`
+   (also run by the workflow) and the repository tests.
+4. Commit and push to `main` (only on the product owner's "Relase çık").
+   The workflow builds the packages and the ISO, checks the 2 GiB limit,
+   boots the ISO with UEFI, BIOS and Secure Boot, makes the signed package
+   repository (`build/run.sh apt-repo`), publishes `v1.2` with the ISO, its
+   `.sha256`, the packages and the index, and commits the website's and
+   README's new link, size, date and SHA-256 (`update-site.py`).
+
+The repository secret `VELTOS_APT_SIGNING_KEY` (Settings > Secrets and
+variables > Actions) must hold the secret half of
+`packages/veltos-update/data/veltos-archive-keyring.gpg`; the workflow
+stops before building without it. Installed PCs (VeltOS 1.1 and later)
+then get the release through VeltOS Update (`packages/veltos-update/README.md`).
+What a release adds to the website is marked `data-since="1.2"` in
+`docs/index.html` and appears when the workflow sets the page's version;
+`?release=1.2` previews it.
 
 ## Outputs
 

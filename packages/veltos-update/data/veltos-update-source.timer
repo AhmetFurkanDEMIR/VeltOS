@@ -1,0 +1,12 @@
+[Unit]
+Description=VeltOS Update: check VeltOS' package source twice a day
+
+[Timer]
+# Two minutes after the start (the start itself never waits for it), then
+# every 12 hours: the source follows the newest release's files.
+OnBootSec=2min
+OnUnitActiveSec=12h
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

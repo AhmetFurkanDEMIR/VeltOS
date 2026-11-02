@@ -62,6 +62,12 @@ veltos-lighting
 # Keyboard Lighting asks for it on an MSI laptop (a few hundred KB here).
 veltos-msi-ec
 veltos-store
+# VeltOS Update: new VeltOS releases on installed PCs (VeltOS' package
+# source on GitHub releases, the daily check), and veltos-system, which
+# depends on every VeltOS package an installed system keeps (new apps of a
+# release come with the update).
+veltos-update
+veltos-system
 # Clock (Windows 11 layout): alarms, timers, stopwatch, world clock.
 veltos-clock
 # Calendar (Windows 11 layout); its reminders come from veltos-clock's agent.

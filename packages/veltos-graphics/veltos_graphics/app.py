@@ -27,7 +27,7 @@ from . import diagnostics, drivers, gpus, strings, themewatch
 QML_DIR = Path(__file__).resolve().parent / "qml"
 DRIVER_KEYS = {"nvidia": "drv_nvidia", "nouveau": "drv_nouveau", "amdgpu": "drv_amdgpu", "radeon": "drv_radeon",
                "i915": "drv_i915", "xe": "drv_xe"}
-REBOOT = ["dbus-send", "--session", "--type=method_call", "--dest=org.kde.Shutdown", "/Shutdown",
+REBOOT = ["dbus-send", "--session", "--print-reply", "--type=method_call", "--dest=org.kde.Shutdown", "/Shutdown",
           "org.kde.Shutdown.logoutAndReboot"]
 # No -y: it makes PackageKit's transaction non-interactive, and polkit then
 # refused at once instead of asking for the administrator's password ("The

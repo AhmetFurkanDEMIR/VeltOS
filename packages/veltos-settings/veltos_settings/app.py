@@ -265,6 +265,7 @@ class Backend(QObject):
     changed = Signal()
     networkChanged = Signal()
     hotspotChanged = Signal()
+    veltosUpdateChanged = Signal()
     resetUsbChanged = Signal()
     assistantChanged = Signal()
     defaultLocationChanged = Signal()
@@ -315,6 +316,7 @@ class Backend(QObject):
                            "services": {}, "actions": True, "ready": False}
         self._reset_usb = {"loaded": False, "available": False, "configured": False, "hint": "",
                            "drives": [], "busy": False, "error": ""}
+        self._vupdate = None            # vupdate.Updater, made when the page is first shown
         self._hotspot = {"loaded": False, "available": False, "active": False, "busy": False, "reason": "",
                          "ssid": "", "password": "", "band": "", "bands": [], "sources": [], "source": "",
                          "clients": [], "error": "", "disconnects": "", "device": "", "security": ""}
@@ -1039,6 +1041,35 @@ class Backend(QObject):
             self.changed.emit()
         self._update("_personal", self.personalChanged, {"wallpaper": path, "accent": theme["accent"]})
         self._appearance(lambda: self.system.personal.apply_theme(path, theme["accent"], mode))
+
+    # --- VeltOS Update (vupdate.py, veltos-update) ------------------------------------------
+
+    def _updater(self):
+        if self._vupdate is None:
+            from . import vupdate
+            self._vupdate = vupdate.Updater(self.lang, self.jobs, self._start, self)
+            self._vupdate.changed.connect(self.veltosUpdateChanged)
+        return self._vupdate
+
+    @Property("QVariantMap", notify=veltosUpdateChanged)
+    def veltosUpdate(self):
+        return self._updater().view()
+
+    @Slot()
+    def openVeltosUpdate(self):
+        self._updater().open()
+
+    @Slot()
+    def veltosUpdateAction(self):
+        self._updater().action()
+
+    @Slot(bool)
+    def setVeltosUpdateNotify(self, on):
+        self._updater().set_notify(on)
+
+    @Slot()
+    def openVeltosRelease(self):
+        self._updater().release_page()
 
     # --- Home ---------------------------------------------------------------------------------
 

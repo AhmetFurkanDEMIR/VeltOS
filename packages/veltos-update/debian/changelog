@@ -1,0 +1,7 @@
+veltos-update (1.1.0~dev1) trixie; urgency=medium
+
+  * New: VeltOS Update, new VeltOS releases installed on a running PC
+    (VeltOS' package source on GitHub releases, a daily check with a
+    notification, the notes in Settings > VeltOS Update).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 12:00:00 +0000

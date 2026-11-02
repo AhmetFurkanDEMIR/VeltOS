@@ -1,0 +1,32 @@
+#!/usr/bin/make -f
+
+DEST = debian/veltos-update
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d $(DEST)/usr/lib/python3/dist-packages
+	cp -r veltos_update $(DEST)/usr/lib/python3/dist-packages/
+	find $(DEST) -name __pycache__ -prune -exec rm -rf {} +
+	install -D -m 755 bin/update-check $(DEST)/usr/libexec/veltos/update-check
+	install -D -m 755 bin/update-source $(DEST)/usr/libexec/veltos/update-source
+	install -D -m 644 data/veltos-update-source.service $(DEST)/usr/lib/systemd/system/veltos-update-source.service
+	install -D -m 644 data/veltos-update-source.timer $(DEST)/usr/lib/systemd/system/veltos-update-source.timer
+	install -D -m 644 README.md $(DEST)/usr/share/doc/veltos-update/README.md
+	install -D -m 644 data/veltos-archive-keyring.gpg $(DEST)/usr/share/keyrings/veltos-archive-keyring.gpg
+	install -D -m 644 data/veltos-update-check.service $(DEST)/usr/lib/systemd/user/veltos-update-check.service
+	install -D -m 644 data/veltos-update-check.timer $(DEST)/usr/lib/systemd/user/veltos-update-check.timer
+	# Every user's timer, as a static link (no per-user enabling).
+	install -d $(DEST)/usr/lib/systemd/user/timers.target.wants
+	ln -s ../veltos-update-check.timer $(DEST)/usr/lib/systemd/user/timers.target.wants/veltos-update-check.timer
+
+# The system timer only: the service runs when the timer says (never at
+# installation, which may be in the image build without network).
+override_dh_installsystemd:
+	dh_installsystemd veltos-update-source.timer
+
+override_dh_auto_test:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

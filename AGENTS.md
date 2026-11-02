@@ -55,9 +55,9 @@ owner sets priorities; agents act as the engineering team.
 
 | Path | What |
 |---|---|
-| `build/run.sh` | Single entry point: `image`, `packages [name...]`, `iso`, `test`, `test-winapps`, `preview`, `vm`, `shell`, `clean` |
+| `build/run.sh` | Single entry point: `image`, `packages [name...]`, `iso`, `test`, `test-winapps`, `preview`, `vm`, `apt-repo`, `shell`, `clean` |
 | `build/builder/Dockerfile` | Build/test container (Debian trixie, pinned by digest) |
-| `build/scripts/` | In-container scripts: package build, ISO build, and what keeps the ISO under 2 GiB (`trim-pool.py`, `shrink-initrd.py`, run by binary hooks 9200/9300) |
+| `build/scripts/` | In-container scripts: package build, ISO build, and what keeps the ISO under 2 GiB (`trim-pool.py`, `shrink-initrd.py`, run by binary hooks 9200/9300); the release's tools (`release-bump.py`, `release-check.py`, `release-notes.py`, `make-apt-repo.sh`, `update-site.py`) |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
 | `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin scripts `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and `veltosscreenwatch` (the taskbar back after a screen change) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
@@ -92,6 +92,10 @@ owner sets priorities; agents act as the engineering team.
 | `packages/veltos-llama/` | llama.cpp's `llama-server` built from a pinned upstream tag (`upstream.json`; llama.cpp is not in Debian 13), every x86-64 CPU variant loaded at run time, at `/usr/libexec/veltos/llama-server`, for VeltOS AI's local model |
 | `packages/veltos-winapps/` | `veltos-run`: double-click `.exe`/`.msi`/`.bat`/`.cmd` → install/open via Wine, in a Windows 11 App Installer style window; `programs.py` reads installed Windows programs from Wine's registry files (Settings' Windows programs page) and removes what Wine leaves after an uninstall (`forget_removed`); `bottles.py`: Bottles from Flathub when the installer or Settings chose it (the VeltOS bottle, hand-off) |
 | `packages/veltos-wine-addons/` | Wine Mono/Gecko (pinned, verified) |
+| `packages/veltos-update/` | VeltOS Update: new releases on installed PCs. The package source while the newest GitHub release carries the signed index (`update-source`, system timer), the daily check and its notification (`update-check`, user timer), the install steps VeltOS Settings > VeltOS Update runs (`steps.py`), VeltOS' archive key |
+| `packages/veltos-system/` | Metapackage: every VeltOS package an installed system keeps (new apps of a release come through its Depends; `tests/repo` checks it against the image's lists) |
+| `.github/workflows/release.yml` | The release: on a push to `main` whose `VERSION` has no tag, build, boot-test, sign the package repository, publish `vVERSION`, update the website and README |
+| `VERSION`, `docs/release-notes/` | The release's version (`release-bump.py` sets it) and its text (English, `<!-- tr -->`, Turkish) |
 | `tests/boot/vmlib.py` | Shared QEMU/QMP/guest-agent helpers |
 | `tests/boot/vmtest.py` | QEMU/KVM boot test with screenshots, checks and measurements (`build/run.sh test`) |
 | `tests/boot/vmpreview.py` | Dev aid: install fresh `.deb`s into a live VM and screenshot a scripted interaction (`build/run.sh preview`) |
@@ -169,13 +173,25 @@ and JavaScript with no build step, no external requests and no cookies:
 - Icons: copies of the OS's own SVGs (`tests/repo` checks they still
   match a file of the same name in `packages/`). Fonts: Inter subsets
   (OFL, `assets/fonts/LICENSE-Inter.txt`).
-- Download: the ISO's direct https link goes into
-  `<meta name="veltos-iso-url">` in `docs/index.html`; the head script marks
-  the page `iso-ready` and every `[data-iso-link]` button follows it (empty:
-  "Download ISO · Soon" and a note). Update the size and the SHA-256 in the
-  download panel with the link. The ISO is a file of the GitHub release
-  (`v1.0`: `VeltOS-1.0-amd64.iso` and its `.sha256`), which must stay under
-  2 GiB (docs.github.com, "About releases").
+- Download and release values: the meta tags `veltos-version`,
+  `veltos-release-date`, `veltos-iso-url`, `veltos-iso-sha256` and
+  `veltos-iso-size` in `docs/index.html` are the newest release's; GitHub
+  Actions rewrites them after a release (`build/scripts/update-site.py`,
+  also the English text of every `data-release` element, the structured
+  data, the README's `<!-- release:start -->` block and the sitemap's
+  date). main.js fills `data-release` elements in both languages (the
+  Turkish strings carry empty ones; never write a version, size or
+  checksum into a text, and in Turkish never put a suffix after a version:
+  "VeltOS 1.1 sürümünü", not "VeltOS 1.1'i"). Every `[data-iso-link]`
+  button follows the ISO link. What a release adds is marked
+  `data-since="X.Y"` (`data-until="X.Y"` for what it replaces) and stays
+  hidden until `veltos-version` reaches it; `?release=X.Y` previews it.
+  The ISO is a file of the GitHub release, which must stay under 2 GiB
+  (docs.github.com, "About releases").
+- The light/dark comparison in "Personalize" shows both looks on purpose
+  (a slider over two pixel-aligned pictures); every other picture shows the
+  page's own theme. Pictures are taken at 1920x1080 and kept at that size
+  (WebP quality 90): downscaled ones looked soft.
 - Claims on the site follow the project rules: no untested support, no
   "native performance", measured numbers with how they were measured.
 - SEO: title, description and keywords in the head, Turkish description
@@ -1424,3 +1440,25 @@ and JavaScript with no build step, no external requests and no cookies:
   moves the button groups 1 px out. The self-drawn VeltOS windows round
   their close button's top right corner themselves (`topRightRadius`).
 
+- VeltOS Update (2026-11-02): a fixed APT source for the newest GitHub
+  release made every `apt update` and PackageKit refresh fail ("does not
+  have a Release file") while that release had no signed index (VeltOS
+  1.0): the source is written by `update-source` only while the index is
+  there. APT follows GitHub's redirect for `releases/latest/download/`;
+  GitHub renames assets containing `~` or `+` (`make-apt-repo.sh` gives
+  every file a name GitHub keeps). A program started from a user service
+  (the daily check opening Settings from its notification) is stopped with
+  the service's cgroup when the service's main process ends: start it as
+  its own unit (`systemd-run --user`). Test the whole flow in the dev VM
+  with a pretend release: `out/vm/update-e2e/make-test-repo.sh` (a signed
+  repository from an ISO build's packages, bumped versions, a new app),
+  served by `python3 -m http.server` inside the `veltos-vm` container
+  (the guest reaches it at 10.0.2.2), and `/etc/veltos/update.conf` with
+  `release_url` and `repository` (copy in `tests/results/2026-11-02-veltos-update/`).
+- The host clock was still 3 hours behind on 2026-11-02 evening: apt in
+  the builder refused deb.debian.org ("Not live until"). The builder image
+  now takes the mirror variables too (`build/run.sh image` passes them as
+  build arguments); use a snapshot older than the host's clock.
+- `vm exec "pkill -f veltos-settings; ..."` kills its own shell (the
+  pattern is in its command line) and the rest never runs, silently:
+  `pkill -f '[v]eltos-settings'`.

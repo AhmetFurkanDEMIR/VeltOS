@@ -1,3 +1,13 @@
+veltos-settings (1.1.0~dev7) trixie; urgency=medium
+
+  * VeltOS Update page in Windows Update's layout: a new VeltOS release with
+    its notes, Download & install with progress, Restart now, the daily
+    notification switch (veltos-update).
+  * Restart now waits for Plasma's answer (dbus-send --print-reply): sent
+    without it, Plasma's logout and restart did nothing (dev VM 2026-11-02).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 14:00:00 +0000
+
 veltos-settings (1.1.0~dev6) trixie; urgency=medium
 
   * Light/dark: one switch at a time (a lock shared by Settings, Welcome and

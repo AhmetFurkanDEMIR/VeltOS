@@ -29,7 +29,7 @@ FIRMWARE_HELPER = "/usr/libexec/veltos/msi-ec-firmware"
 DRIVER_HELPER = "/usr/libexec/veltos/msi-ec-driver"
 MOK_KEY = "/var/lib/dkms/mok.pub"
 PACKAGES = ("dkms", "linux-headers-amd64")
-REBOOT = ["dbus-send", "--session", "--type=method_call", "--dest=org.kde.Shutdown", "/Shutdown",
+REBOOT = ["dbus-send", "--session", "--print-reply", "--type=method_call", "--dest=org.kde.Shutdown", "/Shutdown",
           "org.kde.Shutdown.logoutAndReboot"]
 
 

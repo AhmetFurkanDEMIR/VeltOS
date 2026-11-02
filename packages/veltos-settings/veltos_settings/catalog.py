@@ -21,7 +21,7 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
                  "nightlight", "multitasking", "mouse", "touchpad", "keyboard", "lockscreen",
                  "defaultapps", "startup", "yourinfo", "signin", "otherusers", "region",
                  "accessibility", "pointer", "searching", "themes", "taskbar", "location",
-                 "hotspot", "veltosai")
+                 "hotspot", "veltosai", "update")
 # Actions the backend knows (app.Backend.runAction).
 ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website", "graphics", "lighting")
 
@@ -220,7 +220,7 @@ PAGES = [
          "keywords": "index search arama dizin"},
     ]},
     {"id": "update", "icon": "view-refresh-symbolic", "title": ("VeltOS Update", "VeltOS Güncelleme"), "items": [
-        {"id": "updates", "icon": "software-update-available-symbolic", "action": "updates",
+        {"id": "updates", "icon": "software-update-available-symbolic", "page": "update",
          "title": ("Check for updates", "Güncellemeleri denetle"),
          "desc": ("Security fixes and app updates", "Güvenlik düzeltmeleri ve uygulama güncellemeleri"),
          "keywords": "update upgrade patch security güncelleme yama güvenlik"},

@@ -158,6 +158,21 @@ Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):
   false`) and an mbox `Inbox` in the profile's `Mail/<host>/`; delete a
   folder's `.msf` (Thunderbird closed) after changing how names are shown.
 
+- VeltOS Update end to end (2026-11-02): make a pretend release with
+  `tests/results/2026-11-02-veltos-update/make-test-repo.sh` (copy it to
+  `out/vm/update-e2e/`; it takes an ISO build's packages, bumps
+  veltos-base and an app, adds a new app through veltos-system and signs
+  the repository with `VELTOS_APT_SIGNING_KEY`), serve it from the VM's
+  container (`MSYS_NO_PATHCONV=1 docker exec -d veltos-vm python3 -m
+  http.server 8080 -d /out/vm/update-e2e`; the guest reaches it at
+  `http://10.0.2.2:8080/`), and point the guest at it with
+  `/etc/veltos/update.conf` (`[Update]`, `release_url =
+  http://10.0.2.2:8080/release.json`, `repository =
+  http://10.0.2.2:8080/repo/`), then `systemctl start
+  veltos-update-source.service` and, in the session, `systemd-run
+  --machine=velt@.host --user --collect /usr/libexec/veltos/update-check`
+  (delete `~/.local/state/veltos/update.json` to be told again).
+
 ## Result records
 
 - Raw results: `out/test-results/<UTC stamp>-<firmware>/` (not committed).
@@ -171,5 +186,7 @@ Patterns that worked on 2026-10-21 (see `tests/boot/vmctl.py`):
 - Real hardware matrix: NVIDIA, AMD, Intel GPUs; Wi-Fi/Bluetooth/audio.
   The template lives in `docs/hardware-support.md` once Milestone 2 starts.
 - Windows application and game compatibility (Milestones 3–4).
-- Upgrade and recovery tests (Milestone 5).
-- CI automation of all of the above.
+- Upgrade tests from one real release to the next (VeltOS Update is tested
+  with a pretend release in the dev VM).
+- CI automation of the installation and interaction tests (GitHub Actions
+  builds and boot-tests every release).

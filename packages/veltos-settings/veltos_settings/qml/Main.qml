@@ -77,7 +77,7 @@ ApplicationWindow {
         "accessibility": accessibilityComponent, "pointer": pointerComponent,
         "searching": searchingComponent,
         "themes": themesComponent, "taskbar": taskbarComponent, "location": locationComponent,
-        "hotspot": hotspotComponent, "veltosai": assistantComponent
+        "hotspot": hotspotComponent, "veltosai": assistantComponent, "update": updateComponent
     })
 
     // `veltos-settings PAGE`: a navigation page or a built-in page.
@@ -238,6 +238,7 @@ ApplicationWindow {
                     sourceComponent: window.query !== "" ? searchComponent
                                      : window.subPage !== "" ? window.subPages[window.subPage]
                                      : window.pageId === "home" ? homeComponent
+                                     : window.pageId === "update" ? updateComponent
                                      : itemsComponent
                 }
             }
@@ -262,6 +263,12 @@ ApplicationWindow {
         id: itemsComponent
         ItemsPage {
             pageData: window.currentPage
+            onItemActivated: item => window.activate(item)
+        }
+    }
+    Component {
+        id: updateComponent
+        UpdatePage {
             onItemActivated: item => window.activate(item)
         }
     }

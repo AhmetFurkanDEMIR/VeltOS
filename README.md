@@ -12,26 +12,28 @@ A free, Debian-based desktop operating system that looks and works the way
 Windows 11 users already know, with its own apps, a modern installer and
 Windows program support through Wine.
 
-**[⬇ Download VeltOS 1.0](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.0)** ·
+**[⬇ Download VeltOS](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/latest)** ·
 [Website](https://veltos.ahmetfurkandemir.com/) ·
 [Project status](docs/dev/status.md) ·
 [Build guide](docs/dev/build-guide.md) ·
 [Architecture](docs/dev/architecture.md) ·
 [Contributing](CONTRIBUTING.md)
 
-![Version 1.0](https://img.shields.io/badge/version-1.0-4F7CFF)
+![Latest release](https://img.shields.io/github/v/release/AhmetFurkanDEMIR/VeltOS?label=version&color=4F7CFF)
 ![Debian 13 trixie](https://img.shields.io/badge/Debian-13%20trixie-A81D33?logo=debian&logoColor=white)
 ![KDE Plasma 6.3](https://img.shields.io/badge/KDE%20Plasma-6.3-1D99F3?logo=kde&logoColor=white)
 ![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)
 
 </div>
 
-![A tour of VeltOS: Start, search, Task View and VeltOS AI](docs/assets/gif/veltos-tour.gif)
+![A tour of VeltOS: Start, search, Task View, Quick Settings and VeltOS Update](docs/assets/gif/veltos-tour.gif)
 
 > [!NOTE]
-> **VeltOS 1.0 is the first public release.** Every ISO goes through
-> automated start-up and installation tests with UEFI, BIOS and Secure Boot,
-> and VeltOS 1.0 has been installed on a laptop with NVIDIA graphics.
+> **VeltOS is a young system.** Every release is built by GitHub Actions
+> and its ISO goes through automated start-up tests with UEFI, BIOS and
+> Secure Boot before it is published; installation tests run on the
+> development builds, and VeltOS 1.0 has been installed on a laptop with
+> NVIDIA graphics.
 > [docs/dev/status.md](docs/dev/status.md) lists exactly what works and how
 > it was tested. As with any new system, back up your files before you
 > install it.
@@ -61,6 +63,11 @@ Windows program support through Wine.
   the PC opens a repair screen with Startup Repair, Safe mode, Command Prompt
   and the last start's problems. No boot menu at start-up: F1 shows it,
   F6 opens Recovery.
+- **New versions come to you.** From VeltOS 1.1 on, a new release reaches
+  installed PCs as an update: VeltOS looks once a day, tells you in a
+  notification, and Settings › VeltOS Update shows what is new and installs
+  it, new apps included, with your files, settings and programs left as
+  they are (the release's packages are signed with VeltOS' archive key).
 - **VeltOS AI.** An assistant pane like Copilot's (Windows + C) with
   ChatGPT, Claude, Gemini or Copilot on your own key, or a free model that
   runs on the PC; it changes settings only after you allow it.
@@ -72,7 +79,7 @@ Windows program support through Wine.
 
 ## Screenshots
 
-Every picture was taken on VeltOS 1.0; VeltOS has a light and a dark look.
+Every picture was taken on VeltOS; VeltOS has a light and a dark look.
 
 | | |
 |:---:|:---:|
@@ -132,14 +139,19 @@ Debian packages under [packages/](packages/). Firefox ESR is the web browser.
 
 ## Download and install
 
+<!-- release:start -->
 | | |
 |---|---|
 | ISO | [VeltOS-1.0-amd64.iso](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.0/VeltOS-1.0-amd64.iso) (2.1 GB, 64-bit) |
 | SHA-256 | `3e5273a13b0f87a11bd6a3fb668674b02c5865264065dfe5e570387f4ac1a2af` |
-| Release notes | [GitHub release v1.0](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.0) |
+| Release notes | [GitHub release v1.0](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.0) (27 October 2026) |
 
-1. Download the ISO and check it: `sha256sum VeltOS-1.0-amd64.iso` (Linux)
-   or `Get-FileHash VeltOS-1.0-amd64.iso` (PowerShell).
+Check the download: `sha256sum -c VeltOS-1.0-amd64.iso.sha256` (Linux, with
+the [.sha256 file](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.0/VeltOS-1.0-amd64.iso.sha256))
+or `Get-FileHash VeltOS-1.0-amd64.iso` (Windows PowerShell).
+<!-- release:end -->
+
+1. Download the ISO and check its SHA-256 (above).
 2. Write it to a USB stick of 4 GB or more with Rufus or balenaEtcher.
 3. Start the PC from the stick (its boot menu key is often F12, F11 or
    Esc). VeltOS starts as a live system; look around first.
@@ -210,7 +222,7 @@ reasons, the alternatives and their trade-offs are in
 ## Quality and testing
 
 - **Unit tests in every package build.** Each package runs its tests while it
-  builds (1055 tests in the 2026-10-27 build of VeltOS 1.0).
+  builds (1292 tests in the 2026-11-02 development build, 1055 in VeltOS 1.0).
 - **The image checks itself.** A live-build hook stops the build when a VeltOS
   invariant is broken: required packages, branding, themes, file
   associations, the boot splash, stripped Wine libraries and more.
