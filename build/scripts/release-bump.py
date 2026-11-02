@@ -18,6 +18,7 @@ afterwards. Files are written with LF line endings.
 """
 
 import argparse
+import datetime
 import email.utils
 import re
 import sys
@@ -67,12 +68,21 @@ def bump_os_release(path, release):
         if count != 1:
             raise SystemExit(f"{path}: no {key} line")
     path.write_text(text, encoding="utf-8", newline="\n")
+    # The console's sign-in banners (/etc/issue, /etc/issue.net) name it too.
+    for name in ("issue", "issue.net"):
+        banner = path.parent / name
+        if banner.exists():
+            text, count = re.subn(r"\AVeltOS \d+\.\d+", f"VeltOS {release}", banner.read_text(encoding="utf-8"))
+            if count != 1:
+                raise SystemExit(f"{banner}: does not start with \"VeltOS X.Y\"")
+            banner.write_text(text, encoding="utf-8", newline="\n")
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("version", help="the release, e.g. 1.1")
-    parser.add_argument("--date", default=email.utils.formatdate(localtime=False, usegmt=False))
+    parser.add_argument("--date", default=email.utils.format_datetime(
+        datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)).replace("-0000", "+0000"))
     parser.add_argument("--root", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if not re.fullmatch(r"\d+\.\d+", args.version):

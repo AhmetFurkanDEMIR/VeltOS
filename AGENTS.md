@@ -124,11 +124,15 @@ owner sets priorities; agents act as the engineering team.
 ## Conventions
 
 - Debian packaging: debhelper compat 13, `3.0 (native)`, one package per
-  directory in `packages/`. VeltOS 1.0 (2026-10-27) is the first public
-  release: its packages are `1.0.0` and `/etc/os-release` says 1.0; work
-  toward the next release uses `X.Y.Z~devN` (for example `1.1.0~dev1`),
-  which sorts before `X.Y.Z`, and `VERSION_ID` follows the changelog
-  (veltos-base's test). The ISO's version is `VELTOS_VERSION`. Put
+  directory in `packages/`. VeltOS 1.0 (2026-10-27) was the first public
+  release, VeltOS 1.1 (2026-11-02) the first made by GitHub Actions; a
+  release's changed packages carry `X.Y.0` (`build/scripts/release-bump.py`
+  sets them, `/etc/os-release` and the console banners say X.Y); work
+  toward the next release uses `X.Y.Z~devN` (for example `1.2.0~dev1`),
+  which sorts before `X.Y.Z` and after the release, and `VERSION_ID`
+  follows the changelog (veltos-base's test). A release commit changes
+  `VERSION` (see the build guide's "Releases"). The ISO's version is
+  `VELTOS_VERSION`. Put
   generated files in `build-assets/` (git-ignored) via `debian/rules`.
 - Package unit tests: Python `unittest` under `packages/<pkg>/tests/`, run
   by `override_dh_auto_test`. Standard library only.

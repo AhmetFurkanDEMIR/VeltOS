@@ -310,6 +310,8 @@ Product owner's list of 2026-11-02, night (website, updates, GitHub Actions):
 156. [x] Releases by GitHub Actions on main: the ISO, the release with its notes and the website's SHA-256 from the workflow: `.github/workflows/release.yml` (architecture 2.57; build guide "Releases"). Untested on GitHub: it needs the repository secret `VELTOS_APT_SIGNING_KEY` and runs when a push changes `VERSION` (only on the owner's "Relase çık")
 157. [x] Keep the ISO under 2 GiB for the release without giving up quality, speed or animations and without removing anything: the workflow and `build-iso.sh` refuse an ISO of 2 GiB or more; VeltOS Update adds two small packages; nothing was removed: ISO 1.1-dev10 is 2,112,495,616 bytes, 33.4 MiB under the limit, boot tests UEFI 19, BIOS 18, Secure Boot 20 checks passed
 
+158. [ ] Release VeltOS 1.1 ("Relase çık", 2026-11-02): the release commit (`release-bump.py 1.1`, release check ready) was pushed; GitHub Actions builds, boot-tests and publishes v1.1 and updates the website. Done when the run has finished and the release and site are checked
+
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
 SHA-256, website download and pictures updated) only when the owner says

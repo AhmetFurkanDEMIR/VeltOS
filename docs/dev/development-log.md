@@ -3,6 +3,32 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-02 — VeltOS 1.1: the release commit (GitHub Actions builds and publishes it)
+
+The product owner said "Relase çık" after pushing 1e914a0 (that push's
+Release run stopped after its plan step, as it should: v1.0 existed) and
+adding the repository secret `VELTOS_APT_SIGNING_KEY` (seen in the API's
+secret list, created 14:27:35 UTC; its value was not read).
+
+- `build/scripts/release-bump.py 1.1`: `VERSION` 1.1; veltos-base 1.1.0
+  with os-release "VeltOS 1.1"; 27 more packages from `1.1.0~devN` to
+  `1.1.0` (veltos-boot, Calculator, Camera, veltos-llama, Recovery,
+  Fluent icons and the Wine add-ons are unchanged since v1.0 and keep
+  their versions). Found on the way: the console banners (`issue`,
+  `issue.net`) still said 1.0 and veltos-base's test failed; the bump now
+  changes them too (tests in veltos-base and `tests/repo`), and writes
+  changelog dates with `+0000`.
+- `release-check.py --version 1.1 --previous v1.0` (in the builder, with
+  dpkg): "release 1.1: ready". Repository tests 29 OK, veltos-base 8 OK.
+- Release notes: claims that real hardware has not shown yet are worded
+  as such (both graphics cards' screens: seen in VMs; the hotspot over the
+  only Wi-Fi card: where the card allows it; MSI: laptops msi-ec
+  supports); Turkish uses the OS's names ("fare işaretçisi", "mobil etkin
+  nokta").
+- Pushed to `main`; the workflow builds, boot-tests, signs and publishes
+  v1.1 and then updates the website and README. Its result is recorded in
+  the next entry.
+
 ## 2026-11-02 — Items 153-157: VeltOS Update, releases by GitHub Actions, the website
 
 The product owner asked for new releases to reach installed PCs as

@@ -116,7 +116,8 @@ class ReleaseToolTests(unittest.TestCase):
         root = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, root, True)
         (root / "packages/veltos-base").mkdir(parents=True)
-        shutil.copy(REPO / "packages/veltos-base/os-release", root / "packages/veltos-base/os-release")
+        for name in ("os-release", "issue", "issue.net"):
+            shutil.copy(REPO / "packages/veltos-base" / name, root / "packages/veltos-base" / name)
         for name, version in (("veltos-base", "1.0.0"), ("veltos-ai", "1.1.0~dev4"), ("veltos-camera", "1.0.0"),
                               ("veltos-fluent-icons", "2026.07.27~veltos4")):
             path = root / f"packages/{name}/debian/changelog"
@@ -141,6 +142,8 @@ class ReleaseToolTests(unittest.TestCase):
         os_release = (root / "packages/veltos-base/os-release").read_text(encoding="utf-8")
         self.assertIn('VERSION_ID="1.1"', os_release)
         self.assertIn('PRETTY_NAME="VeltOS 1.1"', os_release)
+        self.assertEqual((root / "packages/veltos-base/issue.net").read_text(encoding="utf-8"), "VeltOS 1.1\n")
+        self.assertTrue((root / "packages/veltos-base/issue").read_text(encoding="utf-8").startswith("VeltOS 1.1 "))
 
         def first(name):
             return (root / f"packages/{name}/debian/changelog").read_text(encoding="utf-8")

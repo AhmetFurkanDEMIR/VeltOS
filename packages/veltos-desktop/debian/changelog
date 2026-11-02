@@ -1,3 +1,9 @@
+veltos-desktop (1.1.0) trixie; urgency=medium
+
+  * VeltOS 1.1.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 14:32:07 +0000
+
 veltos-desktop (1.1.0~dev5) trixie; urgency=medium
 
   * Dark mode: Start, the flyouts and tooltips without the black edge; the edge

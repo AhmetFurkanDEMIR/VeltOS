@@ -53,11 +53,13 @@ class LoginBannerTests(unittest.TestCase):
         self.assertTrue(issue.startswith("VeltOS "))
         self.assertIn("\\l", issue)   # getty: name of the terminal
         self.assertNotIn("Debian", issue)
-        self.assertEqual((PKG / "issue.net").read_text(), "VeltOS 1.0\n")
+        self.assertRegex((PKG / "issue.net").read_text(), r"\AVeltOS \d+\.\d+\n\Z")
 
     def test_banners_follow_the_version(self):
+        # build/scripts/release-bump.py changes them with os-release.
         version = parse_os_release((PKG / "os-release").read_text())["VERSION_ID"]
         self.assertIn(f"VeltOS {version} ", (PKG / "issue").read_text())
+        self.assertEqual((PKG / "issue.net").read_text(), f"VeltOS {version}\n")
 
     def test_message_after_signing_in(self):
         # Replaces Debian's /etc/motd text (keeping its licence notice) only

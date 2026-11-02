@@ -1,3 +1,9 @@
+veltos-store (1.1.0) trixie; urgency=medium
+
+  * VeltOS 1.1.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 14:32:07 +0000
+
 veltos-store (1.1.0~dev6) trixie; urgency=medium
 
   * Welcome: the last mode chosen wins (a quick Light then Dark ended in light);

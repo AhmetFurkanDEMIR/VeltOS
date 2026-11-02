@@ -1,3 +1,9 @@
+veltos-media (1.1.0) trixie; urgency=medium
+
+  * VeltOS 1.1.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 14:32:07 +0000
+
 veltos-media (1.1.0~dev1) trixie; urgency=medium
 
   * Window frame without a line and with a soft shadow (dark mode showed a black

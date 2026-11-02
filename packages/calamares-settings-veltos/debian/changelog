@@ -1,3 +1,9 @@
+calamares-settings-veltos (1.1.0) trixie; urgency=medium
+
+  * VeltOS 1.1.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 14:32:07 +0000
+
 calamares-settings-veltos (1.1.0~dev5) trixie; urgency=medium
 
   * The finished page names VeltOS Update for new VeltOS versions and
