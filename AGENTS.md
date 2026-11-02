@@ -1407,3 +1407,20 @@ and JavaScript with no build step, no external requests and no cookies:
   the ISO was built with `VELTOS_DEBIAN_MIRROR=http://ftp.tr.debian.org/debian`
   (2.4 MB/s from the host; deb.debian.org 1.7 MB/s). The installed
   system's sources stay deb.debian.org (`--mirror-binary`).
+- KWin 6.3.6 with several graphics cards (read from its v6.3.6 source,
+  2026-11-02): it renders on `m_gpus.front()`; by default the cards come
+  from udev (boot_vga first) and, with more than one, are sorted by their
+  connected internal, then desktop outputs (no tie-break). A secondary card
+  without outputs is dropped and added back on a udev change event; its
+  outputs get the picture through Egl, Dmabuf, LinearDmabuf or a CPU copy,
+  and when all fail the output stays dark. `KWIN_DRM_DEVICES`
+  (colon-separated, a backslash escapes a colon) fixes the order and skips
+  the sort. VeltOS' `kwin-gpu-order` puts the processor's graphics before
+  NVIDIA's card (reports: NVIDIA as the primary left the other card's
+  screens dark). QEMU has one card: test the script with a recorded sysfs.
+- Aurorae frames (Fluent): the frame's outermost pixel lies 1 px outside
+  the decoration's padding, so buttons placed at the padding left a 1 px
+  rim of the frame beside the close button's red; the VeltOS override
+  moves the button groups 1 px out. The self-drawn VeltOS windows round
+  their close button's top right corner themselves (`topRightRadius`).
+

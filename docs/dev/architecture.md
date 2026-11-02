@@ -1536,6 +1536,32 @@ were measured (below).
   When the module cannot load the helper takes it out again, so the
   kernel's own msi-ec (battery limits) comes back.
 
+### 2.55 KWin draws on the processor's graphics next to NVIDIA's card (2026-11-02)
+
+- Decision: when NVIDIA's driver and the processor's graphics (i915, xe,
+  amdgpu, radeon) are both present, `kwin-gpu-order` sets
+  `KWIN_DRM_DEVICES` to the processor's graphics first and NVIDIA's card
+  second, for the desktop (`veltos-session.sh`) and the sign-in screen
+  (`greeter-compositor`). KWin then renders there and copies the picture
+  to the screens on NVIDIA's card (with NVIDIA's GBM library, which VeltOS
+  Graphics Cards installs). Any order already set is kept; one card, or
+  Nouveau, leaves KWin's own choice.
+- Why: the product owner's laptop showed only the screens of one card;
+  KWin 6.3.6 orders several cards by their connected screens with no
+  tie-break, and with NVIDIA's card first the other card's screens stayed
+  dark (KDE bug 452219). The owner asked for both cards' monitors always,
+  also when plugged in later.
+- Alternatives: KWin's own order (the bug); ordering only when a monitor
+  is connected to the processor's graphics at sign-in (a monitor plugged
+  in later would again stay dark); NVIDIA first (its screens work, the
+  processor graphics' screens are the ones copied to, which NVIDIA's
+  driver handled worse in the reports).
+- Trade-off: on a desktop PC whose monitors are all on NVIDIA's card but
+  whose processor graphics is left on in the firmware, the desktop is now
+  drawn on the processor's graphics and copied, which costs some speed;
+  games still choose NVIDIA's card (PRIME offload). Not yet seen on real
+  hardware.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

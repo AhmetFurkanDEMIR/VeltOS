@@ -3,6 +3,43 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-02 — Items 149-152: the owner's list after testing ISO 1.1-dev8
+
+The code for these items was written by another Claude account, which ran
+out of quota before checking it, recording it and committing; this entry
+records the checks made afterwards.
+
+- Set-up: the dev VM's installed dev8 system (account "Jordan Lee",
+  `jordanl`) with the ten rebuilt packages installed (`out/build-pkgs-149.log`:
+  repository 19, veltos-desktop 168, Settings 221, Store 50, File
+  Explorer 123, Mail 25, Media 19, Notepad 22, Office 20, PDF 7, Photos 18
+  tests, all OK), Plasma's caches cleared and the VM restarted. The
+  account's password had been chosen during that installation and was
+  recorded nowhere; it was set again from `out/vm/test-account.txt`
+  (git-ignored) with chpasswd.
+- 149, dark mode frames, with KWin's blur and contrast loaded as on real
+  graphics cards (`out/vm/shell-restart.sh`): Start's edge goes from the
+  wallpaper (49, 73, 137) straight into the menu (40, 42, 48), no ring;
+  the same for Quick Settings (29, 39, 109) -> (40, 41, 48), the date and
+  time flyout (20, 28, 84) -> (40, 42, 48) and a taskbar tooltip
+  (39, 60, 120) -> (35, 38, 47). File Explorer (a self-drawn window) and the
+  Terminal (KWin's Aurorae frame): the wallpaper, then the window's own
+  colour, no line.
+- 151, the close button in dark mode with the pointer on it: the red
+  (196, 43, 28) fills File Explorer's and the Terminal's rounded top right
+  corner and reaches the edge; nothing of it sticks out.
+- 152, one switch at a time: two switches through Settings' own command
+  started 0.3 s apart (`out/vm/switch-race.sh`, light then dark, and dark
+  then light) ended with the global theme, the colour scheme, plasmarc and
+  plasmashell all in the later mode. The owner's steps (dark, restart,
+  light, dark) with Settings open: the taskbar, Start and Settings changed
+  each time (taskbar 236 / 30, Settings 255 / 42).
+- 150, `kwin-gpu-order`: QEMU has one card (virtio): the script prints
+  nothing and KWin runs without `KWIN_DRM_DEVICES`; its unit tests cover
+  the dual-card cases with a recorded sysfs. Both monitors on the owner's
+  Intel + NVIDIA laptop remain to be seen.
+- Pictures: `tests/results/2026-11-02-items-149-152/`.
+
 ## 2026-11-02 — ISO 1.1-dev8 built and tested
 
 - `veltos-1.1-dev8-amd64.hybrid.iso`, 2,112,491,520 bytes (33.4 MiB under

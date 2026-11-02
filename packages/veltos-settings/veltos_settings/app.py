@@ -38,7 +38,20 @@ VELTOS_WEBSITE = "https://veltos.ahmetfurkandemir.com/"
 # plasma-apply-lookandfeel is given 90 s, so the taskbar's Plasma theme is
 # always written within the 120 s Settings waits: a cut-off run left the
 # global theme switched but the taskbar in the other mode.
-APPLY_THEME = r'''timeout 90 plasma-apply-lookandfeel --apply "$1" >/dev/null 2>&1
+APPLY_THEME = r'''# One switch at a time, whoever asks (Settings, the Welcome window, VeltOS
+# AI): two at once wrote kdeglobals and plasmarc over each other, and the
+# taskbar, Start and Settings were left in a broken mix of light and dark
+# (product owner, 2026-11-02).
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/veltos-theme.lock"
+command -v flock >/dev/null 2>&1 && flock -w 180 9
+timeout 90 plasma-apply-lookandfeel --apply "$1" >/dev/null 2>&1
+# The colours must follow the mode even when the global theme was cut off.
+if command -v kreadconfig6 >/dev/null 2>&1; then
+    case "$3" in dark) scheme=VeltOSDark ;; *) scheme=VeltOSLight ;; esac
+    if [ "$(kreadconfig6 --file kdeglobals --group General --key ColorScheme 2>/dev/null)" != "$scheme" ]; then
+        timeout 60 plasma-apply-colorscheme "$scheme" >/dev/null 2>&1
+    fi
+fi
 f="${XDG_CONFIG_HOME:-$HOME/.config}/plasmarc"
 touch "$f"
 awk -v name="$2" '

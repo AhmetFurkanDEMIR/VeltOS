@@ -40,6 +40,15 @@ if /usr/libexec/veltos/needs-software-rendering; then
     export LIBGL_ALWAYS_SOFTWARE=1
 fi
 
+# With NVIDIA's driver and the processor's graphics, KWin draws on the
+# processor's graphics, so the screens on both cards work (kwin-gpu-order;
+# product owner, 2026-11-02). An order set elsewhere is kept.
+if [ -z "${KWIN_DRM_DEVICES:-}" ]; then
+    veltos_gpus="$(/usr/libexec/veltos/kwin-gpu-order 2>/dev/null)"
+    [ -n "$veltos_gpus" ] && export KWIN_DRM_DEVICES="$veltos_gpus"
+    unset veltos_gpus
+fi
+
 # Per-user defaults KDE has no system-wide setting for (application style,
 # File Explorer side bar). Created once; a user's own files are kept.
 if [ ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig" ] ||

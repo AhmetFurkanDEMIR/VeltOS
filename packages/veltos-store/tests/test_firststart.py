@@ -275,14 +275,21 @@ class WindowTests(unittest.TestCase):
         self.assertEqual(backend.accents, Look.accents)
         backend.setDarkMode(False)                    # already light: nothing to do
         backend.setDarkMode(True)
+        self.assertTrue(backend.wantedDark)           # the tile shows the choice at once
         backend.setAccent("#E81123")
+        # Changed back while the first switch still runs: the last wish wins
+        # (product owner, 2026-11-02: light, then dark, ended in light).
+        backend.setDarkMode(False)
+        backend.setDarkMode(True)
         self.assertTrue(backend.applying)
         deadline = time.monotonic() + 5
         while backend.applying and time.monotonic() < deadline:
             APP.processEvents()
             time.sleep(0.01)
         self.assertFalse(backend.applying)
-        self.assertEqual(calls, [("mode", True), ("accent", "#E81123")])
+        self.assertEqual(calls[0], ("mode", True))
+        self.assertEqual([c for c in calls if c[0] == "mode"][-1], ("mode", True))
+        self.assertEqual(calls[-1], ("accent", "#E81123"))
         self.assertIsNotNone(window.findChild(QObject, "accents"))
         problems = [m for m in MESSAGES if "qml" in m.lower() or "error" in m.lower() or "warning" in m.lower()
                     or "undefined" in m.lower()]

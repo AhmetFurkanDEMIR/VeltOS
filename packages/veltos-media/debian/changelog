@@ -1,3 +1,11 @@
+veltos-media (1.1.0~dev1) trixie; urgency=medium
+
+  * Window frame without a line and with a soft shadow (dark mode showed a black
+    frame); the close button's red rounds the window's top right corner instead
+    of sticking out of it.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 12:00:00 +0000
+
 veltos-media (1.0.0) trixie; urgency=medium
 
   * VeltOS 1.0: the first public release.

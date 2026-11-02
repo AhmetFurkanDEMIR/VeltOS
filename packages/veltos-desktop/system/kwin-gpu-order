@@ -1,0 +1,47 @@
+#!/bin/sh
+# Which graphics card KWin draws with when the PC has NVIDIA's driver and
+# another graphics card (the processor's Intel or AMD graphics): prints the
+# value for KWIN_DRM_DEVICES, the other card(s) first and NVIDIA's last, or
+# nothing (KWin's own choice) on every other PC.
+#
+# KWin draws on one card and copies the picture to screens on the others.
+# Without a fixed order it picks the card with the most connected screens
+# (the internal panel counts first) and, on a tie, either one; when it
+# picked NVIDIA's card, the screens on the processor's graphics stayed off
+# ("only the NVIDIA screen shows picture", KDE bug 452219; product owner,
+# 2026-11-02: the monitor on the processor's graphics was not seen, the one
+# on the NVIDIA card was). Drawing on the processor's graphics and copying
+# to NVIDIA's outputs is the way KWin supports both (NVIDIA as the second
+# card, with NVIDIA's GBM library, which VeltOS Graphics Cards installs),
+# and it is what KWin already chooses on laptops (the panel is on the
+# processor's graphics). Used by veltos-session.sh (the desktop) and
+# greeter-compositor (the sign-in screen); an order set by the user or the
+# administrator (KWIN_DRM_DEVICES already set) is kept.
+#
+#   kwin-gpu-order          prints e.g. /dev/dri/card1:/dev/dri/card0
+#   VELTOS_DRM_ROOT=DIR     another /sys/class/drm (tests)
+#   VELTOS_DEV_ROOT=DIR     another /dev/dri (tests)
+drm="${VELTOS_DRM_ROOT:-/sys/class/drm}"
+dev="${VELTOS_DEV_ROOT:-/dev/dri}"
+nvidia=
+boot=
+others=
+for card in "$drm"/card[0-9] "$drm"/card[0-9][0-9]; do
+    [ -e "$card/device" ] || continue
+    name="${card##*/}"
+    [ -e "$dev/$name" ] || continue
+    driver="$(basename "$(readlink "$card/device/driver" 2>/dev/null)" 2>/dev/null)"
+    case "$driver" in
+        nvidia) nvidia="$nvidia${nvidia:+:}$dev/$name" ;;
+        i915|xe|amdgpu|radeon)
+            # The card the firmware started on comes first among the others.
+            if [ "$(cat "$card/device/boot_vga" 2>/dev/null)" = 1 ]; then
+                boot="$boot${boot:+:}$dev/$name"
+            else
+                others="$others${others:+:}$dev/$name"
+            fi ;;
+    esac
+done
+others="$boot${boot:+${others:+:}}$others"
+[ -n "$nvidia" ] && [ -n "$others" ] && printf '%s:%s\n' "$others" "$nvidia"
+exit 0

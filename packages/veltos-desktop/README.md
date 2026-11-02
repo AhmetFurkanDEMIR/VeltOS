@@ -524,3 +524,21 @@ Fluent's Aurorae frames draw a 1 px line around every window (dark mode
 #686868 at 50 %, a light ring; light mode black at 15 %, a grey one).
 `tools/fluent.py` (`FRAME_BORDERS`) paints it in the frame's own colour, so
 a window ends in its own colour where its shadow begins.
+
+## Two graphics cards (2026-11-02)
+
+`kwin-gpu-order` prints a `KWIN_DRM_DEVICES` value when NVIDIA's driver and
+the processor's graphics (i915, xe, amdgpu, radeon) are both present: the
+processor's graphics first (the firmware's boot card first among them),
+NVIDIA's card last. `veltos-session.sh` and `greeter-compositor` export it
+unless an order is already set. KWin then draws on the processor's graphics
+and copies the picture to NVIDIA's screens; with NVIDIA as KWin's primary
+the screens on the processor's graphics stayed dark.
+
+## Dark mode without a rim (2026-11-02)
+
+The dark popups' edge (`dark_popup_rim`) takes the popup's own colour and
+opacity: a 35 % black line showed as a black frame around Start and the
+flyouts. The Aurorae override moves the caption buttons 1 px out to the
+frame's outermost pixel.
+

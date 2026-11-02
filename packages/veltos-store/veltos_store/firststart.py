@@ -81,8 +81,15 @@ class FirstStart(QObject):
                  dark=False, accent="", scale=1.0, start=None, follow=None, look=None):
         super().__init__()
         self._settings = look
-        self._applying = 0
+        self._applying = False
         self._applied.connect(self._done_applying)
+        # What the user chose last: the work runs one change at a time and
+        # always ends in this state (a quick Light-then-Dark ended in light
+        # before: the second click compared with the old look and was
+        # dropped; product owner, 2026-11-02).
+        self._wanted_dark = dark
+        self._pending = {}
+        self._queue_lock = threading.Lock()
         self.lang = lang or strings.language()
         self._texts = strings.texts(self.lang)
         self._status, self._done, self._shown = status, done, shown or marker()
@@ -91,6 +98,7 @@ class FirstStart(QObject):
         # `follow` reads the system's look again (main()); tests give none.
         self._look = themewatch.ThemeWatch(follow, self, initial=(dark, accent))
         self._look.changed.connect(self.lookChanged)
+        self._look.changed.connect(self._follow_system)
         self._data = {}
         self._timer = QTimer(self)
         self._timer.setInterval(interval)
@@ -151,38 +159,63 @@ class FirstStart(QObject):
 
     @Property(bool, notify=applyingChanged)
     def applying(self):
-        return self._applying > 0
+        return self._applying
 
-    def _apply(self, work):
-        """Runs a look change off the window's thread (it takes seconds);
-        one after the other, as Settings does."""
-        self._applying += 1
+    @Property(bool, notify=applyingChanged)
+    def wantedDark(self):
+        """The mode the user chose (shown at once; the system follows)."""
+        return self._wanted_dark
+
+    def _request(self, key, value):
+        """Queue a change; one worker applies the latest wish of each kind,
+        the mode before the accent, until nothing is left (the mode switch
+        takes seconds and runs off the window's thread)."""
+        with self._queue_lock:
+            self._pending[key] = value
+            start = not self._applying
+            self._applying = True
         self.applyingChanged.emit()
+        if start:
+            threading.Thread(target=self._work, daemon=True).start()
 
-        def run():
-            with self._lock:
-                try:
-                    work()
-                finally:
-                    self._applied.emit()
-        threading.Thread(target=run, daemon=True).start()
-
-    _lock = threading.Lock()
+    def _work(self):
+        while True:
+            with self._queue_lock:
+                if not self._pending:
+                    self._applying = False
+                    break
+                key = "dark" if "dark" in self._pending else "accent"
+                value = self._pending.pop(key)
+            try:
+                if key == "dark":
+                    self._settings.set_mode(value)
+                else:
+                    self._settings.set_accent(value)
+            except Exception:  # noqa: BLE001 - a failed change must not stop the queue
+                pass
+        self._applied.emit()
 
     def _done_applying(self):
-        self._applying = max(0, self._applying - 1)
         self.applyingChanged.emit()
         self._look.check()
 
+    def _follow_system(self):
+        """A mode chosen elsewhere (Settings) while nothing is queued here."""
+        if not self._applying and self._wanted_dark != self._look.dark:
+            self._wanted_dark = self._look.dark
+            self.applyingChanged.emit()
+
     @Slot(bool)
     def setDarkMode(self, dark):
-        if self._settings is not None and dark != self._look.dark:
-            self._apply(lambda: self._settings.set_mode(dark))
+        if self._settings is None or dark == self._wanted_dark:
+            return
+        self._wanted_dark = dark
+        self._request("dark", dark)
 
     @Slot(str)
     def setAccent(self, colour):
         if self._settings is not None:
-            self._apply(lambda: self._settings.set_accent(colour))
+            self._request("accent", colour)
 
     @Slot(str)
     def open(self, card):

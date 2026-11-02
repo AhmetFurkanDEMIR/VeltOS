@@ -355,7 +355,7 @@ Window {
                                 delegate: Item {
                                     id: modeTile
                                     required property bool modelData
-                                    readonly property bool selected: Theme.dark === modelData
+                                    readonly property bool selected: backend.wantedDark === modelData
                                     objectName: modelData ? "darkTile" : "lightTile"
                                     width: 236 * window.s
                                     height: 178 * window.s

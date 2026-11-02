@@ -68,6 +68,12 @@
       "why": "no Maximise button on modal dialogs (Windows 11 message boxes have only Close)",
       "old": "    property bool toggled: false\n    AuroraeButton {\n        id: maximizeButton\n",
       "new": "    property bool toggled: false\n    // VeltOS: as on Windows 11, a modal dialog (a message box) has no Maximise button\n    visible: !decoration.client.modal\n    AuroraeButton {\n        id: maximizeButton\n"
+    },
+    {
+      "file": "aurorae.qml",
+      "why": "caption buttons flush with the frame's outer edge: the close button's red reaches the window's top right corner (a 1 px rim of the frame stayed beside it and showed in dark mode)",
+      "old": "            rightMargin: decoration.client.maximized ? auroraeTheme.titleEdgeRightMaximized : (auroraeTheme.titleEdgeRight + root.padding.right)\n        }\n    }\n    Text {\n        id: caption\n",
+      "new": "            rightMargin: decoration.client.maximized ? auroraeTheme.titleEdgeRightMaximized : (auroraeTheme.titleEdgeRight + root.padding.right - 1) // VeltOS: flush with the frame's edge\n            // VeltOS: the frame's outermost pixel lies 1 px outside the padding; the buttons\n            // reach it, so the close button's red fills the top right corner (Windows 11)\n            topMargin: decoration.client.maximized ? auroraeTheme.titleEdgeTopMaximized + auroraeTheme.buttonMarginTopMaximized : auroraeTheme.titleEdgeTop + root.padding.top + auroraeTheme.buttonMarginTop - 1\n        }\n    }\n    Text {\n        id: caption\n"
     }
   ]
 }

@@ -1,3 +1,10 @@
+veltos-store (1.1.0~dev6) trixie; urgency=medium
+
+  * Welcome: the last mode chosen wins (a quick Light then Dark ended in light);
+    the tile shows the choice at once; one change at a time.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 12:00:00 +0000
+
 veltos-store (1.1.0~dev5) trixie; urgency=medium
 
   * Welcome in three pages as Windows 11's Get Started: a greeting over drifting

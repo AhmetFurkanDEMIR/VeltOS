@@ -153,8 +153,13 @@ class FluentTests(unittest.TestCase):
         out, count = fluent.dark_popup_rim(svg, "t")
         self.assertEqual(count, 2)
         self.assertEqual(out.count("fill:#ffffff;opacity:0.12"), 0)
-        self.assertEqual(out.count(fluent.DARK_RIM), 2)
-        self.assertIn('class="ColorScheme-Background"', out)              # the frame itself stays
+        # No line at all (2026-11-02: a black rim showed as a frame): the
+        # edge takes the frame piece's own colour and opacity.
+        self.assertEqual(out.count('style="fill:currentColor;opacity:0.75"'), 2)
+        self.assertEqual(out.count('class="ColorScheme-Background"'), 4)
+        self.assertNotIn("#000000", out)
+        acryl = fluent.acrylic(out, "#2c2c2c", 0.86, "t")
+        self.assertEqual(acryl.count("fill:#2c2c2c;opacity:0.86"), 4)
         self.assertIn('<g id="balloon-tip-top"><path style="fill:#ffffff;opacity:0.5" />', out)
         self.assertEqual(fluent.dark_popup_rim('<g id="top"><rect style="fill:#000000" /></g>', "t")[1], 0)
 

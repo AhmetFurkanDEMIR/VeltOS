@@ -74,7 +74,9 @@ ApplicationWindow {
             radius: frame.radius + index + 1
             color: "transparent"
             border.width: 1
-            border.color: Qt.rgba(0, 0, 0, (Theme.dark ? 0.22 : 0.075) * Math.pow(1 - index / window.shadow, 2))
+            // A soft shadow, no line: its innermost ring at 22 % read as a
+            // black frame around dark windows (product owner, 2026-11-02).
+            border.color: Qt.rgba(0, 0, 0, (Theme.dark ? 0.1 : 0.06) * Math.pow(1 - index / window.shadow, 2))
         }
     }
 
@@ -108,8 +110,10 @@ ApplicationWindow {
         anchors.margins: window.shadow
         radius: window.maximized ? 0 : 8
         color: Theme.window
-        border.width: window.maximized ? 0 : 1
-        border.color: Theme.dark ? "#3A3C4A" : "#C9CDD8"
+        border.width: 0
+        // The edge in the window's own colour, as the window frames (no
+        // grey or light line; product owner, 2026-11-02).
+        border.color: color
         clip: true
 
         ColumnLayout {
@@ -221,6 +225,9 @@ ApplicationWindow {
                         signal clicked()
                         Layout.preferredWidth: 46
                         Layout.fillHeight: true
+                        // The close button rounds the window's top right corner, as on Windows 11: a
+                        // square red stuck out of the corner (product owner, 2026-11-02).
+                        topRightRadius: danger && !window.maximized ? 8 : 0
                         color: wbHover.hovered ? (danger ? Theme.closeHover : Theme.hover) : "transparent"
                         Accessible.role: Accessible.Button
                         Accessible.name: label

@@ -684,7 +684,7 @@ def build_static_config(root):
     shutil.copy(SRC / "system/veltos-session-fixups.desktop", autostart / "veltos-session-fixups.desktop")
     libexec = root / "usr/libexec/veltos"
     libexec.mkdir(parents=True, exist_ok=True)
-    for helper in ("context-menus", "desktop-new", "display-scale", "greeter-compositor",
+    for helper in ("context-menus", "desktop-new", "display-scale", "greeter-compositor", "kwin-gpu-order",
                    "needs-software-rendering", "sddm-virtualbox-env", "session-defaults", "session-fixups",
                    "numlock-state", "power-mode", "same-wallpaper", "start-categories", "terminal-theme",
                    "touchpad-defaults",

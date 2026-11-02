@@ -16,4 +16,15 @@ if [ -e /run/veltos/software-rendering ] ||
     LIBGL_ALWAYS_SOFTWARE=1
     export LIBGL_ALWAYS_SOFTWARE
 fi
+# NVIDIA's driver and the processor's graphics: the sign-in screen, like the
+# desktop, draws on the processor's graphics so the screens on both cards
+# light up (kwin-gpu-order).
+if [ -z "${KWIN_DRM_DEVICES:-}" ]; then
+    KWIN_DRM_DEVICES="$(/usr/libexec/veltos/kwin-gpu-order 2>/dev/null)"
+    if [ -n "$KWIN_DRM_DEVICES" ]; then
+        export KWIN_DRM_DEVICES
+    else
+        unset KWIN_DRM_DEVICES
+    fi
+fi
 exec kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1 "$@"

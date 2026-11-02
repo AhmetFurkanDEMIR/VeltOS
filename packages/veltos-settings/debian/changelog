@@ -1,3 +1,10 @@
+veltos-settings (1.1.0~dev6) trixie; urgency=medium
+
+  * Light/dark: one switch at a time (a lock shared by Settings, Welcome and
+    VeltOS AI) and the colour scheme checked after the global theme.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 12:00:00 +0000
+
 veltos-settings (1.1.0~dev5) trixie; urgency=medium
 
   * Display: Detect other displays (display-detect through pkexec, no password).

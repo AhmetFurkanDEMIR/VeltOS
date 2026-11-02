@@ -72,6 +72,9 @@ Rectangle {
             signal clicked()
             Layout.preferredWidth: 46
             Layout.fillHeight: true
+            // The close button rounds the window's top right corner, as on Windows 11: a
+            // square red stuck out of the corner (product owner, 2026-11-02).
+            topRightRadius: danger && bar.window && !bar.window.maximized ? 8 : 0
             color: wbTap.pressed ? (danger ? Qt.darker(Theme.closeHover, 1.2) : Theme.chromePressed)
                    : wbHover.hovered ? (danger ? Theme.closeHover : Theme.chromeHover) : "transparent"
             Behavior on color { enabled: Theme.anim > 0; ColorAnimation { duration: 80 } }

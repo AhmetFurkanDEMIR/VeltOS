@@ -1,3 +1,16 @@
+veltos-desktop (1.1.0~dev5) trixie; urgency=medium
+
+  * Dark mode: Start, the flyouts and tooltips without the black edge; the edge
+    is the popup's own colour.
+  * Window frames: the caption buttons reach the frame's outer edge, so the
+    close button's red fills the top right corner (a 1 px rim stayed beside it
+    in dark mode).
+  * kwin-gpu-order: with NVIDIA's driver and the processor's graphics, KWin and
+    the sign-in screen draw on the processor's graphics, so the screens on both
+    cards work.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Mon, 02 Nov 2026 12:00:00 +0000
+
 veltos-desktop (1.1.0~dev4) trixie; urgency=medium
 
   * Start, the flyouts, toasts and the taskbar in Windows 11's acrylic where

@@ -540,7 +540,12 @@ def drop_scrollbar_separator(svg, name="svg"):
     return result
 
 
-DARK_RIM = "fill:#000000;opacity:0.35"
+# The rim takes the popup's own colour: a 35 % black edge (2026-10-28)
+# showed as a black frame around Start and the flyouts in dark mode, and a
+# transparent one left the shadow's darkest pixel as a thin dark line
+# (product owner, 2026-11-02: no frame, no border). The edge is part of the
+# popup; the shadow pieces stay outside it.
+DARK_RIM = "fill:currentColor"
 
 
 def dark_popup_rim(svg, name="svg"):
@@ -550,12 +555,16 @@ def dark_popup_rim(svg, name="svg"):
     and corners are <use> copies). Over the blurred dark desktop it showed
     as a white frame around Start, search, the flyouts and tooltips
     (product owner, 2026-10-28: no white frame in dark mode; seen in the VM
-    once blur was loaded). The line becomes a dark edge. Returns the SVG
-    and the number of lines changed."""
+    once blur was loaded). The line becomes part of the popup: the colour
+    and opacity of the frame piece beside it (DARK_RIM; `acrylic` paints
+    both alike). Returns the SVG and the number of lines changed."""
     count = 0
 
     def darken_group(group):
         nonlocal count
+        piece = re.search(r'<(?:rect|path)\b[^>]*class="ColorScheme-Background"[^>]*>', group.group(0))
+        opacity = re.search(r"(?<![-\w])opacity:([0-9.]+)", piece.group(0)) if piece else None
+        style = DARK_RIM + (f";opacity:{opacity.group(1)}" if opacity else "")
 
         def darken(element):
             nonlocal count
@@ -563,7 +572,8 @@ def dark_popup_rim(svg, name="svg"):
             if "class=" in tag:
                 return tag
             count += 1
-            return re.sub(r'style="[^"]*"', f'style="{DARK_RIM}"', tag, count=1)
+            tag = re.sub(r'style="[^"]*"', f'style="{style}"', tag, count=1)
+            return re.sub(r"^<(\w+)", r'<\1 class="ColorScheme-Background"', tag)
         return re.sub(r'<(?:rect|path)\b[^>]*style="[^"]*fill:#ffffff;opacity:[0-9.]+[^"]*"[^>]*>', darken,
                       group.group(0))
     result = re.sub(r'<g\b[^>]*id="(?:top|topleft|topright|bottom|bottomleft|bottomright|left|right)"[^>]*>.*?</g>',

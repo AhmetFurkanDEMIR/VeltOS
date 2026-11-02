@@ -270,6 +270,10 @@ class OverrideTests(unittest.TestCase):
         self.assertIn('caption.endsWith("VeltOS Office Calc")', frame)
         self.assertIn("color: root.veltosTint", frame)
         self.assertIn('root.veltosTinted ? (decoration.client.active ? "#FFFFFF"', frame)
+        # The buttons reach the frame's outer edge: the close button's red
+        # fills the corner (a 1 px rim beside it showed in dark mode).
+        self.assertIn("(auroraeTheme.titleEdgeRight + root.padding.right - 1)", frame)
+        self.assertIn("auroraeTheme.buttonMarginTop - 1\n", frame)
         button = (self.out / "kwin/aurorae/AuroraeButton.qml").read_text(encoding="utf-8")
         self.assertIn('prefix: "active" + buttonSvg.tintSuffix', button)
         self.assertIn('prefix: "hover" + buttonSvg.maximizedSuffix + buttonSvg.tintSuffix', button)

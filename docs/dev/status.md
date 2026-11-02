@@ -1,9 +1,8 @@
 # VeltOS Status
 
-Last updated: 2026-11-02 (items 140-147: live welcome link, password hint and
-reset on the lock screen, the taskbar after the first light/dark switch, Secure Boot
-after the NVIDIA install, Detect other displays, Windows 11 acrylic flyouts, mouse
-pointer in Settings, Welcome in three pages, no line around windows). Every "Implemented" item names the evidence that shows it working.
+Last updated: 2026-11-02 evening (items 149-152: no black frame in dark
+mode, both graphics cards' monitors, the close button's corner, light/dark
+switches one at a time). Every "Implemented" item names the evidence that shows it working.
 "Untested" means nobody has observed it working yet. Most observations are
 from QEMU/KVM virtual machines (no 3D acceleration) and VirtualBox VMs; the
 product owner installed VeltOS on their own laptop (NVIDIA RTX 4070 Max-Q)
@@ -297,6 +296,13 @@ Product owner's list of 2026-11-02 (after testing ISO 1.1-dev7 on the laptop and
 147. [x] A more beautiful, animated Welcome window like Windows 11's: Three pages that slide, as Windows 11's Get Started app: a greeting over softly drifting VeltOS colours (the logo with Windows' pulse, "Hi.", "Welcome to VeltOS"), "Make it yours" (two small desktop previews for light and dark mode and the accent colours, applied at once through VeltOS Settings' helpers, the window following), "Get to know VeltOS" (the cards rising in one after another, the update's line); page dots, Back and Next, the arrow keys. Offscreen tests (pages, mode and accent applied one after the other). Dev VM: dark mode and a purple accent chosen there turned the taskbar, Settings and the window itself at once (`147-*.webp`)
 148. [x] (added before the ISO) A needless line around windows, white in dark mode and black/grey in light mode: remove it; the edge in the window's own colour: Fluent's Aurorae frames drew a 1 px line around every window (dark #686868 at 50 %, light black at 15 %); `tools/fluent.py` (`FRAME_BORDERS`) paints it in the frame colour, so a window ends in its own colour where its shadow begins. Dev VM, dark and light, before and after (`148-window-edges-before-after.webp`: the light ring (43, 49, 71) beside the dark window (28, 29, 38) is gone). Firefox draws its own title bar and keeps a 1 px grey edge of its own (neither its style sheets nor the GTK theme's decoration changed it in the VM); open
 
+Product owner's list of 2026-11-02, evening (after testing ISO 1.1-dev8):
+
+149. [x] Dark mode still has a black frame: around windows and around Start and the flyouts (Wi-Fi, Bluetooth, date and time, removable drives); no frame, no border: Start and the flyouts had a 1 px line at 35 % black (the dark theme's rim, which replaced Fluent's white line on 2026-10-28): measured (13, 14, 18) at Start's edge with blur loaded. The rim now takes the popup's own colour and opacity (`tools/fluent.py` `dark_popup_rim`); Start's edge goes from the desktop straight into the menu colour (`149-*.webp`). The self-drawn windows (File Explorer, Notepad, Media Player, PDF Reader, Photos, Mail, Office's start screen) had a 1 px #3A3C4A / #C9CDD8 line and a shadow whose innermost ring was 22 % black: no line, a soft shadow (10 % dark, 6 % light). The window frames of the other programs had no line left since item 148 (measured again in the VM: window colour, then wallpaper with a faint shadow)
+150. [x] The monitor on the processor's graphics is still not seen while the one on the NVIDIA card is: KWin 6.3.6's own code (read from the v6.3.6 tag) draws on one card, the "primary", and copies the picture to screens on the others; it picks the card with the most connected screens (the internal panel first) and, on a tie, either one, and reports of the same set-up say that with NVIDIA's card as the primary only the NVIDIA screen shows a picture (KDE bug 452219). The new `kwin-gpu-order` (veltos-desktop) gives KWin a fixed order whenever NVIDIA's driver and the processor's graphics (i915, xe, amdgpu, radeon) are both there: the processor's graphics first, NVIDIA's card second, for the desktop (`veltos-session.sh`) and the sign-in screen (`greeter-compositor`); screens on NVIDIA's card are then copied there, which KWin supports with NVIDIA's GBM library (installed by Graphics Cards since item 120). An order set by the administrator (`KWIN_DRM_DEVICES`) is kept. Unit tests with a recorded sysfs (desktop booted on NVIDIA, laptop, AMD, xe, NVIDIA only, Nouveau). Untested on real hardware: the owner's PC must confirm both monitors; if one stays dark, Graphics Cards > Driver log has the details
+151. [x] In dark mode the close button (X) at the top right sticks out: two causes, both fixed. Window frames (KWin's Aurorae): the buttons sat 1 px inside the frame's outermost pixel, so the red hover left a 1 px rim beside it (dark in dark mode); the buttons now reach the edge (plasma-overrides/aurorae.json) and the red fills the rounded corner. The self-drawn windows (File Explorer, Notepad, Media Player, PDF Reader, Photos, Mail, Office): the red was a square that stuck out of the window's rounded corner; it now rounds the corner like the window (`topRightRadius`, square when maximised). Dev VM, light and dark (`151-*.webp`)
+152. [x] After the first start: dark mode, restart, light mode: the taskbar, Start and Settings broke and dark mode could not be chosen again: Not reproduced in the dev VM with the same steps (Welcome window to dark, restart, Colours to light, back to dark; with and without the blur effect: every switch turned the taskbar, Start and Settings). Two ways it could break are closed: two switches at the same time (Settings, the Welcome window and VeltOS AI each started their own) wrote kdeglobals and plasmarc over each other; every switch now takes one lock (`flock` in `APPLY_THEME`) and checks the colour scheme after the global theme (`plasma-apply-colorscheme` when it did not follow). And the Welcome window dropped a second quick click (Light, then Dark ended in light): it now applies the last choice, one change at a time, and its tiles show the choice at once. Untested on the owner's PC
+
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
 SHA-256, website download and pictures updated) only when the owner says
@@ -467,6 +473,11 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
    (121), the mobile hotspot with 5 GHz chosen (138: falls back to 2.4 GHz;
    if it still fails, `~/.cache/veltos-settings/hotspot.log` says why),
    and a real first start with the Welcome window (114).
+   Items 140-152 (2026-11-02) are done; to see on the owner's laptop: both
+   graphics cards' monitors with `kwin-gpu-order` (150; the Graphics Cards
+   driver log has the details if one stays dark), the taskbar after the
+   first start's light/dark switches (142, 152), the dark mode edges with
+   a real graphics card (149, seen in the VM with blur loaded).
 1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
    built (F1, F2, F7); the remaining release steps are F3-F6 (website),
    F8 (contributors) and F9 (publishing the ISO on a GitHub release and the

@@ -155,6 +155,9 @@ Rectangle {
             signal clicked()
             Layout.preferredWidth: 46
             Layout.fillHeight: true
+            // The close button rounds the window's top right corner, as on Windows 11: a
+            // square red stuck out of the corner (product owner, 2026-11-02).
+            topRightRadius: danger && bar.window && !bar.window.maximized ? 8 : 0
             color: wbHover.hovered ? (danger ? Theme.closeHover : Theme.hover) : "transparent"
             Accessible.role: Accessible.Button
             Accessible.name: label
