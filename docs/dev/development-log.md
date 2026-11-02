@@ -3,6 +3,22 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-02 — ISO 1.1-dev9 built and tested
+
+- `veltos-1.1-dev9-amd64.hybrid.iso`, 2,112,481,280 bytes (33.4 MiB under
+  2 GiB), SHA-256
+  138ef14ab4ca7b583e11c4aa0c6007d8b452852018bb63ab2b1ac12a9178b119; built
+  from commit 2c06f68 with ftp.tr.debian.org for the build
+  (`out/build-iso-dev9.log`). Lintian's errors are the known three.
+- Boot tests: UEFI 19, BIOS 18, Secure Boot 20 checks, the same as
+  1.1-dev8's, none failed, no crashed processes; plasmashell after 30.8 /
+  32.7 / 30.8 s (`out/test-results/20261102-085242-uefi`,
+  `-085449-bios`, `-085716-secureboot`). The first Secure Boot run did not
+  start ("docker: unknown server OS", Docker Desktop's engine for a
+  moment); the second ran.
+- Copied to the owner's Desktop as `VeltOS-1.1-dev9-20261102-082636.iso`
+  with its `.sha256` for manual tests; not released.
+
 ## 2026-11-02 — Items 149-152: the owner's list after testing ISO 1.1-dev8
 
 The code for these items was written by another Claude account, which ran
