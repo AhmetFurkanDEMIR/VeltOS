@@ -3,6 +3,39 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-02 — VeltOS 1.1 published by GitHub Actions
+
+- Run 41463145289 of `.github/workflows/release.yml` for e17f959, all
+  steps passed in 45 minutes (14:34-15:19 UTC): runner space 2 min,
+  builder image 40 s, packages and ISO 35 min, the 2 GiB check, boot tests
+  UEFI, BIOS and Secure Boot about 2 min each, the signed repository,
+  `gh release create`, the website commit. The test reports are the run's
+  artifact `test-results-1.1`.
+- Release v1.1 (https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.1),
+  marked latest: `VeltOS-1.1-amd64.iso`, 2,112,653,312 bytes (33.2 MiB
+  under 2 GiB), SHA-256
+  dcc6044e6381c37a838a50eff0dd23646de61faadf7f7be43dc23994cef01b4e, its
+  `.sha256`, 35 packages, `Packages`(.gz/.xz), `Release`, `InRelease`,
+  `Release.gpg` and the public key; the release text in both languages
+  with the download line.
+- As an installed PC sees it (builder container, `out/release/check-repo.sh`):
+  `update-source` found the newest release's InRelease signed with the
+  archive key and wrote the source; `apt-get update` with only that source
+  fetched InRelease and Packages through GitHub's redirect; candidates
+  veltos-update, veltos-system and veltos-base 1.1.0; `apt-get download`
+  worked with the renamed files; veltos-base's os-release says 1.1. The
+  daily check's `release.fetch()` gave v1.1 (newer than 1.0, not newer
+  than 1.1) with the Turkish notes and without the download line.
+- Website: the workflow's commit 1db71ae ("Website and README: VeltOS 1.1")
+  set the meta tags, the download panel, the structured data, the README
+  block and the sitemap; the push changed only docs and README, so no
+  second Release run started. Pages deployed it; the live page showed
+  "Get VeltOS 1.1", the v1.1 ISO link and SHA-256, VeltOS Update's
+  section, 15 feature cards and the new FAQ answer, in Turkish "VeltOS 1.1
+  sürümünü indirin" and "2 Kasım 2026". `tests/repo` passes on that commit.
+- Note: Debian 13's apt verifies with `sqv`, so `gpgv` is not on every
+  system; veltos-update depends on it (the builder has neither).
+
 ## 2026-11-02 — VeltOS 1.1: the release commit (GitHub Actions builds and publishes it)
 
 The product owner said "Relase çık" after pushing 1e914a0 (that push's

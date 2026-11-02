@@ -1,7 +1,7 @@
 # VeltOS Status
 
-Last updated: 2026-11-02 night (items 153-157: VeltOS Update, releases by
-GitHub Actions, the website for 1.1, the language button). Every "Implemented" item names the evidence that shows it working.
+Last updated: 2026-11-02 night (VeltOS 1.1 released by GitHub Actions;
+items 153-158). Every "Implemented" item names the evidence that shows it working.
 "Untested" means nobody has observed it working yet. Most observations are
 from QEMU/KVM virtual machines (no 3D acceleration) and VirtualBox VMs; the
 product owner installed VeltOS on their own laptop (NVIDIA RTX 4070 Max-Q)
@@ -310,7 +310,7 @@ Product owner's list of 2026-11-02, night (website, updates, GitHub Actions):
 156. [x] Releases by GitHub Actions on main: the ISO, the release with its notes and the website's SHA-256 from the workflow: `.github/workflows/release.yml` (architecture 2.57; build guide "Releases"). Untested on GitHub: it needs the repository secret `VELTOS_APT_SIGNING_KEY` and runs when a push changes `VERSION` (only on the owner's "Relase çık")
 157. [x] Keep the ISO under 2 GiB for the release without giving up quality, speed or animations and without removing anything: the workflow and `build-iso.sh` refuse an ISO of 2 GiB or more; VeltOS Update adds two small packages; nothing was removed: ISO 1.1-dev10 is 2,112,495,616 bytes, 33.4 MiB under the limit, boot tests UEFI 19, BIOS 18, Secure Boot 20 checks passed
 
-158. [ ] Release VeltOS 1.1 ("Relase çık", 2026-11-02): the release commit (`release-bump.py 1.1`, release check ready) was pushed; GitHub Actions builds, boot-tests and publishes v1.1 and updates the website. Done when the run has finished and the release and site are checked
+158. [x] Release VeltOS 1.1 ("Relase çık", 2026-11-02): published by GitHub Actions (run 41463145289, every step passed in 45 minutes): https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.1, `VeltOS-1.1-amd64.iso` 2,112,653,312 bytes, SHA-256 `dcc6044e6381c37a838a50eff0dd23646de61faadf7f7be43dc23994cef01b4e`, the signed package repository for VeltOS Update (checked with apt against GitHub), the website and README updated by the workflow (live page checked in both languages)
 
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and
@@ -487,12 +487,13 @@ Product owner, 2026-10-27 (the same steps in detail, all to be done):
    driver log has the details if one stays dark), the taskbar after the
    first start's light/dark switches (142, 152), the dark mode edges with
    a real graphics card (149, seen in the VM with blur loaded).
-   Items 153-157 (2026-11-02 night): before the first release by GitHub
-   Actions the owner stores the archive key as the secret
-   `VELTOS_APT_SIGNING_KEY` and keeps a backup of it; the first run of
-   the workflow is the first real test of it (build guide "Releases").
-   VeltOS Update with a real administrator prompt and a restart is to see
-   on an installed system.
+   Items 153-158 (2026-11-02 night): VeltOS 1.1 was released by GitHub
+   Actions with the secret `VELTOS_APT_SIGNING_KEY` the owner stored (keep
+   a backup of `out/keys/veltos-archive-private.asc`: without it no later
+   release can be signed for installed PCs). Still to see: a PC installed
+   from 1.1 receiving 1.2 through VeltOS Update (the first real release to
+   release update; tested so far with a pretend release), and the
+   installer's new finished-page text.
 1. The product owner's lists are done (items 1-89) and VeltOS 1.0 is
    built (F1, F2, F7); the remaining release steps are F3-F6 (website),
    F8 (contributors) and F9 (publishing the ISO on a GitHub release and the
