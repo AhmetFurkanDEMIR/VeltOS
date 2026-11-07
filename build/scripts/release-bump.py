@@ -40,9 +40,18 @@ def entry(name, version, rest, who, date, text):
     return f"{name} ({version}) {rest}\n\n  * {text}\n\n -- {who}  {date}\n\n"
 
 
+# Packages whose files this script changes for every release carry the
+# release's number: veltos-base (os-release; VERSION_ID follows it) and
+# calamares-settings-veltos (the installer's branding). Without a new
+# version the installer package changed under the old one, and
+# release-check's "changed since the previous release" refused it.
+ALWAYS_BUMPED = ("veltos-base", "calamares-settings-veltos")
+
+
 def bump_changelog(path, release, date, base=False):
-    """Adds the release entry; returns the new version or None.
-    veltos-base always carries the release's number (VERSION_ID follows it)."""
+    """Adds the release entry; returns the new version or None. With
+    `base` (ALWAYS_BUMPED) the package gets the release's number even when
+    it carries no development version."""
     text = path.read_text(encoding="utf-8")
     head = HEADER.match(text)
     trailer = TRAILER.search(text)
@@ -111,7 +120,7 @@ def main(argv=None):
     bump_installer_branding(root / BRANDING, args.version)
     for changelog in sorted(root.glob("packages/*/debian/changelog")):
         name = changelog.parent.parent.name
-        new = bump_changelog(changelog, args.version, args.date, base=name == "veltos-base")
+        new = bump_changelog(changelog, args.version, args.date, base=name in ALWAYS_BUMPED)
         if new:
             print(f"{name}: {new}")
     print(f"VERSION: {args.version}")

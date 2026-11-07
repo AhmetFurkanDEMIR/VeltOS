@@ -3,6 +3,23 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-08 — Release 1.3 prepared
+
+- `release-bump.py 1.3`: veltos-base, veltos-desktop, veltos-explorer and
+  veltos-settings at 1.3.0, the installer's branding "VeltOS 1.3". The
+  installer package itself stayed 1.2.0 although its branding changed: the
+  workflow's release-check compares every package with v1.2 and would have
+  stopped ("changed since v1.2 but its version is not higher"); 1.2 passed
+  only because that package had a development version then.
+  `ALWAYS_BUMPED` (veltos-base, calamares-settings-veltos) now get the
+  release's number every time; tests/repo checks it. Both packages rebuilt
+  with their tests; release-check "ready" on the committed tree.
+- The website's Start, search and desktop pictures (and the README's tour
+  animation) show the old solid search field: retaken in the dev VM
+  (`out/vm/site-13.sh`, same scenes as 1.2; Start's Recommended emptied of
+  the test downloads with `out/vm/forget-test-files.py`); they replace the
+  old ones once 1.3 is the downloadable ISO (`out/vm/make-site-13.py`).
+
 ## 2026-11-08 — Items 166-168: search fields, Firefox's downloads, the system drive
 
 - The product owner (2026-11-07): Firefox's download screen modern like

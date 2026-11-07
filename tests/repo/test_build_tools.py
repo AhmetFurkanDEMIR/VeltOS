@@ -119,7 +119,7 @@ class ReleaseToolTests(unittest.TestCase):
         for name in ("os-release", "issue", "issue.net"):
             shutil.copy(REPO / "packages/veltos-base" / name, root / "packages/veltos-base" / name)
         for name, version in (("veltos-base", "1.0.0"), ("veltos-ai", "1.1.0~dev4"), ("veltos-camera", "1.0.0"),
-                              ("veltos-fluent-icons", "2026.07.27~veltos4")):
+                              ("veltos-fluent-icons", "2026.07.27~veltos4"), ("calamares-settings-veltos", "1.0.0")):
             path = root / f"packages/{name}/debian/changelog"
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(f"{name} ({version}) trixie; urgency=medium\n\n  * Something.\n\n"
@@ -161,6 +161,9 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertTrue(first("veltos-ai").startswith("veltos-ai (1.1.0) trixie"))
         self.assertIn("Tue, 03 Nov 2026 12:00:00 +0000\n\nveltos-ai (1.1.0~dev4)", first("veltos-ai"))
         self.assertTrue(first("veltos-camera").startswith("veltos-camera (1.0.0) "))       # unchanged
+        # The installer package changes with every release (its branding):
+        # it gets the release's number like veltos-base.
+        self.assertTrue(first("calamares-settings-veltos").startswith("calamares-settings-veltos (1.1.0) trixie"))
         self.assertTrue(first("veltos-fluent-icons").startswith("veltos-fluent-icons (2026.07.27~veltos4)"))
         self.assertEqual(check.problems("1.1", "", root=root), [])
 
