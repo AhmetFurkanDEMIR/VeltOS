@@ -3,6 +3,23 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — ISO 1.2-dev4 built and tested
+
+- `VELTOS_VERSION=1.2-dev4 build/run.sh iso` from 4fb3344 (item 163):
+  `veltos-1.2-dev4-amd64.hybrid.iso`, 2,112,614,400 bytes (32.8 MiB under
+  2 GiB), SHA-256
+  719d9f2e7569f8988e013178220245137b1423ecf88981edd0934fae9088a3ee. The
+  build ran every package's tests: 1,311, all passed.
+- Boot tests (QEMU/KVM, no 3D): UEFI 19, BIOS 18, Secure Boot 20 checks,
+  all passed; plasmashell after 34.3 s (UEFI), 33.4 s (BIOS), 33.9 s
+  (Secure Boot), 2-3 s later than dev3's 30.8-31.5 s (not looked into
+  yet; one run each). The live welcome window says "next to your current
+  system", the taskbar's search box is see-through (picture 02).
+- Copied to the product owner's Desktop as
+  `VeltOS-1.2-dev4-20261107-170834.iso` with its `.sha256`. The host's C:
+  drive has 6.7 GB left (four dev ISOs on the Desktop; `out/iso`'s dev2
+  and dev3 builds are in use, VirtualBox). Not released, not pushed.
+
 ## 2026-11-07 — Item 163: flyouts see-through in light mode, tooltips, search box, no "Windows"
 
 - The product owner after ISO 1.2-dev3: the calendar (clock flyout),
