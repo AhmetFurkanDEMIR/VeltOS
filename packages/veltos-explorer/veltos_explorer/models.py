@@ -376,7 +376,7 @@ class Tab(QObject):
                 parts.append({"name": drive.get("title") or current.name, "location": str(current)})
                 rel = path.relative_to(current).parts
             else:
-                parts.append({"name": self.backend.text("local_disk"), "location": "/"})
+                parts.append({"name": self.backend.text("system_disk"), "location": "/"})
                 rel = path.parts[1:]
                 current = Path("/")
         for part in rel:

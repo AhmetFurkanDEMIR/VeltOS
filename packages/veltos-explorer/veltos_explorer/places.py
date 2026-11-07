@@ -134,20 +134,25 @@ WINDOWS_HIDDEN_TYPES = {
 NTFS = ("ntfs", "ntfs3")
 
 
-def mount_options(mounts_text=None):
-    """{mount point: options} of the mounted file systems."""
+def _mounts(mounts_text=None):
+    """[(source, mount point, file system, options)] of the mounted file systems."""
     if mounts_text is None:
         try:
             mounts_text = Path("/proc/self/mounts").read_text()
         except OSError:
             mounts_text = ""
-    result = {}
+    result = []
     for line in mounts_text.splitlines():
         fields = line.split()
         if len(fields) >= 4:
-            point = fields[1].replace("\\040", " ")
-            result[point] = fields[3].split(",")
+            result.append((fields[0].replace("\\040", " "), fields[1].replace("\\040", " "),
+                           fields[2], fields[3].split(",")))
     return result
+
+
+def mount_options(mounts_text=None):
+    """{mount point: options} of the mounted file systems."""
+    return {point: options for _source, point, _fs, options in _mounts(mounts_text)}
 
 
 def drive_icon(drive):
@@ -174,9 +179,39 @@ def _tree_has_system_mount(device):
             or any(_tree_has_system_mount(child) for child in (device.get("children") or [])))
 
 
+# Block devices that carry a file system of their own. An encrypted
+# installation's system is on a "crypt" device (the unlocked LUKS
+# partition), RAID and multipath volumes on "raid*"/"md"/"mpath": leaving
+# them out hid the running system's drive from This PC.
+VOLUME_TYPES = ("part", "disk", "lvm", "crypt", "md", "mpath", "dm",
+                "raid0", "raid1", "raid4", "raid5", "raid6", "raid10")
+# Containers of other volumes and system areas (also every "*_member":
+# LVM, RAID and ZFS members).
+NOT_VOLUMES = ("swap", "squashfs", "iso9660", "crypto_LUKS")
+
+
+def _root_drive(mounts_text=None, live=False):
+    """This PC's entry for the running system when lsblk did not show it
+    (the live system's overlay, or a root lsblk could not report)."""
+    source, fstype = "", "overlay" if live else ""
+    for src, point, fs, _options in _mounts(mounts_text):
+        if point == "/":
+            source, fstype = src, fs
+    try:
+        st = os.statvfs("/")
+        size, free = st.f_blocks * st.f_frsize, st.f_bavail * st.f_frsize
+    except OSError:
+        size = free = 0
+    return {"device": source if source.startswith("/dev/") else "", "label": "", "mount": "/",
+            "size": size, "used": size - free, "removable": False, "usb": False, "system": True,
+            "systemDisk": True, "canFormat": False, "fstype": fstype, "windows": False,
+            "windowsSystem": False, "readonly": False, "icon": "drive-harddisk"}
+
+
 def drives(runner=run, live=None, mounts_text=None):
     """Drives for This PC. Keep every volume on the running system's
-    physical disk out of the Format menu, even when it is not mounted."""
+    physical disk out of the Format menu, even when it is not mounted.
+    The running system's drive is always listed."""
     code, out = runner(["lsblk", "--json", "--bytes", "-o",
                         "NAME,PATH,LABEL,SIZE,FSTYPE,MOUNTPOINTS,RM,HOTPLUG,RO,TRAN,TYPE,FSSIZE,FSUSED,PARTTYPE"])
     try:
@@ -184,6 +219,7 @@ def drives(runner=run, live=None, mounts_text=None):
     except (ValueError, KeyError, TypeError):
         tree = []
     result = []
+    seen = set()
     options = mount_options(mounts_text)
 
     def walk(devices, removable, transport, system_disk, read_only):
@@ -194,8 +230,12 @@ def drives(runner=run, live=None, mounts_text=None):
             read_only_here = read_only or bool(dev.get("ro"))
             fstype = dev.get("fstype") or ""
             mounts = [m for m in (dev.get("mountpoints") or []) if m]
-            if fstype and fstype not in ("swap", "squashfs", "iso9660", "LVM2_member",
-                                          "crypto_LUKS") and dev.get("type") in ("part", "disk", "lvm"):
+            # lsblk lists a volume under each of its parents (RAID, multipath).
+            path = dev.get("path") or ""
+            duplicate = bool(path) and path in seen
+            seen.add(path)
+            if (not duplicate and fstype and fstype not in NOT_VOLUMES
+                    and not fstype.endswith("_member") and dev.get("type") in VOLUME_TYPES):
                 parttype = (dev.get("parttype") or "").lower()
                 small = int(dev.get("size") or 0) < 600 * 1024 ** 2
                 efi = parttype == "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
@@ -216,7 +256,9 @@ def drives(runner=run, live=None, mounts_text=None):
                         "usb": transport_here == "usb",
                         "system": system,
                         "systemDisk": system_disk,
-                        "canFormat": bool(dev.get("path") and not system and not system_disk and not readonly),
+                        # An unlocked encrypted volume is formatted through its partition.
+                        "canFormat": bool(dev.get("path") and not system and not system_disk and not readonly
+                                          and dev.get("type") != "crypt"),
                         "fstype": fstype,
                         "windows": windows,
                         "windowsSystem": bool(windows and mount and os.path.isdir(os.path.join(mount, "Windows", "System32"))),
@@ -228,18 +270,12 @@ def drives(runner=run, live=None, mounts_text=None):
 
     for device in tree:
         walk([device], False, "", _tree_has_system_mount(device), False)
-    # The live system's root is an overlay that lsblk does not show.
+    # The live system's root is an overlay that lsblk does not show; an
+    # installed system's root is listed above, and this is the fallback when
+    # lsblk failed or showed it in a form not handled here.
     live = Path("/run/live/medium").is_dir() if live is None else live
-    if live and not any(d["system"] for d in result):
-        try:
-            st = os.statvfs("/")
-            size, free = st.f_blocks * st.f_frsize, st.f_bavail * st.f_frsize
-        except OSError:
-            size = free = 0
-        result.insert(0, {"device": "", "label": "", "mount": "/", "size": size, "used": size - free,
-                          "removable": False, "usb": False, "system": True, "systemDisk": True,
-                          "canFormat": False, "fstype": "overlay", "windows": False,
-                          "windowsSystem": False, "readonly": False, "icon": "drive-harddisk"})
+    if not any(d["mount"] == "/" for d in result):
+        result.insert(0, _root_drive(mounts_text, live))
     result.sort(key=lambda d: (not d["system"], d["removable"], d["label"].lower(), d["device"]))
     return result
 

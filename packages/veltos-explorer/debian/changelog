@@ -1,3 +1,14 @@
+veltos-explorer (1.3.0~dev1) trixie; urgency=medium
+
+  * This PC always shows the running system's drive: an encrypted
+    installation's system is on an unlocked LUKS volume (lsblk type
+    "crypt"), which was left out, so This PC showed no system drive; RAID,
+    multipath and LVM-on-LUKS volumes are listed once; when lsblk fails the
+    root file system is still shown. The system drive is "Local Disk
+    (VeltOS)" (product owner, 2026-11-07).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 22:00:00 +0000
+
 veltos-explorer (1.2.0) trixie; urgency=medium
 
   * VeltOS 1.2.

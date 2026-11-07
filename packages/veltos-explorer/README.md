@@ -146,7 +146,11 @@ Explorer, written for VeltOS in Python (PySide6) and QML. It is also the
   through ntfs-3g with Windows file names (`/etc/udisks2/mount_options.conf`)
   and read only, with an explanation, when Windows did not shut down
   completely. Windows' recovery partitions are hidden; the address bar
-  starts at the drive ("This PC > Windows").
+  starts at the drive ("This PC > Windows"). The running system's drive
+  is always listed, as "Local Disk (VeltOS)": also on an encrypted
+  installation (lsblk's `crypt` volume), on RAID, multipath and
+  LVM-on-LUKS volumes (each listed once), and from the mounted root file
+  system when lsblk shows nothing.
 - A drive's right-click menu offers **Format...** only when it is not on
   the physical disk containing the running system's root, boot, EFI, `/usr`
   or `/var` volumes, and is not read-only. The command opens VeltOS Disk

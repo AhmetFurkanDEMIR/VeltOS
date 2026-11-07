@@ -6,8 +6,10 @@
 // desktop picture, blurred and covered by `micaTint`. Cards, the
 // navigation highlight and controls are translucent layers on it, as in
 // Windows 11 Settings, so what is behind shows faintly through the whole
-// window (product owner, 2026-11-07). Surfaces drawn over other content
-// (pop-ups, a slider's thumb, a focused text box) stay opaque.
+// window (product owner, 2026-11-07). Text boxes stay see-through while
+// typing too (`fieldActive`: a solid white or black box looked pasted on,
+// product owner 2026-11-07); surfaces drawn over other content (pop-ups, a
+// slider's thumb) stay opaque.
 pragma Singleton
 import QtQuick
 
@@ -41,8 +43,11 @@ QtObject {
     readonly property color trackStrong: dark ? "#5A5E72" : "#8A90A2"
     readonly property color control: dark ? Qt.rgba(1, 1, 1, 0.06) : Qt.rgba(1, 1, 1, 0.70)
     readonly property color popup: dark ? "#2C2D35" : "#FFFFFF"
-    // A text box being typed in, a slider's thumb: opaque, as on Windows 11.
+    // A slider's thumb: opaque, as on Windows 11.
     readonly property color field: dark ? "#1E1F26" : "#FFFFFF"
+    // A text box being typed in: see-through, darker in dark mode and
+    // lighter in light mode, with the accent line along its bottom edge.
+    readonly property color fieldActive: dark ? Qt.rgba(0, 0, 0, 0.16) : Qt.rgba(1, 1, 1, 0.55)
     readonly property color danger: dark ? "#FF99A4" : "#C42B1C"
     // Title bar buttons.
     readonly property color hover: dark ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.05)

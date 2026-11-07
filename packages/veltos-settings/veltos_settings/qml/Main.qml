@@ -339,6 +339,7 @@ ApplicationWindow {
                 // "Find a setting" in the middle of the title bar.
                 SearchField {
                     id: search
+                    objectName: "titleSearch"
                     anchors.centerIn: parent
                     width: Math.max(220, Math.min(520, titleBar.width - 2 * 190))
                     placeholder: backend.text("find_setting")

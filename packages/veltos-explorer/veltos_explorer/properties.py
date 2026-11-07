@@ -296,7 +296,7 @@ class Properties(QObject):
                         else self.text("local_disk"),
                         fileSystem=fs.upper() if fs in ("ntfs", "ntfs3", "vfat", "exfat") else fs,
                         capacity=capacity, free=free, used=max(0, capacity - free), canRename=False,
-                        name=name if path != "/" else self.text("local_disk"))
+                        name=name if path != "/" else self.text("system_disk"))
             if not drive and ("/media/" in path or "/run/media/" in path):
                 info["typeName"] = self.text("removable_disk")
                 info["icon"] = "drive-removable-media"

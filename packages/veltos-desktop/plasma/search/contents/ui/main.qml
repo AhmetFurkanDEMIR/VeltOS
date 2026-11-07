@@ -180,12 +180,11 @@ PlasmoidItem {
 
         readonly property bool searching: searchField.text.length > 0
         readonly property var results: runnerModel.count > 0 ? runnerModel.modelForRow(0) : null
-        // Light mode: one white surface like VeltOS Settings (the light
-        // Plasma theme's popups are white), the field the same white with a
-        // frame, an accent-tinted preview card (product owner, 2026-10-23).
+        // Light or dark: the see-through field and the accent-tinted
+        // preview card follow the mode (product owner, 2026-10-23 and
+        // 2026-11-07).
         readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor)
                                      === Kirigami.ColorUtils.Dark
-        readonly property color surface: dark ? Kirigami.Theme.backgroundColor : "#ffffff"
         // Windows lists a handful of results; the rest would need scrolling.
         readonly property int maxResults: 12
         readonly property int resultCount: results ? Math.min(results.count, maxResults) : 0
@@ -294,11 +293,16 @@ PlasmoidItem {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
                 placeholderText: i18n("Search for apps, settings and documents")
+                // See-through on the window's acrylic, as Start's field (a
+                // solid white or black box before, product owner 2026-11-07).
+                HoverHandler { id: fieldHover }
                 background: Rectangle {
                     radius: 4
-                    color: panel.surface
+                    color: panel.dark
+                           ? (searchField.activeFocus ? Qt.rgba(0, 0, 0, 0.16) : Qt.rgba(1, 1, 1, fieldHover.hovered ? 0.09 : 0.06))
+                           : Qt.rgba(1, 1, 1, searchField.activeFocus ? 0.50 : (fieldHover.hovered ? 0.58 : 0.42))
                     border.width: 1
-                    border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
+                    border.color: Qt.alpha(Kirigami.Theme.textColor, panel.dark ? 0.12 : 0.10)
                     Rectangle {
                         anchors.bottom: parent.bottom
                         anchors.left: parent.left

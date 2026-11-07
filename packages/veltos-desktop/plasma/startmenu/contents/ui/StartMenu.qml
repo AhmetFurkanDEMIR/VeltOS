@@ -722,15 +722,20 @@ FocusScope {
             implicitHeight: Math.round(Kirigami.Units.gridUnit * 2.2)
             focus: true
             placeholderText: i18n("Search for apps, settings and documents")
-            // Rounded "pill" field like Windows 11's Start search.
+            // Rounded "pill" field like Windows 11's Start search: a
+            // see-through layer on Start's acrylic in both modes (a solid
+            // white or black field looked pasted on, product owner
+            // 2026-11-07), lighter in light mode, darker in dark mode, with
+            // the accent frame while typing.
+            HoverHandler { id: searchHover }
             background: Rectangle {
-                Kirigami.Theme.colorSet: Kirigami.Theme.View
-                Kirigami.Theme.inherit: false
                 radius: height / 2
-                color: Kirigami.Theme.backgroundColor
+                color: menu.dark
+                       ? (searchField.activeFocus ? Qt.rgba(0, 0, 0, 0.16) : Qt.rgba(1, 1, 1, searchHover.hovered ? 0.09 : 0.06))
+                       : Qt.rgba(1, 1, 1, searchField.activeFocus ? 0.50 : (searchHover.hovered ? 0.58 : 0.42))
                 border.width: searchField.activeFocus ? 2 : 1
                 border.color: searchField.activeFocus ? Kirigami.Theme.highlightColor
-                                                      : Qt.alpha(Kirigami.Theme.textColor, 0.14)
+                                                      : Qt.alpha(Kirigami.Theme.textColor, menu.dark ? 0.12 : 0.10)
             }
 
             onTextChanged: menu.webSelected = false

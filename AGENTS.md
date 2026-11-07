@@ -378,7 +378,22 @@ and JavaScript with no build step, no external requests and no cookies:
 - Firefox on Linux draws its own (libadwaita-like) title bar buttons and
   ignores the GTK theme; VeltOS styles them through Firefox autoconfig
   (`veltos-desktop/tools/firefox.py`). Firefox does not let `data:` images
-  use `context-stroke`, so glyph images carry explicit colours.
+  use `context-stroke`, so glyph images carry explicit colours. Its
+  style sheets (`firefox/*.css`) are user sheets: every declaration needs
+  `!important` to beat Firefox's skin, and with the sheet's default XUL
+  `@namespace` a bare `.class` never matches HTML elements (the
+  downloads' `html:progress`, the Library's search box): write
+  `*|*.class`. Read Firefox's own markup and CSS from
+  `/usr/lib/firefox-esr/browser/omni.ja` with Python's `zipfile` (the
+  Library window is `places/places.xhtml`, the downloads panel is in
+  `browser.xhtml`); restart Firefox after changing a sheet.
+- lsblk shows an encrypted installation's system (installer's "Encrypt
+  system") as a `crypt` device under the `crypto_LUKS` partition, and RAID
+  or multipath volumes under each member: a drive list that takes only
+  `part`/`disk`/`lvm` hid the running system from This PC (fixed
+  2026-11-07, `places.VOLUME_TYPES`; This PC also adds the root file
+  system when lsblk does not show it). Test with a LUKS file on a loop
+  device in the dev VM (`cryptsetup luksFormat` + `open`, mkfs, mount).
 - KDE's GTK settings module produced empty button images for Aurorae
   window frames; the VeltOS GTK theme carries its own buttons.
 - KWin's startup feedback (Wayland) draws the starting app's icon next to

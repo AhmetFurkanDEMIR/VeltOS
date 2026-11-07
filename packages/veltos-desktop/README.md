@@ -266,7 +266,9 @@ rebuilt `veltos-desktop` in a running VM delete that directory and restart
   (`veltos-session.sh`: `QT_QPA_PLATFORMTHEME=xdgdesktopportal`,
   `GTK_USE_PORTAL=1`; see veltos-explorer), Firefox/Mail preference
   `widget.use-xdg-desktop-portal.file-picker=1`, Firefox's downloads
-  panel in the Windows 11 look (`firefox/downloads.css`).
+  panel and its Library window ("Show all downloads") in the Windows 11
+  look, light and dark (`firefox/downloads.css`; HTML elements need
+  `*|*` selectors there, the sheet's default namespace is XUL's).
 - **Sounds** (`tools/sounds.py`) synthesised softer (slow attack, fewer
   partials, detuned second voice, low-pass, small reverb, -6 dBFS) and a
   new `alarm-clock-elapsed` for VeltOS Clock.

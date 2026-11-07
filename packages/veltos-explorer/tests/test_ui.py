@@ -152,6 +152,16 @@ class ExplorerWindowTests(unittest.TestCase):
         self.assertNotIn(self.backend.text("format_drive"), blocked)
         self.assertEqual(self.problems(), [])
 
+    def test_the_running_system_drive_is_named_veltos(self):
+        # The product owner looked for "the VeltOS disk" in This PC
+        # (2026-11-07): the running system's drive says so.
+        system = {"system": True, "mount": "/", "label": "veltos", "removable": False, "size": 10 ** 10}
+        var = {"system": True, "mount": "/var", "label": "", "removable": False, "size": 10 ** 10}
+        self.assertIn("VeltOS", self.backend.drive_title(system))
+        self.assertEqual(self.backend.drive_title(system), self.backend.text("system_disk"))
+        self.assertEqual(self.backend.location_title("/"), self.backend.text("system_disk"))
+        self.assertEqual(self.backend.drive_title(var), self.backend.text("local_disk"))
+
     def test_long_folders_scroll_with_the_wheel(self):
         from PySide6.QtCore import QObject, QPoint, QPointF, Qt
         from PySide6.QtGui import QWheelEvent

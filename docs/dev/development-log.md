@@ -3,6 +3,46 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-08 — Items 166-168: search fields, Firefox's downloads, the system drive
+
+- The product owner (2026-11-07): Firefox's download screen modern like
+  Windows 11; Start's and search's fields still black or white, Settings'
+  search turning solid when clicked; after the update File Explorer did not
+  show the VeltOS disk; then release 1.3 with full tests.
+- Search fields: Start (`StartMenu.qml`) and the search window
+  (`search/.../main.qml`) drew the field in Kirigami's View colour (white
+  or near black, opaque); now a see-through layer, darker while typing in
+  dark mode and lighter in light mode, with the accent frame/line.
+  Settings' `SearchField` and `VTextField` switched to the opaque
+  `Theme.field` on focus; now `Theme.fieldActive` (black 16 % / white 55 %).
+  Checked in the dev VM in both modes (screenshots in
+  `tests/results/2026-11-08-search-firefox-drive/`).
+- Firefox ESR 153: the downloads panel had a little styling already; the
+  Library window ("Show all downloads") had none (dotted focus frame,
+  framed tree and list). `firefox/downloads.css` now styles both; markup
+  and Firefox's own CSS read from `browser/omni.ja` in the VM
+  (`browser.xhtml`, `places/places.xhtml`, `downloads.inc.css`,
+  `allDownloadsView.inc.css`, `progressmeter.css`). The heading is a
+  `::before` on `#downloadsPanel-mainView` with `:lang(tr)` for Turkish
+  (Firefox's localization sets the root's lang). The accent progress line
+  never showed: the sheet declares XUL as its default namespace, so
+  `.downloadProgress` matched no HTML `progress`; `*|*.downloadProgress`
+  works, and the selected Library row's own fill rule is overridden through
+  its variables. A slow 3 GB file served from the VM container
+  (`http://10.0.2.2:8099/`, a sparse file, 4 ms per 64 KB) showed the
+  progress.
+- System drive: the dev VM (unencrypted) showed "Local Disk"; the code
+  took only `part`/`disk`/`lvm` devices, and an installation with
+  "Encrypt system" mounts / from a `crypt` device, so This PC had no system
+  drive there (since 1.0). Verified with a LUKS file on a loop device in
+  the VM: release 1.2's `places.py` listed only /dev/vda3, the new one the
+  unlocked volume too. The owner's installation itself was not inspected.
+  The fix also lists RAID/multipath volumes once, adds the root from
+  /proc/self/mounts when lsblk shows nothing, and names the system drive
+  "Local Disk (VeltOS)". Packages veltos-desktop, veltos-settings and
+  veltos-explorer 1.3.0~dev1 built with their tests (168, 232 and 127
+  tests) and installed in the dev VM.
+
 ## 2026-11-07 — VeltOS 1.2 published by GitHub Actions
 
 - Run 42403593450 of `.github/workflows/release.yml` for ebf8b62, all

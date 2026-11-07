@@ -513,6 +513,22 @@ class SettingsWindowTests(unittest.TestCase):
         self.assertEqual(frame.property("color").alpha(), 255)
         self.assertEqual(self.problems(), [])
 
+    def test_title_bar_search_stays_see_through_while_typing(self):
+        # It turned solid white (light) or black (dark) when clicked
+        # (product owner, 2026-11-07).
+        search = self.items("titleSearch")[0]
+        resting = search.property("color").alpha()
+        self.window.requestActivate()
+        QMetaObject.invokeMethod(search, "forceInputFocus")
+        self.app.processEvents()
+        self.assertTrue(self.window.activeFocusItem() is not None
+                        and self.window.activeFocusItem().parentItem().parentItem() == search)
+        typing = search.property("color")
+        self.assertLess(resting, 255)
+        self.assertLess(typing.alpha(), 255)
+        self.assertGreater(typing.alpha(), 0)
+        self.assertEqual(self.problems(), [])
+
     def test_password_reset_usb_and_hint(self):
         # Product owner, 2026-11-01: a password reset USB made in Settings
         # too (the installer offers it first), and a hint with the password.

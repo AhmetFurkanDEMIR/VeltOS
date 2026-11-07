@@ -639,7 +639,16 @@ class TaskbarTests(unittest.TestCase):
             self.assertRegex(text, r"Qt\.alpha\(Kirigami\.Theme\.highlightColor, [^)]*0\.06\)")
             self.assertIn('NumberAnimation { target: rise; property: "y"', text)
         search = (PKG / "plasma/search/contents/ui/main.qml").read_text(encoding="utf-8")
-        self.assertIn('readonly property color surface: dark ? Kirigami.Theme.backgroundColor : "#ffffff"', search)
+        # The search fields are see-through in both modes, also while typing:
+        # a solid white or black field looked pasted on (product owner,
+        # 2026-11-07).
+        self.assertNotIn("surface", search)
+        for ui in ("startmenu/contents/ui/StartMenu.qml", "search/contents/ui/main.qml"):
+            text = (PKG / "plasma" / ui).read_text(encoding="utf-8")
+            field = text.split("PlasmaExtras.SearchField {", 1)[1].split("onTextChanged", 1)[0]
+            self.assertIn("Qt.rgba(0, 0, 0, 0.16)", field)          # dark, while typing
+            self.assertRegex(field, r"Qt\.rgba\(1, 1, 1, searchField\.activeFocus \? 0\.5")
+            self.assertNotIn("Kirigami.Theme.backgroundColor", field)
         # Start is one surface: the popup's own (acrylic with blur); a tint of
         # its own showed as a second frame inside the popup (2026-11-02).
         start = (PKG / "plasma/startmenu/contents/ui/StartMenu.qml").read_text(encoding="utf-8")
@@ -886,7 +895,19 @@ class FullBuildTest(unittest.TestCase):
         # File URLs with "/" also when the assets are built on Windows (VM).
         self.assertNotIn("\\", cfg.split("for (let sheet of [", 1)[1].split("]", 1)[0])
         self.assertIn("file:///usr/share/veltos/firefox/downloads.css", cfg)
-        self.assertIn("#downloadsPanel", (root / "usr/share/veltos/firefox/downloads.css").read_text())
+        downloads = (root / "usr/share/veltos/firefox/downloads.css").read_text(encoding="utf-8")
+        self.assertIn("#downloadsPanel", downloads)
+        # The Library window ("Show all downloads") in the Windows 11 look too,
+        # with a heading in both languages.
+        self.assertIn("#places #contentView", downloads)
+        self.assertIn('content: "İndirmeler"', downloads)
+        # The sheet's default namespace is XUL's: a bare class selector never
+        # reached the HTML progress bar (VM, 2026-11-08).
+        self.assertNotRegex(downloads, r"(?<![\w|*])\.downloadProgress")
+        for rule in re.findall(r"\{([^{}]*)\}", downloads):
+            for declaration in filter(None, (d.strip() for d in rule.split(";"))):
+                if ":" in declaration and not declaration.startswith(("--", "content")):
+                    self.assertIn("!important", declaration)
         # "Open with" > "Other…" opens File Explorer's window, not GTK's.
         self.assertIn('"@mozilla.org/applicationchooser;1", factory', cfg)
         self.assertIn('"--open-with", "--choose", "--type"', cfg)

@@ -97,7 +97,8 @@ class DriveTests(unittest.TestCase):
                                   "hotplug": False, "type": "part", "fssize": 10 ** 10, "fsused": 10 ** 9,
                                   "parttype": None}]}
         mounts = "/dev/sdc1 /media/velt/W\\040x fuseblk ro,nosuid,nodev,relatime 0 0\n"
-        drive = places.drives(Runner({"lsblk": (0, json.dumps(tree))}), live=False, mounts_text=mounts)[0]
+        listed = places.drives(Runner({"lsblk": (0, json.dumps(tree))}), live=False, mounts_text=mounts)
+        drive = next(d for d in listed if d["device"] == "/dev/sdc1")
         self.assertTrue(drive["readonly"])
         self.assertFalse(drive["canFormat"])
 
@@ -106,8 +107,70 @@ class DriveTests(unittest.TestCase):
         self.assertEqual(len(drives), 1)
         self.assertTrue(drives[0]["system"])
 
-    def test_broken_lsblk(self):
-        self.assertEqual(places.drives(Runner({"lsblk": (1, "")}), live=False), [])
+    def test_broken_lsblk_still_shows_the_system_drive(self):
+        mounts = "/dev/sda3 / ext4 rw,relatime 0 0\nproc /proc proc rw 0 0\n"
+        drives = places.drives(Runner({"lsblk": (1, "")}), live=False, mounts_text=mounts)
+        self.assertEqual(len(drives), 1)
+        self.assertEqual((drives[0]["device"], drives[0]["mount"], drives[0]["fstype"]), ("/dev/sda3", "/", "ext4"))
+        self.assertTrue(drives[0]["system"])
+        self.assertFalse(drives[0]["canFormat"])
+
+    def test_encrypted_system_is_shown(self):
+        # "Encrypt system" in the installer: / on the unlocked LUKS partition
+        # (lsblk type "crypt"), /boot unencrypted. This PC showed no system
+        # drive at all on such installations.
+        tree = {"blockdevices": [
+            {"name": "sda", "path": "/dev/sda", "label": None, "size": 64 * 10 ** 9, "fstype": None,
+             "mountpoints": [None], "rm": False, "hotplug": False, "type": "disk", "tran": "sata",
+             "fssize": None, "fsused": None, "parttype": None, "children": [
+                 {"name": "sda1", "path": "/dev/sda1", "label": None, "size": 300 * 2 ** 20, "fstype": "vfat",
+                  "mountpoints": ["/boot/efi"], "rm": False, "hotplug": False, "type": "part",
+                  "fssize": 300 * 2 ** 20, "fsused": 7 * 2 ** 20, "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"},
+                 {"name": "sda2", "path": "/dev/sda2", "label": "boot", "size": 2 ** 30, "fstype": "ext4",
+                  "mountpoints": ["/boot"], "rm": False, "hotplug": False, "type": "part",
+                  "fssize": 2 ** 30, "fsused": 2 ** 27, "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4"},
+                 {"name": "sda3", "path": "/dev/sda3", "label": None, "size": 62 * 10 ** 9, "fstype": "crypto_LUKS",
+                  "mountpoints": [None], "rm": False, "hotplug": False, "type": "part", "fssize": None,
+                  "fsused": None, "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "children": [
+                      {"name": "luks-1f2e", "path": "/dev/mapper/luks-1f2e", "label": "veltos",
+                       "size": 62 * 10 ** 9 - 2 ** 24, "fstype": "ext4", "mountpoints": ["/"], "rm": False,
+                       "hotplug": False, "type": "crypt", "fssize": 60 * 10 ** 9, "fsused": 9 * 10 ** 9,
+                       "parttype": None}]}]}]}
+        drives = places.drives(Runner({"lsblk": (0, json.dumps(tree))}), live=False, mounts_text="")
+        self.assertEqual([(d["device"], d["mount"]) for d in drives], [("/dev/mapper/luks-1f2e", "/")])
+        self.assertTrue(drives[0]["system"])
+        self.assertFalse(drives[0]["canFormat"])
+        self.assertEqual(drives[0]["size"], 60 * 10 ** 9)
+
+    def test_lvm_on_luks_and_raid_members_are_listed_once(self):
+        root = {"name": "vg-root", "path": "/dev/mapper/vg-root", "label": None, "size": 50 * 10 ** 9,
+                "fstype": "ext4", "mountpoints": ["/"], "rm": False, "hotplug": False, "type": "lvm",
+                "fssize": 49 * 10 ** 9, "fsused": 10 ** 10, "parttype": None}
+        data = {"name": "md0", "path": "/dev/md0", "label": "Data", "size": 10 ** 12, "fstype": "ext4",
+                "mountpoints": [None], "rm": False, "hotplug": False, "type": "raid1", "fssize": None,
+                "fsused": None, "parttype": None}
+
+        def disk(name, children):
+            return {"name": name, "path": f"/dev/{name}", "label": None, "size": 10 ** 12, "fstype": None,
+                    "mountpoints": [None], "rm": False, "hotplug": False, "type": "disk", "tran": "sata",
+                    "fssize": None, "fsused": None, "parttype": None, "children": children}
+
+        def member(name, child):
+            return {"name": name, "path": f"/dev/{name}", "label": None, "size": 10 ** 12,
+                    "fstype": "linux_raid_member", "mountpoints": [None], "rm": False, "hotplug": False,
+                    "type": "part", "fssize": None, "fsused": None, "parttype": None, "children": [child]}
+        luks = {"name": "nvme0n1p3", "path": "/dev/nvme0n1p3", "label": None, "size": 51 * 10 ** 9,
+                "fstype": "crypto_LUKS", "mountpoints": [None], "rm": False, "hotplug": False, "type": "part",
+                "fssize": None, "fsused": None, "parttype": None, "children": [
+                    {"name": "luks-9a", "path": "/dev/mapper/luks-9a", "label": None, "size": 51 * 10 ** 9,
+                     "fstype": "LVM2_member", "mountpoints": [None], "rm": False, "hotplug": False,
+                     "type": "crypt", "fssize": None, "fsused": None, "parttype": None, "children": [root]}]}
+        tree = {"blockdevices": [disk("nvme0n1", [luks]), disk("sdb", [member("sdb1", data)]),
+                                 disk("sdc", [member("sdc1", data)])]}
+        drives = places.drives(Runner({"lsblk": (0, json.dumps(tree))}), live=False, mounts_text="")
+        self.assertEqual([d["device"] for d in drives], ["/dev/mapper/vg-root", "/dev/md0"])
+        self.assertTrue(drives[0]["system"])
+        self.assertTrue(drives[1]["canFormat"])
 
     def test_mount_and_eject(self):
         runner = Runner({"udisksctl": (0, "Mounted /dev/sdb1 at /media/velt/Data\n")})

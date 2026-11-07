@@ -15,6 +15,8 @@ TEXTS = {
     "stored_locally": ("Stored locally", "Yerel olarak depolanıyor"),
     "devices_and_drives": ("Devices and drives", "Cihazlar ve sürücüler"),
     "local_disk": ("Local Disk", "Yerel Disk"),
+    # The running system's drive (This PC, the address bar, Properties).
+    "system_disk": ("Local Disk (VeltOS)", "Yerel Disk (VeltOS)"),
     "windows_read_only": ("This drive is open read-only: the system on it did not shut down completely "
                           "(Fast Startup or hibernation), and writing to it now could damage it. To change "
                           "files, start that system and choose Shut down while holding Shift.",

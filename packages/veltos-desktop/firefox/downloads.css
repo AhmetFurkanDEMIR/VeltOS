@@ -1,89 +1,285 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
-/* VeltOS: Firefox's downloads panel in the look of Windows 11 (a rounded
-   card, the accent progress bar, a quiet "Show all downloads" row), used
-   through the VeltOS autoconfig (tools/firefox.py). Firefox 140 ESR. */
+/* VeltOS: Firefox's downloads in the look of Windows 11 (product owner,
+   2026-11-07: "make Firefox's download screen modern, like Windows 11"),
+   used through the VeltOS autoconfig (tools/firefox.py) as a user style
+   sheet, so every rule needs !important to win over Firefox's own skin.
+   The default namespace below is XUL's: HTML elements (the progress bar,
+   the Library's search box) need `*|*` or no rule reaches them.
+
+   - The downloads panel (the toolbar's arrow): a "Downloads" heading as
+     in Windows 11's download flyouts, rounded rows, a thin accent progress
+     line, the folder button as a quiet square, and "Show all downloads" as
+     a row of its own.
+   - The Library window ("Show all downloads", places.xhtml) and
+     about:downloads: Windows 11's window colours, a toolbar without
+     frames, a navigation list with roomy rows and the list of downloads on
+     a rounded card, without the dotted focus frame.
+
+   Both follow light and dark mode (prefers-color-scheme follows Firefox's
+   theme in its own windows). Checked against Firefox ESR 153's
+   downloads.inc.css, allDownloadsView.inc.css and places.xhtml. */
+
+/* ---------------------------------------------------------------- panel */
 
 #downloadsPanel {
   --panel-border-radius: 8px !important;
-  --panel-padding: 6px !important;
-}
-#downloadsPanel > .panel-arrowcontainer > .panel-arrowcontent,
-#downloadsPanel .panel-arrowcontent {
-  border-radius: 8px !important;
-  border: 1px solid color-mix(in srgb, currentColor 14%, transparent) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
-  padding: 6px !important;
+  --panel-padding: 4px !important;
 }
 
-/* One download: name, state and the folder button in a rounded row. */
-#downloadsListBox richlistitem.download {
-  border-radius: 6px !important;
-  padding: 8px 10px !important;
-  margin: 1px 0 !important;
-  min-height: 52px !important;
+/* The heading: Firefox's panel has none. The text follows Firefox's
+   language (the document's lang attribute, set by its localization). */
+#downloadsPanel-mainView::before {
+  content: "Downloads";
+  display: block !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  padding: 10px 12px 8px !important;
 }
-#downloadsListBox richlistitem.download:hover {
+#downloadsPanel-mainView:lang(tr)::before {
+  content: "İndirmeler";
+}
+
+#downloadsPanel #downloadsListBox {
+  padding: 0 4px 4px !important;
+}
+
+/* One download: icon, name, state and the folder button in a rounded row. */
+#downloadsListBox > richlistitem {
+  border-radius: 6px !important;
+  margin: 0 0 2px !important;
+  min-height: 56px !important;
+  outline: none !important;
+}
+#downloadsListBox > richlistitem .downloadMainArea {
+  border-radius: 6px !important;
+  padding-block: 10px !important;
+  padding-inline-start: 8px !important;
+}
+#downloadsListBox > richlistitem:hover {
   background-color: color-mix(in srgb, currentColor 6%, transparent) !important;
 }
-#downloadsListBox richlistitem.download[selected] {
-  background-color: color-mix(in srgb, currentColor 9%, transparent) !important;
+#downloadsListBox > richlistitem:hover:active {
+  background-color: color-mix(in srgb, currentColor 4%, transparent) !important;
+}
+#downloadsListBox > richlistitem[selected] {
+  background-color: color-mix(in srgb, currentColor 8%, transparent) !important;
   color: inherit !important;
 }
-.downloadTypeIcon {
+/* Keyboard focus: the accent frame Windows 11 draws, not a dotted line. */
+#downloadsListBox:focus-visible > richlistitem[selected],
+#downloadsListBox[force-focus-visible]:focus > richlistitem[selected] {
+  outline: 2px solid AccentColor !important;
+  outline-offset: -2px !important;
+}
+#downloadsListBox .downloadTypeIcon {
   width: 32px !important;
   height: 32px !important;
-  margin-inline-end: 12px !important;
+  margin-block: 0 !important;
+  margin-inline: 2px 12px !important;
 }
-.downloadTarget {
+#downloadsListBox .downloadTarget {
   font-weight: 600 !important;
-  margin-bottom: 2px !important;
+  margin: 0 0 2px !important;
 }
-.downloadDetails {
-  opacity: 0.7 !important;
+#downloadsListBox .downloadDetails {
+  opacity: 0.72 !important;
+  font-size: 0.92em !important;
 }
 
-/* The progress bar: a thin accent line, as Windows draws progress. */
-.downloadProgress {
-  height: 4px !important;
-  min-height: 4px !important;
-  margin: 6px 0 2px 0 !important;
+/* The progress: a thin accent line on a faint track, as Windows draws it. */
+*|*.downloadProgress {
+  height: 3px !important;
+  min-height: 3px !important;
+  margin: 6px 0 3px !important;
   border-radius: 2px !important;
-  background-color: color-mix(in srgb, currentColor 14%, transparent) !important;
   border: none !important;
+  background-color: color-mix(in srgb, currentColor 16%, transparent) !important;
   appearance: none !important;
 }
-.downloadProgress::-moz-progress-bar {
-  background-color: #4F7CFF !important;
+/* Firefox paints the fill in the text colour on a selected Library row
+   (its selection is a solid accent); VeltOS' selection is a light tint, so
+   the fill stays the accent there too. */
+*|*.downloadProgress::-moz-progress-bar,
+#downloadsListBox.allDownloadsListBox richlistitem[selected] *|*.downloadProgress::-moz-progress-bar {
+  --download-progress-fill-color: AccentColor !important;
+  --download-progress-flare-color: color-mix(in srgb, AccentColor 45%, white) !important;
+  background-color: AccentColor !important;
   border-radius: 2px !important;
   appearance: none !important;
 }
-.downloadProgress:indeterminate::-moz-progress-bar {
-  background-color: #4F7CFF !important;
+*|*.downloadProgress[paused]::-moz-progress-bar,
+#downloadsListBox.allDownloadsListBox richlistitem[selected] *|*.downloadProgress[paused]::-moz-progress-bar {
+  background-color: #C29C00 !important;
 }
 
-/* The buttons next to a download (open folder, retry, cancel). */
+/* The buttons beside a download (show in folder, retry, cancel): quiet
+   squares that show a fill on hover. */
 .downloadButton {
-  border-radius: 6px !important;
-  padding: 6px !important;
+  margin-inline: 2px 4px !important;
 }
-.downloadButton:hover {
+#downloadsPanel .downloadButton {
+  border-radius: 4px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  margin-block: auto !important;
+}
+.downloadButton:hover:not(:active) {
   background-color: color-mix(in srgb, currentColor 10%, transparent) !important;
 }
+.downloadButton:hover:active {
+  background-color: color-mix(in srgb, currentColor 6%, transparent) !important;
+}
+.downloadButton > .button-box {
+  border-radius: 4px !important;
+}
 
-/* "Show all downloads": a quiet row with a line above it. */
-#downloadsFooter {
-  margin-top: 4px !important;
-  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent) !important;
+/* "Show all downloads": a row of its own under a faint line. */
+#downloadsFooterButtons > toolbarseparator {
+  margin: 2px 8px !important;
+  border-color: color-mix(in srgb, currentColor 12%, transparent) !important;
 }
 #downloadsHistory {
   border-radius: 6px !important;
-  padding: 10px 12px !important;
-  margin: 4px 0 0 0 !important;
+  margin: 2px 4px 4px !important;
+  min-height: 36px !important;
+  padding-inline: 8px !important;
+  justify-content: flex-start !important;
+  text-decoration: none !important;
 }
 #downloadsHistory:hover {
   background-color: color-mix(in srgb, currentColor 6%, transparent) !important;
 }
-#downloadsHistory > .button-box > .button-text,
-#downloadsHistory {
-  text-decoration: none !important;
+#emptyDownloads {
+  opacity: 0.72 !important;
+  padding: 18px 12px 22px !important;
+}
+
+/* ------------------------------------------- Library and about:downloads */
+
+#places {
+  --veltos-window: #F3F3F3;
+  --veltos-card: #FBFBFB;
+  --veltos-line: rgba(0, 0, 0, 0.08);
+  --veltos-hover: rgba(0, 0, 0, 0.04);
+  --veltos-selected: rgba(0, 0, 0, 0.06);
+  background-color: var(--veltos-window) !important;
+}
+@media (prefers-color-scheme: dark) {
+  #places {
+    --veltos-window: #202020;
+    --veltos-card: #2B2B2B;
+    --veltos-line: rgba(0, 0, 0, 0.30);
+    --veltos-hover: rgba(255, 255, 255, 0.06);
+    --veltos-selected: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* The toolbar: no frames, Windows 11's command bar spacing. */
+#places #placesToolbox,
+#places #placesToolbar {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+#places #placesToolbar {
+  padding: 6px 12px !important;
+  min-height: 48px !important;
+}
+#places #placesToolbar > toolbarbutton,
+#places #placesMenu > menu {
+  appearance: none !important;
+  border: none !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  padding: 6px 10px !important;
+  margin: 0 2px !important;
+  min-height: 32px !important;
+}
+#places #placesToolbar > toolbarbutton:not([disabled]):hover,
+#places #placesMenu > menu:hover,
+#places #placesMenu > menu[open] {
+  background-color: var(--veltos-hover) !important;
+  color: inherit !important;
+}
+#places *|*#searchFilter {
+  min-height: 32px !important;
+  margin-inline-end: 4px !important;
+}
+
+/* The navigation list (History, Downloads, Tags, All Bookmarks). */
+#places #placesView {
+  background: transparent !important;
+}
+#places #placesList {
+  appearance: none !important;
+  background: transparent !important;
+  border: none !important;
+  margin: 0 0 8px 6px !important;
+}
+#places #placesList > treechildren::-moz-tree-row {
+  height: 36px !important;
+  border: none !important;
+  background-color: transparent !important;
+  border-radius: 4px !important;
+}
+#places #placesList > treechildren::-moz-tree-row(hover) {
+  background-color: var(--veltos-hover) !important;
+}
+#places #placesList > treechildren::-moz-tree-row(selected),
+#places #placesList > treechildren::-moz-tree-row(selected, focus) {
+  background-color: var(--veltos-selected) !important;
+  outline: none !important;
+}
+#places #placesList > treechildren::-moz-tree-cell-text(selected),
+#places #placesList > treechildren::-moz-tree-cell-text(selected, focus),
+#places #placesList > treechildren::-moz-tree-image(selected),
+#places #placesList > treechildren::-moz-tree-twisty(selected) {
+  color: inherit !important;
+}
+#places #placesList > treechildren::-moz-tree-cell-text {
+  padding-inline-start: 6px !important;
+}
+#places #placesView > splitter {
+  appearance: none !important;
+  background: transparent !important;
+  border: none !important;
+  width: 6px !important;
+  min-width: 6px !important;
+}
+
+/* The content: a rounded card on the window, as Windows 11's pages. */
+#places #contentView {
+  background-color: var(--veltos-card) !important;
+  border: 1px solid var(--veltos-line) !important;
+  border-radius: 8px !important;
+  margin: 0 8px 8px 0 !important;
+  overflow: clip !important;
+}
+#places #placeContent,
+#places #downloadsListBox,
+#places #detailsPane {
+  appearance: none !important;
+  background: transparent !important;
+  border: none !important;
+}
+#places #downloadsListBox {
+  padding: 6px !important;
+}
+.allDownloadsListBox > richlistitem {
+  min-height: 60px !important;
+  margin: 0 0 2px !important;
+  padding-inline-end: 6px !important;
+  border-radius: 6px !important;
+}
+#downloadsListBox.allDownloadsListBox > richlistitem[selected] {
+  background-color: color-mix(in srgb, AccentColor 16%, transparent) !important;
+  color: inherit !important;
+}
+#downloadsListBox.allDownloadsListBox:focus-visible > richlistitem[selected],
+#downloadsListBox.allDownloadsListBox > richlistitem:focus-visible {
+  outline: 1px solid AccentColor !important;
+  outline-offset: -2px !important;
+}
+.allDownloadsListBox .downloadTypeIcon {
+  margin: 0 14px 0 6px !important;
 }

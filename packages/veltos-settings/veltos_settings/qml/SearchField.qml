@@ -1,6 +1,6 @@
 // "Find a setting" box in the middle of the title bar, as in Windows 11
-// Settings: translucent on the Mica background, opaque with an accent
-// underline while typing.
+// Settings: see-through on the window's acrylic or Mica, also while
+// typing (with an accent underline then).
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -14,7 +14,7 @@ Rectangle {
 
     implicitHeight: 32
     radius: 5
-    color: input.activeFocus ? Theme.field : (hover.hovered ? Theme.cardHover : Theme.control)
+    color: input.activeFocus ? Theme.fieldActive : (hover.hovered ? Theme.cardHover : Theme.control)
     border.width: 1
     border.color: Theme.cardBorder
 

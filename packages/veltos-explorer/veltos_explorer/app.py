@@ -184,7 +184,7 @@ class Backend(QObject):
         if location == TRASH:
             return self.text("recycle_bin")
         if location == "/":
-            return self.text("local_disk")
+            return self.text("system_disk")
         path = Path(location)
         if path == Path.home():
             return path.name
@@ -245,6 +245,8 @@ class Backend(QObject):
         self.jobs.submit(lambda: places.drives(self.runner), done)
 
     def drive_title(self, drive):
+        if drive["mount"] == "/":
+            return self.text("system_disk")
         if drive["system"]:
             return self.text("local_disk")
         if drive["label"]:
