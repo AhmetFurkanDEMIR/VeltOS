@@ -3,6 +3,19 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — ISO 1.2-dev1 built and tested
+
+- `VELTOS_VERSION=1.2-dev1 build/run.sh iso` from 12f3613 (items 159-160):
+  `veltos-1.2-dev1-amd64.hybrid.iso`, 2,112,610,304 bytes (32.8 MiB under
+  the 2 GiB release limit), SHA-256
+  8d069c45d5cf00ac8c1c38142b7cdc85e39f1b99521b2a63bc8d15eff6d6de5e; every
+  package's tests passed in the build (lintian's notes as before).
+- Boot tests (QEMU/KVM, no 3D): UEFI 19, BIOS 18, Secure Boot 20 checks,
+  all passed; plasmashell after 30-31 s (`out/test-results/20261107-*`).
+- Copied to the product owner's Desktop as
+  `VeltOS-1.2-dev1-20261107-122034.iso` with its `.sha256`. Not released
+  and not pushed (product owner: no release or push without approval).
+
 ## 2026-11-07 — Items 159-160: see-through acrylic, Settings with Mica
 
 - The product owner sent two pictures of Windows 11 (Start over a blue
