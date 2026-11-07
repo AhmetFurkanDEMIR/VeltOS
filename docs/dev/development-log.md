@@ -3,6 +3,21 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — ISO 1.2-dev2 built and tested
+
+- `VELTOS_VERSION=1.2-dev2 build/run.sh iso` from eeaf919 (item 161):
+  `veltos-1.2-dev2-amd64.hybrid.iso`, 2,112,604,160 bytes (32.8 MiB under
+  2 GiB), SHA-256
+  337304901b5e0b4a416f27432a5ebc3ffd3915db6465421a2fbf77e8b27953d5.
+- Boot tests (QEMU/KVM, no 3D): UEFI 19, BIOS 18, Secure Boot 20 checks,
+  all passed; plasmashell after 34.4 s (UEFI), 31.5 s (BIOS), 30.8 s
+  (Secure Boot), against 30-31 s for dev1. The live session's Start (boot
+  test picture 04) is see-through without anything loaded by hand: about
+  (211, 237, 249) over the light Bloom wallpaper.
+- Copied to the product owner's Desktop as
+  `VeltOS-1.2-dev2-20261107-132046.iso` with its `.sha256` (dev1 is still
+  there). Not released, not pushed.
+
 ## 2026-11-07 — Item 161: acrylic also without 3D, Transparency effects
 
 - The product owner tried ISO 1.2-dev1: Start and the taskbar were "still
