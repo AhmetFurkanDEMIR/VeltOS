@@ -144,3 +144,6 @@ msgstr "Web'de ara"
 
 msgid "Search with Google"
 msgstr "Google'da ara"
+
+msgid "Start"
+msgstr "Başlat"

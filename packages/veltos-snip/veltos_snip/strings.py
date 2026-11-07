@@ -5,8 +5,8 @@ import os
 TEXTS = {
     "app_title": ("Snipping Tool", "Ekran Alıntısı Aracı"),
     "new": ("New", "Yeni"),
-    "empty": ("Press Windows logo key + Shift + S to start a snip.",
-              "Ekran alıntısı başlatmak için Windows logo tuşu + Shift + S tuşlarına basın."),
+    "empty": ("Press Super + Shift + S to start a snip.",
+              "Ekran alıntısı başlatmak için Super + Shift + S tuşlarına basın."),
     "empty_hint": ("Or press Print Screen. Snips are copied to the clipboard and saved in Pictures > Screenshots.",
                    "Ya da Print Screen tuşuna basın. Alıntılar panoya kopyalanır ve Resimler > Screenshots "
                    "klasörüne kaydedilir."),

@@ -1,3 +1,10 @@
+veltos-notepad (1.2.0~dev1) trixie; urgency=medium
+
+  * Texts without the word Windows (product owner, 2026-11-07): line endings CRLF,
+    LF and CR; About.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 17:00:08 +0000
+
 veltos-notepad (1.1.0) trixie; urgency=medium
 
   * VeltOS 1.1.

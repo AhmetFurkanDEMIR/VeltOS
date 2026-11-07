@@ -7,8 +7,8 @@
             }
         ],
         "Category": "Window Management",
-        "Description": "Windows 11 window previews above the taskbar",
-        "Description[tr]": "Görev çubuğunun üzerinde Windows 11 pencere önizlemeleri",
+        "Description": "Window previews above the taskbar",
+        "Description[tr]": "Görev çubuğunun üzerinde pencere önizlemeleri",
         "EnabledByDefault": true,
         "Id": "veltostaskbarpreview",
         "License": "GPL-3.0-or-later",

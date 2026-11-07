@@ -3,6 +3,43 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — Item 163: flyouts see-through in light mode, tooltips, search box, no "Windows"
+
+- The product owner after ISO 1.2-dev3: the calendar (clock flyout),
+  Quick Settings and the hidden-icons flyout were not see-through while
+  the notifications card was; Start's and Search's tooltips should show
+  the name only; the taskbar's search box should be see-through; no
+  "Windows" anywhere in the running OS; all of it in light and dark mode.
+- The three flyouts use the same translucent background as Start (Plasma
+  6.3.6 CompactApplet: SolidBackground only with the containment's
+  PrefersOpaqueBackground, which the translucent taskbar never sets).
+  Over Photos at full size Quick Settings showed the blue behind it; over
+  the wallpaper's pale bottom-right corner light mode clipped to white
+  (232, 248, 249): the contrast effect brightened 1.4 times. Tried in the
+  VM with `out/vm/acrylic-try.py`: intensity 1.15, contrast 0.7,
+  saturation 1.8, colour 45/55 % gives (214, 229, 249) there, the petals
+  showing; dark mode (27, 30, 63) over the navy corner, unchanged.
+- Tooltips: Start had none of its own (Plasma showed the plasmoid's name
+  and description, "VeltOS Start / Start menu with ..."), Search showed
+  its description ("... like Windows 11 ..."): `toolTipMainText`
+  "Start"/"Search" (Başlat/Ara) and an empty `toolTipSubText`.
+- Search box: a veil instead of the theme's background colour: light
+  white 48 % (72 % under the pointer), dark white 6 % (11 %).
+- "Windows": `out/winscan.py` (git-ignored) listed string literals and
+  text lines with the word; 197 at first, most of them code comments in
+  the Plasma overrides, configuration keys and file signatures. Changed:
+  veltos-winapps (".exe programs", "Preparing the Wine environment…",
+  the launcher "Program Runner"), Settings (".exe programs", the Wine
+  environment, Super + C/P/Tab/Space, the location note without the
+  comparison, "Apps and surfaces appear translucent"), the Store's Welcome
+  (Super key, ".exe programs"), File Explorer (another system's drive:
+  "Local Disk", the read-only note), Snipping Tool (Super + Shift + S),
+  Notepad (line endings CRLF/LF/CR, About), Calculator, Media Player and
+  Photos (About), VeltOS Mail's launcher, the VeltOS AI button's tooltip,
+  the plasmoids' and KWin's descriptions, the GTK theme's comment and the
+  installer (step name, the .exe page, the slides, the live welcome
+  window). New: `tests/repo/test_os_texts.py`.
+
 ## 2026-11-07 — ISO 1.2-dev3 built and tested
 
 - `VELTOS_VERSION=1.2-dev3 build/run.sh iso` from 68e9d06 (item 162):

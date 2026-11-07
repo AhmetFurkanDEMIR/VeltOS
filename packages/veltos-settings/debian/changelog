@@ -1,3 +1,11 @@
+veltos-settings (1.2.0~dev4) trixie; urgency=medium
+
+  * Light acrylic behind the window as the taskbar's.
+  * Texts without the word Windows (product owner, 2026-11-07): ".exe programs",
+    the Wine environment, the Super key.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 17:00:08 +0000
+
 veltos-settings (1.2.0~dev3) trixie; urgency=medium
 
   * Acrylic: KWin blurs the windows and desktop behind Settings, as behind

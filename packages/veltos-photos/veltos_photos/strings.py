@@ -112,8 +112,8 @@ TEXTS = {
     "folders_desc": ("Photos shows the pictures and videos of these folders and their subfolders.",
                      "Fotoğraflar bu klasörlerdeki ve alt klasörlerindeki resimleri ve videoları gösterir."),
     "about": ("About", "Hakkında"),
-    "about_text": ("Photos for VeltOS, in the look of Windows 11 Photos. Version {version}.",
-                   "VeltOS için Fotoğraflar, Windows 11 Fotoğraflar görünümünde. Sürüm {version}."),
+    "about_text": ("Photos for VeltOS. Version {version}.",
+                   "VeltOS için Fotoğraflar. Sürüm {version}."),
 }
 
 

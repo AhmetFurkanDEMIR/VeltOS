@@ -1692,6 +1692,11 @@ were measured (below).
   the window's rounded frame), with the Mica of the desktop picture left
   for sessions where KWin cannot blur. Alternative: a C++ helper or a QML
   plugin for KWindowEffects (more to build and package for two calls).
+- Light mode (item 163): the contrast effect brightened what is behind
+  1.4 times; over the light wallpaper's pale corner that clipped to
+  white and the calendar, Quick Settings and the hidden-icons flyout
+  looked opaque. 1.15 (contrast 0.7, saturation 1.8, colour 45/55 %)
+  keeps the tint and shapes of what is behind.
 - Trade-offs: with software rendering the blur costs CPU while popups
   open and close (above) and while Settings scrolls (KWin 138 % of a core
   with blur, 70 % without, dev VM); Windows turns transparency off without a GPU,
@@ -1701,6 +1706,25 @@ were measured (below).
   Mica shows the whole picture behind the window rather than the part
   under it (Windows samples the part under the window). The Mica blur is
   drawn again when the window is resized.
+
+### 2.59 No "Windows" in the running OS (2026-11-07)
+
+- Decision: no text a person reads in VeltOS names Windows. Programs
+  installed from .exe and .msi files are ".exe programs" (".exe
+  programları") that run in VeltOS' "Wine environment"; the logo key is
+  "Super" (Super + C, Super + P, Super + Tab); another system's drive is a
+  Local Disk and its read-only note speaks of "the system on it"; the
+  apps' About texts and launchers describe the app only.
+  `tests/repo/test_os_texts.py` checks the apps' texts (strings.py),
+  Settings' catalogue, launchers, plasmoid and KWin descriptions,
+  translations and the plasmoid and installer page texts.
+- Why: the product owner asked for it (2026-11-07). Code, comments,
+  configuration keys (kwinrc's `[Windows]` group, the `[Windows programs]`
+  section of the runner choice), file signatures and the developer
+  documentation are not shown to users and keep their words.
+- Alternatives: "Windows-compatible programs" or "Windows key" (names the
+  product); "Meta" (KDE's word, unknown to most people). ".exe" is what
+  people see on the files, "Super" what Linux calls the key.
 
 ## 3. Licensing and redistribution
 

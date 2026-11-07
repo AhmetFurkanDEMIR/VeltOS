@@ -29,7 +29,9 @@ PlasmoidItem {
     switchWidth: 0
     switchHeight: 0
     preferredRepresentation: compactRepresentation
+    // The name only, as the Start button (no description under it).
     toolTipMainText: i18n("Search")
+    toolTipSubText: ""
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
 
     // The pinned apps of Start, shown as "Top apps" like Windows.
@@ -137,12 +139,16 @@ PlasmoidItem {
                                : parent.width - Kirigami.Units.smallSpacing * 2
             height: Math.min(parent.height - Kirigami.Units.smallSpacing * 3, Kirigami.Units.gridUnit * 2)
             radius: height / 2
-            color: Kirigami.Theme.backgroundColor
-            opacity: box.containsMouse ? 1 : 0.85
+            // See-through on the acrylic taskbar, as the taskbar itself: a
+            // light veil in light mode, a faint one in dark mode, a little
+            // stronger under the pointer (product owner, 2026-11-07).
+            readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor)
+                                         === Kirigami.ColorUtils.Dark
+            color: dark ? Qt.rgba(1, 1, 1, box.containsMouse ? 0.11 : 0.06)
+                        : Qt.rgba(1, 1, 1, box.containsMouse ? 0.72 : 0.48)
             border.width: 1
-            border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g,
-                                  Kirigami.Theme.textColor.b, 0.1)
-            Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
+            border.color: dark ? Qt.rgba(1, 1, 1, 0.09) : Qt.rgba(0, 0, 0, 0.08)
+            Behavior on color { ColorAnimation { duration: Kirigami.Units.shortDuration } }
         }
 
         RowLayout {

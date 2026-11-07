@@ -37,9 +37,9 @@ TEXTS = {
     "theme_system": ("Use system setting", "Sistem ayarını kullan"),
     "about": ("About", "Hakkında"),
     "about_name": ("VeltOS Calculator", "VeltOS Hesap Makinesi"),
-    "about_text": ("Standard and scientific calculator in the style of Windows 11. "
+    "about_text": ("Standard and scientific calculator. "
                    "Decimal arithmetic: 0.1 + 0.2 is exactly 0.3.",
-                   "Windows 11 tarzında standart ve bilimsel hesap makinesi. "
+                   "Standart ve bilimsel hesap makinesi. "
                    "Ondalık aritmetik: 0,1 + 0,2 tam olarak 0,3'tür."),
     "copyright": ("© 2026 VeltOS Developers", "© 2026 VeltOS Geliştiricileri"),
 }

@@ -7,8 +7,8 @@
             }
         ],
         "Category": "Appearance",
-        "Description": "Notifications slide in from the right edge of the screen and out again, like Windows 11 toasts",
-        "Description[tr]": "Bildirimler Windows 11'deki gibi ekranın sağ kenarından kayarak gelir ve kayarak gider",
+        "Description": "Notifications slide in from the right edge of the screen and out again",
+        "Description[tr]": "Bildirimler ekranın sağ kenarından kayarak gelir ve kayarak gider",
         "EnabledByDefault": true,
         "Id": "veltostoast",
         "License": "GPL-3.0-or-later",

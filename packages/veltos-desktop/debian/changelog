@@ -1,3 +1,14 @@
+veltos-desktop (1.2.0~dev4) trixie; urgency=medium
+
+  * Light acrylic keeps the wallpaper's tint: the calendar, Quick Settings
+    and the hidden-icons flyout looked opaque over a pale wallpaper.
+  * The taskbar's search box is see-through; Start and Search show only
+    their name when the pointer rests on them.
+  * Texts without the word Windows (product owner, 2026-11-07): the Super key in
+    tooltips, plasmoid and KWin descriptions.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 17:00:08 +0000
+
 veltos-desktop (1.2.0~dev3) trixie; urgency=medium
 
   * Acrylic that shows what is behind: KWin's blur strength 8 (15 smeared

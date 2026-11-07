@@ -267,7 +267,7 @@ class ConfigTests(unittest.TestCase):
         # the installation as one step.
         names = {"welcomeq": "Welcome", "localeq": "Location", "keyboardq": "Keyboard",
                  "partition": "Disk", "usersq": "Account", "notesqml@recovery": "Password reset",
-                 "packagechooserq@windowsapps": "Windows programs",
+                 "packagechooserq@windowsapps": ".exe programs",
                  "finishedq": "Finish"}
         expected = []
         for step in self.settings["sequence"]:

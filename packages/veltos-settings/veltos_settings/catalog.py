@@ -140,7 +140,7 @@ PAGES = [
     ]},
     {"id": "apps", "icon": "view-app-grid-symbolic", "title": ("Apps", "Uygulamalar"), "items": [
         {"id": "windows-apps", "icon": "application-x-executable-symbolic", "page": "windows-apps",
-         "title": ("Windows programs", "Windows programları"),
+         "title": (".exe programs", ".exe programları"),
          "desc": ("Programs installed from .exe and .msi files", ".exe ve .msi dosyalarından kurulan programlar"),
          "keywords": "exe msi wine windows uninstall kaldır program"},
         {"id": "store", "icon": "view-app-grid-symbolic", "action": "store",

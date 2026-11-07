@@ -100,8 +100,8 @@ TEXTS = {
     "remove_folder": ("Remove", "Kaldır"),
     "refresh": ("Refresh libraries", "Kitaplıkları yenile"),
     "about": ("About", "Hakkında"),
-    "about_text": ("Media Player for VeltOS, in the look of Windows 11 Media Player. Version {version}.",
-                   "VeltOS için Medya Oynatıcı, Windows 11 Medya Oynatıcı görünümünde. Sürüm {version}."),
+    "about_text": ("Media Player for VeltOS. Version {version}.",
+                   "VeltOS için Medya Oynatıcı. Sürüm {version}."),
 }
 
 

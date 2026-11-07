@@ -25,7 +25,7 @@ TEXTS = {
     "home_welcome": ("Welcome, {name}", "Hoş geldiniz, {name}"),
     "rename": ("Rename", "Yeniden adlandır"),
     "recommended": ("Recommended settings", "Önerilen ayarlar"),
-    "windows_programs_count": ("{count} Windows programs installed", "{count} Windows programı kurulu"),
+    "windows_programs_count": ("{count} .exe programs installed", "{count} .exe programı kurulu"),
     # Theme picker
     "theme": ("Theme", "Tema"),
     "theme_desc": ("Select a theme to apply", "Uygulanacak bir tema seçin"),
@@ -68,9 +68,9 @@ TEXTS = {
     "disk_management": ("Disk Management", "Disk Yönetimi"),
     "disk_management_desc": ("Partitions and formatting", "Bölümler ve biçimlendirme"),
     # Windows programs
-    "windows_runner": ("Open Windows programs with", "Windows programlarını şununla aç"),
-    "windows_runner_desc": ("VeltOS' own Windows environment: a double-click installs or opens the program.",
-                            "VeltOS'un kendi Windows ortamı: çift tıklama programı yükler veya açar."),
+    "windows_runner": ("Open .exe programs with", ".exe programlarını şununla aç"),
+    "windows_runner_desc": ("VeltOS' own Wine environment: a double-click installs or opens the program.",
+                            "VeltOS'un kendi Wine ortamı: çift tıklama programı yükler veya açar."),
     "windows_runner_bottles_desc": ("Bottles opens .exe and .msi files and asks which bottle to use (VeltOS' first).",
                                     "Bottles .exe ve .msi dosyalarını açar ve hangi şişenin kullanılacağını sorar "
                                     "(önce VeltOS'unki)."),
@@ -81,19 +81,19 @@ TEXTS = {
     "bottles_installing": ("Installing Bottles from Flathub… This needs the internet and may take a while.",
                            "Bottles Flathub'dan yükleniyor… İnternet gerekir ve biraz sürebilir."),
     "bottles_failed": ("Bottles couldn't be installed now. VeltOS installs it as soon as this PC is connected to "
-                       "the internet; until then VeltOS opens Windows programs itself.",
+                       "the internet; until then VeltOS opens .exe programs itself.",
                        "Bottles şu anda yüklenemedi. Bu bilgisayar internete bağlanır bağlanmaz VeltOS onu yükler; "
-                       "o zamana kadar Windows programlarını VeltOS açar."),
-    "bottles_missing": ("Bottles isn't installed yet: until it is, VeltOS opens Windows programs itself.",
-                        "Bottles henüz yüklü değil: yüklenene kadar Windows programlarını VeltOS açar."),
-    "windows_apps_intro": ("Programs you installed by opening a Windows .exe or .msi file. "
-                           "They run in VeltOS's Windows environment (Wine), which is not a "
+                       "o zamana kadar .exe programlarını VeltOS açar."),
+    "bottles_missing": ("Bottles isn't installed yet: until it is, VeltOS opens .exe programs itself.",
+                        "Bottles henüz yüklü değil: yüklenene kadar .exe programlarını VeltOS açar."),
+    "windows_apps_intro": ("Programs you installed by opening a .exe or .msi file. "
+                           "They run in VeltOS' Wine environment, which is not a "
                            "security sandbox: install only programs you trust.",
-                           "Bir Windows .exe veya .msi dosyası açarak kurduğunuz programlar. "
-                           "VeltOS'un Windows ortamında (Wine) çalışırlar; bu ortam bir güvenlik "
+                           "Bir .exe veya .msi dosyası açarak kurduğunuz programlar. "
+                           "VeltOS'un Wine ortamında çalışırlar; bu ortam bir güvenlik "
                            "kum havuzu değildir: yalnızca güvendiğiniz programları kurun."),
-    "no_windows_apps": ("No Windows programs yet. Double-click a .exe or .msi file to install one.",
-                        "Henüz Windows programı yok. Kurmak için bir .exe veya .msi dosyasına çift tıklayın."),
+    "no_windows_apps": ("No .exe programs yet. Double-click a .exe or .msi file to install one.",
+                        "Henüz .exe programı yok. Kurmak için bir .exe veya .msi dosyasına çift tıklayın."),
     "open": ("Open", "Aç"),
     "uninstall": ("Uninstall", "Kaldır"),
     "uninstall_question": ("This app and its related info will be uninstalled.",
@@ -102,8 +102,8 @@ TEXTS = {
     "more_options": ("More options", "Diğer seçenekler"),
     "installed_apps": ("Installed apps", "Yüklü uygulamalar"),
     "uninstall_programs": ("Uninstall a program", "Program kaldır"),
-    "uninstall_desc": ("Opens the Windows environment's list of installed programs",
-                       "Windows ortamındaki kurulu programlar listesini açar"),
+    "uninstall_desc": ("Opens the Wine environment's list of installed programs",
+                       "Wine ortamındaki kurulu programlar listesini açar"),
     "installed_on": ("Installed {date}", "Kurulum: {date}"),
     # Shared by the built-in pages
     "on": ("On", "Açık"),
@@ -167,9 +167,9 @@ TEXTS = {
     "taskbar_ai": ("VeltOS AI", "VeltOS AI"),
     # Apps > VeltOS AI
     "ai_title": ("VeltOS AI", "VeltOS AI"),
-    "ai_desc": ("Your assistant at the right edge of the screen: open it with Windows + C or the button on the "
+    "ai_desc": ("Your assistant at the right edge of the screen: open it with Super + C or the button on the "
                 "taskbar. From Start or search it opens in a window.",
-                "Ekranın sağ kenarındaki asistanınız: Windows + C ile veya görev çubuğundaki düğmeyle açın. "
+                "Ekranın sağ kenarındaki asistanınız: Super + C ile veya görev çubuğundaki düğmeyle açın. "
                 "Başlat'tan ya da aramadan pencerede açılır."),
     "ai_open": ("Open VeltOS AI", "VeltOS AI'ı aç"),
     "ai_taskbar": ("Show the VeltOS AI button on the taskbar", "VeltOS AI düğmesini görev çubuğunda göster"),
@@ -320,10 +320,10 @@ TEXTS = {
     "revert": ("Revert", "Geri al"),
     "no_display": ("No display information is available.", "Ekran bilgisi alınamadı."),
     # Several displays (Windows 11's Display page and Windows + P)
-    "arrange_desc": ("Select a display to change its settings. Drag displays to rearrange them; Windows + P "
+    "arrange_desc": ("Select a display to change its settings. Drag displays to rearrange them; Super + P "
                      "switches between the ways to use them.",
                      "Ayarlarını değiştirmek için bir ekran seçin. Ekranları yeniden düzenlemek için sürükleyin; "
-                     "Windows + P, ekranları kullanma biçimleri arasında geçiş yapar."),
+                     "Super + P, ekranları kullanma biçimleri arasında geçiş yapar."),
     "apply": ("Apply", "Uygula"),
     "identify": ("Identify", "Tanımla"),
     "multiple_displays": ("Multiple displays", "Birden çok ekran"),
@@ -379,7 +379,7 @@ TEXTS = {
     "choose_mode_desc": ("Change the colours that appear in VeltOS and your apps",
                          "VeltOS'ta ve uygulamalarınızda görünen renkleri değiştirin"),
     "transparency_effects": ("Transparency effects", "Saydamlık efektleri"),
-    "transparency_effects_desc": ("Windows and surfaces appear translucent",
+    "transparency_effects_desc": ("Apps and surfaces appear translucent",
                                   "Pencereler ve yüzeyler yarı saydam görünür"),
     "accent_colour": ("Accent colour", "Vurgu rengi"),
     "accent_colour_desc": ("Highlights, selections and buttons", "Vurgular, seçimler ve düğmeler"),
@@ -462,10 +462,10 @@ TEXTS = {
     "snap_windows_desc": ("Drag a window to the side or the top of the screen to arrange it",
                           "Bir pencereyi düzenlemek için ekranın kenarına veya üstüne sürükleyin"),
     "desktops": ("Desktops", "Masaüstleri"),
-    "desktops_desc": ("Create desktops in Task View (Windows key + Tab)",
-                      "Görev Görünümü'nde masaüstü oluşturun (Windows tuşu + Sekme)"),
+    "desktops_desc": ("Create desktops in Task View (Super + Tab)",
+                      "Görev Görünümü'nde masaüstü oluşturun (Super + Sekme)"),
     "animations": ("Animation effects", "Animasyon efektleri"),
-    "animations_desc": ("Windows and controls move and fade", "Pencereler ve denetimler hareket eder ve solar"),
+    "animations_desc": ("App windows and controls move and fade", "Pencereler ve denetimler hareket eder ve solar"),
     # Mouse and touchpad
     "primary_button": ("Primary mouse button", "Birincil fare düğmesi"),
     "left": ("Left", "Sol"),
@@ -482,7 +482,7 @@ TEXTS = {
     "no_touchpad": ("No touchpad is connected.", "Bağlı dokunmatik yüzey yok."),
     # Keyboard (Typing)
     "keyboard_layouts": ("Keyboard layouts", "Klavye düzenleri"),
-    "keyboard_layouts_desc": ("Switch with Windows key + Space", "Windows tuşu + Boşluk ile değiştirin"),
+    "keyboard_layouts_desc": ("Switch with Super + Space", "Super + Boşluk ile değiştirin"),
     "add_keyboard": ("Add a keyboard", "Klavye ekle"),
     "choose_keyboard": ("Choose a keyboard", "Klavye seçin"),
     "remove": ("Remove", "Kaldır"),
@@ -630,13 +630,13 @@ TEXTS = {
     "location_provider_title": ("How location is found", "Konum nasıl bulunur"),
     "location_provider_note": ("VeltOS looks for your location only when you select My location in Maps. It uses "
                                "GPS or a mobile broadband modem when the PC has one; otherwise it sends the Wi-Fi "
-                               "networks around you to beaconDB (api.beacondb.net), a community location service, "
-                               "as Windows sends them to Microsoft's. Where beaconDB knows none of them, it finds "
+                               "networks around you to beaconDB (api.beacondb.net), a community location service. "
+                               "Where beaconDB knows none of them, it finds "
                                "the approximate place of your internet connection. Google Maps receives the "
                                "location it shows. You can turn access off at any time.",
                                "VeltOS konumunuzu yalnızca Haritalar'da Konumum'u seçtiğinizde arar. Bilgisayarda "
                                "varsa GPS'i veya mobil geniş bant modemini kullanır; yoksa çevrenizdeki Wi-Fi "
-                               "ağlarını, Windows'un Microsoft'a gönderdiği gibi, bir topluluk konum hizmeti olan "
+                               "ağlarını bir topluluk konum hizmeti olan "
                                "beaconDB'ye (api.beacondb.net) gönderir. beaconDB bu ağları tanımıyorsa internet "
                                "bağlantınızın yaklaşık yerini bulur. Google Haritalar gösterdiği konumu alır. "
                                "Erişimi istediğiniz zaman kapatabilirsiniz."),

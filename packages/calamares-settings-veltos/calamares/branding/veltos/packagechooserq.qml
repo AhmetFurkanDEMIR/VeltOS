@@ -28,7 +28,7 @@ VeltPage {
     id: page
 
     picture: "ill-windows-apps.svg"
-    title: t("How should Windows programs open?", "Windows programları nasıl açılsın?")
+    title: t(".exe programs: how should they open?", ".exe programları nasıl açılsın?")
     subtitle: t("VeltOS opens .exe and .msi files with a double-click. Choose how. You can change it later in Settings.",
                 "VeltOS .exe ve .msi dosyalarını çift tıklamayla açar. Nasıl açılacağını seçin. Daha sonra Ayarlar'dan değiştirebilirsiniz.")
 
@@ -124,8 +124,8 @@ VeltPage {
         objectName: "choiceWine"
         value: "wine"
         heading: page.t("Wine, built in (recommended)", "Yerleşik Wine (önerilir)")
-        detail: page.t("A double-click installs or opens the program in VeltOS' own Windows environment, in a window like Windows' App Installer. Works without the internet.",
-                       "Çift tıklama, programı VeltOS'un kendi Windows ortamında, Windows'un Uygulama Yükleyicisi gibi bir pencerede yükler veya açar. İnternetsiz çalışır.")
+        detail: page.t("A double-click installs or opens the program in VeltOS' own Wine environment, in VeltOS' installer window. Works without the internet.",
+                       "Çift tıklama, programı VeltOS'un kendi Wine ortamında, VeltOS'un yükleyici penceresinde yükler veya açar. İnternetsiz çalışır.")
     }
     Choice {
         objectName: "choiceBottles"
@@ -133,15 +133,15 @@ VeltPage {
         heading: page.t("Bottles", "Bottles")
         detail: page.t("A separate app that keeps each program in a \"bottle\" of its own, with its own settings. Good for games and programs that need special settings.",
                        "Her programı kendi ayarlarıyla ayrı bir \"şişe\"de tutan ayrı bir uygulama. Oyunlar ve özel ayar isteyen programlar için uygundur.")
-        note: page.t("Bottles comes from Flathub, not from VeltOS' own package sources: it is downloaded at the first start (more than 1.5 GB with its Windows environment; an internet connection is needed).",
-                     "Bottles VeltOS'un kendi paket kaynaklarından değil, Flathub'dan gelir: ilk açılışta indirilir (Windows ortamıyla birlikte 1,5 GB'tan fazla; internet bağlantısı gerekir).")
+        note: page.t("Bottles comes from Flathub, not from VeltOS' own package sources: it is downloaded at the first start (more than 1.5 GB with its Wine environment; an internet connection is needed).",
+                     "Bottles VeltOS'un kendi paket kaynaklarından değil, Flathub'dan gelir: ilk açılışta indirilir (Wine ortamıyla birlikte 1,5 GB'tan fazla; internet bağlantısı gerekir).")
     }
 
     Text {
         Layout.fillWidth: true
         Layout.topMargin: 4
-        text: page.t("Windows programs run without Windows' protections: open only programs you trust.",
-                     "Windows programları Windows'un korumaları olmadan çalışır: yalnızca güvendiğiniz programları açın.")
+        text: page.t(".exe programs can read and change your files: open only programs you trust.",
+                     ".exe programları dosyalarınızı okuyup değiştirebilir: yalnızca güvendiğiniz programları açın.")
         color: Theme.c.subtext
         font.family: "Inter"
         font.pixelSize: 12

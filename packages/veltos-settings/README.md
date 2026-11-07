@@ -62,8 +62,9 @@ open VeltOS Settings.
     VeltOS Update lists too ("VeltOS website", opened with `xdg-open`);
   - **System > Storage**: used and free space per drive (the live system
     is labelled as running in memory);
-  - **Apps > Windows programs**, like Windows 11's Installed apps (with
-    "Open Windows programs with": VeltOS (Wine) or Bottles from Flathub,
+  - **Apps > .exe programs** (the OS names no Windows in its texts since
+    2026-11-07), like Windows 11's Installed apps (with
+    "Open .exe programs with": VeltOS (Wine) or Bottles from Flathub,
     installed for the user when picked; added 2026-10-27): every
     installed Windows program with its own icon (read from its `.exe`,
     cached in `~/.cache/veltos/program-icons`), publisher, version,

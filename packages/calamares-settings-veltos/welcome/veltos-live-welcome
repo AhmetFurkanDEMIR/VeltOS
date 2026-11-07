@@ -29,7 +29,7 @@ TEXTS = {
         "try_body": "Use VeltOS without changing anything on this computer. "
                     "Nothing you do is kept after a restart.",
         "install": "Install VeltOS",
-        "install_body": "Install VeltOS on this computer, next to Windows or in its place. "
+        "install_body": "Install VeltOS on this computer, next to your current system or in its place. "
                         "You choose where before anything is changed.",
         "later": "You can also start the installation later with the "
                  "“Install VeltOS” icon on the desktop.",
@@ -43,7 +43,7 @@ TEXTS = {
         "try_body": "Bu bilgisayarda hiçbir şeyi değiştirmeden VeltOS'u kullanın. "
                     "Yeniden başlatınca yaptıklarınız saklanmaz.",
         "install": "VeltOS'u kurun",
-        "install_body": "VeltOS'u bu bilgisayara Windows'un yanına ya da yerine kurun. "
+        "install_body": "VeltOS'u bu bilgisayara mevcut sisteminizin yanına ya da yerine kurun. "
                         "Hiçbir şey değişmeden önce nereye kurulacağını siz seçersiniz.",
         "later": "Kurulumu daha sonra masaüstündeki “VeltOS'u Kur” "
                  "simgesiyle de başlatabilirsiniz.",

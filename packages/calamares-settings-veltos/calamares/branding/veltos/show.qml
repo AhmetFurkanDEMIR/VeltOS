@@ -191,21 +191,21 @@ Presentation {
                 "Senin Bilgisayarın. Sınır Tanıma.\nVeltOS kurulurken sizi bekleyenlere bir göz atın.")
         points: [t("A desktop that works the way you already know", "Zaten bildiğiniz gibi çalışan bir masaüstü"),
                  t("VeltOS AI, your assistant, one key away", "Bir tuş uzağınızda yardımcınız VeltOS AI"),
-                 t("Your Windows programs, opened with a double-click", "Çift tıkla açılan Windows programlarınız"),
+                 t("Your .exe programs, opened with a double-click", "Çift tıkla açılan .exe programlarınız"),
                  t("Free apps from a trusted store", "Güvenilir bir mağazadan ücretsiz uygulamalar")]
     }
 
     VeltSlide {
         title: t("Familiar from the first minute", "İlk dakikadan tanıdık")
-        body: t("Start, the taskbar, search and Task View work as on Windows 11. Pin your favourite apps and find anything by typing.",
-                "Başlat, görev çubuğu, arama ve Görev Görünümü Windows 11'deki gibi çalışır. Sevdiğiniz uygulamaları sabitleyin, her şeyi yazarak bulun.")
+        body: t("Start, the taskbar, search and Task View work the way you already know. Pin your favourite apps and find anything by typing.",
+                "Başlat, görev çubuğu, arama ve Görev Görünümü zaten bildiğiniz gibi çalışır. Sevdiğiniz uygulamaları sabitleyin, her şeyi yazarak bulun.")
         picture: "images/start.png"
     }
 
     VeltSlide {
         title: t("Meet VeltOS AI", "VeltOS AI ile tanışın")
-        body: t("Press Windows + C and your assistant opens on the right. Ask anything, or let it change a setting for you: it always asks first.",
-                "Windows + C'ye basın, yardımcınız sağda açılsın. İstediğinizi sorun ya da bir ayarı sizin için değiştirsin: her zaman önce size sorar.")
+        body: t("Press Super + C and your assistant opens on the right. Ask anything, or let it change a setting for you: it always asks first.",
+                "Super + C'ye basın, yardımcınız sağda açılsın. İstediğinizi sorun ya da bir ayarı sizin için değiştirsin: her zaman önce size sorar.")
         points: [t("ChatGPT, Claude, Gemini or Copilot with your own key", "Kendi anahtarınızla ChatGPT, Claude, Gemini veya Copilot"),
                  t("Or a free model that runs on your PC, without the internet", "Ya da bilgisayarınızda internetsiz çalışan ücretsiz bir model")]
         art: "assistant"
@@ -217,8 +217,8 @@ Presentation {
 
     VeltSlide {
         title: t("Your files, your way", "Dosyalarınız, sizin tarzınızda")
-        body: t("File Explorer with tabs, Home, This PC and the Recycle Bin. Windows drives and USB sticks open as they are.",
-                "Sekmeli Dosya Gezgini; Giriş, Bu bilgisayar ve Geri Dönüşüm Kutusu. Windows sürücüleri ve USB bellekler olduğu gibi açılır.")
+        body: t("File Explorer with tabs, Home, This PC and the Recycle Bin. Drives of other systems and USB sticks open as they are.",
+                "Sekmeli Dosya Gezgini; Giriş, Bu bilgisayar ve Geri Dönüşüm Kutusu. Başka sistemlerin sürücüleri ve USB bellekler olduğu gibi açılır.")
         picture: "images/explorer.png"
     }
 
@@ -266,29 +266,29 @@ Presentation {
 
     VeltSlide {
         title: t("Connected, wherever you are", "Nerede olursanız olun bağlı")
-        body: t("Quick Settings on the taskbar: Wi-Fi, Bluetooth, mobile hotspot, night light and power modes in one place. Pair a device from Settings, project to a second screen with Windows + P.",
-                "Görev çubuğunda Hızlı Ayarlar: Wi-Fi, Bluetooth, mobil etkin nokta, gece ışığı ve güç modları tek yerde. Bir cihazı Ayarlar'dan eşleştirin, Windows + P ile ikinci ekrana yansıtın.")
+        body: t("Quick Settings on the taskbar: Wi-Fi, Bluetooth, mobile hotspot, night light and power modes in one place. Pair a device from Settings, project to a second screen with Super + P.",
+                "Görev çubuğunda Hızlı Ayarlar: Wi-Fi, Bluetooth, mobil etkin nokta, gece ışığı ve güç modları tek yerde. Bir cihazı Ayarlar'dan eşleştirin, Super + P ile ikinci ekrana yansıtın.")
         icons: [{ icon: "veltos-bluetooth", label: "Bluetooth" },
                 { icon: "veltos-settings", label: t("Settings", "Ayarlar") },
                 { icon: "veltos-graphics", label: t("Graphics Cards", "Ekran Kartları") },
                 { icon: "veltos-disks", label: t("Disk Management", "Disk Yönetimi") }]
         points: [t("Graphics drivers, NVIDIA's too, with one click", "NVIDIA'nınkiler dahil ekran kartı sürücüleri tek tıkla"),
-                 t("Format and manage drives as in Windows", "Sürücüleri Windows'taki gibi biçimlendirin ve yönetin")]
+                 t("Format and manage drives in Disk Management", "Sürücüleri Disk Yönetimi'nde biçimlendirin ve yönetin")]
     }
 
     VeltSlide {
-        title: t("Windows programs and games", "Windows programları ve oyunları")
+        title: t(".exe programs and games", ".exe programları ve oyunları")
         body: t("Open an .exe or .msi file with a double-click: VeltOS installs it and adds it to Start.",
                 "Bir .exe veya .msi dosyasına çift tıklayın: VeltOS onu kurar ve Başlat'a ekler.")
         points: [t("Programs appear in Start like any other app", "Programlar Başlat'ta diğer uygulamalar gibi görünür"),
-                 t("Uninstall them in Settings, as on Windows", "Windows'taki gibi Ayarlar'dan kaldırın"),
+                 t("Uninstall them in Settings", "Ayarlar'dan kaldırın"),
                  t("Not every program works yet; VeltOS tells you", "Her program henüz çalışmaz; VeltOS size söyler")]
     }
 
     VeltSlide {
         title: t("Back on its feet by itself", "Kendi kendine toparlanır")
-        body: t("If VeltOS cannot start twice in a row, Automatic Repair opens, as on Windows. F1 at start-up shows the boot menu, F6 opens Recovery.",
-                "VeltOS üst üste iki kez başlayamazsa, Windows'taki gibi Otomatik Onarım açılır. Açılışta F1 önyükleme menüsünü, F6 Kurtarma'yı açar.")
+        body: t("If VeltOS cannot start twice in a row, Automatic Repair opens. F1 at start-up shows the boot menu, F6 opens Recovery.",
+                "VeltOS üst üste iki kez başlayamazsa Otomatik Onarım açılır. Açılışta F1 önyükleme menüsünü, F6 Kurtarma'yı açar.")
         points: [t("Disk encryption that asks for your password at start-up", "Açılışta parolanızı soran disk şifrelemesi"),
                  t("Startup Repair, safe mode and a command prompt when something goes wrong", "Bir şey ters giderse Başlangıç Onarımı, güvenli mod ve Komut İstemi")]
     }

@@ -31,7 +31,7 @@ PlasmoidItem {
 
     preferredRepresentation: fullRepresentation
     toolTipMainText: i18n("VeltOS AI")
-    toolTipSubText: i18n("Ask VeltOS AI (Windows + C)")
+    toolTipSubText: i18n("Ask VeltOS AI (Super + C)")
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
 
     fullRepresentation: MouseArea {

@@ -98,7 +98,7 @@ def build(root):
             (d / sheet).write_text(text, encoding="utf-8", newline="\n")
     (base / "index.theme").write_text(
         "[Desktop Entry]\nType=X-GNOME-Metatheme\nName=VeltOS\n"
-        "Comment=Breeze with Windows 11 caption buttons (VeltOS)\nEncoding=UTF-8\n\n"
+        "Comment=Breeze with VeltOS caption buttons\nEncoding=UTF-8\n\n"
         "[X-GNOME-Metatheme]\nGtkTheme=VeltOS\nIconTheme=Fluent\nCursorTheme=Fluent-cursors\n",
         encoding="utf-8", newline="\n")
     return base

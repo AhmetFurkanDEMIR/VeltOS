@@ -13,8 +13,8 @@ msgstr ""
 msgid "VeltOS AI"
 msgstr "VeltOS AI"
 
-msgid "Ask VeltOS AI (Windows + C)"
-msgstr "VeltOS AI'a sorun (Windows + C)"
+msgid "Ask VeltOS AI (Super + C)"
+msgstr "VeltOS AI'a sorun (Super + C)"
 
 msgid "VeltOS AI settings"
 msgstr "VeltOS AI ayarları"

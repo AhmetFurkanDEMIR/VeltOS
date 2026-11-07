@@ -249,8 +249,6 @@ class Backend(QObject):
             return self.text("local_disk")
         if drive["label"]:
             return drive["label"]
-        if drive.get("windowsSystem"):
-            return "Windows"
         name = (self.text("usb_drive") if drive.get("usb") else
                 self.text("removable_disk") if drive["removable"] else self.text("local_disk"))
         return f"{name} ({files.human_size(drive['size'])})"

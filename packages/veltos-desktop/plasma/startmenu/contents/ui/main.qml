@@ -20,6 +20,11 @@ import org.kde.kirigami as Kirigami
 PlasmoidItem {
     id: root
 
+    // The pointer over the Start button shows its name only, in the
+    // system's language (product owner, 2026-11-07).
+    toolTipMainText: i18n("Start")
+    toolTipSubText: ""
+
     // Windows 11 flyouts float above the taskbar with all corners rounded.
     // Plasma does that for panel popups only while the panel itself floats
     // (its Panel.qml sets ContainmentPrefersFloatingApplets); the VeltOS

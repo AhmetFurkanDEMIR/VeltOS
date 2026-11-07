@@ -1,11 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=Windows Program Runner
-Name[tr]=Windows Programı Çalıştırıcı
-GenericName=Install and open Windows programs
-GenericName[tr]=Windows programlarını kur ve aç
-Comment=Installs and opens Windows programs (.exe, .msi, .bat, .cmd)
-Comment[tr]=Windows programlarını (.exe, .msi, .bat, .cmd) kurar ve açar
+Name=Program Runner
+Name[tr]=Program Çalıştırıcı
+GenericName=Install and open .exe programs
+GenericName[tr]=.exe programlarını kur ve aç
+Comment=Installs and opens programs (.exe, .msi, .bat, .cmd)
+Comment[tr]=Programları (.exe, .msi, .bat, .cmd) kurar ve açar
 Exec=veltos-run %f
 Icon=veltos-run
 Terminal=false

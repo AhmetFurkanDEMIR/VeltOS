@@ -55,9 +55,9 @@ TEXTS = {
     "characters": ("{count} characters", "{count} karakter"),
     "one_character": ("1 character", "1 karakter"),
     "selected_of": ("{selected} of {count} characters", "{selected}/{count} karakter"),
-    "eol_CRLF": ("Windows (CRLF)", "Windows (CRLF)"),
-    "eol_LF": ("Unix (LF)", "Unix (LF)"),
-    "eol_CR": ("Macintosh (CR)", "Macintosh (CR)"),
+    "eol_CRLF": ("CRLF", "CRLF"),
+    "eol_LF": ("LF", "LF"),
+    "eol_CR": ("CR", "CR"),
     "line_ending": ("Line ending", "Satır sonu"),
     "encoding": ("Encoding", "Kodlama"),
     # Find and replace
@@ -117,8 +117,8 @@ TEXTS = {
     "new_session": ("Start new session and discard unsaved changes",
                     "Yeni oturum başlat ve kaydedilmemiş değişiklikleri at"),
     "about_this_app": ("About this app", "Bu uygulama hakkında"),
-    "about_text": ("Notepad for VeltOS, in the look of Windows 11 Notepad. Version {version}.",
-                   "VeltOS için Not Defteri, Windows 11 Not Defteri görünümünde. Sürüm {version}."),
+    "about_text": ("Notepad for VeltOS. Version {version}.",
+                   "VeltOS için Not Defteri. Sürüm {version}."),
     "back": ("Back", "Geri"),
 }
 

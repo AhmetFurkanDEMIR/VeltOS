@@ -150,6 +150,10 @@ owner sets priorities; agents act as the engineering team.
   Brand palette: blue `#4F7CFF`, indigo `#5B3FE0`, cyan `#2FA8F0`,
   navy background `#050818`–`#0E1846`.
 - Naming: packages `veltos-*`; Plasma IDs `org.veltos.*`; live user `velt`.
+- No text a user reads names Windows (product owner, 2026-11-07): say
+  ".exe programs" (Wine environment) and the "Super" key; Windows 11 may
+  be named in code comments and developer docs only.
+  `tests/repo/test_os_texts.py` checks it.
 
 ## The website (`docs/`)
 
@@ -1489,6 +1493,10 @@ and JavaScript with no build step, no external requests and no cookies:
   ctypes works with the C++ pointers from `shiboken6.getCppPointer`
   (Settings' `acrylic.py`). `isEffectAvailable` is False until the new
   client's event loop has run once: ask again after the window is shown.
+- KWin's contrast effect brightens what is behind light popups: above
+  about 1.15 the pale corner of a light wallpaper clipped to white and
+  see-through flyouts looked opaque (2026-11-07). Judge acrylic values
+  over the wallpaper's palest part as well as over its middle.
 - Kirigami.Icon rounds its size to the nearest standard icon size
   (`roundToIconSize`, default true): Settings' 20 px colour icons came out
   16 px (2026-11-07); set `roundToIconSize: false` for pictures drawn for

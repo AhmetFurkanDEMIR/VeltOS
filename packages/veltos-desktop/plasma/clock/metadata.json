@@ -7,7 +7,7 @@
             }
         ],
         "Category": "Date and Time",
-        "Description": "Time above the date, like the Windows 11 taskbar; opens a calendar",
+        "Description": "Time above the date; opens the calendar and notifications",
         "Icon": "preferences-system-time",
         "Id": "org.veltos.clock",
         "License": "GPL-3.0-or-later",

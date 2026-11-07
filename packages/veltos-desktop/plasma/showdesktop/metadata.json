@@ -7,7 +7,7 @@
             }
         ],
         "Category": "Windows and Tasks",
-        "Description": "The thin \"show desktop\" area at the right end of the taskbar, like Windows 11",
+        "Description": "The thin \"show desktop\" area at the right end of the taskbar",
         "Icon": "user-desktop",
         "Id": "org.veltos.showdesktop",
         "License": "GPL-3.0-or-later",

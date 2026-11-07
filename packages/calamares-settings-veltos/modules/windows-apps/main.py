@@ -12,7 +12,7 @@ import libcalamares
 
 
 def pretty_name():
-    return "Windows programs"
+    return ".exe programs"
 
 
 def conf_text(choice):

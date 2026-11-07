@@ -127,10 +127,14 @@ PANEL_OPACITY = {"widgets/panel-background.svgz": 0.86}
 # owner, 2026-11-07: "see-through also with something behind"). With
 # blur 8 and these values the windows and pictures behind show as soft
 # colour shapes, as through Windows 11's acrylic (dev VM, over VeltOS
-# Photos; out/vm/pblur-compare.png).
+# Photos; out/vm/pblur-compare.png). Light mode brightened the desktop
+# behind 1.4 times at first: over the pale corner of a light wallpaper
+# that clipped to white and the calendar, Quick Settings and the
+# hidden-icons flyout looked opaque; 1.15 keeps the wallpaper's tint and
+# shapes (product owner, 2026-11-07).
 ACRYLIC = {
-    "light": {"popup": ("#f3f3f3", 0.50), "taskbar": ("#eeeeee", 0.58),
-              "contrast": ["enabled=true", "contrast=0.6", "intensity=1.4", "saturation=2.0"]},
+    "light": {"popup": ("#f3f3f3", 0.45), "taskbar": ("#eeeeee", 0.55),
+              "contrast": ["enabled=true", "contrast=0.7", "intensity=1.15", "saturation=1.8"]},
     "dark": {"popup": ("#202020", 0.45), "taskbar": ("#1c1c1c", 0.55),
              "contrast": ["enabled=true", "contrast=0.75", "intensity=0.5", "saturation=2.2"]},
 }

@@ -42,7 +42,7 @@ Rectangle {
     readonly property var steps: [
         ["Welcome", "Hoş geldiniz"], ["Location", "Konum"], ["Keyboard", "Klavye"],
         ["Disk", "Disk"], ["Account", "Hesap"], ["Password reset", "Parola sıfırlama"],
-        ["Windows programs", "Windows programları"], ["Install", "Yükleme"], ["Finish", "Bitiş"]
+        [".exe programs", ".exe programları"], ["Install", "Yükleme"], ["Finish", "Bitiş"]
     ]
     // The installer's language (Calamares sets Qt's default locale when the
     // language is chosen on the first page; nothing announces it here).

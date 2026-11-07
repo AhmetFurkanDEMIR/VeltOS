@@ -7,7 +7,7 @@
             }
         ],
         "Category": "System Information",
-        "Description": "Wi-Fi, Bluetooth, sound, brightness and battery in one place, like Windows 11 Quick Settings",
+        "Description": "Wi-Fi, Bluetooth, sound, brightness and battery in one place",
         "Icon": "preferences-system",
         "Id": "org.veltos.quicksettings",
         "License": "GPL-3.0-or-later",

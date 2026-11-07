@@ -7,8 +7,8 @@
             }
         ],
         "Category": "Window Management",
-        "Description": "Windows 11 Task View: open windows and virtual desktops",
-        "Description[tr]": "Windows 11 Görev Görünümü: açık pencereler ve sanal masaüstleri",
+        "Description": "Task View: open windows and virtual desktops",
+        "Description[tr]": "Görev Görünümü: açık pencereler ve sanal masaüstleri",
         "EnabledByDefault": true,
         "Id": "veltostaskview",
         "License": "GPL-3.0-or-later",

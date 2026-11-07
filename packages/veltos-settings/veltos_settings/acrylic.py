@@ -31,7 +31,7 @@ AVAILABLE = "_ZN14KWindowEffects17isEffectAvailableENS_6EffectE"
 BLUR_BEHIND = 7                 # KWindowEffects::BlurBehind
 # The contrast effect under the window (contrast, intensity, saturation), the
 # values of the VeltOS Plasma themes' acrylic (veltos-desktop tools/fluent.py).
-CONTRAST_VALUES = {False: (0.6, 1.4, 2.0), True: (0.75, 0.5, 2.2)}
+CONTRAST_VALUES = {False: (0.7, 1.15, 1.8), True: (0.75, 0.5, 2.2)}
 RADIUS = 8
 
 

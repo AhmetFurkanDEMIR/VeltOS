@@ -15,12 +15,12 @@ TEXTS = {
     "stored_locally": ("Stored locally", "Yerel olarak depolanıyor"),
     "devices_and_drives": ("Devices and drives", "Cihazlar ve sürücüler"),
     "local_disk": ("Local Disk", "Yerel Disk"),
-    "windows_read_only": ("This Windows drive is open read-only: Windows did not shut down completely "
+    "windows_read_only": ("This drive is open read-only: the system on it did not shut down completely "
                           "(Fast Startup or hibernation), and writing to it now could damage it. To change "
-                          "files, start Windows and choose Shut down while holding Shift.",
-                          "Bu Windows sürücüsü salt okunur açıldı: Windows tamamen kapanmamış (Hızlı Başlatma "
+                          "files, start that system and choose Shut down while holding Shift.",
+                          "Bu sürücü salt okunur açıldı: üzerindeki sistem tamamen kapanmamış (Hızlı Başlatma "
                           "veya hazırda bekletme) ve şimdi yazmak sürücüye zarar verebilir. Dosyaları "
-                          "değiştirmek için Windows'u başlatıp Shift'e basılıyken Kapat'ı seçin."),
+                          "değiştirmek için o sistemi başlatıp Shift'e basılıyken Kapat'ı seçin."),
     "usb_drive": ("USB Drive", "USB Sürücü"),
     "removable_disk": ("Removable Disk", "Çıkarılabilir Disk"),
     "free_of": ("{free} free of {total}", "{total} alanın {free} kadarı boş"),

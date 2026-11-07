@@ -7,7 +7,7 @@
             }
         ],
         "Category": "Windows and Tasks",
-        "Description": "VeltOS AI button, like Windows 11's Copilot button: opens the assistant pane",
+        "Description": "VeltOS AI button: opens the assistant pane",
         "Icon": "veltos-ai",
         "Id": "org.veltos.aibutton",
         "License": "GPL-3.0-or-later",
