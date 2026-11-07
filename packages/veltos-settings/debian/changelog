@@ -1,3 +1,9 @@
+veltos-settings (1.2.0) trixie; urgency=medium
+
+  * VeltOS 1.2.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 18:38:38 +0000
+
 veltos-settings (1.2.0~dev4) trixie; urgency=medium
 
   * Light acrylic behind the window as the taskbar's.

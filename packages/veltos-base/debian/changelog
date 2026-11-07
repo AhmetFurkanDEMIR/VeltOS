@@ -1,3 +1,9 @@
+veltos-base (1.2.0) trixie; urgency=medium
+
+  * VeltOS 1.2.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 18:38:38 +0000
+
 veltos-base (1.1.0) trixie; urgency=medium
 
   * VeltOS 1.1.
