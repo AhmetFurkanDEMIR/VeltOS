@@ -173,9 +173,21 @@ and JavaScript with no build step, no external requests and no cookies:
   running only while in view); the animated WebPs they replaced showed
   lossy compression blocks (product owner, 2026-11-01). `assets/gif/*.gif`
   are animations for the README (`out/vm/make-gif.py`, git-ignored aid).
-  VeltOS AI's conversations (`chat-en-*`/`chat-tr-*.webp`, crops of the
-  pane) come per language (classes `lang-en`/`lang-tr`). Start-up,
-  sign-in and installer pictures have one look.
+  Every picture comes in the page's theme, VeltOS AI's conversations
+  too: `chat-{en,tr}-{info,wifi,mode}-{light,dark}.webp` (crops of the
+  pane, classes `lang-en`/`lang-tr` with `img-light`/`img-dark`; the
+  mode conversation asks for light mode in the light picture and for dark
+  mode in the dark one), the lock screen (`light-lock`, `light-password`)
+  and the installer (`light-installer`, `-installer-slide`,
+  `-installer-done`). Only what the OS shows in one look stays single:
+  the start screen, the welcome splash after sign-in and Automatic
+  Repair. Pictures of an older release stay as `v11-*.webp` with
+  `data-until="1.2"` while the new ones carry `data-since="1.2"`, so the
+  page never shows what the downloadable ISO does not do; remove the
+  `v11-` files and elements once 1.2 is released and the page is checked.
+  The README shows each picture in the reader's GitHub theme
+  (`<picture>` with `prefers-color-scheme`), the two animations too
+  (`veltos-tour-{light,dark}.gif`, `veltos-apps-{light,dark}.gif`).
   `og.jpg` (1200x630) is the link preview. Retake them when the desktop
   changes visibly, and never show something the ISO does not do.
 - Icons: copies of the OS's own SVGs (`tests/repo` checks they still

@@ -3,6 +3,49 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — Item 164: every picture in the page's theme, VeltOS 1.2
+
+- The product owner: dark pictures in dark mode and light ones in light
+  mode on the website, VeltOS AI's too, the new see-through pictures on
+  the site and in the README, push, then the ISO pipeline on GitHub.
+  Asked: the new pictures appear with release 1.2 (data-since), and the
+  pipeline makes release 1.2 (it builds only for a new VERSION).
+- Pictures (dev VM, installed system with the 1.2.0~dev4 packages, user
+  jordanl, 1920x1080, WebP 90): `out/vm/pair-scene.sh` shoots a scene in
+  dark mode, switches with `mode-switch.py` and shoots it in light mode
+  (popups opened again); `out/vm/site-12.sh` ran all 14 scenes. Media
+  Player shows its Albums tab (`out/vm/music-samples.py` added albums
+  with wallpaper covers). VeltOS AI: the real local model (Qwen 3.5 2B),
+  the VM's os-release set to 1.2 for the pictures and back to 1.1
+  afterwards; "Tell me about this PC", "Turn on Wi-Fi" and, for the mode
+  picture, "Turn on light mode" in the light one and "Turn on dark mode"
+  in the dark one; Turkish with `LANGUAGE=tr` and the Turkish Q layout
+  (`out/vm/trq-keys.py`). Lock screen: `loginctl lock-sessions` in each
+  mode, a click for the password field. The welcome splash after sign-in
+  has one look in both modes (checked: restarting SDDM in dark mode), so
+  it stays single, as the start screen and Automatic Repair.
+- Installer: ISO 1.2-dev4 in a second VM container with its own disk
+  volume (`veltos-vm-live`), installed twice (light, then dark: the
+  installer takes the live session's mode); the slideshow shot every 8 s
+  for the VeltOS AI slide ("Press Super + C"). Its side bar said "VeltOS
+  1.0": `branding.desc` was never bumped (1.1's installer said 1.0 too).
+  `release-bump.py` now writes version, shortVersion, versionedName and
+  shortVersionedName; `release-check.py` checks them; the test tree of
+  `tests/repo/test_build_tools.py` includes the file. The reason it stayed:
+  calamares-settings-veltos' `test_branding` expected "1.0" whenever
+  veltos-base's os-release was not next to it, which is how
+  `build-packages.sh` builds every package, so a bumped branding would
+  have failed the release's build; it now checks the version's form and
+  that the four values agree (67 tests OK, built with 1.2). The pictures were
+  taken with the live system's branding set to 1.2, as the 1.2 ISO has.
+- Website: `out/vm/make-site-12.py` (pictures, the 1.1 ones kept as
+  `v11-*.webp`, link preview) and `out/vm/site-12-html.py` (each replaced
+  picture: the old one with data-until="1.2", the new light and dark ones
+  with data-since="1.2"; the mode conversation's caption "Light or dark
+  mode"); a 1.2 line in Personalize (`modes.p4`, both languages).
+  README: `out/vm/readme-12.py` (<picture> per cell, both animations in
+  both looks).
+
 ## 2026-11-07 — ISO 1.2-dev4 built and tested
 
 - `VELTOS_VERSION=1.2-dev4 build/run.sh iso` from 4fb3344 (item 163):

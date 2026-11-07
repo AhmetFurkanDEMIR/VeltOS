@@ -43,6 +43,11 @@ def problems(version, previous, root=REPO):
     os_release = (root / "packages/veltos-base/os-release").read_text(encoding="utf-8")
     if f'VERSION_ID="{version}"' not in os_release:
         found.append(f'packages/veltos-base/os-release: VERSION_ID is not "{version}"')
+    branding = root / "packages/calamares-settings-veltos/calamares/branding/veltos/branding.desc"
+    text = branding.read_text(encoding="utf-8")
+    if not (re.search(rf"^\s*versionedName:\s*VeltOS {re.escape(version)}\s*$", text, re.M)
+            and re.search(rf'^\s*version:\s*"{re.escape(version)}"\s*$', text, re.M)):
+        found.append(f"{branding.relative_to(root)}: the installer does not name VeltOS {version}")
     base = changelog_version((root / "packages/veltos-base/debian/changelog").read_text(encoding="utf-8"))
     if not base.startswith(version + "."):
         found.append(f"veltos-base {base}: its version must start with {version}. (VERSION_ID follows it)")

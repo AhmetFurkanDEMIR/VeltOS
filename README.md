@@ -26,7 +26,7 @@ Windows program support through Wine.
 
 </div>
 
-![A tour of VeltOS: Start, search, Task View, Quick Settings and VeltOS Update](docs/assets/gif/veltos-tour.gif)
+<picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/gif/veltos-tour-dark.gif"><img src="docs/assets/gif/veltos-tour-light.gif" alt="A tour of VeltOS: Start, search, Task View, Quick Settings and VeltOS AI"></picture>
 
 > [!NOTE]
 > **VeltOS is a young system.** Every release is built by GitHub Actions
@@ -83,17 +83,17 @@ Every picture was taken on VeltOS; VeltOS has a light and a dark look.
 
 | | |
 |:---:|:---:|
-| ![Start in dark mode](docs/assets/img/dark-desktop.webp) | ![VeltOS AI answering in its pane](docs/assets/img/light-ai.webp) |
-| Start in dark mode | VeltOS AI with the free local model |
-| ![File Explorer](docs/assets/img/light-explorer.webp) | ![Settings](docs/assets/img/dark-settings.webp) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-desktop.webp"><img src="docs/assets/img/light-desktop.webp" alt="Start"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-ai.webp"><img src="docs/assets/img/light-ai.webp" alt="VeltOS AI answering in its pane"></picture> |
+| Start, see-through | VeltOS AI with the free local model |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-explorer.webp"><img src="docs/assets/img/light-explorer.webp" alt="File Explorer"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-settings.webp"><img src="docs/assets/img/light-settings.webp" alt="Settings"></picture> |
 | File Explorer with tabs | Settings in Windows 11's layout |
-| ![Quick Settings](docs/assets/img/light-quick.webp) | ![VeltOS Store](docs/assets/img/dark-store.webp) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-quick.webp"><img src="docs/assets/img/light-quick.webp" alt="Quick Settings"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-store.webp"><img src="docs/assets/img/light-store.webp" alt="VeltOS Store"></picture> |
 | Quick Settings on the taskbar | VeltOS Store on Debian's archive |
-| ![Word's start screen](docs/assets/img/light-word.webp) | ![Media Player](docs/assets/img/dark-media.webp) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-word.webp"><img src="docs/assets/img/light-word.webp" alt="Word's start screen"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-media.webp"><img src="docs/assets/img/light-media.webp" alt="Media Player"></picture> |
 | Word's start screen, LibreOffice behind it | Media Player with albums |
-| ![Photos](docs/assets/img/light-photos.webp) | ![Weather](docs/assets/img/dark-weather.webp) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-photos.webp"><img src="docs/assets/img/light-photos.webp" alt="Photos"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-weather.webp"><img src="docs/assets/img/light-weather.webp" alt="Weather"></picture> |
 | Photos by month | Weather without an account |
-| ![Calendar](docs/assets/img/light-calendar.webp) | ![Task Manager](docs/assets/img/dark-taskmanager.webp) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-calendar.webp"><img src="docs/assets/img/light-calendar.webp" alt="Calendar"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-taskmanager.webp"><img src="docs/assets/img/light-taskmanager.webp" alt="Task Manager"></picture> |
 | Calendar | Task Manager |
 
 **From power on to the desktop:** the start screen (F1 boot menu, F6
@@ -101,12 +101,12 @@ Recovery), the sign-in screen and the desktop.
 
 | | | |
 |:---:|:---:|:---:|
-| ![The start screen](docs/assets/img/boot-start.webp) | ![The sign-in screen](docs/assets/img/signin-lock.webp) | ![Signing in](docs/assets/img/signin-password.webp) |
+| ![The start screen](docs/assets/img/boot-start.webp) | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-lock.webp"><img src="docs/assets/img/light-lock.webp" alt="The sign-in screen"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-password.webp"><img src="docs/assets/img/light-password.webp" alt="Signing in"></picture> |
 | Start screen | Sign-in screen | Your account |
-| ![The installer](docs/assets/img/installer.webp) | ![The installer introducing VeltOS AI](docs/assets/img/installer-ai-slide.webp) | ![VeltOS is ready](docs/assets/img/installer-done.webp) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-installer.webp"><img src="docs/assets/img/light-installer.webp" alt="The installer"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-installer-slide.webp"><img src="docs/assets/img/light-installer-slide.webp" alt="The installer introducing VeltOS AI"></picture> | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/img/dark-installer-done.webp"><img src="docs/assets/img/light-installer-done.webp" alt="VeltOS is ready"></picture> |
 | The installer | Slides while it installs | Done |
 
-![VeltOS' own apps in light and dark mode](docs/assets/gif/veltos-apps.gif)
+<picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/gif/veltos-apps-dark.gif"><img src="docs/assets/gif/veltos-apps-light.gif" alt="VeltOS' own apps"></picture>
 
 More on the [website](https://veltos.ahmetfurkandemir.com/#gallery).
 

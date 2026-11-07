@@ -78,6 +78,21 @@ def bump_os_release(path, release):
             banner.write_text(text, encoding="utf-8", newline="\n")
 
 
+BRANDING = "packages/calamares-settings-veltos/calamares/branding/veltos/branding.desc"
+
+
+def bump_installer_branding(path, release):
+    """The installer names the version it installs (its side bar): VeltOS
+    1.1's installer still said 1.0 because nothing changed this file."""
+    text = path.read_text(encoding="utf-8")
+    for key, value in (("version", f'"{release}"'), ("shortVersion", f'"{release}"'),
+                       ("versionedName", f"VeltOS {release}"), ("shortVersionedName", f"VeltOS {release}")):
+        text, count = re.subn(rf"^(\s*{key}:\s*).*$", lambda m: m.group(1) + value, text, flags=re.M)
+        if count != 1:
+            raise SystemExit(f"{path}: no {key} line")
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("version", help="the release, e.g. 1.1")
@@ -93,6 +108,7 @@ def main(argv=None):
         raise SystemExit(f"write {notes.relative_to(root)} first (English, <!-- tr -->, Turkish)")
     (root / "VERSION").write_text(args.version + "\n", encoding="utf-8", newline="\n")
     bump_os_release(root / "packages/veltos-base/os-release", args.version)
+    bump_installer_branding(root / BRANDING, args.version)
     for changelog in sorted(root.glob("packages/*/debian/changelog")):
         name = changelog.parent.parent.name
         new = bump_changelog(changelog, args.version, args.date, base=name == "veltos-base")

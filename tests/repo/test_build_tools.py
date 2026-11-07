@@ -125,6 +125,9 @@ class ReleaseToolTests(unittest.TestCase):
             path.write_text(f"{name} ({version}) trixie; urgency=medium\n\n  * Something.\n\n"
                             " -- VeltOS Developers <x@example.invalid>  Mon, 02 Nov 2026 12:00:00 +0000\n",
                             encoding="utf-8", newline="\n")
+        branding = "packages/calamares-settings-veltos/calamares/branding/veltos/branding.desc"
+        (root / branding).parent.mkdir(parents=True)
+        shutil.copy(REPO / branding, root / branding)
         (root / "VERSION").write_text("1.0\n", encoding="utf-8", newline="\n")
         (root / "docs/release-notes").mkdir(parents=True)
         (root / "docs/release-notes/1.1.md").write_text("### New\n\n- A\n\n<!-- tr -->\n\n### Yeni\n\n- A\n",
@@ -144,6 +147,12 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertIn('PRETTY_NAME="VeltOS 1.1"', os_release)
         self.assertEqual((root / "packages/veltos-base/issue.net").read_text(encoding="utf-8"), "VeltOS 1.1\n")
         self.assertTrue((root / "packages/veltos-base/issue").read_text(encoding="utf-8").startswith("VeltOS 1.1 "))
+        # The installer names the version it installs (1.1's still said 1.0).
+        branding = (root / "packages/calamares-settings-veltos/calamares/branding/veltos/branding.desc").read_text(
+            encoding="utf-8")
+        self.assertRegex(branding, r'(?m)^\s*version:\s*"1\.1"$')
+        self.assertRegex(branding, r"(?m)^\s*versionedName:\s*VeltOS 1\.1$")
+        self.assertRegex(branding, r"(?m)^\s*shortVersionedName:\s*VeltOS 1\.1$")
 
         def first(name):
             return (root / f"packages/{name}/debian/changelog").read_text(encoding="utf-8")

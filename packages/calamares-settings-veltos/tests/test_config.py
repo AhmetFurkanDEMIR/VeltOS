@@ -74,14 +74,21 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(branding["strings"]["productName"], "VeltOS")
         # Text, not a number: an unquoted 1.0 is the YAML number 1, and the
         # installer's sidebar said "VeltOS 1" (2026-10-27). Same as os-release.
+        # The version is the release's (build/scripts/release-bump.py writes it
+        # with os-release's; release-check.py checks it). Built alone, outside
+        # the repository, only its form can be checked: this test once
+        # expected "1.0" there, and 1.1's installer said "VeltOS 1.0".
+        expected = str(branding["strings"]["version"])
+        self.assertRegex(expected, r"^\d+\.\d+$")
         os_release = (PKG.parent / "veltos-base/os-release")
-        expected = "1.0"
         if os_release.exists():         # the package is also built outside the repository
-            expected = next(line.split("=", 1)[1].strip('"') for line in os_release.read_text().splitlines()
-                            if line.startswith("VERSION_ID="))
+            self.assertEqual(expected, next(line.split("=", 1)[1].strip('"')
+                                            for line in os_release.read_text().splitlines()
+                                            if line.startswith("VERSION_ID=")))
         for key in ("version", "shortVersion"):
             self.assertEqual(branding["strings"][key], expected, key)
         self.assertEqual(branding["strings"]["versionedName"], f"VeltOS {expected}")
+        self.assertEqual(branding["strings"]["shortVersionedName"], f"VeltOS {expected}")
 
     def test_custom_job_commands_are_shipped(self):
         for name, desc in self.custom.items():
