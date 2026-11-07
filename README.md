@@ -142,13 +142,13 @@ Debian packages under [packages/](packages/). Firefox ESR is the web browser.
 <!-- release:start -->
 | | |
 |---|---|
-| ISO | [VeltOS-1.2-amd64.iso](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.2/VeltOS-1.2-amd64.iso) (2.1 GB, 64-bit) |
-| SHA-256 | `705e341090b24b4396acd3e05cdff09181760ef10be3de72589c6ae0c866c3dd` |
-| Release notes | [GitHub release v1.2](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.2) (7 November 2026) |
+| ISO | [VeltOS-1.3-amd64.iso](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.3/VeltOS-1.3-amd64.iso) (2.1 GB, 64-bit) |
+| SHA-256 | `c4bd17c37d7b5bf19fd30d9dec2224ee45ea2672f67e66eebdfa5e076662c290` |
+| Release notes | [GitHub release v1.3](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/tag/v1.3) (7 November 2026) |
 
-Check the download: `sha256sum -c VeltOS-1.2-amd64.iso.sha256` (Linux, with
-the [.sha256 file](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.2/VeltOS-1.2-amd64.iso.sha256))
-or `Get-FileHash VeltOS-1.2-amd64.iso` (Windows PowerShell).
+Check the download: `sha256sum -c VeltOS-1.3-amd64.iso.sha256` (Linux, with
+the [.sha256 file](https://github.com/AhmetFurkanDEMIR/VeltOS/releases/download/v1.3/VeltOS-1.3-amd64.iso.sha256))
+or `Get-FileHash VeltOS-1.3-amd64.iso` (Windows PowerShell).
 <!-- release:end -->
 
 1. Download the ISO and check its SHA-256 (above).
