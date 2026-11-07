@@ -48,6 +48,8 @@ Rectangle {
         Kirigami.Icon {
             Layout.preferredWidth: 20
             Layout.preferredHeight: 20
+            // The colour icons are drawn for 20 px (Kirigami rounded them to 16).
+            roundToIconSize: false
             source: item.icon
             isMask: item.icon.endsWith("-symbolic")
             color: Theme.text

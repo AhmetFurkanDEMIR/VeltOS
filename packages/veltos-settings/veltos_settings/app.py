@@ -279,6 +279,7 @@ class Backend(QObject):
     inputsChanged = Signal()
     accountsChanged = Signal()
     appsChanged = Signal()
+    micaChanged = Signal()
     # "password", "adduser": "" when it worked, otherwise a text key.
     accountResult = Signal(str, str)
 
@@ -307,6 +308,9 @@ class Backend(QObject):
         # (product owner, 2026-10-31).
         self._look_watcher = QFileSystemWatcher(self)
         self._kdeglobals = str(devices.config_home() / "kdeglobals")
+        # The desktop picture, behind the window's Mica background: changed
+        # from the desktop's menu, Settings follows it too.
+        self._appletsrc = str(devices.config_home() / "plasma-org.kde.plasma.desktop-appletsrc")
         self._watch_look()
         self._look_watcher.fileChanged.connect(lambda _path: QTimer.singleShot(300, self._reload_look))
         self._network = {"available": False, "enabled": False, "connection": {}, "networks": [],
@@ -324,8 +328,10 @@ class Backend(QObject):
                            "busy": "", "found": [], "scanning": False, "pairing": "", "pairFailed": ""}
         self._sound = {"outputs": [], "inputs": [], "loaded": False}
         self._display = {"outputs": [], "loaded": False}
-        self._personal = {"wallpapers": [], "wallpaper": "", "accent": "",
+        self._personal = {"wallpapers": [], "wallpaper": self.system.personal.current_wallpaper(), "accent": "",
                           "accents": devices.ACCENTS, "loaded": False}
+        self.personalChanged.connect(self.micaChanged)
+        self.changed.connect(self.micaChanged)
         self._time = {"timezone": "", "automatic": False, "canAutomatic": True, "zones": [],
                       "loaded": False}
         self._prefs = {"loaded": False, "powerModeError": False}
@@ -521,8 +527,9 @@ class Backend(QObject):
 
     def _watch_look(self):
         # An editor that replaces the file (kwriteconfig6) drops the watch.
-        if os.path.exists(self._kdeglobals) and self._kdeglobals not in self._look_watcher.files():
-            self._look_watcher.addPath(self._kdeglobals)
+        for path in (self._kdeglobals, self._appletsrc):
+            if os.path.exists(path) and path not in self._look_watcher.files():
+                self._look_watcher.addPath(path)
 
     def _reload_look(self):
         self._watch_look()
@@ -533,6 +540,9 @@ class Backend(QObject):
         accent = self.system.personal.accent()
         if self._personal.get("loaded") and accent != self._personal.get("accent", ""):
             self._update("_personal", self.personalChanged, {"accent": accent})
+        wallpaper = self.system.personal.current_wallpaper()
+        if wallpaper != self._personal.get("wallpaper", ""):
+            self._update("_personal", self.personalChanged, {"wallpaper": wallpaper})
 
     # --- actions --------------------------------------------------------------
 
@@ -963,6 +973,12 @@ class Backend(QObject):
     @Property(str, notify=personalChanged)
     def accent(self):
         return self._personal.get("accent", "")
+
+    @Property(str, notify=micaChanged)
+    def micaImage(self):
+        """The picture of the window's Mica background (file URL, "" for none)."""
+        path = devices.mica_image(self._personal.get("wallpaper", ""), self._dark)
+        return QUrl.fromLocalFile(path).toString() if path else ""
 
     @Slot()
     def refreshPersonal(self):
@@ -1493,6 +1509,10 @@ def main(argv=None):
     engine.load(QUrl.fromLocalFile(str(QML_DIR / "Main.qml")))
     if not engine.rootObjects():
         return 1
+    # The window draws its own frame and shadow; clicks on the shadow go to
+    # the windows behind it.
+    from .frame import follow_frame
+    follow_frame(engine.rootObjects()[0])
     code = app.exec()
     # The QML goes first: deleted after the objects it reads, its bindings
     # ran once more against dead ones ("Cannot call method ... of null").

@@ -468,7 +468,7 @@ ColumnLayout {
             border.width: 1
             border.color: Theme.cardBorder
         }
-        Overlay.modal: Rectangle { color: "#66000000" }
+        Overlay.modal: Scrim { color: "#66000000" }
 
         contentItem: ColumnLayout {
             spacing: 16

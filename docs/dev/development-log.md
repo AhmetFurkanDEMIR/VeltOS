@@ -3,6 +3,46 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — Items 159-160: see-through acrylic, Settings with Mica
+
+- The product owner sent two pictures of Windows 11 (Start over a blue
+  wallpaper; Settings in dark mode) and asked for the taskbar, Start and
+  Quick Settings to be as see-through and for Settings to look like that.
+- Acrylic (`veltos-desktop` 1.2.0~dev1, `tools/fluent.py` `ACRYLIC`):
+  colour layer 62-72 % instead of 85-86 %, contrast effect saturation 2.0,
+  light intensity 1.45, dark 0.7. Dev VM (installed 1.1 system, blur and
+  contrast loaded with `out/vm/shell-restart.sh`), Bloom wallpaper: dark
+  Start (40, 42, 48) before and (30, 40, 70) after over a desktop of about
+  (37, 66, 143); light Start (207, 229, 248); the taskbar shows the
+  wallpaper's blue in both modes; Quick Settings likewise. KWin 6.3.6's
+  blur strength default is 15 (blur.kcfg), left as it is.
+- Settings (`veltos-settings` 1.2.0~dev1): frameless window with
+  `frame.py` (copy of Media Player's), shadow and resize edges as in Media
+  Player; Mica = `backend.micaImage` (`devices.mica_image`: the wallpaper
+  package's `screenshot[-dark].png`, else its smallest picture of the mode,
+  or the picture file; the desktop's appletsrc is watched so a new
+  wallpaper reaches an open window) blurred by `MultiEffect` (blur 1.0,
+  blurMax 64, drawn 48 px larger and masked to the rounded window) under
+  `Theme.micaTint` (80 %); cards, navigation highlight and controls
+  translucent, pop-ups, a slider's thumb and a text box being typed in
+  opaque (`Theme.popup`, `Theme.field`); title bar: back (history of up to
+  50 pages; Alt+Left, mouse back button; out of the search first), icon,
+  "Settings", "Find a setting" centred, window buttons; navigation pane
+  with VeltOS' twelve colour icons (`qml/icons/nav-<id>.svg`, drawn for
+  this; `tests/test_catalog.py` checks each page has one) and a 64 px
+  account picture; modal pop-ups dim only the window (`Scrim.qml`).
+- Checked in the dev VM, light and dark: Home, System, System > Display,
+  back to System, search "sound", maximise (Mica fills the screen) and
+  restore, Rename this PC (opaque dialog, dim inside the rounded window).
+  Found there: Kirigami rounded the 20 px icons to 16 px
+  (`roundToIconSize: false`), and the white palette icon vanished on light
+  Mica (now a warm palette).
+- Tests: veltos-settings 224 tests (every page in English and Turkish
+  without a QML warning), veltos-desktop 168 (3 skipped), tests/repo 29.
+- Not checked: real graphics hardware (acrylic needs KWin's blur, which
+  QEMU and VirtualBox without 3D do not load: there the backgrounds stay
+  opaque), Settings' Mica speed when resizing on slow GPUs.
+
 ## 2026-11-02 — VeltOS 1.1 published by GitHub Actions
 
 - Run 41463145289 of `.github/workflows/release.yml` for e17f959, all

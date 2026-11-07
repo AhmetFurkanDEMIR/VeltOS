@@ -87,6 +87,7 @@ ColumnLayout {
         parent: Overlay.overlay
         anchors.centerIn: parent
         modal: true
+        Overlay.modal: Scrim {}
         width: 380
         padding: 24
         background: Rectangle {

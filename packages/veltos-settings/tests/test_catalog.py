@@ -49,6 +49,13 @@ class CatalogTests(unittest.TestCase):
             for icon in re.findall(r'\bicon: "([^"]+)"', path.read_text(encoding="utf-8")):
                 self.assertTrue(icon.endswith("-symbolic"), f"{path.name}: {icon}")
 
+    def test_navigation_pages_have_colour_icons(self):
+        # The navigation pane draws qml/icons/nav-<id>.svg (Main.qml).
+        for page in catalog.PAGES:
+            icon = QML / "icons" / f"nav-{page['id']}.svg"
+            self.assertTrue(icon.is_file(), icon.name)
+            self.assertIn("viewBox=\"0 0 24 24\"", icon.read_text(encoding="utf-8"), icon.name)
+
     def test_texts_in_both_languages(self):
         for page in catalog.PAGES:
             self.assertEqual(len(page["title"]), 2)

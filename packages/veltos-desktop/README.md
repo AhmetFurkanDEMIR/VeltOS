@@ -477,17 +477,22 @@ drive was found..." / "This USB drive isn't the password reset USB for
 this account."), then takes the new password, its confirmation and a new
 hint. After a reset the count of wrong passwords starts again.
 
-## Acrylic like Windows 11 (2026-11-02)
+## Acrylic like Windows 11 (2026-11-02, 2026-11-07)
 
 With the blur effect (real graphics cards) Plasma draws Start, the flyouts,
 toasts and the taskbar with the theme's `translucent/` backgrounds.
-`tools/fluent.py` paints them in Windows 11's acrylic colours (`ACRYLIC`:
-light popups #F9F9F9 at 85 %, taskbar #F3F3F3 at 85 %; dark popups #2C2C2C
-at 86 %, taskbar #202020 at 86 %) and gives each mode its own contrast
-effect: light mode brightens the blurred desktop behind (contrast 0.5,
-intensity 1.4), dark mode darkens it (contrast 0.9, intensity 0.45). The
-one contrast setting before (0.18 for both) pulled the desktop behind to a
-mid grey: light popups came out grey, dark ones pale grey. Start has no
+`tools/fluent.py` paints them in Windows 11's acrylic colours and gives
+each mode its own contrast effect. Since 2026-11-07 (product owner: as
+see-through as Windows 11's Start) the colour covers about two thirds
+(`ACRYLIC`: light popups #F3F3F3 at 64 %, taskbar #EEEEEE at 70 %; dark
+popups #202020 at 62 %, taskbar #1C1C1C at 72 %) and the contrast effect
+keeps the desktop's colour (saturation 2.0): light mode brightens the
+blurred desktop behind (contrast 0.6, intensity 1.45), dark mode darkens it
+(contrast 0.8, intensity 0.7). Measured in the dev VM over the Bloom
+wallpapers: dark Start about (30, 40, 70) instead of a grey (40, 42, 48),
+light Start about (207, 229, 248). The values of 2026-11-02 (85 % and
+86 %) made the popups nearly opaque; the one contrast setting before them
+(0.18 for both) pulled the desktop behind to a mid grey. Start has no
 surface of its own any more (a 35 % tint inside the popup frame showed as
 a second frame), its footer and Quick Settings' page footers are lines,
 not boxes, and the hidden-icons flyout no longer highlights its first icon

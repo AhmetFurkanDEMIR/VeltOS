@@ -22,7 +22,7 @@ Rectangle {
     implicitWidth: 280
     implicitHeight: 34
     radius: 5
-    color: input.activeFocus ? Theme.card : Theme.control
+    color: input.activeFocus ? Theme.field : Theme.control
     border.width: 1
     border.color: Theme.cardBorder
     clip: true

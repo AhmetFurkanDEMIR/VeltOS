@@ -1642,6 +1642,37 @@ were measured (below).
   missing ISO; what a release adds to the page is marked `data-since` and
   stays hidden until then.
 
+### 2.58 See-through acrylic and Mica in Settings (2026-11-07)
+
+- Decision: Start, the flyouts and the taskbar keep Plasma's own
+  translucent backgrounds over KWin's blur and contrast effects, with a
+  lighter colour layer (about 62-72 % instead of 85 %) and a contrast
+  effect that keeps more of the desktop's colour (`tools/fluent.py`
+  `ACRYLIC`). VeltOS Settings draws its own frame (as Media Player,
+  Notepad, PDF Reader and Photos do) with Windows 11's Mica: the desktop
+  picture (`devices.mica_image`: a wallpaper package's small preview of
+  the light or dark mode, or the picture file) blurred with Qt Quick's
+  `MultiEffect` inside the window, under an 80 % layer of the window
+  colour; cards, the navigation highlight and controls are translucent
+  layers on it. The title bar holds the back button (history of pages)
+  and the search box, as in Windows 11 Settings.
+- Why: the product owner asked for the taskbar, Start and Quick Settings
+  to be as see-through as Windows 11's and for Settings to look like
+  Windows 11's Settings (pictures of both, 2026-11-07).
+- Alternatives: KWin's blur behind the Settings window (the window would
+  be translucent and show the windows behind it, not the desktop
+  picture, and only on real graphics cards; Windows' Mica deliberately
+  shows the desktop picture only); a blurred copy of the picture made in
+  Python (Pillow is not a dependency of Settings, and Qt's GPU blur is
+  cheap after the first frame).
+- Trade-offs: acrylic needs KWin's blur, so VMs without 3D acceleration
+  (llvmpipe) keep the opaque backgrounds, as Windows turns transparency
+  off without a GPU; Mica works there too because it is drawn inside the
+  window. On Wayland a window does not know its place on the screen, so
+  Mica shows the whole picture behind the window rather than the part
+  under it (Windows samples the part under the window). The Mica blur is
+  drawn again when the window is resized.
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

@@ -1,3 +1,12 @@
+veltos-settings (1.2.0~dev1) trixie; urgency=medium
+
+  * Windows 11 Settings look: the window draws its own frame with a Mica
+    background (the desktop picture blurred under the window colour), the
+    back button and the search box in the title bar, colour icons in the
+    navigation pane, translucent cards.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 12:08:37 +0000
+
 veltos-settings (1.1.0) trixie; urgency=medium
 
   * VeltOS 1.1.

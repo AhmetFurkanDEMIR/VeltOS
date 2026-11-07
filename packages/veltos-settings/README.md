@@ -8,10 +8,19 @@ open VeltOS Settings.
 
 ## What the user sees
 
-- Navigation pane: account picture and name, "Find a setting" search box,
-  Home, System, Bluetooth & devices, Network & internet, Personalization,
-  Apps, Accounts, Time & language, Gaming, Accessibility, Privacy &
-  security, VeltOS Update. Selecting the account picture opens Your info.
+- The window draws its own frame, as Windows 11 Settings does (since
+  2026-11-07): the background is Mica, the desktop picture blurred under
+  the window colour (`devices.mica_image`, `Main.qml`; it follows the
+  wallpaper and light/dark mode), the title bar holds the back button
+  (pages shown before; Alt+Left and the mouse's back button too) and the
+  "Find a setting" search box in the middle, and cards and controls are
+  translucent layers on the Mica. `frame.py` (Media Player's) keeps clicks
+  on the shadow going to the windows behind.
+- Navigation pane: account picture and name, then Home, System, Bluetooth
+  & devices, Network & internet, Personalization, Apps, Accounts, Time &
+  language, Gaming, Accessibility, Privacy & security, VeltOS Update, each
+  with VeltOS' own colour icon (`qml/icons/nav-<page id>.svg`, VeltOS
+  artwork). Selecting the account picture opens Your info.
 - Pages of cards with monochrome line icons (Fluent `-symbolic` icons in
   the text colour, one size, like Windows 11). A chevron means a page
   inside Settings; a "new window" mark means an app opens (Store).

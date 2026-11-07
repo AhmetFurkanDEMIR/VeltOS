@@ -175,7 +175,7 @@ ColumnLayout {
                         onClosed: confirming = false
                         background: Rectangle {
                             radius: 8
-                            color: Theme.card
+                            color: Theme.popup
                             border.width: 1
                             border.color: Theme.cardBorder
                         }

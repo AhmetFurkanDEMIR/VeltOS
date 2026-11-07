@@ -573,8 +573,17 @@ class TaskbarTests(unittest.TestCase):
             fluent.acrylic('<g id="top"><rect style="fill:#000000" /></g>', "#fff", 1, "t")
         # The contrast effect brightens the desktop behind in light mode and
         # darkens it in dark mode (it pulled both to a mid grey before).
-        self.assertIn("intensity=1.4", fluent.ACRYLIC["light"]["contrast"])
-        self.assertIn("intensity=0.45", fluent.ACRYLIC["dark"]["contrast"])
+        def value(variant, key):
+            line = next(v for v in fluent.ACRYLIC[variant]["contrast"] if v.startswith(key + "="))
+            return float(line.split("=")[1])
+        self.assertGreater(value("light", "intensity"), 1)
+        self.assertLess(value("dark", "intensity"), 1)
+        # See-through like Windows 11's Start (product owner, 2026-11-07):
+        # the desktop's colours show, the colour layer covers under 3/4.
+        for variant in ("light", "dark"):
+            self.assertGreater(value(variant, "saturation"), 1)
+            for part in ("popup", "taskbar"):
+                self.assertLess(fluent.ACRYLIC[variant][part][1], 0.75, (variant, part))
 
     def test_see_through_like_windows(self):
         js = (PKG / "plasma/layout.js").read_text(encoding="utf-8")

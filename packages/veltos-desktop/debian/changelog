@@ -1,3 +1,10 @@
+veltos-desktop (1.2.0~dev1) trixie; urgency=medium
+
+  * Taskbar, Start and the flyouts as see-through as Windows 11's acrylic
+    where KWin can blur (lighter colour layer, more of the desktop's colour).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 12:08:37 +0000
+
 veltos-desktop (1.1.0) trixie; urgency=medium
 
   * VeltOS 1.1.

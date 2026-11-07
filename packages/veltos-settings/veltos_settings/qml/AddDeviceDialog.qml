@@ -22,13 +22,14 @@ Popup {
     anchors.centerIn: parent
     width: 480
     modal: true
+    Overlay.modal: Scrim {}
     focus: true
     padding: 24
     onOpened: backend.startAddDevice()
 
     background: Rectangle {
         radius: Theme.radius
-        color: Theme.card
+        color: Theme.popup
         border.width: 1
         border.color: Theme.cardBorder
     }

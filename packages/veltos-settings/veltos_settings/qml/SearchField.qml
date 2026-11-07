@@ -1,8 +1,9 @@
-// "Find a setting" box of the navigation pane.
+// "Find a setting" box in the middle of the title bar, as in Windows 11
+// Settings: translucent on the Mica background, opaque with an accent
+// underline while typing.
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import org.kde.kirigami as Kirigami
 import "."
 
 Rectangle {
@@ -11,30 +12,31 @@ Rectangle {
     property alias text: input.text
     property string placeholder
 
-    implicitHeight: 38
-    radius: 6
-    color: Theme.card
+    implicitHeight: 32
+    radius: 5
+    color: input.activeFocus ? Theme.field : (hover.hovered ? Theme.cardHover : Theme.control)
     border.width: 1
-    border.color: input.activeFocus ? Theme.accent : Theme.cardBorder
+    border.color: Theme.cardBorder
+
+    HoverHandler { id: hover }
 
     Rectangle {
-        // Windows-style accent underline while typing.
+        // The bottom edge: a thin line, the accent while typing.
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.leftMargin: 1
         anchors.rightMargin: 1
-        height: 2
+        height: input.activeFocus ? 2 : 1
         radius: 1
-        color: Theme.accent
-        visible: input.activeFocus
+        color: input.activeFocus ? Theme.accent : (Theme.dark ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(0, 0, 0, 0.16))
     }
 
     RowLayout {
         anchors.fill: parent
         anchors.leftMargin: 12
-        anchors.rightMargin: 8
-        spacing: 8
+        anchors.rightMargin: 4
+        spacing: 4
 
         TextInput {
             id: input
@@ -56,19 +58,42 @@ Rectangle {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
+                width: parent.width
                 text: box.placeholder
                 color: Theme.subtext
                 font.pixelSize: 14
+                elide: Text.ElideRight
                 visible: input.text.length === 0
             }
         }
-        Kirigami.Icon {
-            Layout.preferredWidth: 16
-            Layout.preferredHeight: 16
-            source: input.text.length > 0 ? "edit-clear" : "search"
-            color: Theme.subtext
-            isMask: true
-            TapHandler { onTapped: input.text = "" }
+        Rectangle {
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 24
+            radius: 4
+            color: input.text.length > 0 && clearHover.hovered ? Theme.hover : "transparent"
+            Accessible.role: input.text.length > 0 ? Accessible.Button : Accessible.Graphic
+            Accessible.name: box.placeholder
+            Glyph {
+                anchors.centerIn: parent
+                width: input.text.length > 0 ? 10 : 15
+                height: width
+                lineWidth: input.text.length > 0 ? 1.2 : 1.3
+                kind: input.text.length > 0 ? "close" : "search"
+                color: Theme.subtext
+            }
+            HoverHandler { id: clearHover }
+            TapHandler {
+                gesturePolicy: TapHandler.ReleaseWithinBounds
+                onTapped: {
+                    if (input.text.length > 0)
+                        input.text = "";
+                    input.forceActiveFocus();
+                }
+            }
         }
+    }
+
+    function forceInputFocus() {
+        input.forceActiveFocus();
     }
 }

@@ -9,6 +9,12 @@ TEXTS = {
     "app_title": ("Settings", "Ayarlar"),
     "local_account": ("Local account", "Yerel hesap"),
     "find_setting": ("Find a setting", "Bir ayar bulun"),
+    # Title bar (the window draws its own)
+    "back": ("Back", "Geri"),
+    "minimize": ("Minimize", "Simge durumuna küçült"),
+    "maximize": ("Maximize", "Ekranı kapla"),
+    "restore_down": ("Restore down", "Önceki boyut"),
+    "close": ("Close", "Kapat"),
     "control_panel": ("Control Panel", "Denetim Masası"),
     "control_panel_desc": ("Every setting, including advanced ones",
                            "Gelişmiş olanlar dahil tüm ayarlar"),

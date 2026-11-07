@@ -723,6 +723,36 @@ WALLPAPER_DIRS = [Path("/usr/share/wallpapers")]
 # VeltOS pictures and any the user or other packages add are.
 HIDDEN_WALLPAPERS = {"Next"}
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp", ".avif", ".jxl")
+# Plasma's picture when the user chose none (veltos-desktop's default).
+DEFAULT_WALLPAPER = Path("/usr/share/wallpapers/VeltOS")
+
+
+def mica_image(wallpaper, dark):
+    """The picture behind Settings' Mica background (Main.qml blurs it and
+    lays the window colour over it): a small one of the desktop picture,
+    so it loads at once. A wallpaper package gives its preview of the mode
+    (screenshot[-dark].png, VeltOS' packages) or its smallest picture of
+    that mode (images_dark/ is what Plasma shows in dark mode); a picture
+    file is used itself. "" when there is none."""
+    path = Path(wallpaper) if wallpaper else DEFAULT_WALLPAPER
+    if path.is_file():
+        return str(path)
+    contents = path / "contents"
+    if not contents.is_dir():
+        return ""
+    choices = [("screenshot-dark.png", "images_dark")] if dark else []
+    choices.append(("screenshot.png", "images"))
+    for preview, folder in choices:
+        if (contents / preview).is_file():
+            return str(contents / preview)
+        images = contents / folder
+        pictures = sorted(p for p in images.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES) \
+            if images.is_dir() else []
+        if pictures:
+            return str(min(pictures, key=lambda p: p.stat().st_size))
+    return ""
+
+
 # Accent colours (a Windows 11 like palette, VeltOS blue first).
 ACCENTS = ["#2F5EE6", "#0078D4", "#0099BC", "#00B294", "#10893E", "#498205",
            "#C239B3", "#8764B8", "#E3008C", "#E74856", "#F7630C", "#CA5010",

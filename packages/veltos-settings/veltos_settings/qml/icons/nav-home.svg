@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+<!-- VeltOS Settings navigation icon (VeltOS artwork, CC-BY-SA-4.0) -->
+<defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC65A"/><stop offset="1" stop-color="#F5822B"/></linearGradient></defs>
+<path d="M12 2.7 2.9 10.3a1 1 0 0 0 1.28 1.54l.82-.68V19.6A1.9 1.9 0 0 0 6.9 21.5h10.2a1.9 1.9 0 0 0 1.9-1.9v-8.44l.82.68a1 1 0 0 0 1.28-1.54Z" fill="url(#a)"/>
+<rect x="9.6" y="13.6" width="4.8" height="7.9" rx="1.1" fill="#B65116"/>
+</svg>

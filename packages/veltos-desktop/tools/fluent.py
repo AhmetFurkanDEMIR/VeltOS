@@ -117,18 +117,18 @@ PANEL_OPACITY = {"widgets/panel-background.svgz": 0.86}
 # Windows 11's acrylic, used where KWin can blur (Plasma then takes the
 # translucent/ backgrounds, so on real graphics cards): Start, the flyouts
 # and the taskbar in these colours over the blurred desktop, which KWin's
-# contrast effect first brightens (light) or darkens (dark). The values
-# before (75 % of the scheme's background, contrast 0.18 in both modes)
-# pulled the desktop behind to a mid grey: light popups came out grey
-# (229, 230, 233), dark ones a pale grey (60, 61, 66); product owner,
-# 2026-11-02. With these, measured in the dev VM with blur loaded: light
-# popups about (245, 247, 250), dark ones about (40, 41, 47), the taskbar
-# about (239, 242, 245) and (29, 31, 38) over the Bloom wallpapers.
+# contrast effect first brightens (light) or darkens (dark) and makes more
+# colourful. 2026-11-02: 85 % of the colour, measured in the dev VM over
+# the Bloom wallpapers at about (245, 247, 250) light and (40, 41, 47) dark,
+# nearly opaque. 2026-11-07, the product owner: as see-through as Windows
+# 11's Start, the desktop's colours plainly showing through. The colour now
+# covers about two thirds and the contrast effect keeps more of the
+# desktop's colour (saturation 2.0); the taskbar stays a little denser.
 ACRYLIC = {
-    "light": {"popup": ("#f9f9f9", 0.85), "taskbar": ("#f3f3f3", 0.85),
-              "contrast": ["enabled=true", "contrast=0.5", "intensity=1.4", "saturation=1.5"]},
-    "dark": {"popup": ("#2c2c2c", 0.86), "taskbar": ("#202020", 0.86),
-             "contrast": ["enabled=true", "contrast=0.9", "intensity=0.45", "saturation=1.5"]},
+    "light": {"popup": ("#f3f3f3", 0.64), "taskbar": ("#eeeeee", 0.70),
+              "contrast": ["enabled=true", "contrast=0.6", "intensity=1.45", "saturation=2.0"]},
+    "dark": {"popup": ("#202020", 0.62), "taskbar": ("#1c1c1c", 0.72),
+             "contrast": ["enabled=true", "contrast=0.8", "intensity=0.7", "saturation=2.0"]},
 }
 ACRYLIC_FILES = {"translucent/dialogs/background.svgz": "popup",
                  "translucent/widgets/panel-background.svgz": "taskbar"}

@@ -7,8 +7,10 @@ KDE's own settings modules are never opened (the product owner's rule:
 no old settings window anywhere); `systemsettings` and `kcmshell6` are
 diverted to VeltOS Settings (bin/veltos-settings-redirect).
 
-Icons are the monochrome Fluent symbolic icons ("-symbolic"), drawn in
-the text colour like the line icons of Windows 11 Settings. Texts are
+Item icons are the monochrome Fluent symbolic icons ("-symbolic"), drawn
+in the text colour like the line icons of Windows 11 Settings; the
+navigation pane shows VeltOS' own colour icons instead
+(qml/icons/nav-<page id>.svg), as Windows 11 Settings does. Texts are
 (English, Turkish) pairs; "keywords" are extra search words in both
 languages.
 """
@@ -25,7 +27,8 @@ BUILTIN_PAGES = ("home", "about", "storage", "windows-apps", "display", "sound",
 # Actions the backend knows (app.Backend.runAction).
 ACTIONS = ("store", "updates", "uninstall-windows", "disk-management", "website", "graphics", "lighting")
 
-# Navigation pane icons are monochrome line icons, as in Windows 11 Settings.
+# A page's "icon" is its monochrome icon (search results); the navigation
+# pane draws qml/icons/nav-<id>.svg (tests/test_catalog.py checks each exists).
 PAGES = [
     {"id": "home", "icon": "go-home-symbolic", "title": ("Home", "Giriş"), "builtin": True, "items": []},
     {"id": "system", "icon": "computer-symbolic", "title": ("System", "Sistem"), "items": [

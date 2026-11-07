@@ -68,7 +68,7 @@ Item {
         radius: 10
         anchors.verticalCenter: parent.verticalCenter
         x: slider.position * (slider.width - width)
-        color: Theme.card
+        color: Theme.field
         border.width: 1
         border.color: Theme.cardBorder
 
