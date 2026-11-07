@@ -3,6 +3,22 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-08 — VeltOS 1.3 published by GitHub Actions
+
+- Run 42420240675 of `.github/workflows/release.yml` for 9602605, all
+  steps passed in 59 minutes (22:21-23:20 UTC): release check, packages
+  and ISO 49 min, boot tests UEFI, BIOS and Secure Boot about 2 min each,
+  the signed repository, the release, the website commit 01fe97a.
+- Release v1.3: `VeltOS-1.3-amd64.iso`, 2,112,608,256 bytes (under
+  2 GiB), SHA-256
+  `c4bd17c37d7b5bf19fd30d9dec2224ee45ea2672f67e66eebdfa5e076662c290`;
+  downloaded to the product owner's Desktop and the hash checked.
+- Website: once 1.3 was the download, the Start, search and desktop pairs,
+  the link preview and the README's tour animation were replaced by the
+  pictures retaken on 2026-11-08 (`out/vm/make-site-13.py`). 1.2's light
+  search picture showed only Settings: the search window had not opened
+  in that shot; the new one shows it.
+
 ## 2026-11-08 — Release 1.3 prepared
 
 - `release-bump.py 1.3`: veltos-base, veltos-desktop, veltos-explorer and
