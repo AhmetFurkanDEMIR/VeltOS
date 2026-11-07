@@ -3,6 +3,49 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — Item 162: see-through over windows, taskbar with maximized windows, Settings acrylic
+
+- The product owner after ISO 1.2-dev2: Start, the taskbar's search and
+  Quick Settings were not see-through with something behind them, the
+  taskbar lost its transparency when an app was maximized, and Settings
+  should be see-through too.
+- Over windows: KWin's blur strength defaults to 15 (blur.kcfg). In the
+  dev VM (Start over maximized VeltOS Photos, `out/vm/pblur-compare.png`)
+  15 smeared the pictures behind into one colour; 3 showed the tiles'
+  edges, 6-10 soft colour shapes. Chosen: 8, colour layer light 50/58 %
+  (popups/taskbar), dark 45/55 %, contrast light 0.6/1.4/2.0, dark
+  0.75/0.5/2.2 (contrast/intensity/saturation). KWin's colour matrix
+  (contrast.cpp) applies contrast first, then saturation, then intensity:
+  worked out against the measured (27, 39, 73) of dev2. A "luminosity"
+  variant (contrast 0.35-0.45) was tried and dropped: it flattened what is
+  behind as well. `out/vm/acrylic-try.py` changes the installed themes in
+  place for such trials.
+- Taskbar: `panels()[0].opacity` said "adaptive" in the running session;
+  setting "translucent" from a script did nothing. plasma-workspace
+  6.3.6's `Panel::setOpacity` calls `PanelView::setOpacity` (QWindow's),
+  not `setOpacityMode`. `PanelView::opacityMode()` returns Translucent
+  whenever the Plasma theme has no adaptive transparency (libplasma
+  theme_p.cpp), and Fluent's metadata asks for it: the VeltOS themes now
+  say `[AdaptiveTransparency] enabled=false`. Checked: "translucent" after
+  a restart, the taskbar see-through over the wallpaper with Photos
+  maximized, light and dark.
+- Settings: `acrylic.py` calls `KWindowEffects::enableBlurBehind` and
+  `enableBackgroundContrast` (libkf6windowsystem6, symbols read with
+  `nm -D`) with the PySide6 objects' C++ pointers; the region is the
+  rounded frame inside the shadow, again on resize, maximize, light/dark
+  and the Transparency effects switch. A new client learns of KWin's blur
+  only after its event loop ran (`out/vm/acrylic-probe.py`: False at
+  start, True 0 ms into the loop), so the backend asks again then; the
+  first VM run stayed on Mica for that reason. Checked over Photos in
+  both modes, and the switch off/on with the window open.
+- Cost (dev VM, llvmpipe, 4 vCPU, 20 s, `out/vm/measure-kwin.sh`):
+  scrolling Settings up and down KWin 138 % of a core with blur, 70 %
+  without.
+- Tests: veltos-settings 230 (test_acrylic: the region, the calls, the
+  backend's switch; test_ui: the frame in acrylic mode), veltos-desktop
+  168 (blur strength and adaptive transparency in the built files),
+  tests/repo 29.
+
 ## 2026-11-07 — ISO 1.2-dev2 built and tested
 
 - `VELTOS_VERSION=1.2-dev2 build/run.sh iso` from eeaf919 (item 161):

@@ -37,8 +37,10 @@ panel.height = Math.max(48, 2 * Math.floor(gridUnit * 2.6 / 2));
 if ("floating" in panel) {
     panel.floating = false;
 }
-// See-through like Windows 11 (with the blur effect when the graphics
-// driver supports it), also while a window is maximized.
+// See-through like Windows 11, also while a window is maximized. Plasma
+// 6.3.6 ignores this (its script API calls QWindow::setOpacity); what keeps
+// the taskbar see-through is the VeltOS themes' [AdaptiveTransparency]
+// enabled=false (tools/fluent.py). Kept for Plasma versions that fix it.
 if ("opacity" in panel) {
     panel.opacity = "translucent";
 }

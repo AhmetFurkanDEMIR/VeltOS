@@ -1,3 +1,12 @@
+veltos-desktop (1.2.0~dev3) trixie; urgency=medium
+
+  * Acrylic that shows what is behind: KWin's blur strength 8 (15 smeared
+    windows behind Start into one colour), colour layer 45-58 %.
+  * The taskbar stays see-through while a window is maximized (the themes
+    turn Plasma's adaptive transparency off).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 15:20:00 +0000
+
 veltos-desktop (1.2.0~dev2) trixie; urgency=medium
 
   * KWin's blur and background contrast on also where it renders in

@@ -193,13 +193,16 @@ ApplicationWindow {
 
     Rectangle {
         id: frame
+        objectName: "frame"
         anchors.fill: parent
         anchors.margins: window.shadow
         radius: window.maximized ? 0 : 8
-        color: Theme.window
+        // Acrylic: KWin blurs the windows and desktop behind the frame
+        // (acrylic.py); the colour comes from the layer below.
+        color: backend.acrylic ? "transparent" : Theme.window
         clip: true
 
-        // --- Mica ------------------------------------------------------------------------
+        // --- Mica, where KWin cannot blur behind the window -------------------------------
         // The desktop picture, blurred, under the window colour (Theme.micaTint).
         // Drawn larger than the window so the blur has picture at the edges, and
         // masked to the window's rounded shape.
@@ -211,12 +214,12 @@ ApplicationWindow {
             width: frame.width + 2 * bleed
             height: frame.height + 2 * bleed
             // Off with Personalization > Colours > Transparency effects, as on Windows.
-            visible: backend.transparency && picture.status === Image.Ready
+            visible: !backend.acrylic && backend.transparency && picture.status === Image.Ready
 
             Image {
                 id: picture
                 anchors.fill: parent
-                source: backend.micaImage
+                source: backend.acrylic ? "" : backend.micaImage
                 sourceSize: Qt.size(480, 300)
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
@@ -252,7 +255,7 @@ ApplicationWindow {
         Rectangle {
             anchors.fill: parent
             radius: frame.radius
-            color: mica.visible ? Theme.micaTint : Theme.window
+            color: backend.acrylic ? Theme.acrylicTint : (mica.visible ? Theme.micaTint : Theme.window)
         }
 
         TapHandler {

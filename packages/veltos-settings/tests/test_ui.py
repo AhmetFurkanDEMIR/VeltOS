@@ -491,6 +491,28 @@ class SettingsWindowTests(unittest.TestCase):
         self.app.processEvents()
         self.assertEqual(self.problems(), [])
 
+    def test_acrylic_window_where_kwin_blurs(self):
+        # Mica (the desktop picture) without KWin's blur; acrylic with it: the
+        # frame lets what is behind through and the picture is not loaded.
+        frame = self.items("frame")[0]
+        self.assertEqual(frame.property("color").alpha(), 255)
+
+        class Blurs:
+            def supported(self):
+                return True
+
+            def apply(self, *args, **kwargs):
+                return True
+        self.backend.use_acrylic(Blurs())
+        self.app.processEvents()
+        self.assertTrue(self.backend.property("acrylic"))
+        self.assertEqual(frame.property("color").alpha(), 0)
+        self.backend.setPref("transparency", False)
+        self.app.processEvents()
+        self.assertFalse(self.backend.property("acrylic"))
+        self.assertEqual(frame.property("color").alpha(), 255)
+        self.assertEqual(self.problems(), [])
+
     def test_password_reset_usb_and_hint(self):
         # Product owner, 2026-11-01: a password reset USB made in Settings
         # too (the installer offers it first), and a hint with the password.

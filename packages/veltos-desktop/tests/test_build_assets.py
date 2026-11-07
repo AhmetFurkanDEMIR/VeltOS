@@ -922,6 +922,8 @@ class FullBuildTest(unittest.TestCase):
         plugins = kwinrc.split("[Plugins]\n", 1)[1].split("\n[", 1)[0]
         self.assertIn("blurEnabled=true\n", plugins)
         self.assertIn("contrastEnabled=true\n", plugins)
+        # A blur that leaves what is behind recognisable (15 smeared it into one colour).
+        self.assertIn("\n[Effect-blur]\nBlurStrength=8\n", kwinrc)
         for name in fluent.DESKTOPTHEMES:
             theme = root / "usr/share/plasma/desktoptheme" / name
             meta = json.loads((theme / "metadata.json").read_text())
@@ -930,6 +932,12 @@ class FullBuildTest(unittest.TestCase):
             # No colours of its own: Plasma follows the system scheme and the
             # user's accent (with them the taskbar and Start kept VeltOS blue).
             self.assertFalse((theme / "colors").exists())
+            # The taskbar stays see-through while a window is maximized:
+            # no adaptive transparency (Fluent asks for it).
+            plasmarc = (theme / "plasmarc").read_text()
+            self.assertIn("[AdaptiveTransparency]\nenabled=false\n", plasmarc)
+            self.assertEqual(plasmarc.count("[AdaptiveTransparency]"), 1)
+            self.assertIn("[ContrastEffect]\nenabled=true\n", plasmarc)
             # Other brands' logos are not shipped.
             for rel in fluent.DESKTOPTHEME_DROP:
                 self.assertFalse((theme / rel).exists(), rel)

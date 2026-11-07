@@ -116,19 +116,23 @@ DESKTOPTHEME_DROP = ("icons/start.svgz", "icons/manjaro.svgz", "widgets/branding
 PANEL_OPACITY = {"widgets/panel-background.svgz": 0.86}
 # Windows 11's acrylic, used where KWin can blur (Plasma then takes the
 # translucent/ backgrounds; veltos-desktop turns KWin's blur and contrast
-# effects on everywhere, also where KWin renders in software): Start, the
-# flyouts and the taskbar in these colours over the blurred desktop, which
-# KWin's contrast effect first brightens (light) or darkens (dark) and
-# makes more colourful, so the text stays readable while the desktop's
-# colours show. 2026-11-02: 85 % of the colour, nearly opaque ((245, 247,
-# 250) light, (40, 41, 47) dark over the Bloom wallpapers in the dev VM).
-# 2026-11-07, the product owner: as see-through as Windows 11's Start, in
-# both modes: the colour covers about half, the taskbar a little more.
+# effects on everywhere, also where KWin renders in software, with a blur
+# strength of 8): Start, search, Quick Settings, the other flyouts and the
+# taskbar in these colours over the blurred desktop or windows behind,
+# which KWin's contrast effect first brightens (light) or darkens (dark)
+# and makes more colourful, so the text stays readable while what is
+# behind shows through. History: 85 % colour (2026-11-02) was nearly
+# opaque; 52-60 % with KWin's strongest blur (15) still looked opaque over
+# a window, because everything behind was smeared into one colour (product
+# owner, 2026-11-07: "see-through also with something behind"). With
+# blur 8 and these values the windows and pictures behind show as soft
+# colour shapes, as through Windows 11's acrylic (dev VM, over VeltOS
+# Photos; out/vm/pblur-compare.png).
 ACRYLIC = {
-    "light": {"popup": ("#f3f3f3", 0.56), "taskbar": ("#eeeeee", 0.60),
-              "contrast": ["enabled=true", "contrast=0.6", "intensity=1.5", "saturation=2.2"]},
-    "dark": {"popup": ("#202020", 0.52), "taskbar": ("#1c1c1c", 0.60),
-             "contrast": ["enabled=true", "contrast=0.8", "intensity=0.6", "saturation=2.2"]},
+    "light": {"popup": ("#f3f3f3", 0.50), "taskbar": ("#eeeeee", 0.58),
+              "contrast": ["enabled=true", "contrast=0.6", "intensity=1.4", "saturation=2.0"]},
+    "dark": {"popup": ("#202020", 0.45), "taskbar": ("#1c1c1c", 0.55),
+             "contrast": ["enabled=true", "contrast=0.75", "intensity=0.5", "saturation=2.2"]},
 }
 ACRYLIC_FILES = {"translucent/dialogs/background.svgz": "popup",
                  "translucent/widgets/panel-background.svgz": "taskbar"}
@@ -672,6 +676,13 @@ def build_desktoptheme(upstream, root, name, variant):
     # Plasma 6 reads metadata.json; theme settings live in plasmarc.
     groups = desktop_entry_groups(base / "metadata.desktop")
     groups["[ContrastEffect]"] = ACRYLIC[variant]["contrast"]
+    # Fluent asks for adaptive transparency: Plasma then makes the taskbar
+    # opaque while a window is maximized. Windows 11's taskbar stays
+    # see-through (product owner, 2026-11-07). Off, libplasma reports every
+    # panel as translucent (PanelView::opacityMode); the taskbar's own
+    # setting cannot be changed by a script in Plasma 6.3.6
+    # (Panel::setOpacity calls QWindow::setOpacity).
+    groups["[AdaptiveTransparency]"] = ["enabled=false"]
     groups["[Wallpaper]"] = ["defaultWallpaperTheme=VeltOS", "defaultFileSuffix=.png",
                              "defaultWidth=3840", "defaultHeight=2160"]
     plasmarc = [f"# {ATTRIBUTION}"]

@@ -1,3 +1,11 @@
+veltos-settings (1.2.0~dev3) trixie; urgency=medium
+
+  * Acrylic: KWin blurs the windows and desktop behind Settings, as behind
+    Start (KWindowEffects through ctypes, acrylic.py); Mica remains where
+    KWin cannot blur, solid with Transparency effects off.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 15:20:00 +0000
+
 veltos-settings (1.2.0~dev2) trixie; urgency=medium
 
   * Personalization > Colours > Transparency effects, as on Windows 11:

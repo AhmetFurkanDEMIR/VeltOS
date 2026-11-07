@@ -1473,6 +1473,22 @@ and JavaScript with no build step, no external requests and no cookies:
   does not unload an effect whose `[Plugins] xEnabled` became false: call
   `org.kde.kwin.Effects.unloadEffect`/`loadEffect` too (Settings'
   Transparency effects).
+- Plasma 6.3.6's script API cannot set a panel's opacity mode:
+  `panel.opacity = "translucent"` calls `QWindow::setOpacity` and nothing
+  is stored. A Plasma theme without adaptive transparency
+  (`[AdaptiveTransparency] enabled=false` in its plasmarc) makes every
+  panel translucent; Fluent's asks for it, which made the taskbar opaque
+  whenever a window was maximized (2026-11-07).
+- KWin's blur strength defaults to 15: anything behind a popup became one
+  colour, and see-through popups looked opaque over windows. VeltOS sets
+  8 (`/etc/xdg/kwinrc [Effect-blur] BlurStrength`); try values in the VM
+  with `kwriteconfig6 --file kwinrc --group Effect-blur --key
+  BlurStrength N` and `qdbus6 org.kde.KWin /Effects
+  org.kde.kwin.Effects.reconfigureEffect blur`.
+- KWindowEffects (blur behind a window) from Python: no binding, but
+  ctypes works with the C++ pointers from `shiboken6.getCppPointer`
+  (Settings' `acrylic.py`). `isEffectAvailable` is False until the new
+  client's event loop has run once: ask again after the window is shown.
 - Kirigami.Icon rounds its size to the nearest standard icon size
   (`roundToIconSize`, default true): Settings' 20 px colour icons came out
   16 px (2026-11-07); set `roundToIconSize: false` for pictures drawn for

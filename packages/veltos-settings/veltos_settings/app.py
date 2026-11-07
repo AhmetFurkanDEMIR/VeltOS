@@ -280,6 +280,7 @@ class Backend(QObject):
     accountsChanged = Signal()
     appsChanged = Signal()
     micaChanged = Signal()
+    acrylicChanged = Signal()
     # "password", "adduser": "" when it worked, otherwise a text key.
     accountResult = Signal(str, str)
 
@@ -332,6 +333,11 @@ class Backend(QObject):
                           "accents": devices.ACCENTS, "loaded": False}
         self.personalChanged.connect(self.micaChanged)
         self.changed.connect(self.micaChanged)
+        # KWin's blur behind the window (acrylic.Acrylic, given by main();
+        # None in tests and where it cannot work: then Mica).
+        self._acrylic = None
+        self.prefsChanged.connect(self.acrylicChanged)
+        self.changed.connect(self.acrylicChanged)
         self._time = {"timezone": "", "automatic": False, "canAutomatic": True, "zones": [],
                       "loaded": False}
         self._prefs = {"loaded": False, "powerModeError": False}
@@ -982,6 +988,21 @@ class Backend(QObject):
             value = self.system.prefs.get("transparency")
         return value
 
+    @Property(bool, notify=acrylicChanged)
+    def acrylic(self):
+        """The window is see-through (KWin blurs what is behind it), as Start
+        and the taskbar: Transparency effects on and KWin's blur there."""
+        return bool(self._acrylic is not None and self.transparency and self._acrylic.supported())
+
+    def use_acrylic(self, acrylic):
+        self._acrylic = acrylic
+        self.acrylicChanged.emit()
+        # A new Wayland client learns of KWin's blur only once its event loop
+        # has run (KWindowEffects said "unavailable" before, "available" 0 ms
+        # into the loop; dev VM, 2026-11-07): ask again then.
+        for delay in (0, 500):
+            QTimer.singleShot(delay, self.acrylicChanged.emit)
+
     @Property(str, notify=micaChanged)
     def micaImage(self):
         """The picture of the window's Mica background (file URL, "" for none)."""
@@ -1192,6 +1213,10 @@ class Backend(QObject):
             return
         self._update("_prefs", self.prefsChanged, {name: value})
         self.jobs.submit(lambda: self.system.prefs.set(name, value))
+        if name == "transparency":
+            # KWin loads or unloads its blur a moment later: look again.
+            for delay in (1500, 4000):
+                QTimer.singleShot(delay, self.acrylicChanged.emit)
 
     @Slot(str, str)
     def setPowerMode(self, source, name):
@@ -1520,7 +1545,13 @@ def main(argv=None):
     # The window draws its own frame and shadow; clicks on the shadow go to
     # the windows behind it.
     from .frame import follow_frame
-    follow_frame(engine.rootObjects()[0])
+    window = engine.rootObjects()[0]
+    follow_frame(window)
+    # Acrylic: KWin blurs the windows behind Settings, as behind Start.
+    from . import acrylic
+    effects = acrylic.Acrylic()
+    backend.use_acrylic(effects)
+    acrylic.follow(window, backend, effects)
     code = app.exec()
     # The QML goes first: deleted after the objects it reads, its bindings
     # ran once more against dead ones ("Cannot call method ... of null").

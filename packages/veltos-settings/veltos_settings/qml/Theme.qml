@@ -1,12 +1,13 @@
 // Colours and sizes of VeltOS Settings (Windows 11 Settings proportions,
 // VeltOS palette). Follows the light/dark global theme.
 //
-// The window's background is Mica (Main.qml): the desktop picture, blurred
-// and covered by `micaTint`. Cards, the navigation highlight and controls
-// are translucent layers on it, as in Windows 11 Settings, so the picture's
-// colour shows faintly through the whole window (product owner,
-// 2026-11-07). Surfaces drawn over other content (pop-ups, a slider's
-// thumb, a focused text box) stay opaque.
+// The window's background is acrylic where KWin can blur behind it (what
+// is behind, under `acrylicTint`; acrylic.py), else Mica (Main.qml): the
+// desktop picture, blurred and covered by `micaTint`. Cards, the
+// navigation highlight and controls are translucent layers on it, as in
+// Windows 11 Settings, so what is behind shows faintly through the whole
+// window (product owner, 2026-11-07). Surfaces drawn over other content
+// (pop-ups, a slider's thumb, a focused text box) stay opaque.
 pragma Singleton
 import QtQuick
 
@@ -19,6 +20,9 @@ QtObject {
     // the layer over the blurred picture.
     readonly property color window: dark ? "#202128" : "#F3F4F8"
     readonly property color micaTint: dark ? Qt.rgba(0.118, 0.122, 0.149, 0.80) : Qt.rgba(0.953, 0.957, 0.969, 0.80)
+    // Acrylic (Transparency effects on, KWin blurring behind the window):
+    // the windows and desktop behind show through, as behind Start.
+    readonly property color acrylicTint: dark ? Qt.rgba(0.118, 0.122, 0.149, 0.70) : Qt.rgba(0.953, 0.957, 0.969, 0.68)
 
     readonly property color card: dark ? Qt.rgba(1, 1, 1, 0.055) : Qt.rgba(1, 1, 1, 0.72)
     readonly property color cardHover: dark ? Qt.rgba(1, 1, 1, 0.085) : Qt.rgba(1, 1, 1, 0.50)

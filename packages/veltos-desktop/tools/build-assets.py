@@ -437,7 +437,13 @@ def build_static_config(root):
             # 2026-11-07). Turned on, Plasma takes the theme's translucent
             # backgrounds on every PC (cost measured in the development log).
             "blurEnabled=true\n"
-            "contrastEnabled=true\n"),
+            "contrastEnabled=true\n"
+            # KWin's strongest blur (15, its default) smeared a window behind
+            # Start into one colour and the popup looked opaque; at 8 what is
+            # behind shows as soft shapes, as through Windows 11's acrylic
+            # (product owner, 2026-11-07).
+            "\n[Effect-blur]\n"
+            "BlurStrength=8\n"),
         "etc/xdg/plasmarc": (
             "[Theme]\n"
             f"name={lnf['plasma_theme']}\n"),

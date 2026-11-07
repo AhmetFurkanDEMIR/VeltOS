@@ -9,9 +9,13 @@ open VeltOS Settings.
 ## What the user sees
 
 - The window draws its own frame, as Windows 11 Settings does (since
-  2026-11-07): the background is Mica, the desktop picture blurred under
-  the window colour (`devices.mica_image`, `Main.qml`; it follows the
-  wallpaper and light/dark mode), the title bar holds the back button
+  2026-11-07). Its background is acrylic where KWin can blur: what is
+  behind the window (other windows, the desktop) blurred and darkened or
+  brightened under the window colour (`acrylic.py`: KWindowEffects of KF6
+  WindowSystem through ctypes, the window's rounded frame as the region);
+  elsewhere Mica, the desktop picture blurred under the window colour
+  (`devices.mica_image`, `Main.qml`; it follows the wallpaper and
+  light/dark mode); the title bar holds the back button
   (pages shown before; Alt+Left and the mouse's back button too) and the
   "Find a setting" search box in the middle, and cards and controls are
   translucent layers on the Mica. `frame.py` (Media Player's) keeps clicks
@@ -20,7 +24,7 @@ open VeltOS Settings.
   switch): KWin's blur and background contrast (`kwinrc [Plugins]
   blurEnabled`, `contrastEnabled`, loaded or unloaded at once over
   D-Bus), so Start, the flyouts and the taskbar are see-through or opaque,
-  and Settings' own Mica with them.
+  and Settings' own acrylic or Mica with them.
 - Navigation pane: account picture and name, then Home, System, Bluetooth
   & devices, Network & internet, Personalization, Apps, Accounts, Time &
   language, Gaming, Accessibility, Privacy & security, VeltOS Update, each

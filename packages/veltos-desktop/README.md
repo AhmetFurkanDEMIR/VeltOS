@@ -479,30 +479,37 @@ hint. After a reset the count of wrong passwords starts again.
 
 ## Acrylic like Windows 11 (2026-11-02, 2026-11-07)
 
-With the blur effect (real graphics cards) Plasma draws Start, the flyouts,
-toasts and the taskbar with the theme's `translucent/` backgrounds.
-`tools/fluent.py` paints them in Windows 11's acrylic colours and gives
-each mode its own contrast effect. Since 2026-11-07 (product owner: as
-see-through as Windows 11's Start) the colour covers about two thirds
-(`ACRYLIC`: light popups #F3F3F3 at 64 %, taskbar #EEEEEE at 70 %; dark
-popups #202020 at 62 %, taskbar #1C1C1C at 72 %) and the contrast effect
-keeps the desktop's colour (saturation 2.0): light mode brightens the
-blurred desktop behind (contrast 0.6, intensity 1.45), dark mode darkens it
-(contrast 0.8, intensity 0.6); since the owner's second look the colour
-covers about half (light popups 56 %, taskbar 60 %; dark popups 52 %,
-taskbar 60 %; saturation 2.2). Measured in the dev VM over the Bloom
-wallpapers: dark Start about (27, 39, 73) instead of a grey (40, 42, 48),
-light Start about (211, 236, 249). The values of 2026-11-02 (85 % and
-86 %) made the popups nearly opaque; the one contrast setting before them
-(0.18 for both) pulled the desktop behind to a mid grey. KWin leaves its
-blur and contrast effects off where it renders in software (VirtualBox
-without 3D, QEMU), so `/etc/xdg/kwinrc` turns both on (`[Plugins]
-blurEnabled`, `contrastEnabled`); VeltOS Settings' Personalization >
-Colours > Transparency effects turns them off again. Start has no
-surface of its own any more (a 35 % tint inside the popup frame showed as
-a second frame), its footer and Quick Settings' page footers are lines,
+Plasma draws Start, search, Quick Settings, the other flyouts, toasts and
+the taskbar with the theme's `translucent/` backgrounds whenever KWin's
+blur effect is loaded. KWin leaves blur and background contrast off by
+default where it renders in software (VirtualBox without 3D, QEMU), so
+`/etc/xdg/kwinrc` turns both on (`[Plugins] blurEnabled`,
+`contrastEnabled`) and sets a blur strength of 8 (`[Effect-blur]`; KWin's
+default 15 smeared a window behind Start into one colour and the popup
+looked opaque). VeltOS Settings' Personalization > Colours > Transparency
+effects turns blur and contrast off again.
+
+`tools/fluent.py` (`ACRYLIC`) paints the backgrounds in Windows 11's
+acrylic colours and gives each mode its own contrast effect, so what is
+behind shows as soft colour shapes and the text stays readable: light
+popups #F3F3F3 at 50 %, taskbar #EEEEEE at 58 %, contrast 0.6, intensity
+1.4, saturation 2.0 (the desktop behind brightened); dark popups #202020
+at 45 %, taskbar #1C1C1C at 55 %, contrast 0.75, intensity 0.5,
+saturation 2.2 (darkened). The values of 2026-11-02 (85 % colour) made the
+popups nearly opaque, and before them one contrast setting (0.18) pulled
+the desktop behind to a mid grey in both modes.
+
+The themes turn Plasma's adaptive transparency off (`[AdaptiveTransparency]
+enabled=false` in their plasmarc; Fluent turns it on), so the taskbar stays
+see-through while a window is maximized. Plasma 6.3.6's script API cannot
+set a panel's opacity mode (`panel.opacity` calls `QWindow::setOpacity`),
+so `layout.js`' line does nothing there.
+
+Start has no surface of its own (a 35 % tint inside the popup frame showed
+as a second frame), its footer and Quick Settings' page footers are lines,
 not boxes, and the hidden-icons flyout no longer highlights its first icon
-when it opens. Test with blur loaded in a VM (`out/vm/shell-restart.sh`).
+when it opens. `out/vm/acrylic-try.py` tries values on an installed system
+without a rebuild.
 
 ## Lock screen: hint and reset (2026-11-02)
 

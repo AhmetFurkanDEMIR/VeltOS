@@ -1679,8 +1679,22 @@ were measured (below).
   `contrastEnabled` and loads or unloads the effects over D-Bus (KWin's
   reconfigure alone keeps loaded effects), and Plasma switches to the
   opaque backgrounds at once.
+- Over windows (item 162, same day): with KWin's default blur strength
+  (15) a window behind Start was smeared into one colour, so Start looked
+  opaque wherever a window was behind it; VeltOS sets 8 and a lighter
+  colour layer, so what is behind shows as soft colour shapes, as through
+  Windows 11's acrylic. The taskbar stays see-through with a maximized
+  window because the themes turn Plasma's adaptive transparency off
+  (`[AdaptiveTransparency] enabled=false`); the per-panel setting could
+  not be used, Plasma 6.3.6's script API does not set it. Settings became
+  acrylic too: KWin blurs what is behind its window (KWindowEffects,
+  called through ctypes because KF6 has no Python binding; the region is
+  the window's rounded frame), with the Mica of the desktop picture left
+  for sessions where KWin cannot blur. Alternative: a C++ helper or a QML
+  plugin for KWindowEffects (more to build and package for two calls).
 - Trade-offs: with software rendering the blur costs CPU while popups
-  open and close (above); Windows turns transparency off without a GPU,
+  open and close (above) and while Settings scrolls (KWin 138 % of a core
+  with blur, 70 % without, dev VM); Windows turns transparency off without a GPU,
   VeltOS keeps it on because the product owner tests in such VMs and the
   switch is one click away. Mica works without blur because it is drawn
   inside the window. On Wayland a window does not know its place on the screen, so
