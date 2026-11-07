@@ -3,6 +3,21 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — VeltOS 1.2 published by GitHub Actions
+
+- Run 42403593450 of `.github/workflows/release.yml` for ebf8b62, all
+  steps passed in 53 minutes (18:54-19:47 UTC): packages and ISO 43 min,
+  boot tests UEFI, BIOS and Secure Boot about 2 min each, the signed
+  repository, the release, the website commit f249b91.
+- Release v1.2: `VeltOS-1.2-amd64.iso`, 2,112,753,664 bytes, SHA-256
+  705e341090b24b4396acd3e05cdff09181760ef10be3de72589c6ae0c866c3dd, 44 files.
+- The live page (veltos.ahmetfurkandemir.com, dark theme): version 1.2,
+  download link v1.2, 82 pictures shown, 35 of them release 1.2's, none
+  of 1.1's and none of the other theme. The 1.1 pictures and their
+  elements were then removed (63 pictures, one caption); checked
+  locally in light/dark and English/Turkish (82 shown, 85 files, none
+  missing).
+
 ## 2026-11-07 — Item 164: every picture in the page's theme, VeltOS 1.2
 
 - The product owner: dark pictures in dark mode and light ones in light

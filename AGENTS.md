@@ -182,9 +182,10 @@ and JavaScript with no build step, no external requests and no cookies:
   `-installer-done`). Only what the OS shows in one look stays single:
   the start screen, the welcome splash after sign-in and Automatic
   Repair. Pictures of an older release stay as `v11-*.webp` with
-  `data-until="1.2"` while the new ones carry `data-since="1.2"`, so the
-  page never shows what the downloadable ISO does not do; remove the
-  `v11-` files and elements once 1.2 is released and the page is checked.
+  `data-until="X.Y"` while the new ones carry `data-since="X.Y"`, so the
+  page never shows what the downloadable ISO does not do; remove the old
+  files and elements once X.Y is released and the page is checked (done
+  for 1.2 on 2026-11-07).
   The README shows each picture in the reader's GitHub theme
   (`<picture>` with `prefers-color-scheme`), the two animations too
   (`veltos-tour-{light,dark}.gif`, `veltos-apps-{light,dark}.gif`).
