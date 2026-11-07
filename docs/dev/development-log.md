@@ -3,6 +3,34 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — Item 161: acrylic also without 3D, Transparency effects
+
+- The product owner tried ISO 1.2-dev1: Start and the taskbar were "still
+  the same". Cause, read in KWin 6.3.6's source (blur.cpp, contrast.cpp):
+  `enabledByDefault()` is false for a software renderer, so where KWin
+  renders with llvmpipe (VirtualBox without 3D acceleration, QEMU) blur
+  and contrast are not loaded and Plasma draws the opaque backgrounds;
+  the dev VM's session had neither (`org.kde.kwin.Effects.loadedEffects`).
+  Item 159's pictures had them loaded by hand.
+- veltos-desktop 1.2.0~dev2: `/etc/xdg/kwinrc [Plugins] blurEnabled=true,
+  contrastEnabled=true`; acrylic colour 52-60 %, saturation 2.2, dark
+  intensity 0.6, light 1.5. After a restart of the dev VM both effects
+  were loaded by themselves; dark Start (27, 39, 73), light (211, 236,
+  249), Quick Settings and the taskbar see-through in both modes; dark
+  Start over a File Explorer window stays readable (the text behind is
+  blurred away).
+- veltos-settings 1.2.0~dev2: Personalization > Colours > Transparency
+  effects (`prefs.SETTINGS["transparency"]`, `backend.transparency`):
+  writes both keys, loads or unloads the effects over D-Bus (KWin's
+  reconfigure alone left them loaded: found in the VM) and turns Settings'
+  Mica off with them. Checked in the VM: off made Start opaque white and
+  Settings solid at once, on brought both back, without signing out.
+- Cost in the dev VM (QEMU/KVM, llvmpipe, 4 vCPU, 20 s each,
+  `out/vm/measure-kwin.sh`): idle KWin 0.0 % of a core without blur,
+  0.1 % with it; Start and Quick Settings opened and closed every 1.5 s:
+  KWin 30 % without blur, 73 % with it; plasmashell 10 % and 9 %.
+- Tests: veltos-settings 225, veltos-desktop 168 (3 skipped), tests/repo 29.
+
 ## 2026-11-07 — ISO 1.2-dev1 built and tested
 
 - `VELTOS_VERSION=1.2-dev1 build/run.sh iso` from 12f3613 (items 159-160):

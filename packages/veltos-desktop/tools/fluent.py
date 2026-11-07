@@ -115,20 +115,20 @@ DESKTOPTHEME_DROP = ("icons/start.svgz", "icons/manjaro.svgz", "widgets/branding
 # backgrounds get ACRYLIC below.
 PANEL_OPACITY = {"widgets/panel-background.svgz": 0.86}
 # Windows 11's acrylic, used where KWin can blur (Plasma then takes the
-# translucent/ backgrounds, so on real graphics cards): Start, the flyouts
-# and the taskbar in these colours over the blurred desktop, which KWin's
-# contrast effect first brightens (light) or darkens (dark) and makes more
-# colourful. 2026-11-02: 85 % of the colour, measured in the dev VM over
-# the Bloom wallpapers at about (245, 247, 250) light and (40, 41, 47) dark,
-# nearly opaque. 2026-11-07, the product owner: as see-through as Windows
-# 11's Start, the desktop's colours plainly showing through. The colour now
-# covers about two thirds and the contrast effect keeps more of the
-# desktop's colour (saturation 2.0); the taskbar stays a little denser.
+# translucent/ backgrounds; veltos-desktop turns KWin's blur and contrast
+# effects on everywhere, also where KWin renders in software): Start, the
+# flyouts and the taskbar in these colours over the blurred desktop, which
+# KWin's contrast effect first brightens (light) or darkens (dark) and
+# makes more colourful, so the text stays readable while the desktop's
+# colours show. 2026-11-02: 85 % of the colour, nearly opaque ((245, 247,
+# 250) light, (40, 41, 47) dark over the Bloom wallpapers in the dev VM).
+# 2026-11-07, the product owner: as see-through as Windows 11's Start, in
+# both modes: the colour covers about half, the taskbar a little more.
 ACRYLIC = {
-    "light": {"popup": ("#f3f3f3", 0.64), "taskbar": ("#eeeeee", 0.70),
-              "contrast": ["enabled=true", "contrast=0.6", "intensity=1.45", "saturation=2.0"]},
-    "dark": {"popup": ("#202020", 0.62), "taskbar": ("#1c1c1c", 0.72),
-             "contrast": ["enabled=true", "contrast=0.8", "intensity=0.7", "saturation=2.0"]},
+    "light": {"popup": ("#f3f3f3", 0.56), "taskbar": ("#eeeeee", 0.60),
+              "contrast": ["enabled=true", "contrast=0.6", "intensity=1.5", "saturation=2.2"]},
+    "dark": {"popup": ("#202020", 0.52), "taskbar": ("#1c1c1c", 0.60),
+             "contrast": ["enabled=true", "contrast=0.8", "intensity=0.6", "saturation=2.2"]},
 }
 ACRYLIC_FILES = {"translucent/dialogs/background.svgz": "popup",
                  "translucent/widgets/panel-background.svgz": "taskbar"}

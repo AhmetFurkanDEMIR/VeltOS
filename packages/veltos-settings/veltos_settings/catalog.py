@@ -106,8 +106,10 @@ PAGES = [
          "keywords": "wallpaper picture image duvar kağıdı resim"},
         {"id": "colors", "icon": "preferences-color-symbolic", "page": "colours",
          "title": ("Colours", "Renkler"),
-         "desc": ("Light or dark mode, accent colour", "Açık veya koyu mod, vurgu rengi"),
-         "keywords": "accent color colour dark light mode theme vurgu renk koyu açık tema"},
+         "desc": ("Light or dark mode, accent colour, transparency",
+                  "Açık veya koyu mod, vurgu rengi, saydamlık"),
+         "keywords": "accent color colour dark light mode theme transparency transparent blur acrylic "
+                     "vurgu renk koyu açık tema saydamlık saydam şeffaf bulanık"},
         {"id": "themes", "icon": "preferences-desktop-theme-symbolic", "page": "themes",
          "title": ("Themes", "Temalar"),
          "desc": ("Wallpaper, colour and mode together", "Duvar kağıdı, renk ve mod bir arada"),

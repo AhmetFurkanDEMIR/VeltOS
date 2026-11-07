@@ -1466,6 +1466,13 @@ and JavaScript with no build step, no external requests and no cookies:
 - `vm exec "pkill -f veltos-settings; ..."` kills its own shell (the
   pattern is in its command line) and the rest never runs, silently:
   `pkill -f '[v]eltos-settings'`.
+- KWin 6.3.6 does not load blur and background contrast by default where
+  it renders in software (llvmpipe: QEMU, VirtualBox without 3D;
+  `enabledByDefault()`), and Plasma then draws its opaque backgrounds:
+  VeltOS turns both on in `/etc/xdg/kwinrc`. `org.kde.KWin.reconfigure`
+  does not unload an effect whose `[Plugins] xEnabled` became false: call
+  `org.kde.kwin.Effects.unloadEffect`/`loadEffect` too (Settings'
+  Transparency effects).
 - Kirigami.Icon rounds its size to the nearest standard icon size
   (`roundToIconSize`, default true): Settings' 20 px colour icons came out
   16 px (2026-11-07); set `roundToIconSize: false` for pictures drawn for

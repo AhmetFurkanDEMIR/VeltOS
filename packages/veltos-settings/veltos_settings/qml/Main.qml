@@ -210,7 +210,8 @@ ApplicationWindow {
             y: -bleed
             width: frame.width + 2 * bleed
             height: frame.height + 2 * bleed
-            visible: picture.status === Image.Ready
+            // Off with Personalization > Colours > Transparency effects, as on Windows.
+            visible: backend.transparency && picture.status === Image.Ready
 
             Image {
                 id: picture

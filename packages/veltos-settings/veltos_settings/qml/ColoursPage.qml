@@ -9,10 +9,14 @@ ColumnLayout {
     id: page
 
     readonly property var personal: backend.personal
+    readonly property var p: backend.prefs
     signal itemActivated(var item)
 
     spacing: 4
-    Component.onCompleted: backend.refreshPersonal()
+    Component.onCompleted: {
+        backend.refreshPersonal();
+        backend.refreshPrefs();
+    }
 
     SettingRow {
         Layout.fillWidth: true
@@ -25,6 +29,21 @@ ColumnLayout {
             options: [{ label: backend.text("light"), value: false }, { label: backend.text("dark"), value: true }]
             currentValue: backend.darkMode
             onActivated: value => backend.setDarkMode(value)
+        }
+    }
+
+    // Windows 11's "Transparency effects": KWin's blur behind Start, the
+    // flyouts and the taskbar, and the Mica of VeltOS' windows.
+    SettingRow {
+        Layout.fillWidth: true
+        icon: "edit-opacity-symbolic"
+        title: backend.text("transparency_effects")
+        description: backend.text("transparency_effects_desc")
+        ToggleSwitch {
+            checked: backend.transparency
+            enabledState: page.p.loaded === true
+            accessibleName: backend.text("transparency_effects")
+            onToggled: on => backend.setPref("transparency", on)
         }
     }
 

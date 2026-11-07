@@ -1,7 +1,9 @@
 # VeltOS Status
 
-Last updated: 2026-11-07 (items 159-160: see-through acrylic, Settings with
-Mica; VeltOS 1.1 released by GitHub Actions on 2026-11-02). Every "Implemented" item names the evidence that shows it working.
+Last updated: 2026-11-07 (items 159-161: see-through acrylic also without
+3D, Settings with Mica and a Transparency effects switch; VeltOS 1.1 was
+released by GitHub Actions on 2026-11-02). Every "Implemented" item names
+the evidence that shows it working.
 "Untested" means nobody has observed it working yet. Most observations are
 from QEMU/KVM virtual machines (no 3D acceleration) and VirtualBox VMs; the
 product owner installed VeltOS on their own laptop (NVIDIA RTX 4070 Max-Q)
@@ -314,8 +316,9 @@ Product owner's list of 2026-11-02, night (website, updates, GitHub Actions):
 
 ## Product owner's list of 2026-11-07
 
-159. [x] Taskbar, Start, Quick Settings and the other flyouts as see-through as Windows 11's (the owner's picture of Windows 11's Start): lighter acrylic colour layer (62-72 % instead of 85-86 %) and a contrast effect that keeps the desktop's colour (`veltos-desktop` `tools/fluent.py` `ACRYLIC`, architecture 2.58). Measured in the dev VM with blur and contrast loaded (as on real graphics cards), over the Bloom wallpapers: dark Start (30, 40, 70) instead of (40, 42, 48), light Start (207, 229, 248), the taskbar shows the wallpaper's blue in both modes. Without blur (VMs without 3D, VirtualBox without 3D acceleration) the backgrounds stay opaque, as Windows does without a GPU. Untested on real hardware
+159. [x] Taskbar, Start, Quick Settings and the other flyouts as see-through as Windows 11's (the owner's picture of Windows 11's Start): lighter acrylic colour layer (62-72 % instead of 85-86 %) and a contrast effect that keeps the desktop's colour (`veltos-desktop` `tools/fluent.py` `ACRYLIC`, architecture 2.58). Measured in the dev VM with blur and contrast loaded (as on real graphics cards), over the Bloom wallpapers: dark Start (30, 40, 70) instead of (40, 42, 48), light Start (207, 229, 248), the taskbar shows the wallpaper's blue in both modes. Since item 161 also in VMs without 3D. Untested on real hardware
 160. [x] Settings like Windows 11's Settings (the owner's picture): the window draws its own frame with Mica (the desktop picture blurred under the window colour, follows the wallpaper and light/dark), the back button (history of pages, Alt+Left, the mouse's back button) and "Find a setting" in the middle of the title bar, VeltOS' own colour icons in the navigation pane, translucent cards and controls, opaque pop-ups dimming only the window (architecture 2.58). Checked in the dev VM in both modes: Home, System, Display, back, search, maximise and restore, Rename this PC; 224 package tests pass (every page in English and Turkish without a QML warning)
+161. [x] "Still the same" (the owner's test of ISO 1.2-dev1): KWin 6.3.6 leaves its blur and background contrast effects off where it renders in software (`enabledByDefault()`: llvmpipe, i.e. VirtualBox without 3D acceleration and QEMU), so Start, the flyouts and the taskbar stayed opaque there. veltos-desktop turns both on in `/etc/xdg/kwinrc`; the acrylic is more see-through in both modes (colour 52-60 %, saturation 2.2); Settings > Personalization > Colours > Transparency effects (Windows 11's switch) turns blur, contrast and Settings' Mica off or on at once. Dev VM (QEMU, llvmpipe, 4 vCPU), after a restart: blur and contrast loaded by themselves; dark Start (27, 39, 73), light (211, 236, 249); the switch makes Start opaque and back without signing out. Cost there: idle KWin 0.1 % of a core with blur (0.0 % without); opening Start and Quick Settings every 1.5 s for 20 s KWin 73 % with blur, 30 % without, plasmashell 9-10 % either way
 
 Release rule (product owner, 2026-10-27): ISOs are built for the owner's
 manual tests. A new version is released (GitHub release with ISO and

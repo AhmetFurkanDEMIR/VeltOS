@@ -428,7 +428,16 @@ def build_static_config(root):
             # gone with the effect unloaded). Start and search rise in by
             # their own QML animation; the flyouts fade in (fadingpopups).
             "\n[Plugins]\n"
-            "slidingpopupsEnabled=false\n"),
+            "slidingpopupsEnabled=false\n"
+            # Acrylic everywhere: KWin 6.3.6 leaves blur and background
+            # contrast off by default where it renders in software (llvmpipe:
+            # VirtualBox without 3D acceleration, QEMU; BlurEffect::
+            # enabledByDefault, ContrastEffect::enabledByDefault), so Start,
+            # the flyouts and the taskbar stayed opaque there (product owner,
+            # 2026-11-07). Turned on, Plasma takes the theme's translucent
+            # backgrounds on every PC (cost measured in the development log).
+            "blurEnabled=true\n"
+            "contrastEnabled=true\n"),
         "etc/xdg/plasmarc": (
             "[Theme]\n"
             f"name={lnf['plasma_theme']}\n"),

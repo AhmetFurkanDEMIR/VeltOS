@@ -87,6 +87,11 @@ SETTINGS = {
     "nightLight": ("kwinrc", ["NightColor"], "Active", "bool", False),
     "nightMode": ("kwinrc", ["NightColor"], "Mode", "str", "Automatic"),         # Automatic, Constant
     "nightTemperature": ("kwinrc", ["NightColor"], "NightTemperature", "int", 4500),
+    # Personalization > Colours > Transparency effects: KWin's blur (and its
+    # background contrast, set with it); Plasma then draws Start, the
+    # flyouts and the taskbar see-through, and Settings shows Mica.
+    # veltos-desktop turns both on in /etc/xdg/kwinrc.
+    "transparency": ("kwinrc", ["Plugins"], "blurEnabled", "bool", True),
     # System > Multitasking
     "snapWindows": ("kwinrc", ["Windows"], "ElectricBorderTiling", "bool", True),
     "snapMaximize": ("kwinrc", ["Windows"], "ElectricBorderMaximize", "bool", True),
@@ -168,6 +173,13 @@ class Preferences:
             # One choice for every power state, as Windows asks it once.
             for state in ("Battery", "LowBattery"):
                 self.run(write_command(filename, [state, groups[1]], key, value))
+        if name == "transparency":
+            self.run(write_command("kwinrc", ["Plugins"], "contrastEnabled", value))
+            # KWin's reconfigure keeps loaded effects loaded (KDE's effects
+            # page loads and unloads them itself); Plasma follows at once.
+            method = "loadEffect" if value else "unloadEffect"
+            for effect in ("blur", "contrast"):
+                self.run(["qdbus6", "org.kde.KWin", "/Effects", f"org.kde.kwin.Effects.{method}", effect])
         if name == "nightLight" and value:
             # Windows' night light without a schedule is on all the time.
             self.run(write_command("kwinrc", ["NightColor"], "Mode", "Constant"))

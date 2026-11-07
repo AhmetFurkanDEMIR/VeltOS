@@ -974,6 +974,14 @@ class Backend(QObject):
     def accent(self):
         return self._personal.get("accent", "")
 
+    @Property(bool, notify=prefsChanged)
+    def transparency(self):
+        """Personalization > Colours > Transparency effects (the window's Mica too)."""
+        value = self._prefs.get("transparency") if isinstance(self._prefs, dict) else None
+        if not isinstance(value, bool):
+            value = self.system.prefs.get("transparency")
+        return value
+
     @Property(str, notify=micaChanged)
     def micaImage(self):
         """The picture of the window's Mica background (file URL, "" for none)."""

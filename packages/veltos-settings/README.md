@@ -16,6 +16,11 @@ open VeltOS Settings.
   "Find a setting" search box in the middle, and cards and controls are
   translucent layers on the Mica. `frame.py` (Media Player's) keeps clicks
   on the shadow going to the windows behind.
+- Personalization > Colours > **Transparency effects** (Windows 11's
+  switch): KWin's blur and background contrast (`kwinrc [Plugins]
+  blurEnabled`, `contrastEnabled`, loaded or unloaded at once over
+  D-Bus), so Start, the flyouts and the taskbar are see-through or opaque,
+  and Settings' own Mica with them.
 - Navigation pane: account picture and name, then Home, System, Bluetooth
   & devices, Network & internet, Personalization, Apps, Accounts, Time &
   language, Gaming, Accessibility, Privacy & security, VeltOS Update, each

@@ -1665,10 +1665,25 @@ were measured (below).
   shows the desktop picture only); a blurred copy of the picture made in
   Python (Pillow is not a dependency of Settings, and Qt's GPU blur is
   cheap after the first frame).
-- Trade-offs: acrylic needs KWin's blur, so VMs without 3D acceleration
-  (llvmpipe) keep the opaque backgrounds, as Windows turns transparency
-  off without a GPU; Mica works there too because it is drawn inside the
-  window. On Wayland a window does not know its place on the screen, so
+- Blur everywhere (item 161, same day): KWin 6.3.6 does not load its blur
+  and background contrast effects by default where it renders in software
+  (`BlurEffect::enabledByDefault()`, `ContrastEffect::enabledByDefault()`:
+  llvmpipe, which VirtualBox without 3D acceleration and QEMU use), so the
+  acrylic never showed there and the product owner saw no change.
+  `/etc/xdg/kwinrc` turns both on. Measured in the dev VM (QEMU, llvmpipe,
+  4 vCPU): idle KWin 0.1 % of a core with blur (0.0 % without); opening
+  Start and Quick Settings every 1.5 s, KWin 73 % with blur and 30 %
+  without. Settings > Personalization > Colours > Transparency effects
+  (as on Windows 11) turns blur, contrast and Settings' Mica off for
+  anyone who prefers speed; it writes `[Plugins] blurEnabled` /
+  `contrastEnabled` and loads or unloads the effects over D-Bus (KWin's
+  reconfigure alone keeps loaded effects), and Plasma switches to the
+  opaque backgrounds at once.
+- Trade-offs: with software rendering the blur costs CPU while popups
+  open and close (above); Windows turns transparency off without a GPU,
+  VeltOS keeps it on because the product owner tests in such VMs and the
+  switch is one click away. Mica works without blur because it is drawn
+  inside the window. On Wayland a window does not know its place on the screen, so
   Mica shows the whole picture behind the window rather than the part
   under it (Windows samples the part under the window). The Mica blur is
   drawn again when the window is resized.

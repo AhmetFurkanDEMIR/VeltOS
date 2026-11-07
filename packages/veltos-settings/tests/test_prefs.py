@@ -101,6 +101,29 @@ class PrefsTests(unittest.TestCase):
         self.assertIn("kwriteconfig6 --notify --file kwinrc --group NightColor --key Mode Constant", commands)
         self.assertTrue(any("org.kde.KWin.reconfigure" in c for c in commands))
 
+    def test_transparency_effects_turn_blur_and_contrast_on_and_off(self):
+        # On by default: veltos-desktop's /etc/xdg/kwinrc says so, and without
+        # any file KWin's own default is assumed to be on too.
+        self.assertTrue(self.prefs.get("transparency"))
+        (self.system_dirs[0] / "kwinrc").write_text("[Plugins]\nblurEnabled=true\ncontrastEnabled=true\n")
+        self.assertTrue(self.prefs.get("transparency"))
+        (self.home / "kwinrc").write_text("[Plugins]\nblurEnabled=false\n")
+        self.assertFalse(self.prefs.get("transparency"))
+        self.runner.commands.clear()
+        self.prefs.set("transparency", False)
+        commands = [" ".join(c) for c in self.runner.commands]
+        self.assertIn("kwriteconfig6 --notify --file kwinrc --group Plugins --type bool --key blurEnabled false",
+                      commands)
+        self.assertIn("kwriteconfig6 --notify --file kwinrc --group Plugins --type bool --key contrastEnabled false",
+                      commands)
+        self.assertIn("qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect blur", commands)
+        self.assertIn("qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.unloadEffect contrast", commands)
+        self.assertTrue(commands[-1].endswith("org.kde.KWin.reconfigure"))
+        self.runner.commands.clear()
+        self.prefs.set("transparency", True)
+        commands = [" ".join(c) for c in self.runner.commands]
+        self.assertIn("qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect blur", commands)
+
     def test_power_modes_come_from_the_helper_per_power_source(self):
         self.runner.power.update(profiles=["power-saver", "balanced"], source="battery")
         state = self.prefs.power_mode_state()

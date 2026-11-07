@@ -1,3 +1,11 @@
+veltos-desktop (1.2.0~dev2) trixie; urgency=medium
+
+  * KWin's blur and background contrast on also where it renders in
+    software (VirtualBox without 3D, QEMU), so the acrylic shows there too;
+    light and dark acrylic more see-through (about half colour).
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sat, 07 Nov 2026 13:40:00 +0000
+
 veltos-desktop (1.2.0~dev1) trixie; urgency=medium
 
   * Taskbar, Start and the flyouts as see-through as Windows 11's acrylic

@@ -488,11 +488,17 @@ see-through as Windows 11's Start) the colour covers about two thirds
 popups #202020 at 62 %, taskbar #1C1C1C at 72 %) and the contrast effect
 keeps the desktop's colour (saturation 2.0): light mode brightens the
 blurred desktop behind (contrast 0.6, intensity 1.45), dark mode darkens it
-(contrast 0.8, intensity 0.7). Measured in the dev VM over the Bloom
-wallpapers: dark Start about (30, 40, 70) instead of a grey (40, 42, 48),
-light Start about (207, 229, 248). The values of 2026-11-02 (85 % and
+(contrast 0.8, intensity 0.6); since the owner's second look the colour
+covers about half (light popups 56 %, taskbar 60 %; dark popups 52 %,
+taskbar 60 %; saturation 2.2). Measured in the dev VM over the Bloom
+wallpapers: dark Start about (27, 39, 73) instead of a grey (40, 42, 48),
+light Start about (211, 236, 249). The values of 2026-11-02 (85 % and
 86 %) made the popups nearly opaque; the one contrast setting before them
-(0.18 for both) pulled the desktop behind to a mid grey. Start has no
+(0.18 for both) pulled the desktop behind to a mid grey. KWin leaves its
+blur and contrast effects off where it renders in software (VirtualBox
+without 3D, QEMU), so `/etc/xdg/kwinrc` turns both on (`[Plugins]
+blurEnabled`, `contrastEnabled`); VeltOS Settings' Personalization >
+Colours > Transparency effects turns them off again. Start has no
 surface of its own any more (a 35 % tint inside the popup frame showed as
 a second frame), its footer and Quick Settings' page footers are lines,
 not boxes, and the hidden-icons flyout no longer highlights its first icon

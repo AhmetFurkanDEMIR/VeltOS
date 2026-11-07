@@ -917,6 +917,11 @@ class FullBuildTest(unittest.TestCase):
             self.assertIn(f"X-KDE-PluginInfo-Name={name}", (theme / "metadata.desktop").read_text())
         kwinrc = (root / "etc/xdg/kwinrc").read_text()
         self.assertIn("theme=__aurorae__svg__VeltOS\n", kwinrc)
+        # Acrylic also where KWin renders in software (it leaves blur and
+        # contrast off there by default; product owner, 2026-11-07).
+        plugins = kwinrc.split("[Plugins]\n", 1)[1].split("\n[", 1)[0]
+        self.assertIn("blurEnabled=true\n", plugins)
+        self.assertIn("contrastEnabled=true\n", plugins)
         for name in fluent.DESKTOPTHEMES:
             theme = root / "usr/share/plasma/desktoptheme" / name
             meta = json.loads((theme / "metadata.json").read_text())
