@@ -3,6 +3,21 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-07 — ISO 1.2-dev3 built and tested
+
+- `VELTOS_VERSION=1.2-dev3 build/run.sh iso` from 68e9d06 (item 162):
+  `veltos-1.2-dev3-amd64.hybrid.iso`, 2,112,608,256 bytes (32.8 MiB under
+  2 GiB), SHA-256
+  73e7e1498af4e6dec54125fa697a65563980044779767867c125de2232a5e21e. The
+  build ran every package's tests: 1,305 tests, all passed.
+- Boot tests (QEMU/KVM, no 3D): UEFI 19, BIOS 18, Secure Boot 20 checks,
+  all passed; plasmashell after 31.1 s (UEFI), 31.5 s (BIOS), 30.8 s
+  (Secure Boot). The live session's Start (picture 04) is see-through by
+  itself, the wallpaper's petals visible through it.
+- Copied to the product owner's Desktop as
+  `VeltOS-1.2-dev3-20261107-150809.iso` with its `.sha256` (dev1 and dev2
+  are still there). Not released, not pushed.
+
 ## 2026-11-07 — Item 162: see-through over windows, taskbar with maximized windows, Settings acrylic
 
 - The product owner after ISO 1.2-dev2: Start, the taskbar's search and
