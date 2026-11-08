@@ -3,6 +3,19 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-08 — VeltOS 1.4 published by GitHub Actions
+
+- Run 42463766229 for 5f662e9, all steps passed in 59 minutes
+  (08:38-09:37 UTC): packages and ISO 50 min, boot tests UEFI, BIOS and
+  Secure Boot about 2 min each, the signed repository, the release, the
+  website commit 783167a.
+- Release v1.4: `VeltOS-1.4-amd64.iso`, 2,112,745,472 bytes, SHA-256
+  `7c663c596a7ea09af28354acccefe8e359a9e2dc8d2217b6ad85c05c995c1734`.
+  GitHub's download host answered "504 Gateway Time-out" (a 92-byte HTML
+  page saved as the ISO) for a few minutes after publishing; the fifth try
+  downloaded the whole file to the product owner's Desktop and its hash
+  matched. Check a download's size before trusting it.
+
 ## 2026-11-08 — Release 1.4 prepared
 
 - `release-bump.py 1.4`: the six changed packages, veltos-base and (since
