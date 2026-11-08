@@ -1,3 +1,9 @@
+veltos-explorer (1.4.0) trixie; urgency=medium
+
+  * VeltOS 1.4.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 08 Nov 2026 05:35:34 +0000
+
 veltos-explorer (1.4.0~dev1) trixie; urgency=medium
 
   * --create-shortcut also takes an app's desktop id (Start's and search's

@@ -3,6 +3,13 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-08 — Release 1.4 prepared
+
+- `release-bump.py 1.4`: the six changed packages, veltos-base and (since
+  the ALWAYS_BUMPED fix) calamares-settings-veltos at 1.4.0, the
+  installer's branding "VeltOS 1.4". No website pictures change (the fixes
+  are not visible in the stills).
+
 ## 2026-11-08 — Items 170-175: Start's view switch, stopwatch, crash checks, speed
 
 - The product owner: Start crashes when its view is switched (from List to
