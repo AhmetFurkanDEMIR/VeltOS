@@ -159,8 +159,13 @@ or `Get-FileHash VeltOS-1.4-amd64.iso` (Windows PowerShell).
    space, with optional disk encryption. Back up your files first, as with
    any new system.
 
-The PC needs a 64-bit Intel or AMD processor, 2 GB of memory (4 GB or more
-recommended), 20 GB of storage and UEFI (Secure Boot on or off) or BIOS.
+| | Recommended minimum for VeltOS to run smoothly | Recommended |
+|---|---|---|
+| Processor (CPU) | x86-64 (64-bit), 4 cores | x86-64 (64-bit), 8 cores |
+| Memory (RAM) | 4 GB | 8–16 GB |
+| Video memory | 128 MB | 1 GB |
+| Disk | 50 GB | 250 GB |
+
 The live session signs in by itself (user `velt`, password `live`). After
 installing, there is no boot menu: press F1 while the PC starts to choose
 another system, F6 for Recovery.
