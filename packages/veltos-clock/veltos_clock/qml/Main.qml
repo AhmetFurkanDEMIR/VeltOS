@@ -503,9 +503,23 @@ ApplicationWindow {
     property real stopwatchBase: 0
     property bool stopwatchRunning: false
     property var laps: []
-    readonly property real stopwatchElapsed: stopwatchBase + (stopwatchRunning ? (Date.now() - stopwatchStart) / 1000 : 0)
-    Timer { interval: 33; repeat: true; running: window.stopwatchRunning; onTriggered: window.stopwatchTick += 1 }
     property int stopwatchTick: 0
+    // Date.now() is no dependency a binding can see: the stopwatch stood at
+    // 00:00.00 because its time was worked out only when it was started
+    // (product owner, 2026-11-08). The time is read again on every tick
+    // for the display, and at the moment of a press for Pause and Lap.
+    function stopwatchNow() {
+        return stopwatchBase + (stopwatchRunning ? (Date.now() - stopwatchStart) / 1000 : 0);
+    }
+    readonly property real stopwatchElapsed: { stopwatchTick; return stopwatchNow(); }
+    // Ticks only while the stopwatch page is shown (the time itself keeps
+    // running: it comes from the clock, not from the ticks).
+    Timer {
+        interval: 33
+        repeat: true
+        running: window.stopwatchRunning && window.page === "stopwatch" && window.visibility !== Window.Minimized
+        onTriggered: window.stopwatchTick += 1
+    }
     function stopwatchText(seconds) {
         const total = Math.max(0, seconds);
         const h = Math.floor(total / 3600), m = Math.floor(total % 3600 / 60), s = Math.floor(total % 60);
@@ -538,12 +552,13 @@ ApplicationWindow {
                     icon: window.stopwatchRunning ? "media-playback-pause" : "media-playback-start"
                     onClicked: {
                         if (window.stopwatchRunning) {
-                            window.stopwatchBase = window.stopwatchElapsed;
+                            window.stopwatchBase = window.stopwatchNow();
                             window.stopwatchRunning = false;
                         } else {
                             window.stopwatchStart = Date.now();
                             window.stopwatchRunning = true;
                         }
+                        window.stopwatchTick += 1;
                     }
                 }
                 CircleButton {
@@ -551,19 +566,20 @@ ApplicationWindow {
                     enabledState: window.stopwatchRunning
                     Accessible.name: backend.text("lap")
                     onClicked: {
-                        const total = window.stopwatchElapsed;
+                        const total = window.stopwatchNow();
                         const previous = window.laps.length > 0 ? window.laps[0].total : 0;
                         window.laps = [{ number: window.laps.length + 1, lap: total - previous, total: total }].concat(window.laps);
                     }
                 }
                 CircleButton {
                     icon: "view-refresh"
-                    enabledState: window.stopwatchElapsed > 0
+                    enabledState: window.stopwatchRunning || window.stopwatchBase > 0
                     Accessible.name: backend.text("reset")
                     onClicked: {
                         window.stopwatchRunning = false;
                         window.stopwatchBase = 0;
                         window.laps = [];
+                        window.stopwatchTick += 1;
                     }
                 }
             }

@@ -18,6 +18,17 @@ ApplicationWindow {
 
     // The event being edited in the full editor (a form from the backend), or null.
     property var editing: null
+    // The time of the "now" line in the day and week views. A binding on
+    // new Date() is worked out once, so the line stayed where it was when
+    // the view was made (2026-11-08).
+    property date now: new Date()
+    Timer {
+        interval: 30000
+        repeat: true
+        running: window.visible && window.visibility !== Window.Minimized
+        triggeredOnStart: true
+        onTriggered: window.now = new Date()
+    }
     readonly property bool wide: width >= 940
 
     width: 1180
@@ -721,8 +732,7 @@ ApplicationWindow {
                         // Now, on today's column.
                         Rectangle {
                             visible: column.modelData.today
-                            readonly property date now: new Date()
-                            y: (now.getHours() * 60 + now.getMinutes()) / 60 * theme.hourHeight
+                            y: (window.now.getHours() * 60 + window.now.getMinutes()) / 60 * theme.hourHeight
                             width: parent.width
                             height: 2
                             color: theme.accent

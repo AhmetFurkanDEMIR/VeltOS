@@ -1,0 +1,24 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "vlad.zahorodnii@kde.org",
+                "Name": "Vlad Zahorodnii"
+            },
+            {
+                "Name": "VeltOS Developers"
+            }
+        ],
+        "Category": "Appearance",
+        "Description": "Popups fade in and out when they are shown or hidden, with a short fade-out",
+        "Description[tr]": "Açılır pencereler gösterilirken ve gizlenirken kısa bir geçişle belirir ve kaybolur",
+        "EnabledByDefault": true,
+        "Id": "veltosfadingpopups",
+        "License": "GPL-2.0-or-later",
+        "Name": "Fading popups",
+        "Name[tr]": "Solan açılır pencereler"
+    },
+    "X-KDE-Ordering": 60,
+    "X-Plasma-API": "javascript"
+}

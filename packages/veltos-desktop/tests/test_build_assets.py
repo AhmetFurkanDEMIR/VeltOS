@@ -266,6 +266,62 @@ class StartMenuActionTests(unittest.TestCase):
         self.assertIn("onContextMenuRequested", qml)
         self.assertIn("root.model.trigger(root.index, actionId, modelData.actionArgument)", menu)
 
+    def test_entries_that_do_nothing_on_veltos_are_replaced(self):
+        # Plasma's "Pin to Task Manager" did nothing on the locked taskbar,
+        # "Edit Application..." and "Manage" need programs VeltOS leaves out
+        # (2026-11-08): VeltOS' own taskbar pin through the script interface.
+        source = PKG / "plasma/startmenu/contents/ui"
+        qml = (source / "StartMenu.qml").read_text(encoding="utf-8")
+        menu = (source / "ActionMenu.qml").read_text(encoding="utf-8")
+        search = (PKG / "plasma/search/contents/ui/main.qml").read_text(encoding="utf-8")
+        for text in (qml, search):
+            hidden = re.search(r"readonly property var hiddenActions: \[([^\]]*)\]", text).group(1)
+            for action in ("addToTaskManager", "editApplication", "manageApplication", "addToPanel", "addToDesktop"):
+                self.assertIn(f'"{action}"', hidden)
+            self.assertIn("!hiddenActions.includes(a.actionId)", text)
+        self.assertIn('p.widgets(\\"org.kde.plasma.icontasks\\")', qml)
+        self.assertIn("/^[A-Za-z0-9._-]+\\.desktop$/.test(desktopId)", qml)        # nothing else reaches the shell
+        self.assertIn('actionId === "_veltos_pin_taskbar"', menu)
+
+    def test_view_switch_and_scroll_bar_cannot_loop(self):
+        # Start crashed switching "All" from List to Category (product owner,
+        # 2026-11-08): the switch waits for the menu to close, and the scroll
+        # bar's room no longer follows the bar's visibility.
+        qml = (PKG / "plasma/startmenu/contents/ui/StartMenu.qml").read_text(encoding="utf-8")
+        switch = qml.split("function setAllView(view) {", 1)[1].split("\n    }\n", 1)[0]
+        self.assertIn("Qt.callLater(", switch)
+        for view in ("id: homeView", "id: categoryView"):
+            block = qml.split(view, 1)[1].split("contentWidth: availableWidth", 1)[0]
+            self.assertIn("rightPadding: PC3.ScrollBar.vertical.width", block)
+
+    def test_the_caret_stops_blinking_like_windows(self):
+        # A caret blinking for ever repainted the see-through window twice a
+        # second (2026-11-08).
+        for ui in ("startmenu/contents/ui/StartMenu.qml", "search/contents/ui/main.qml"):
+            qml = (PKG / "plasma" / ui).read_text(encoding="utf-8")
+            self.assertIn("cursorDelegate: Caret {}", qml)
+            caret = qml.split("component Caret: Rectangle {", 1)[1]
+            self.assertIn("caret.blinks < 10", caret)
+            self.assertIn("function onCursorPositionChanged() { caret.restart(); }", caret)
+
+
+class KWinEffectTests(unittest.TestCase):
+    def test_every_effect_names_its_folder(self):
+        for effect in (PKG / "kwin/effects").iterdir():
+            meta = json.loads((effect / "metadata.json").read_text(encoding="utf-8"))
+            self.assertEqual(meta["KPlugin"]["Id"], effect.name)
+            self.assertEqual(meta["KPackageStructure"], "KWin/Effect")
+
+    def test_popups_fade_out_quickly(self):
+        # KWin's own effect painted a closed popup for 600 ms, most of it
+        # nearly invisible (more than half of KWin's work for Start in
+        # software rendering, 2026-11-08).
+        code = (PKG / "kwin/effects/veltosfadingpopups/contents/code/main.js").read_text(encoding="utf-8")
+        self.assertIn("fadingPopupsEffect.fadeOutDuration = animationTime(200);", code)
+        self.assertIn("fadingPopupsEffect.fadeInDuration = animationTime(150);", code)
+        self.assertIn("|| window.appletPopup)", code)                       # Start and the flyouts still fade
+        self.assertNotIn("curve: QEasingCurve.OutQuart", code)
+
 
 class QuickSettingsTests(StartMenuTests):
     STARTMENU = PKG / "plasma/quicksettings"
@@ -945,6 +1001,10 @@ class FullBuildTest(unittest.TestCase):
         self.assertIn("contrastEnabled=true\n", plugins)
         # A blur that leaves what is behind recognisable (15 smeared it into one colour).
         self.assertIn("\n[Effect-blur]\nBlurStrength=8\n", kwinrc)
+        # VeltOS' fading popups instead of KWin's (a 600 ms fade-out, 2026-11-08).
+        self.assertIn("fadingpopupsEnabled=false\n", plugins)
+        self.assertIn("veltosfadingpopupsEnabled=true\n", plugins)
+        self.assertTrue((root / "usr/share/kwin/effects/veltosfadingpopups/contents/code/main.js").is_file())
         for name in fluent.DESKTOPTHEMES:
             theme = root / "usr/share/plasma/desktoptheme" / name
             meta = json.loads((theme / "metadata.json").read_text())

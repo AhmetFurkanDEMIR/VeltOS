@@ -54,6 +54,17 @@ def exec_name(exec_line):
     return ""
 
 
+def exec_arguments(exec_line):
+    """The arguments after the program, field codes (%f, %U ...) left out."""
+    try:
+        words = shlex.split(exec_line)
+    except ValueError:
+        words = exec_line.split()
+    while words and (words[0] == "env" or "=" in words[0] and not words[0].startswith("/")):
+        words.pop(0)
+    return [word for word in words[1:] if not (len(word) == 2 and word.startswith("%"))]
+
+
 class AppIndex:
     """Installed applications by the program they start (and StartupWMClass),
     so a running process can be shown with the app's name and icon."""
@@ -63,6 +74,15 @@ class AppIndex:
         for directory in (dirs or APPLICATION_DIRS):
             if not directory.is_dir():
                 continue
+            # Within one directory several entries may start the same
+            # program: the app's own (shown in Start, no arguments) is the
+            # one a running process is, not a hidden helper entry that
+            # starts it with arguments. "veltos-bluetooth-pair.desktop"
+            # ("Add a device") sorts before "veltos-settings.desktop" and
+            # "veltos-package-installer.desktop" ("App Installer") before
+            # "veltos-store.desktop": Settings and Store were listed under
+            # those names among the background processes (2026-11-08).
+            found = {}
             for path in sorted(directory.glob("*.desktop")):
                 entry = read_desktop(path)
                 if not entry or entry.get("Type", "Application") != "Application":
@@ -70,13 +90,23 @@ class AppIndex:
                 app = {"id": path.name, "name": localized(entry, "Name", lang) or path.stem,
                        "icon": entry.get("Icon", "application-x-executable"),
                        "hidden": entry.get("NoDisplay", "").lower() == "true"}
+                rank = (app["hidden"], bool(exec_arguments(entry.get("Exec", ""))))
                 for program in {exec_name(entry.get("Exec", "")), entry.get("StartupWMClass", "").lower()}:
-                    # The first directory wins (VeltOS names before the originals).
-                    if program and program not in self.by_program:
-                        self.by_program[program] = app
+                    if program and (program not in found or rank < found[program][0]):
+                        found[program] = (rank, app)
+            for program, (_rank, app) in found.items():
+                # The first directory wins (VeltOS names before the originals).
+                self.by_program.setdefault(program, app)
 
     def lookup(self, program):
         return self.by_program.get(program) or self.by_program.get(program.lower())
+
+
+# Arguments that run a VeltOS program as a service without a window of its
+# own: such a process is a background process, as on Windows, whatever app
+# its program belongs to (File Explorer's file dialog backend was listed
+# among the apps while no File Explorer window was open; 2026-11-08).
+SERVICE_ARGUMENTS = frozenset({"--portal"})
 
 
 def program_of(name, cmdline):
@@ -139,6 +169,7 @@ class Processes:
                 "cpu": max(0.0, cpu),
                 "memory": memory.rss if memory else 0,
                 "app": self.apps.lookup(program),
+                "service": any(arg in SERVICE_ARGUMENTS for arg in (info.get("cmdline") or [])[1:]),
                 # Kernel threads have no command line and no memory of their own.
                 "kernel": not (info.get("cmdline") or []) and not (memory and memory.rss),
             })
@@ -158,7 +189,7 @@ def group(rows, lang="en"):
 
     def is_app_root(row):
         app = row["app"]
-        if not row["user"] or not app or app["hidden"]:
+        if not row["user"] or not app or app["hidden"] or row.get("service"):
             return False
         parent = by_pid.get(row["ppid"])
         return not (parent and parent["app"] is app)

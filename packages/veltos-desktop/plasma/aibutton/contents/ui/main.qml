@@ -100,7 +100,9 @@ PlasmoidItem {
             PlasmaExtras.MenuItem {
                 text: i18n("Hide from taskbar")
                 icon: "view-hidden"
-                onClicked: Plasmoid.configuration.shown = false
+                // After the menu has closed: hiding the button inside the
+                // menu's click handling removes the menu's own parent.
+                onClicked: Qt.callLater(() => { Plasmoid.configuration.shown = false; })
             }
         }
     }

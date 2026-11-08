@@ -1,3 +1,24 @@
+veltos-desktop (1.4.0~dev1) trixie; urgency=medium
+
+  * Start: switching the All view (List, Category, Grid) is applied after
+    the View menu has closed, and the scroll bar's room is always kept, so
+    the category cards' width no longer follows the bar (a possible endless
+    layout loop); Start crashed switching from List to Category (product
+    owner, 2026-11-08).
+  * Start and search: Plasma's entries that did nothing on VeltOS are gone
+    (Pin to Task Manager, Edit Application, Manage, Add to Panel, Add to
+    Desktop's widget); Start pins apps to the taskbar itself and both make
+    a desktop shortcut file for an app.
+  * Faster with the same look: VeltOS' fading popups fade out over 200 ms
+    instead of KWin's 600 ms (KWin's work opening and closing Start in
+    software rendering 87-92 % -> 55 % of a core); the caret of Start's and
+    search's fields stops blinking five seconds after the last key, like
+    Windows' (Start left open: 18 % -> 0 %).
+  * The AI button's "Hide from taskbar" takes effect after its menu has
+    closed.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 08 Nov 2026 05:10:00 +0000
+
 veltos-desktop (1.3.0) trixie; urgency=medium
 
   * VeltOS 1.3.

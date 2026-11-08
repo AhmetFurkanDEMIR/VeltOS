@@ -3,6 +3,41 @@
 Newest entries first. Record what was done, what was verified and what
 went wrong, so the next person can trust the state of the repository.
 
+## 2026-11-08 — Items 170-175: Start's view switch, stopwatch, crash checks, speed
+
+- The product owner: Start crashes when its view is switched (from List to
+  Category), Clock's stopwatch does not work, make the system faster
+  without giving up animations or transparency, find crashes and bugs,
+  then a new release.
+- Start: not reproduced in the dev VM (`start-view-stress.sh` switches
+  the view through Plasma's script interface, the configuration key the
+  View menu writes; `start-view-matrix.sh` at 14 sizes and scales). The
+  VM's only plasmashell core dumps were from `systemctl --user restart`
+  (exit path, KWindowShadow/Wayland). Plasma's ScrollView reserves the
+  scroll bar's room only while the bar shows
+  (`org/kde/plasma/components/ScrollView.qml`: `rightPadding:
+  ScrollBar.vertical.visible ? ...`), and the grid view visibly moved
+  when the bar went away: the category cards' size follows that width,
+  so the bar could come and go for ever at some sizes. Start keeps the
+  room always and applies the switch after the menu has closed.
+- Stopwatch: `readonly property real stopwatchElapsed: stopwatchBase +
+  (Date.now() - stopwatchStart)` is evaluated once; the 33 ms timer only
+  changed a counter. Calendar's now line had `new Date()` in a binding.
+- Speed (KWin and plasmashell CPU from /proc in the VM, `perf-scenes.sh`):
+  Start open and idle repainted twice a second (QSG render timing showed
+  one window at 2 frames/s: the caret); KWin's fadingpopups made Start's
+  open/close cost 87-92 % of a core against 37 % without it, read in its
+  `main.js`: fade-out `animationTime(150) * 4` with OutQuart. VeltOS'
+  copy fades out over 200 ms (55 %). The caret now stops after five
+  seconds like Windows' (0 % while Start sits open).
+- Crash checks: `app-exit-test.sh` (21 apps, Alt+F4), eight apps through
+  four light/dark switches, sign-out, SIGSEGV to plasmashell: no crash.
+  Found on the way: Start's and search's KDE menu entries that do
+  nothing on VeltOS (the taskbar is locked; kmenuedit and Discover are
+  not installed; "Add to Desktop" adds a widget), Task Manager naming
+  Settings "Add a device" and Store "App Installer".
+- Evidence: `tests/results/2026-11-08-start-stopwatch-speed/`.
+
 ## 2026-11-08 — VeltOS 1.3 published by GitHub Actions
 
 - Run 42420240675 of `.github/workflows/release.yml` for 9602605, all

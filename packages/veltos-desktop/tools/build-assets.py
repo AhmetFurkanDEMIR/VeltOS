@@ -429,6 +429,13 @@ def build_static_config(root):
             # their own QML animation; the flyouts fade in (fadingpopups).
             "\n[Plugins]\n"
             "slidingpopupsEnabled=false\n"
+            # KWin's "Fading Popups" painted every closed popup for 600 ms,
+            # most of it nearly invisible, with the blur behind it: more than
+            # half of KWin's work opening and closing Start in software
+            # rendering (2026-11-08). VeltOS' copy fades out over 200 ms
+            # (kwin/effects/veltosfadingpopups).
+            "fadingpopupsEnabled=false\n"
+            "veltosfadingpopupsEnabled=true\n"
             # Acrylic everywhere: KWin 6.3.6 leaves blur and background
             # contrast off by default where it renders in software (llvmpipe:
             # VirtualBox without 3D acceleration, QEMU; BlurEffect::

@@ -174,6 +174,41 @@ PlasmoidItem {
         }
     }
 
+    // The text caret as on Windows: it blinks while typing and stays on five
+    // seconds after the last key or move (Windows' CaretTimeout). Qt's own
+    // caret blinks for ever, and every blink repainted the whole see-through
+    // window with the blur behind it: 18 % of a core with Start just open
+    // in software rendering (dev VM, 2026-11-08). Set as a field's
+    // cursorDelegate, which Qt then leaves to blink on its own.
+    component Caret: Rectangle {
+        id: caret
+        readonly property Item field: parent
+        property bool on: true
+        property int blinks: 0
+        function restart() {
+            blinks = 0;
+            on = true;
+        }
+        width: 1
+        color: Kirigami.Theme.textColor
+        visible: !!field && field.cursorVisible && on
+        Timer {
+            interval: Math.max(250, Qt.styleHints.cursorFlashTime / 2)
+            repeat: true
+            running: !!caret.field && caret.field.cursorVisible && caret.blinks < 10
+            onTriggered: {
+                caret.blinks += 1;
+                caret.on = caret.blinks >= 10 ? true : !caret.on;
+            }
+        }
+        Connections {
+            target: caret.field
+            function onCursorPositionChanged() { caret.restart(); }
+            function onTextChanged() { caret.restart(); }
+            function onCursorVisibleChanged() { caret.restart(); }
+        }
+    }
+
     // --- The search window -----------------------------------------------
     fullRepresentation: FocusScope {
         id: panel
@@ -236,8 +271,27 @@ PlasmoidItem {
             else
                 launch(panel.results, panel.current);
         }
-        function openActions(anchor, model, index, actions, shortcutPath) {
-            const menuActions = actions ? Array.from(actions) : [];
+        // Plasma's entries that do nothing on VeltOS (as in Start): "Pin to
+        // Task Manager" (locked taskbar), "Edit Application..." and "Manage"
+        // (kmenuedit and Discover are not installed), "Add to Panel", and
+        // "Add to Desktop" (a widget, not a shortcut). 2026-11-08.
+        readonly property var hiddenActions: ["addToTaskManager", "editApplication", "manageApplication",
+                                              "addToPanel", "addToDesktop"]
+
+        function openActions(anchor, model, index, actions, shortcutPath, appId) {
+            let menuActions = (actions ? Array.from(actions) : []).filter(a => !hiddenActions.includes(a.actionId));
+            menuActions = menuActions.filter((a, i, all) => a.type !== "separator"
+                                             || (i > 0 && i < all.length - 1 && all[i - 1].type !== "separator"));
+            // An app: a shortcut on the desktop (a launcher file, as in Start).
+            const desktopId = String(appId || "").replace(/^applications:/, "");
+            if (!shortcutPath && /^[A-Za-z0-9._-]+\.desktop$/.test(desktopId)) {
+                menuActions.unshift({
+                    text: i18n("Create shortcut on desktop"),
+                    icon: "list-add",
+                    actionId: "_veltos_create_shortcut",
+                    actionArgument: desktopId,
+                });
+            }
             if (shortcutPath) {
                 if (menuActions.length > 0)
                     menuActions.push({ type: "separator" });
@@ -292,6 +346,7 @@ PlasmoidItem {
                 id: searchField
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
+                cursorDelegate: Caret {}
                 placeholderText: i18n("Search for apps, settings and documents")
                 // See-through on the window's acrylic, as Start's field (a
                 // solid white or black box before, product owner 2026-11-07).
@@ -365,7 +420,8 @@ PlasmoidItem {
                         Accessible.name: model.display
                         onClicked: mouse => {
                             if (mouse.button === Qt.RightButton)
-                                panel.openActions(topApp, topApps.model, index, topApp.model.actionList);
+                                panel.openActions(topApp, topApps.model, index, topApp.model.actionList, "",
+                                                  topApp.model.favoriteId);
                             else
                                 panel.launch(topApps.model, index);
                         }
@@ -451,7 +507,7 @@ PlasmoidItem {
                                 onClicked: mouse => {
                                     if (mouse.button === Qt.RightButton)
                                         panel.openActions(row, panel.results, index, row.model.actionList,
-                                                          root.localDocumentPath(row.model));
+                                                          root.localDocumentPath(row.model), row.model.favoriteId);
                                     else
                                         panel.launch(panel.results, index);
                                 }

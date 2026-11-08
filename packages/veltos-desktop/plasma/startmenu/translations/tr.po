@@ -76,6 +76,12 @@ msgstr "Başlat'a sabitle"
 msgid "Unpin from Start"
 msgstr "Başlat'tan kaldır"
 
+msgid "Pin to taskbar"
+msgstr "Görev çubuğuna sabitle"
+
+msgid "Unpin from taskbar"
+msgstr "Görev çubuğundan sabitlemeyi kaldır"
+
 msgid "Create shortcut on desktop"
 msgstr "Masaüstünde kısayol oluştur"
 

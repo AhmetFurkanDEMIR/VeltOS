@@ -8,7 +8,29 @@ from urllib.parse import unquote, urlsplit
 from . import ops, strings
 
 
+def application_file(desktop_id, environ=None):
+    """The file of an installed app's desktop id ("veltos-calculator.desktop"),
+    looked up as menus do: XDG_DATA_HOME first, then XDG_DATA_DIRS."""
+    import os
+    environ = os.environ if environ is None else environ
+    home = environ.get("XDG_DATA_HOME") or str(Path(environ.get("HOME", str(Path.home()))) / ".local/share")
+    dirs = [home] + [d for d in (environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share").split(":") if d]
+    for directory in dirs:
+        candidate = Path(directory) / "applications" / desktop_id
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 def source_path(argument):
+    # Start's app entries pass their desktop id: a shortcut to the app, as
+    # Windows makes from Start (2026-11-08; Plasma's "Add to Desktop" put a
+    # widget on the desktop instead).
+    if "/" not in argument and argument.endswith(".desktop") and not Path(argument).exists():
+        found = application_file(argument)
+        if found is None:
+            raise ValueError(f"No app {argument}")
+        return found
     parsed = urlsplit(argument)
     if parsed.scheme:
         if parsed.scheme != "file" or parsed.netloc not in ("", "localhost"):

@@ -1,7 +1,7 @@
 /*
     Context menu for Start menu items. Shows the item's own actions from
-    Plasma's models (e.g. "Add to Desktop", "Edit Application…") plus
-    "Pin to Start"/"Unpin from Start".
+    Plasma's models (e.g. "Add to Desktop") plus "Pin to Start"/"Unpin from
+    Start" and "Pin to taskbar"/"Unpin from taskbar".
 
     Adapted from KDE Kickoff's ActionMenu.qml
     (SPDX-FileCopyrightText: 2013 Aurélien Gâteau, 2021 Noah Davis;
@@ -24,6 +24,7 @@ Item {
     signal pinRequested(string favoriteId)
     signal unpinRequested(string favoriteId)
     signal shortcutRequested(string source)
+    signal taskbarPinRequested(string desktopId, bool pinned)
     signal closeRequested()
 
     readonly property PlasmaExtras.Menu menu: PlasmaExtras.Menu {
@@ -53,6 +54,9 @@ Item {
                     root.pinRequested(modelData.actionArgument);
                 } else if (actionId === "_veltos_unpin") {
                     root.unpinRequested(modelData.actionArgument);
+                } else if (actionId === "_veltos_pin_taskbar" || actionId === "_veltos_unpin_taskbar") {
+                    root.taskbarPinRequested(String(modelData.actionArgument ?? ""),
+                                             actionId === "_veltos_pin_taskbar");
                 } else if (actionId === "_veltos_create_shortcut") {
                     root.shortcutRequested(String(modelData.actionArgument ?? ""));
                     root.closeRequested();

@@ -1726,6 +1726,26 @@ were measured (below).
   product); "Meta" (KDE's word, unknown to most people). ".exe" is what
   people see on the files, "Super" what Linux calls the key.
 
+### 2.60 Fewer frames, the same look (2026-11-08)
+
+- Decision: VeltOS keeps every animation and the see-through surfaces and
+  removes frames nobody sees. KWin's "Fading Popups" is replaced by a copy
+  (`kwin/effects/veltosfadingpopups`, same windows, same 150 ms fade-in)
+  whose fade-out lasts 200 ms instead of 600 ms; text carets in Start,
+  search and Settings stop blinking five seconds after the last key.
+- Why: the product owner asked for a faster system without giving up
+  animations or transparency. In software rendering (VirtualBox without
+  3D, QEMU) each frame of a see-through popup makes KWin redraw the blur
+  and contrast behind it: KWin's 600 ms OutQuart fade-out (invisible after
+  about 250 ms) and a caret blinking twice a second were most of KWin's
+  work around Start (development log, 2026-11-08). Windows' own caret
+  stops blinking after five seconds (CaretTimeout).
+- Alternatives: turning popup fades off (37 % instead of 55 % of a core,
+  but popups would appear and vanish without a fade); weaker blur or
+  opaque surfaces in software rendering (gives up the look); a solid caret
+  everywhere (a visible change from Windows); patching KWin (Debian's
+  package stays as it is; a scripted effect is a file in VeltOS' package).
+
 ## 3. Licensing and redistribution
 
 - VeltOS code: GPL-3.0-or-later (`LICENSE`). VeltOS artwork:

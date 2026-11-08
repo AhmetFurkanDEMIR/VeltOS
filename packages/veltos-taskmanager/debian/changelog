@@ -1,3 +1,14 @@
+veltos-taskmanager (1.4.0~dev1) trixie; urgency=medium
+
+  * Settings and VeltOS Store are listed under their own names among the
+    apps: hidden helper entries that start them with arguments ("Add a
+    device", "App Installer") sorted first and named them, as background
+    processes.
+  * A program running as a service without a window (File Explorer's file
+    dialog backend, --portal) is a background process, not an app.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 08 Nov 2026 05:10:00 +0000
+
 veltos-taskmanager (1.1.0) trixie; urgency=medium
 
   * VeltOS 1.1.

@@ -264,8 +264,15 @@ FocusScope {
         groups = result;
     }
 
+    // Applied once the View menu has closed: the switch destroys and makes
+    // every tile of the "All" section, which must not happen inside the
+    // menu's own click handling (Start crashed switching from List to
+    // Category; product owner, 2026-11-08).
     function setAllView(view) {
-        Plasmoid.configuration.allAppsView = view;
+        if (view === allView) {
+            return;
+        }
+        Qt.callLater(() => { Plasmoid.configuration.allAppsView = view; });
     }
 
     function openCategory(group) {
@@ -285,9 +292,76 @@ FocusScope {
         }
     }
 
-    // Right-click menu for an item: its own actions plus Pin/Unpin to Start.
+    // Plasma's own entries that do nothing on VeltOS: "Pin to Task Manager"
+    // (the taskbar's applets are locked), "Edit Application..." (kmenuedit is
+    // not installed), "Manage" (Discover is not installed) and "Add to
+    // Panel"; "Add to Desktop" put a widget on the desktop, not a shortcut.
+    // VeltOS adds its own "Pin to taskbar" and "Create shortcut on desktop"
+    // (a launcher file, as Windows makes; 2026-11-08).
+    readonly property var hiddenActions: ["addToTaskManager", "editApplication", "manageApplication", "addToPanel",
+                                          "addToDesktop"]
+
+    // The taskbar's launcher list through Plasma's script interface:
+    // BODY runs with `w` (the taskbar) and `l` (its launchers, an array).
+    function taskbarScript(body) {
+        return "qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '"
+            + "for (const p of panels()) for (const w of p.widgets(\"org.kde.plasma.icontasks\")) {"
+            + " w.currentConfigGroup = [\"General\"];"
+            + " const l = JSON.parse(JSON.stringify(w.readConfig(\"launchers\", []))); "
+            + body + " }'";
+    }
+
+    function setTaskbarPin(desktopId, pinned) {
+        if (!/^[A-Za-z0-9._-]+\.desktop$/.test(desktopId)) {
+            return;
+        }
+        const launcher = "applications:" + desktopId;
+        taskbarSource.connectSource(taskbarScript(pinned
+            ? "if (l.indexOf(\"" + launcher + "\") < 0) l.push(\"" + launcher + "\"); w.writeConfig(\"launchers\", l);"
+            : "w.writeConfig(\"launchers\", l.filter(x => x !== \"" + launcher + "\"));"));
+    }
+
+    // Right-click menu for an item: its own actions plus Pin/Unpin to Start
+    // and, for apps, to the taskbar. The taskbar's pins are asked for first
+    // (a few milliseconds), then the menu opens.
     function openActionMenu(visualParent, model, index, actionList, favoriteId, shortcutPath) {
-        let actions = actionList ? Array.from(actionList) : [];
+        const request = { visualParent: visualParent, model: model, index: index, actionList: actionList,
+                          favoriteId: favoriteId, shortcutPath: shortcutPath };
+        if (favoriteId && /^[A-Za-z0-9._-]+\.desktop$/.test(favoriteId)) {
+            taskbarQuery.request = request;
+            taskbarQuery.connectSource(taskbarScript("print(JSON.stringify(l));") + " #" + Date.now());
+            return;
+        }
+        showActionMenu(request, null);
+    }
+
+    function showActionMenu(request, launchers) {
+        const visualParent = request.visualParent, model = request.model, index = request.index,
+              actionList = request.actionList, favoriteId = request.favoriteId, shortcutPath = request.shortcutPath;
+        let actions = (actionList ? Array.from(actionList) : []).filter(a => !hiddenActions.includes(a.actionId));
+        if (favoriteId && /^[A-Za-z0-9._-]+\.desktop$/.test(favoriteId)) {
+            actions.unshift({
+                text: i18n("Create shortcut on desktop"),
+                icon: "list-add",
+                actionId: "_veltos_create_shortcut",
+                actionArgument: favoriteId,
+            });
+        }
+        if (launchers !== null) {
+            const pinnedThere = launchers.includes("applications:" + favoriteId);
+            if (actions.length > 0 && actions[actions.length - 1].type !== "separator") {
+                actions.push({ type: "separator" });
+            }
+            actions.push({
+                text: pinnedThere ? i18n("Unpin from taskbar") : i18n("Pin to taskbar"),
+                icon: pinnedThere ? "window-unpin" : "window-pin",
+                actionId: pinnedThere ? "_veltos_unpin_taskbar" : "_veltos_pin_taskbar",
+                actionArgument: favoriteId,
+            });
+        }
+        // No separator at either end or twice in a row once entries are gone.
+        actions = actions.filter((a, i, all) => a.type !== "separator"
+                                 || (i > 0 && i < all.length - 1 && all[i - 1].type !== "separator"));
         if (shortcutPath) {
             if (actions.length > 0)
                 actions.push({ type: "separator" });
@@ -308,6 +382,9 @@ FocusScope {
                 actionId: pinned ? "_veltos_unpin" : "_veltos_pin",
                 actionArgument: favoriteId,
             });
+        }
+        while (actions.length > 0 && actions[actions.length - 1].type === "separator") {
+            actions.pop();
         }
         if (actions.length === 0) {
             return;
@@ -336,6 +413,35 @@ FocusScope {
         function onSystemFavoritesModelChanged() {
             menu.ensureSystemModel();
         }
+    }
+
+    P5Support.DataSource {
+        id: taskbarQuery
+        property var request: null
+        engine: "executable"
+        connectedSources: []
+        onNewData: (source, data) => {
+            disconnectSource(source);
+            let launchers = null;
+            try {
+                const value = JSON.parse((data["stdout"] || "").trim().split("\n")[0] || "null");
+                launchers = Array.isArray(value) ? value : null;
+            } catch (error) {
+                launchers = null;
+            }
+            if (request) {
+                const pending = request;
+                request = null;
+                menu.showActionMenu(pending, launchers);
+            }
+        }
+    }
+
+    P5Support.DataSource {
+        id: taskbarSource
+        engine: "executable"
+        connectedSources: []
+        onNewData: source => disconnectSource(source)
     }
 
     P5Support.DataSource {
@@ -447,6 +553,7 @@ FocusScope {
         onPinRequested: favoriteId => menu.favoritesModel.addFavorite(favoriteId)
         onUnpinRequested: favoriteId => menu.favoritesModel.removeFavorite(favoriteId)
         onShortcutRequested: source => menu.createDesktopShortcut(source)
+        onTaskbarPinRequested: (desktopId, pinned) => menu.setTaskbarPin(desktopId, pinned)
         onCloseRequested: menu.close()
     }
 
@@ -454,6 +561,41 @@ FocusScope {
 
     // --- Reusable item visuals ---------------------------------------------
     // (Inline components cannot see ids of this file, so no `menu.` in them.)
+
+    // The text caret as on Windows: it blinks while typing and stays on five
+    // seconds after the last key or move (Windows' CaretTimeout). Qt's own
+    // caret blinks for ever, and every blink repainted the whole see-through
+    // window with the blur behind it: 18 % of a core with Start just open
+    // in software rendering (dev VM, 2026-11-08). Set as a field's
+    // cursorDelegate, which Qt then leaves to blink on its own.
+    component Caret: Rectangle {
+        id: caret
+        readonly property Item field: parent
+        property bool on: true
+        property int blinks: 0
+        function restart() {
+            blinks = 0;
+            on = true;
+        }
+        width: 1
+        color: Kirigami.Theme.textColor
+        visible: !!field && field.cursorVisible && on
+        Timer {
+            interval: Math.max(250, Qt.styleHints.cursorFlashTime / 2)
+            repeat: true
+            running: !!caret.field && caret.field.cursorVisible && caret.blinks < 10
+            onTriggered: {
+                caret.blinks += 1;
+                caret.on = caret.blinks >= 10 ? true : !caret.on;
+            }
+        }
+        Connections {
+            target: caret.field
+            function onCursorPositionChanged() { caret.restart(); }
+            function onTextChanged() { caret.restart(); }
+            function onCursorVisibleChanged() { caret.restart(); }
+        }
+    }
 
     // Rounded hover/selection backdrop used by every clickable item.
     component Highlight: Rectangle {
@@ -721,6 +863,7 @@ FocusScope {
             Layout.bottomMargin: Kirigami.Units.largeSpacing
             implicitHeight: Math.round(Kirigami.Units.gridUnit * 2.2)
             focus: true
+            cursorDelegate: Caret {}
             placeholderText: i18n("Search for apps, settings and documents")
             // Rounded "pill" field like Windows 11's Start search: a
             // see-through layer on Start's acrylic in both modes (a solid
@@ -760,6 +903,12 @@ FocusScope {
             visible: !menu.searching && menu.page === "home"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            // The scroll bar's room is always kept: Plasma's ScrollView gives
+            // it only while the bar shows, so the content's width followed
+            // the bar, and content whose height follows its width (the
+            // category cards) could make the bar come and go for ever
+            // (AGENTS.md, ScrollView loops; 2026-11-08).
+            rightPadding: PC3.ScrollBar.vertical.width
             contentWidth: availableWidth
             PC3.ScrollBar.horizontal.policy: PC3.ScrollBar.AlwaysOff
 
@@ -1127,6 +1276,8 @@ FocusScope {
                 id: categoryView
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                // The bar's room is always kept (see homeView).
+                rightPadding: PC3.ScrollBar.vertical.width
                 contentWidth: availableWidth
 
                 GridLayout {

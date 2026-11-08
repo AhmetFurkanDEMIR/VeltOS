@@ -524,6 +524,16 @@ class SettingsWindowTests(unittest.TestCase):
         self.assertTrue(self.window.activeFocusItem() is not None
                         and self.window.activeFocusItem().parentItem().parentItem() == search)
         typing = search.property("color")
+        # Its caret is VeltOS' (Caret.qml): it stops blinking like Windows'.
+        carets = []
+
+        def walk(item):
+            if item.property("blinks") is not None:
+                carets.append(item)
+            for child in item.childItems():
+                walk(child)
+        walk(search)
+        self.assertEqual(len(carets), 1)
         self.assertLess(resting, 255)
         self.assertLess(typing.alpha(), 255)
         self.assertGreater(typing.alpha(), 0)

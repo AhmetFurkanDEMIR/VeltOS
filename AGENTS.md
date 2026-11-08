@@ -60,7 +60,7 @@ owner sets priorities; agents act as the engineering team.
 | `build/scripts/` | In-container scripts: package build, ISO build, and what keeps the ISO under 2 GiB (`trim-pool.py`, `shrink-initrd.py`, run by binary hooks 9200/9300); the release's tools (`release-bump.py`, `release-check.py`, `release-notes.py`, `make-apt-repo.sh`, `update-site.py`) |
 | `build/live-build/` | live-build config: `auto/config` (options), package lists, APT pins, hooks, GRUB menu/theme, boot splash |
 | `packages/veltos-base/` | VeltOS `os-release` identity (dpkg diversion) |
-| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin scripts `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and `veltosscreenwatch` (the taskbar back after a screen change) and effect `kwin/effects/veltostoast` (toasts slide in); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
+| `packages/veltos-desktop/` | Global themes (Light default), Windows 11 style taskbar + VeltOS Start menu, Windows 11 look derived from Fluent-kde (Kvantum style, Aurorae frames, Plasma theme, colour schemes), Windows-familiar app names (menus and window titles), File Explorer defaults, sign-in screen (SDDM theme), generated wallpapers (Bloom default, Flow, Glow, Lake), splash, Ctrl+Alt+Del screen, locked taskbar and its menus, Plasma overrides (toasts, tray flyouts, taskbar menus, the desktop's Windows 11 menus / New / protected icons), volume OSD at the bottom, master logo, software rendering where the display driver has no OpenGL (VirtualBox without 3D: `needs-software-rendering`, session and sign-in screen), Plasma's own services without the portal platform theme (session start); KWin scripts `kwin/scripts/veltostaskbarpreview` (taskbar window previews, Peek) and `veltosscreenwatch` (the taskbar back after a screen change) and effects `kwin/effects/veltostoast` (toasts slide in) and `veltosfadingpopups` (KWin's popup fade with a 200 ms fade-out; KWin's own is off); the desktop guard (`system/veltos-desktop-guard`, D-Bus system service keeping This PC, Recycle Bin and Store on the desktop) |
 | `packages/veltos-settings/` | VeltOS Settings: Windows 11 style settings app (PySide6/QML; its own frame with Mica, `frame.py` as in Media Player, back button and search in the title bar, colour navigation icons `qml/icons/nav-*.svg`), every page built in (network, devices, display, sound, power, notifications, personalization, apps, accounts, time & language, accessibility, privacy, Maps location access); diverts `systemsettings`/`kcmshell6`/`kinfocenter`/`keditfiletype` to itself so KDE's settings window never opens (the `*.kde` originals root-only); Personalization > Taskbar (`taskbar.py`); privileged AccountsService calls in one process (`admin_calls.py`); Mobile hotspot (`hotspot.py`, also `/usr/libexec/veltos/hotspot` for Quick Settings; `/usr/libexec/veltos/hotspot-interface`, pkexec, adds the `veltos-ap` interface that shares the Wi-Fi card's own connection); Apps > VeltOS AI (`assistant.py`); Windows + P and the chooser on a new screen (`project.py`, `kscreen_osd.py` owning KScreen's `org.kde.kscreen.osdService`); the VeltOS Bluetooth agent (`btagent.py`, `/usr/libexec/veltos/bt-agent`) and its Add a device window (`btpair.py`, `--bt-pair`); the VeltOS network agent (`nmagent.py`, `/usr/libexec/veltos/network-agent`, NetworkManager's Wi-Fi key requests) and its Connect to a network window (`wifikey.py`, `--wifi-key`); Accessibility > Mouse pointer (`pointer.py`: style, custom colour, size; follows light/dark mode through `/usr/libexec/veltos/pointer-style`); Accounts > Sign-in options' password hint and reset USB (`resetusb.py`) |
 | `packages/veltos-explorer/` | VeltOS File Explorer: Windows 11 File Explorer layout (tabs in the title bar, command bar, Home, This PC, Recycle Bin), file operations through KIO (`kioclient`); default for folders. This PC offers Format for eligible drives through VeltOS Disk Management and distinguishes USB, removable and fixed Windows drives. Also the Windows 11 file dialog of every program (`--pick`; `--portal` = the xdg-desktop-portal FileChooser backend) and the "Select an app to open this file" window (`--open-with`), and the Windows 11 Properties window (`--properties`, also from the desktop); Windows 11's copy window (`--transfer`, `transfer.py`) and "Delete File" (`--delete-permanently`); no KIO windows: the Recycle Bin through GLib (`--recycle`, `removal.py`), deleting (`--remove`), launchers and programs with "Open File - Security Warning" (`--run`, `runprogram.py`); the portal's Access and Account requests in its question window (`--question`) |
 | `packages/veltos-auth/` | VeltOS authentication prompt: polkit agent (GLib) + a window in the layout of Windows 11's User Account Control (PySide6/QML); the password goes through polkit's own helper; KDE's agent service masked; the password reset USB (`recovery.py`, `/usr/libexec/veltos/password-recovery`: key on the stick, scrypt hash in `/var/lib/veltos/recovery`, socket service on 127.0.0.1:47824 for the sign-in screen only) |
@@ -1536,3 +1536,42 @@ and JavaScript with no build step, no external requests and no cookies:
   Rectangle clips to its square bounds, not its radius. Popups with
   `modal: true` need `Overlay.modal: Scrim {}` or the dim covers the
   shadow margin too.
+
+- Speed in software rendering (2026-11-08): every frame of a see-through
+  window makes KWin redraw the blur and contrast behind it, so needless
+  frames cost far more than on a GPU. KWin's "Fading Popups" faded every
+  closed popup out over 600 ms (`animationTime(150) * 4`, OutQuart; read
+  `/usr/share/kwin/effects/fadingpopups/contents/code/main.js`), invisible
+  for most of it: VeltOS ships `veltosfadingpopups` (200 ms) and turns
+  KWin's off in `/etc/xdg/kwinrc`. Qt's text caret blinks for ever and
+  each blink repainted a whole popup; VeltOS' `Caret` (Start, search,
+  Settings) stops after five seconds like Windows' caret. A QML item
+  given as `cursorDelegate` blinks on its own: Qt then runs no blink
+  timer. Measure with `/usr/local/lib/veltos-dev/measure-kwin.sh` (CPU of
+  kwin_wayland and plasmashell from /proc) and count frames with
+  `QT_LOGGING_RULES=qt.scenegraph.time.renderloop.debug=true` in
+  plasmashell's environment (`systemctl --user set-environment`, then
+  restart it).
+- A QML binding on `Date.now()` or `new Date()` is evaluated once: the
+  time is no dependency (Clock's stopwatch stood at 00:00.00, Calendar's
+  "now" line did not move). Read the clock in a function the binding calls
+  with a property a Timer changes, or set the property from the Timer.
+- Plasma's `PC3.ScrollView` sets `rightPadding` to the scroll bar's width
+  only while the bar is visible: content sized by its width can make the
+  bar come and go for ever. Start sets `rightPadding:
+  PC3.ScrollBar.vertical.width` (the room is always kept).
+- Kicker's app actions on VeltOS: "Pin to Task Manager"
+  (`addToTaskManager`) does nothing on the locked taskbar, "Edit
+  Application..." and "Manage" start kmenuedit and Discover (not
+  installed), "Add to Desktop" adds a Plasma widget. Start and search
+  leave them out (`hiddenActions`); Start changes the taskbar's
+  `launchers` through `qdbus6 org.kde.plasmashell /PlasmaShell
+  evaluateScript` (`w.readConfig("launchers")` returns an array-like
+  object: copy it with `JSON.parse(JSON.stringify(...))`). Plasma's script
+  interface also changes an applet's configuration live
+  (`w.writeConfig(key, value)`), useful for stress tests
+  (`tests/results/2026-11-08-start-stopwatch-speed/start-view-stress.sh`).
+- `systemctl --user restart plasma-plasmashell` dumps a core on the old
+  plasmashell's way out (KWindowShadow after the Wayland connection is
+  gone, KF6); signing out does not. Do not count those dumps as crashes of
+  a change under test.

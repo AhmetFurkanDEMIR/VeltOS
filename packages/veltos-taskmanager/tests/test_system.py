@@ -28,6 +28,18 @@ def app_index():
           "[Desktop Entry]\nType=Application\nName=Settings\nName[tr]=Ayarlar\nExec=veltos-settings\nIcon=veltos-settings\n")
     write(apps / "org.kde.kded.desktop",
           "[Desktop Entry]\nType=Application\nName=KDE Daemon\nExec=kded6\nNoDisplay=true\n")
+    # Hidden helper entries that start an app with arguments sort before
+    # the app's own entry (VeltOS Settings' "Add a device", Store's "App
+    # Installer"); the app keeps its own name.
+    write(apps / "veltos-bluetooth-pair.desktop",
+          "[Desktop Entry]\nType=Application\nName=Add a device\nExec=veltos-settings bluetooth\nNoDisplay=true\n")
+    write(apps / "veltos-package-installer.desktop",
+          "[Desktop Entry]\nType=Application\nName=App Installer\nExec=veltos-store --install-file %f\n"
+          "NoDisplay=true\n")
+    write(apps / "veltos-store.desktop",
+          "[Desktop Entry]\nType=Application\nName=VeltOS Store\nExec=veltos-store\nIcon=veltos-store\n")
+    write(apps / "veltos-explorer.desktop",
+          "[Desktop Entry]\nType=Application\nName=File Explorer\nName[tr]=Dosya Gezgini\nExec=veltos-explorer %U\n")
     return apps
 
 
@@ -42,7 +54,28 @@ def sample_processes():
            rss=200 << 20, cpu=12.0)
     ps.add(1200, 1000, "python3", ["/usr/bin/python3", "/usr/bin/veltos-settings"], rss=80 << 20)
     ps.add(1300, 1000, "kded6", rss=60 << 20)
+    # File Explorer's file dialog backend: a service without a window.
+    ps.add(1450, 1000, "python3", ["/usr/bin/python3", "/usr/bin/veltos-explorer", "--portal"], rss=70 << 20)
     return ps
+
+
+class AppIndexTests(unittest.TestCase):
+    def test_the_apps_own_entry_names_it(self):
+        index = system.AppIndex(dirs=[app_index()], lang="en")
+        self.assertEqual(index.lookup("veltos-settings")["name"], "Settings")
+        self.assertEqual(index.lookup("veltos-store")["name"], "VeltOS Store")
+        self.assertFalse(index.lookup("veltos-store")["hidden"])
+        self.assertEqual(index.lookup("kded6")["name"], "KDE Daemon")        # only a hidden one
+        self.assertEqual(system.exec_arguments("env A=1 veltos-store --install-file %f"), ["--install-file"])
+        self.assertEqual(system.exec_arguments("/usr/lib/firefox-esr/firefox-esr %u"), [])
+
+    def test_the_first_directory_still_wins(self):
+        first, second = Path(tempfile.mkdtemp()), app_index()
+        write(first / "veltos-store-renamed.desktop",
+              "[Desktop Entry]\nType=Application\nName=Store (VeltOS name)\nExec=veltos-store --first-start\n"
+              "NoDisplay=true\n")
+        index = system.AppIndex(dirs=[first, second], lang="en")
+        self.assertEqual(index.lookup("veltos-store")["name"], "Store (VeltOS name)")
 
 
 class GroupingTests(unittest.TestCase):
@@ -63,6 +96,7 @@ class GroupingTests(unittest.TestCase):
         background = [b["name"] for b in groups["background"]]
         self.assertIn("plasmashell", background)
         self.assertIn("KDE Daemon", background)                       # hidden app: background
+        self.assertIn("Dosya Gezgini", background)                    # --portal: a service, no window
         system_names = [s["name"] for s in groups["system"]]
         self.assertEqual(sorted(system_names), ["NetworkManager", "systemd"])
         self.assertNotIn("kthreadd", system_names + background)       # kernel threads left out

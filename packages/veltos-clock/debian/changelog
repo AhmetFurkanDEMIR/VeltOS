@@ -1,3 +1,12 @@
+veltos-clock (1.4.0~dev1) trixie; urgency=medium
+
+  * The stopwatch counts: its time was a binding on Date.now(), worked out
+    only when it started, so it stood at 00:00.00 (product owner,
+    2026-11-08); Pause and Lap read the time when pressed, and it ticks only
+    while its page is shown.
+
+ -- VeltOS Developers <1ahmetfurkandemir@gmail.com>  Sun, 08 Nov 2026 05:10:00 +0000
+
 veltos-clock (1.1.0) trixie; urgency=medium
 
   * VeltOS 1.1.

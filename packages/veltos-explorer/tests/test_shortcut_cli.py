@@ -43,6 +43,28 @@ class ShortcutCliTests(unittest.TestCase):
             ("File Explorer", "Shortcut created on the desktop.")
         ])
 
+    def test_app_desktop_id_from_start_copies_its_launcher(self):
+        # Start passes an app's desktop id (Windows makes a shortcut there;
+        # Plasma's "Add to Desktop" put a widget on the desktop).
+        import os
+        from unittest import mock
+        data = self.home / "data"
+        (data / "applications").mkdir(parents=True)
+        launcher = data / "applications" / "veltos-calc.desktop"
+        launcher.write_text("[Desktop Entry]\nType=Application\nName=Calculator\nExec=veltos-calculator\n",
+                            encoding="utf-8")
+        environ = {"XDG_DATA_HOME": str(self.home / "nothing"), "XDG_DATA_DIRS": str(data)}
+        with mock.patch.dict(os.environ, environ), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(self.run_cli("veltos-calc.desktop"), 0)
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(self.run_cli("no-such-app.desktop"), 1)
+        shortcut = self.desktop / "veltos-calc - Shortcut.desktop"
+        self.assertTrue(shortcut.is_file())
+        self.assertFalse(shortcut.is_symlink())
+        self.assertTrue(os.access(shortcut, os.X_OK))
+        self.assertIn("Name=Calculator", shortcut.read_text(encoding="utf-8"))
+        self.assertTrue(self.notifications[-1][2])                                # the unknown app is reported
+
     def test_repeated_request_uses_a_unique_name(self):
         self.assertEqual(self.run_cli(str(self.source)), 0)
         self.assertEqual(self.run_cli(str(self.source)), 0)

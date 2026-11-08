@@ -169,6 +169,63 @@ class WindowTests(unittest.TestCase):
         self.assertEqual(self.problems(), [])
 
 
+    def test_stopwatch_counts_pauses_and_laps(self):
+        # It stood at 00:00.00: its time was a binding on Date.now(), which
+        # QML never evaluates again (product owner, 2026-11-08).
+        import re
+        import time
+        import PySide6.QtQuick  # noqa: F401  (the window is then a QQuickWindow with contentItem())
+        from PySide6.QtCore import Q_RETURN_ARG, QEventLoop, QMetaObject, QTimer
+        from veltos_clock import app as clock
+        self.messages.clear()
+        backend = clock.Backend(lang=self.lang, path=Path(tempfile.mkdtemp()) / "clock.json",
+                                start_page="stopwatch")
+        engine = QQmlApplicationEngine()
+        engine.rootContext().setContextProperty("backend", backend)
+        engine.load(QUrl.fromLocalFile(str(clock.QML_DIR / "Main.qml")))
+        window = engine.rootObjects()[0]
+        window.setProperty("page", "stopwatch")
+
+        def wait(ms):
+            loop = QEventLoop()
+            QTimer.singleShot(ms, loop.quit)
+            loop.exec()
+
+        def shown():
+            found = []
+
+            def walk(item):
+                text = item.property("text")
+                if isinstance(text, str) and re.fullmatch(r"\d\d:\d\d\.\d\d", text):
+                    found.append(text)
+                for child in item.childItems():
+                    walk(child)
+            walk(window.contentItem())
+            return found
+
+        window.setProperty("stopwatchStart", time.time() * 1000 - 1500)
+        window.setProperty("stopwatchRunning", True)
+        wait(150)
+        self.assertGreater(window.property("stopwatchElapsed"), 1.4)
+        self.assertTrue(any(t.startswith("00:01.") for t in shown()), shown())
+        first = window.property("stopwatchElapsed")
+        wait(150)
+        self.assertGreater(window.property("stopwatchElapsed"), first)          # it keeps counting
+        now = QMetaObject.invokeMethod(window, "stopwatchNow", Q_RETURN_ARG("QVariant"))
+        self.assertGreater(now, 1.6)
+        window.setProperty("stopwatchBase", now)                                # what Pause does
+        window.setProperty("stopwatchRunning", False)
+        wait(100)
+        paused = window.property("stopwatchElapsed")
+        wait(150)
+        self.assertAlmostEqual(window.property("stopwatchElapsed"), paused, places=3)
+        engine.deleteLater()
+        self.app.processEvents()
+        backend.deleteLater()
+        self.app.processEvents()
+        self.assertEqual(self.problems(), [])
+
+
 class TurkishWindowTests(WindowTests):
     lang = "tr"
 

@@ -1,0 +1,7 @@
+idle: kwin 0.0% plasmashell 0.0% over 15s
+start-open-close: kwin 55.9% plasmashell 7.5% over 20s
+start-scroll: 
+start-open-idle: kwin 10.1% plasmashell 1.7% over 15s
+search-typing: kwin 25.6% plasmashell 5.1% over 15s
+quick-settings: kwin 22.1% plasmashell 3.8% over 15s
+taskbar-hover: kwin 2.7% plasmashell 1.3% over 15s
