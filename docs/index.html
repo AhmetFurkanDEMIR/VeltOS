@@ -76,7 +76,14 @@
       ],
       "featureList": ["Windows 11 style desktop", "VeltOS AI assistant", "File Explorer", "Settings", "VeltOS Store", "Office", "Windows programs through Wine", "Automatic Repair", "Disk encryption", "English and Turkish"],
       "author": {"@id": "https://veltos.ahmetfurkandemir.com/#author"},
-      "codeRepository": "https://github.com/AhmetFurkanDEMIR/VeltOS"
+      "codeRepository": "https://github.com/AhmetFurkanDEMIR/VeltOS",
+      "sameAs": [
+        "https://github.com/AhmetFurkanDEMIR/VeltOS",
+        "https://distrowatch.com/table.php?distribution=veltos",
+        "https://www.producthunt.com/products/veltos",
+        "https://sourceforge.net/projects/veltos/",
+        "https://alternativeto.net/software/veltos/about/"
+      ]
     },
     {
       "@type": "Person",
@@ -493,11 +500,13 @@
           <img class="img-light" src="assets/img/light-update.webp" alt="Settings › VeltOS Update with a new release and its notes" width="1920" height="1080" loading="lazy" decoding="async" data-i18n-attr="alt:alt.update">
           <img class="img-dark" src="assets/img/dark-update.webp" alt="Settings › VeltOS Update with a new release and its notes" width="1920" height="1080" loading="lazy" decoding="async" data-i18n-attr="alt:alt.update">
         </button>
-        <div class="toast" aria-hidden="true">
+        <!-- The notification names the newest release, and its button opens
+             that release's notes on GitHub (releases/latest follows it). -->
+        <div class="toast">
           <p class="toast-app"><img src="assets/icons/veltos-settings.svg" alt="" width="16" height="16" loading="lazy"> <span data-i18n="upd.toast.app">VeltOS Update</span></p>
-          <strong data-i18n="upd.toast.t">VeltOS 1.1 is ready</strong>
+          <strong data-i18n="upd.toast.t">VeltOS <span data-release="version">1.4</span> is ready</strong>
           <span data-i18n="upd.toast.d">New features and fixes are ready to install. Your files and apps stay as they are.</span>
-          <span class="toast-btn" data-i18n="upd.toast.b">View update</span>
+          <a class="toast-btn" href="https://github.com/AhmetFurkanDEMIR/VeltOS/releases/latest" target="_blank" rel="noopener" data-i18n="upd.toast.b">View update</a>
         </div>
       </div>
     </div>
@@ -608,8 +617,51 @@
   </div>
 </section>
 
+<!-- Around the web: the sites' own logos, local copies (no external
+     requests); the LinuxLinks badge is the one LinuxLinks gives featured
+     projects, in its white and black versions. ----------------------------- -->
+<section id="press" class="section section-alt">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="kicker" data-i18n="press.kicker">Around the web</p>
+      <h2 data-i18n="press.title">Where VeltOS is featured</h2>
+      <p data-i18n="press.lead">Read about VeltOS, rate it and follow it on these sites.</p>
+    </div>
+    <div class="press-grid">
+      <a class="card press-card reveal" href="https://www.linuxlinks.com/veltos-debian-based-linux-distribution/" target="_blank" rel="noopener">
+        <span class="press-logo">
+          <img class="press-badge img-light" src="assets/logos/linuxlinks-badge-white.png" width="168" height="56" alt="Featured on LinuxLinks" data-i18n-attr="alt:press.ll.alt" loading="lazy">
+          <img class="press-badge img-dark" src="assets/logos/linuxlinks-badge-black.png" width="168" height="56" alt="Featured on LinuxLinks" data-i18n-attr="alt:press.ll.alt" loading="lazy">
+        </span>
+        <span class="press-text" data-i18n="press.ll.d">An article about VeltOS on LinuxLinks, the directory of Linux software.</span>
+        <span class="press-go">linuxlinks.com<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+      </a>
+      <a class="card press-card reveal" href="https://distrowatch.com/table.php?distribution=veltos" target="_blank" rel="noopener">
+        <span class="press-logo"><img src="assets/logos/distrowatch.png" width="44" height="44" alt="" loading="lazy"><span class="press-name">DistroWatch</span></span>
+        <span class="press-text" data-i18n="press.dw.d">VeltOS' page on DistroWatch: its releases, the packages it ships and visitors' ratings.</span>
+        <span class="press-go">distrowatch.com<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+      </a>
+      <a class="card press-card reveal" href="https://www.producthunt.com/products/veltos" target="_blank" rel="noopener">
+        <span class="press-logo"><img src="assets/logos/producthunt.svg" width="44" height="44" alt="" loading="lazy"><span class="press-name">Product Hunt</span></span>
+        <span class="press-text" data-i18n="press.ph.d">Upvote VeltOS on Product Hunt, follow it and join the discussion.</span>
+        <span class="press-go">producthunt.com<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+      </a>
+      <a class="card press-card reveal" href="https://sourceforge.net/projects/veltos/" target="_blank" rel="noopener">
+        <span class="press-logo"><img src="assets/logos/sourceforge.svg" width="50" height="44" alt="" loading="lazy"><span class="press-name">SourceForge</span></span>
+        <span class="press-text" data-i18n="press.sf.d">Download the ISO from SourceForge's mirrors, follow the project and write a review.</span>
+        <span class="press-go">sourceforge.net<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+      </a>
+      <a class="card press-card reveal" href="https://alternativeto.net/software/veltos/about/" target="_blank" rel="noopener">
+        <span class="press-logo"><img src="assets/logos/alternativeto.svg" width="44" height="44" alt="" loading="lazy"><span class="press-name">AlternativeTo</span></span>
+        <span class="press-text" data-i18n="press.at.d">Like VeltOS on AlternativeTo, compare it with its alternatives and leave a comment.</span>
+        <span class="press-go">alternativeto.net<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- FAQ ------------------------------------------------------------------- -->
-<section id="faq" class="section section-alt">
+<section id="faq" class="section">
   <div class="wrap narrow">
     <div class="section-head reveal">
       <p class="kicker" data-i18n="faq.kicker">FAQ</p>

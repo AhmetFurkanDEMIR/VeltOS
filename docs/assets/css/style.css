@@ -369,8 +369,9 @@ html[data-theme="dark"] .slides-stage .img-light, html[data-theme="light"] .slid
 .toast strong { color: var(--text); font-size: 15px; }
 .toast-btn {
   margin-top: 8px; padding: 7px 10px; border-radius: 7px; text-align: center; color: var(--text); font-weight: 600;
-  background: var(--surface-2); border: 1px solid var(--line);
+  background: var(--surface-2); border: 1px solid var(--line); transition: border-color .2s, background .2s;
 }
+.toast-btn:hover { color: var(--text); text-decoration: none; border-color: var(--accent); }
 .reveal:not(.visible) .toast { animation-play-state: paused; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 
@@ -409,6 +410,25 @@ html[data-theme="dark"] .slides-stage .img-light, html[data-theme="light"] .slid
 .reqs li strong { display: block; font-size: 14px; color: var(--muted); font-weight: 600; }
 .reqs li span { font-weight: 600; }
 .req-note { color: var(--soft); font-size: 14px; margin: 18px 0 0; }
+
+/* Around the web: five cards in a row, a short last row centred below 1200 px */
+.press-grid { --press-gap: 16px; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--press-gap); }
+.press-card {
+  flex: 0 1 calc((100% - 4 * var(--press-gap)) / 5); min-width: 0;
+  display: flex; flex-direction: column; gap: 14px; padding: 22px 20px; color: var(--text);
+}
+.press-card:hover { color: var(--text); text-decoration: none; }
+.press-logo { display: flex; align-items: center; gap: 10px; height: 56px; }
+.press-logo img { flex: none; width: auto; height: 40px; }
+.press-logo .press-badge { height: 56px; }
+.press-name { font-size: 18px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+.press-text { color: var(--muted); font-size: 15px; line-height: 1.55; }
+.press-go { margin-top: auto; display: inline-flex; align-items: center; gap: 6px; color: var(--accent-text); font-size: 14px; font-weight: 600; }
+.press-go svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s var(--ease); }
+.press-card:hover .press-go svg { transform: translate(2px, -2px); }
+@media (max-width: 1200px) { .press-card { flex-basis: calc((100% - 2 * var(--press-gap)) / 3); } }
+@media (max-width: 960px) { .press-card { flex-basis: calc((100% - var(--press-gap)) / 2); } }
+@media (max-width: 640px) { .press-card { flex-basis: 100%; } }
 
 /* FAQ */
 .faq { display: grid; gap: 12px; }
